@@ -1,0 +1,2 @@
+# Core runtime dependency used by the scripted simulator.
+PyYAML>=6.0

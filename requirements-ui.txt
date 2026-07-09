@@ -1,0 +1,3 @@
+# Optional local human-testing UI.
+fastapi>=0.110
+uvicorn>=0.29

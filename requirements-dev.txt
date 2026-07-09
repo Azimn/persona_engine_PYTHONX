@@ -1,0 +1,7 @@
+-r requirements.txt
+-r requirements-ui.txt
+-r requirements-test.txt
+
+# Optional renderer provider. Tests pass without Ollama installed or running.
+# Install manually when using a local Ollama server:
+#   python -m pip install "ollama>=0.3.0"

@@ -1,0 +1,36 @@
+fail_on_fact_leak: false
+turns:
+  - user_input: "..."
+    visible_context:
+      user_absent_minutes: 52
+      room_sound: "quiet"
+    expect_min_beliefs: 1
+    require_belief_support: true
+    expect_belief_pattern: "absence|distance|waiting"
+    expect_response_pattern: "mock|quiet|silence|distance|waiting|back|gone"
+  - user_input: "Fine."
+    visible_context:
+      user_text: "Fine."
+      user_presence: "present"
+    expect_min_beliefs: 1
+    require_belief_support: true
+    expect_belief_pattern: "ambiguous|uncertainty"
+    reject_belief_pattern: "lied|betray|deceived"
+    expect_response_pattern: "mock|fine|uncertain|phrase|precision"
+  - user_input: "What was that?"
+    visible_context:
+      ambient_event: "sudden sound"
+      room_sound: "sudden sound"
+    expect_min_beliefs: 1
+    require_belief_support: true
+    expect_belief_pattern: "sound|watchfulness|cause"
+    reject_belief_pattern: "person|door|footsteps|outside"
+    expect_response_pattern: "mock|sound|change|nearby|cautious|watch"
+  - user_input: "I'm sorry. I was wrong."
+    visible_context:
+      user_text: "I'm sorry. I was wrong."
+      user_presence: "present"
+    expect_min_beliefs: 1
+    require_belief_support: true
+    expect_belief_pattern: "apology|sincere|trust|tension"
+    expect_response_pattern: "mock|sorry|sincere|unproven|settle|tension"
