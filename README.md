@@ -162,6 +162,9 @@ Then configure cartridge `model_name` values to match locally available Ollama m
 
 ## More Docs
 
+- `AGENTS.md`
+- `persona_engine/docs/ARCHITECTURE_LOCK.md`
+- `persona_engine/docs/LAZARUS_MAPPING.md`
 - `persona_engine/docs/CURRENT_STATUS.md`
 - `persona_engine/docs/HUMAN_TESTING_UI.md`
 - `persona_engine/docs/HUMAN_TESTING_PROTOCOL.md`
