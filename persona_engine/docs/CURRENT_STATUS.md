@@ -10,7 +10,10 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Lived session persistence in SQLite.
 - Deterministic relationship, pressure, body, world, memory, intention, habit, symbol, belief-ledger, and interpretation systems.
 - World Authority for objective host, simulator, audio, vision, and action-resolution facts.
-- Interpretive beliefs grounded in visible facts.
+- Formalized interpretation layer with noncanonical, support-traced interpretive beliefs grounded in visible facts.
+- Mask suppression trace taxonomy for identity guard, expression envelope, resistance selector, output validator, renderer sanitizer, and memory firewall observability.
+- Deterministic Tide idle drift through pressure decay, energy/restlessness/body/world/sensorium coupling.
+- Long Sleep null consolidation checkpoints explicitly tested.
 - Renderer output treated as noncanonical speech evidence.
 - Replay/debug utilities for deterministic state inspection.
 - Mock-safe audio and vision observation endpoints.
@@ -28,10 +31,10 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-69 passed
+102 passed
 ```
 
-The simulator scripts for Pretorius, interpretation, and organism behavior are expected to pass with the mock renderer fallback.
+The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
 
 ## Known Limitations
 
@@ -42,6 +45,7 @@ The simulator scripts for Pretorius, interpretation, and organism behavior are e
 - No GPU support is required or tested.
 - No mobile-native app is implemented.
 - Ollama is optional and local-only when installed.
+- Tide drift is deterministic only; stochastic mood weather is not implemented.
 - The UI sensor controls are mock adapters.
 - Debug mode is read-only and intended for local developer inspection.
 - Autonomous behavior is limited to local engine idle hooks, not a full background agent runtime.

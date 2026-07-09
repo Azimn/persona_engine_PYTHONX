@@ -72,7 +72,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-92 passed
+102 passed
 ```
 
 ## Run Simulators

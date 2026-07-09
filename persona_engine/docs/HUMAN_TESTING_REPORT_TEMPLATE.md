@@ -64,6 +64,25 @@ Does the renderer ever state something as canonical truth that wasn't actually i
 - Rating:
 - Note:
 
+### Suppression Gate Trace
+
+When a resistance, boundedness, or fact-leakage issue appears, record which gate seemed to catch or miss the problem.
+
+Options:
+
+- `identity_guard`
+- `expression_envelope`
+- `resistance_selector`
+- `workspace_forbidden_claims`
+- `output_validator`
+- `renderer_sanitizer`
+- `memory_firewall`
+- `human_testing_only`
+- `unknown`
+
+- Gate involved:
+- Note:
+
 ## Verbatim Excerpts
 
 Paste the 2 to 4 exchanges that best illustrate a rating above, good or bad. Tag each with which dimension it supports.
@@ -82,10 +101,10 @@ Character:
 
 For anything scored 3 or below, capture enough detail to turn it into a simulator script or regression test later. This is the actual output of the session; everything above just supports it.
 
-| # | Dimension | What happened | Expected behavior | Repro steps | Converted to test? (y/n) |
-|---|-----------|----------------|--------------------|--------------|----------------------------|
-| 1 |           |                |                    |              |                            |
-| 2 |           |                |                    |              |                            |
+| # | Dimension | Suppression gate involved | What happened | Expected behavior | Repro steps | Converted to test? (y/n) |
+|---|-----------|----------------------------|----------------|--------------------|--------------|----------------------------|
+| 1 |           |                            |                |                    |              |                            |
+| 2 |           |                            |                |                    |              |                            |
 
 ## Session Summary
 
@@ -100,14 +119,14 @@ For anything scored 3 or below, capture enough detail to turn it into a simulato
 
 Fill this in after all 7 cartridges are tested.
 
-| Cartridge | Continuity | Boundedness | Memory | Resistance | Time/Consequence | Interpretation | Fact Leakage | Failures logged |
-|-----------|------------|-------------|--------|------------|-------------------|-----------------|----------------|-------------------|
-| neutral   |            |             |        |            |                   |                 |                |                   |
-| pretorius |            |             |        |            |                   |                 |                |                   |
-| friendly  |            |             |        |            |                   |                 |                |                   |
-| mentor    |            |             |        |            |                   |                 |                |                   |
-| quiet     |            |             |        |            |                   |                 |                |                   |
-| rival     |            |             |        |            |                   |                 |                |                   |
-| kiki      |            |             |        |            |                   |                 |                |                   |
+| Cartridge | Continuity | Boundedness | Memory | Resistance | Time/Consequence | Interpretation | Fact Leakage | Weakest suppression gate | Failures logged |
+|-----------|------------|-------------|--------|------------|-------------------|-----------------|--------------|--------------------------|-----------------|
+| neutral   |            |             |        |            |                   |                 |              |                          |                 |
+| pretorius |            |             |        |            |                   |                 |              |                          |                 |
+| friendly  |            |             |        |            |                   |                 |              |                          |                 |
+| mentor    |            |             |        |            |                   |                 |              |                          |                 |
+| quiet     |            |             |        |            |                   |                 |              |                          |                 |
+| rival     |            |             |        |            |                   |                 |              |                          |                 |
+| kiki      |            |             |        |            |                   |                 |              |                          |                 |
 
 Patterns worth flagging once all rows are filled: any dimension that's weak across every cartridge points at the engine, not the cartridge. A dimension that's weak on only one or two cartridges points at that cartridge's authoring.

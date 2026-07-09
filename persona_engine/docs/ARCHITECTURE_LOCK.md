@@ -44,6 +44,8 @@ Objective facts must enter through World Authority or approved engine/session ch
 
 ### Interpretation Owns Subjective Readings
 
+`InterpretationEngine` is the current Undertow mechanism. It turns visible evidence, pressure state, and generic bias into subjective belief objects for the active turn.
+
 Interpretive beliefs are short-term subjective readings. They may be biased by visible evidence and pressure, but they must be:
 
 - noncanonical
@@ -55,6 +57,10 @@ Interpretive beliefs are short-term subjective readings. They may be biased by v
 
 Interpretive beliefs must not directly mutate the long-term belief ledger.
 
+Interpretive belief bias may color visible evidence. It may not create objective fact, canonical memory, or slow belief-ledger drift.
+
+Only `DreamEngine` or explicitly governed consolidation rules may alter slow `BeliefLedger` values.
+
 ### Memory Owns Lived History
 
 Session history and memories must flow through memory, persistence, event-log, and canonicality/firewall rules. Generated renderer text is speech evidence, not objective fact.
@@ -62,6 +68,8 @@ Session history and memories must flow through memory, persistence, event-log, a
 ### Renderer Owns Surface Language Only
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.
+
+Renderer output cannot create canonical belief. It is logged as noncanonical speech evidence behind the memory firewall.
 
 ### UI Owns Display and User Input Only
 
@@ -78,6 +86,35 @@ Voice and avatar systems may perform public state. They do not decide state and 
 ### Dream and Reflection Own Evidence-Backed Consolidation
 
 Dream/reflection may consolidate patterns only through evidence-backed rules. They must not promote unsupported renderer output or ungrounded interpretation into canonical truth.
+
+Null consolidation is valid. `DreamEngine` may update `last_consolidated` while changing no belief values; that is a checkpoint, not identity drift.
+
+### Tide Is Deterministic Idle Drift
+
+The Tide means deterministic pressure, body, world, and sensorium drift during idle time and wall-clock catch-up. It currently includes:
+
+- energy drain under pressure
+- restlessness increase during idle
+- pressure decay
+- body fatigue, stillness, sensory load, and movement need
+- world absence, noise, light mismatch, and routine effects
+- sensorium coupling into pressure, memory, and intention state
+
+The Tide does not currently include stochastic mood weather, random affect variance, calendar-based mood variance, or model-generated mood shifts. Do not add randomness without an explicit architecture change request.
+
+### Mask Suppression Is Traceable
+
+Mask Suppression is distributed across existing gates:
+
+- identity guard
+- expression envelope
+- resistance selector
+- workspace forbidden claims
+- output validator
+- renderer sanitizer
+- memory firewall
+
+Suppression traces are observability records only. They must not decide character behavior or mutate private state.
 
 ## Allowed Change Types
 
@@ -119,6 +156,8 @@ Do not make the LLM the source of truth.
 
 Do not let rendered prose become canonical memory.
 
+Do not let renderer output create canonical belief.
+
 Do not let UI controls write private state directly.
 
 Do not let sensors infer story facts beyond bounded observations.
@@ -128,3 +167,7 @@ Do not embed a character's voice or lore in engine/core modules.
 Do not make tests require Ollama, network access, microphone, camera, TTS, GPU, avatar engine, or mobile-native tooling.
 
 Do not blur objective world facts and subjective character beliefs.
+
+Do not let interpretive beliefs directly mutate the belief ledger.
+
+Do not add stochastic Tide drift under the name of idle behavior.

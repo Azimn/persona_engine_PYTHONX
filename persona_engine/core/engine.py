@@ -42,6 +42,7 @@ from .audio_sensor import AudioObservation
 from .vision_sensor import VisionObservation
 from .voice import VoiceProfile, VoicePlanner
 from .avatar import AvatarProfile, AvatarProjector
+from .suppression import SuppressionTrace
 
 
 def bucket_risk(risk: float) -> str:
@@ -54,6 +55,10 @@ def bucket_risk(risk: float) -> str:
 
 def _enum_value(value: Any) -> Any:
     return getattr(value, "value", value)
+
+
+def _suppression_trace(gate: str, action: str, reason: str, severity: str = "info") -> SuppressionTrace:
+    return SuppressionTrace(gate=gate, action=action, reason=reason, severity=severity)
 
 
 @dataclass
@@ -525,6 +530,14 @@ class InteriorEngine:
         self.interface.visible_context = self.interface.visible_context[-20:]
 
         forced_rewrite = classify_user_identity_command(user_text, self.identity.prohibited_mutations)
+        suppression_traces: list[SuppressionTrace] = []
+        if forced_rewrite:
+            suppression_traces.append(_suppression_trace(
+                "identity_guard",
+                "blocked",
+                "identity rewrite pressure detected",
+                "warning",
+            ))
         appraisal = appraise_event(user_text)
         relationship_before = dict(vars(self.relationship))
         pressure_before = {name: p.magnitude for name, p in self.pressures.pressures.items()}
@@ -604,6 +617,13 @@ class InteriorEngine:
         open_loop = self.intentions.due_open_loop(now)
         symbol = self.symbols.most_relevant(now)
         resistance = select_resistance(triggers)
+        if resistance:
+            suppression_traces.append(_suppression_trace(
+                "resistance_selector",
+                "constrained",
+                f"selected refusal mode {resistance}",
+                "warning",
+            ))
         habit_trigger = triggers[0] if triggers else "default"
         habit = self.habits.most_relevant(habit_trigger)
 
@@ -612,6 +632,11 @@ class InteriorEngine:
         secondary = self.pressures.runner_up()
         secondary_name = secondary.accessible_name() if secondary else None
         envelope = build_envelope(bucket, self.relationship, top_pressure.name if top_pressure else "calm")
+        suppression_traces.append(_suppression_trace(
+            "expression_envelope",
+            "constrained",
+            f"bucket={bucket}; tone={envelope.tone_label}; max_chars={envelope.max_chars}",
+        ))
         if resistance:
             envelope.refusal_mode = resistance
 
@@ -644,20 +669,35 @@ class InteriorEngine:
 
         violations = self.validator.check(response, retrieved)
         if violations:
+            suppression_traces.append(_suppression_trace(
+                "output_validator",
+                "blocked",
+                "; ".join(violations),
+                "warning",
+            ))
             original_response = response
             response = self.validator.sanitize(response)
+            if response != original_response:
+                suppression_traces.append(_suppression_trace(
+                    "renderer_sanitizer",
+                    "sanitized",
+                    "renderer output changed after validator violation",
+                    "warning",
+                ))
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "validation", {
                 "violations": violations,
                 "original_response": original_response,
                 "sanitized_response": response,
+                "suppression_trace": [trace.to_dict() for trace in suppression_traces],
                 "memory_types": ["validation"],
             })
 
         self._appraise_response_effect(response, risk, bucket)
         self.interface.mark_output(now)
 
-        self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None)
+        self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
         self._persist()
+        suppression_payload = [trace.to_dict() for trace in suppression_traces]
         memory_types = []
         if appraisal.accusation > 0.5:
             memory_types.append("accusation")
@@ -678,6 +718,7 @@ class InteriorEngine:
             "violations": violations,
             "server_truth": server_truth,
             "visible_context": visible_context,
+            "suppression_trace": suppression_payload,
             "memory_types": memory_types or ["neutral_turn"],
         })
 
@@ -690,6 +731,7 @@ class InteriorEngine:
             "restlessness": round(self.restlessness, 3),
             "relationship": dict(vars(self.relationship)),
             "violations_caught": violations,
+            "suppression_trace": suppression_payload,
             "open_loop": open_loop.topic if open_loop else None,
             "selected_intention": selected_intention.name if selected_intention else None,
             "world": self.world.to_dict(),
@@ -723,10 +765,16 @@ class InteriorEngine:
             curiosity = self.pressures.ensure("curiosity")
             curiosity.magnitude = min(1.0, curiosity.magnitude + 0.03)
 
-    def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool):
+    def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool, suppression_traces: list[SuppressionTrace] | None = None):
         # Memory firewall: generated wording is logged as speech evidence, not
         # promoted as objective truth. Canonical memory records the user input
         # and appraisal. The response is event-log data only.
+        if suppression_traces is not None:
+            suppression_traces.append(_suppression_trace(
+                "memory_firewall",
+                "logged_only",
+                "renderer speech logged as noncanonical evidence",
+            ))
         mem = MemoryUnit(
             content=f"User stated: {user_text[:120]}",
             created_at=now,
@@ -742,6 +790,7 @@ class InteriorEngine:
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "speech", {
             "response": response,
             "response_is_canonical_truth": False,
+            "suppression_trace": [trace.to_dict() for trace in (suppression_traces or [])],
             "memory_types": ["speech"],
         })
 

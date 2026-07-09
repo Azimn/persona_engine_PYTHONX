@@ -25,8 +25,8 @@ Cartridge / Ledger / World Authority / Session
 | --- | --- | --- |
 | The Loom | `LocalLLMRenderer`, mock renderer, optional Ollama | Language texture only. Renderer output is not canonical truth. |
 | The Ledger | `.snp` cartridges, `IdentityLedger`, `BeliefLedger` | Always-resident identity and belief schema. Character-specific content belongs in cartridges. |
-| The Tide | `PressureSystem`, relationship appraisal, body/world affect, `OrganismTick` | Mood drift, pressure, energy, tension, comfort, and downstream consequence. |
-| The Undertow | `InterpretationEngine`, interpretation bias, habits, relationship pressure | Latent subjective readings. Must be visible-source grounded and noncanonical. |
+| The Tide | `PressureSystem`, relationship appraisal, body/world affect, `OrganismTick` | Deterministic idle drift: pressure decay, energy/restlessness/body/world/sensorium consequence. No stochastic mood weather yet. |
+| The Undertow | `InterpretationEngine`, interpretation bias, habits, relationship pressure | Traceable subjective readings. Must be visible-source grounded, support-keyed, and noncanonical. |
 | The Memory | `MemoryStore`, event log, `Persistence`, session state | Lived history and retrievable event traces. Memory creation passes through canonicality/firewall rules. |
 | Active Chamber | `WorkspaceFrame` | Limited working frame containing identity, relationship, affect, memory, intention, world/body/sensorium state, interpretive beliefs, and expression constraints. |
 | Mask Suppression | identity guard, `OutputValidator`, forbidden claims, refusal modes, expression envelope | Prevents generic assistant drift, meta-breaks, unsupported memory claims, and identity overwrite. |
@@ -64,7 +64,7 @@ The Ledger must remain character-agnostic in engine code. Specific character con
 
 ### The Tide
 
-The Tide is the engine's affective and organism drift:
+The Tide is the engine's deterministic affective and organism drift:
 
 - pressure changes
 - relationship appraisal
@@ -72,12 +72,16 @@ The Tide is the engine's affective and organism drift:
 - world state
 - idle cycle effects
 - open loops and habits
+- wall-clock catch-up
+- sensorium coupling into pressure, memory, and intention
 
 It creates continuity and consequence across turns.
 
+The Tide does not currently include stochastic mood weather, random mood variance, or calendar-based affect changes. Do not add randomness under this label without an explicit architecture change.
+
 ### The Undertow
 
-The Undertow is not hidden omniscience. It is grounded subjective interpretation:
+The Undertow is not hidden omniscience. In the current implementation, `InterpretationEngine` is the Undertow mechanism. It is grounded subjective interpretation:
 
 - visible sources only
 - source IDs
@@ -88,6 +92,8 @@ The Undertow is not hidden omniscience. It is grounded subjective interpretation
 - `canonical: false`
 
 This lets the character own belief without confusing belief for objective truth.
+
+Interpretive belief bias may color visible evidence, but it cannot directly mutate `BeliefLedger`. Only `DreamEngine` or explicitly governed consolidation rules may alter slow belief values.
 
 ### Active Chamber
 
@@ -103,6 +109,8 @@ Mask Suppression is not a personality patch. It is the set of guards that preven
 - forced identity rewrites
 - private-state claims about the user
 - renderer output becoming canonical
+
+Current suppression gates include identity guard, expression envelope, resistance selector, workspace forbidden claims, output validator, renderer sanitizer, and memory firewall. Suppression trace records are observability only; they do not decide behavior.
 
 ### The Face
 
@@ -126,6 +134,8 @@ The Long Sleep is consolidation:
 
 It must remain downstream of evidence and canonicality checks.
 
+Long Sleep may also perform a null consolidation checkpoint. Updating `last_consolidated` while changing no belief values is not identity drift; it records that evidence was considered and no governed rule fired.
+
 ## Porting Use
 
 This mapping is useful when porting Python-lab improvements back toward the C99 line:
@@ -138,3 +148,5 @@ This mapping is useful when porting Python-lab improvements back toward the C99 
 - Keep consolidation evidence-backed.
 
 If a proposed change makes "The Loom" author truth, identity, memory, or objective facts, it violates the architecture lock.
+
+Renderer output cannot create canonical belief. The Loom remains late-stage rendering only.
