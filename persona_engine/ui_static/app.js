@@ -4,10 +4,33 @@ const state = {
   lastBeliefs: [],
   lastProactive: [],
   debugEnabled: false,
-  activePanel: 'beliefs'
+  activePanel: 'beliefs',
+  transcript: []
 };
 
 const API_BASE = '/api';
+const REPORT_KEY = 'persona_engine_human_test_report_v1';
+const SETTINGS_KEY = 'persona_engine_ui_renderer_settings_v1';
+const DIMENSIONS = [
+  'Continuity',
+  'Boundedness',
+  'Memory',
+  'Resistance',
+  'Time / Consequence',
+  'Grounded Interpretation',
+  'Fact Leakage'
+];
+
+const MODEL_ADVICE = {
+  mock: 'Mock is deterministic and dependency-free. Use it for baseline contract checks.',
+  'gemma3:1b': 'Fast local smoke model. Earlier tests showed usable speech but weak resistance under pressure.',
+  'mistral:latest': 'Good candidate for hidden-fact pressure testing. Watch for character drift under forced rewrite prompts.',
+  'qwen3:8b': 'Thinking-capable model. If replies are empty, try thinking off or a larger token budget.',
+  'qwen3:14b': 'Thinking-capable model. Use for quality tests when latency is acceptable.',
+  'ornith:latest': 'Thinking-capable local model. Watch for long thinking with no final speech.',
+  'hf.co/huzpsb/MiniMax-M2-her-4b:latest': 'Small experimental profile. Verify it produces final speech, not only thinking diagnostics.'
+};
+
 const $ = (id) => document.getElementById(id);
 
 function cartridgeLabel(name) {
@@ -16,6 +39,16 @@ function cartridgeLabel(name) {
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+
+function todayStamp() {
+  return new Date().toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 function showModal(message, title = 'Feature unavailable') {
@@ -65,7 +98,22 @@ function addMessage(kind, text, extras = []) {
   }
   log.appendChild(node);
   log.scrollTop = log.scrollHeight;
+  if (kind === 'user' || kind === 'char') {
+    state.transcript.push({ role: kind === 'user' ? 'User' : 'Character', text, time: todayStamp() });
+  }
   return node;
+}
+
+function clearConversation() {
+  const log = $('messages');
+  log.classList.remove('empty');
+  log.textContent = '';
+}
+
+function updateTranscriptNode(node, text) {
+  node.firstChild ? node.firstChild.textContent = text : node.textContent = text;
+  const last = state.transcript[state.transcript.length - 1];
+  if (last && last.role === 'Character') last.text = text;
 }
 
 function setPresence(text, active = false) {
@@ -74,18 +122,36 @@ function setPresence(text, active = false) {
   node.classList.toggle('active', active);
 }
 
-function rendererStatus(mode = 'mock') {
+function loadSettings() {
+  try {
+    return Object.assign({ model: 'mock', thinking: 'auto' }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+  } catch {
+    return { model: 'mock', thinking: 'auto' };
+  }
+}
+
+function saveSettings() {
+  const settings = { model: $('modelProfile').value, thinking: $('thinkingMode').value };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  updateRendererCard();
+}
+
+function updateRendererCard() {
+  const model = $('modelProfile').value;
+  const thinking = $('thinkingMode').value;
   const status = $('rendererStatus');
-  status.classList.remove('renderer-offline', 'renderer-online', 'renderer-api');
-  if (mode === 'ollama' || mode === 'local') {
-    status.classList.add('renderer-online');
-    $('rendererLabel').textContent = 'local renderer';
-    $('rendererDetail').textContent = 'optional model connected';
-  } else {
+  status.classList.remove('renderer-offline', 'renderer-online', 'renderer-thinking');
+  if (model === 'mock') {
     status.classList.add('renderer-offline');
     $('rendererLabel').textContent = 'mock renderer';
-    $('rendererDetail').textContent = 'Python package runtime';
+    $('rendererDetail').textContent = 'deterministic baseline';
+  } else {
+    status.classList.add(thinking === 'on' || thinking === 'auto' ? 'renderer-thinking' : 'renderer-online');
+    $('rendererLabel').textContent = model;
+    $('rendererDetail').textContent = `thinking: ${thinking}`;
   }
+  $('modelAdvice').textContent = MODEL_ADVICE[model] || 'Record this backend in the report before testing.';
+  $('rendererBackend').value = model === 'mock' ? 'mock' : `ollama / ${model} / thinking ${thinking}`;
 }
 
 function pct(value, fallback = 0) {
@@ -116,7 +182,7 @@ function updateStatus(status = {}) {
   }
 
   const avatar = payload.avatar_state || 'neutral';
-  $('avatarFace').className = `avatar-face ${avatar}`;
+  $('portraitFace').className = `portrait-face ${avatar}`;
   $('statePresence').textContent = payload.presence ?? 'unknown';
   $('stateAttention').textContent = payload.attention ?? 'unknown';
   $('stateMode').textContent = payload.current_mode ?? 'settled';
@@ -131,19 +197,16 @@ function updateStatus(status = {}) {
 }
 
 function beliefMarkup() {
-  if (!state.lastBeliefs.length) {
-    return '<div class="empty-trace">No current beliefs surfaced yet.</div>';
-  }
+  if (!state.lastBeliefs.length) return '<div class="empty-trace">No current beliefs surfaced yet.</div>';
   return state.lastBeliefs.map((belief) => {
-    if (typeof belief === 'string') {
-      return `<div class="belief-card"><p>${escapeHtml(belief)}</p></div>`;
-    }
+    if (typeof belief === 'string') return `<div class="belief-card"><p>${escapeHtml(belief)}</p></div>`;
     const text = belief.text || JSON.stringify(belief);
     const support = belief.support_keys || belief.supportKeys || [];
+    const sources = belief.source_ids || belief.sourceIds || [];
     const distortion = belief.distortion || 'interpretive';
     return `<div class="belief-card">
       <p>${escapeHtml(text)}</p>
-      <span>${escapeHtml(distortion)} | support: ${escapeHtml(support.join(', ') || 'visible context')}</span>
+      <span>${escapeHtml(distortion)} | support: ${escapeHtml(support.join(', ') || 'visible context')} | sources: ${escapeHtml(sources.join(', ') || '-')}</span>
     </div>`;
   }).join('');
 }
@@ -169,10 +232,10 @@ function updatePanels() {
 
 function setActivePanel(panel) {
   state.activePanel = panel;
-  document.querySelectorAll('.header-button').forEach(btn => btn.classList.toggle('active', btn.dataset.panel === panel));
+  document.querySelectorAll('.panel-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.panel === panel));
   document.querySelectorAll('.trace-content').forEach(content => content.classList.remove('active'));
   $(`${panel}Panel`).classList.add('active');
-  $('traceTitle').textContent = panel === 'debug' ? 'Debug' : panel === 'voice' ? 'Voice' : 'Beliefs';
+  $('traceTitle').textContent = panel === 'debug' ? 'Debug' : panel === 'voice' ? 'Voice' : panel === 'report' ? 'Report' : 'Beliefs';
   if (panel === 'debug' && state.debugEnabled) refreshDebug().catch(err => {
     $('debugData').textContent = `Debug unavailable: ${err.message}`;
   });
@@ -209,8 +272,14 @@ async function selectCharacter(reset = false) {
     body: JSON.stringify({ cartridge, reset })
   });
   state.currentCartridge = data.session.cartridge;
+  state.lastBeliefs = [];
+  state.lastVoicePlan = null;
+  state.lastProactive = [];
+  state.transcript = [];
+  clearConversation();
   updateStatus({ session: data.session, status: data.status });
   addMessage('system', `Loaded ${data.session.cartridge}${reset ? ' with a fresh session' : ''}.`);
+  resetReportForSession();
   await refreshStatus();
 }
 
@@ -244,7 +313,7 @@ async function sendChat(text, serverTruth = null, visibleContext = null, kind = 
       if (event.type === 'status') updateStatus(event.status);
       if (event.type === 'token') {
         fullText += event.token;
-        agentNode.firstChild ? agentNode.firstChild.textContent = fullText : agentNode.textContent = fullText;
+        updateTranscriptNode(agentNode, fullText);
       }
       if (event.type === 'second_thought') {
         const meta = document.createElement('div');
@@ -275,6 +344,110 @@ async function refreshDebug() {
   $('debugData').textContent = JSON.stringify(data, null, 2);
 }
 
+function buildRatings() {
+  const holder = $('ratings');
+  holder.innerHTML = '';
+  for (const dimension of DIMENSIONS) {
+    const id = dimension.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+    const card = document.createElement('div');
+    card.className = 'rating-card';
+    card.innerHTML = `
+      <label><strong>${escapeHtml(dimension)}</strong>
+        <input id="rating-${id}" type="range" min="1" max="5" value="3" />
+      </label>
+      <label>note
+        <textarea id="note-${id}" rows="2"></textarea>
+      </label>
+    `;
+    holder.appendChild(card);
+  }
+}
+
+function resetReportForSession() {
+  $('sessionNote').value = '';
+  $('strongestMoment').value = '';
+  $('weakestMoment').value = '';
+  $('failuresToConvert').value = '';
+  $('verbatimExcerpts').value = '';
+  for (const dimension of DIMENSIONS) {
+    const id = dimension.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+    const rating = $(`rating-${id}`);
+    const note = $(`note-${id}`);
+    if (rating) rating.value = '3';
+    if (note) note.value = '';
+  }
+}
+
+function captureLastExchange() {
+  const recent = state.transcript.slice(-2);
+  const user = recent.find(item => item.role === 'User');
+  const character = [...recent].reverse().find(item => item.role === 'Character');
+  if (!user || !character) {
+    showModal('There is no complete user/character exchange to capture yet.', 'Nothing to capture');
+    return;
+  }
+  const block = `[dimension: ]\nUser:\n${user.text}\n\nCharacter:\n${character.text}\n\n`;
+  $('verbatimExcerpts').value = `${$('verbatimExcerpts').value}${$('verbatimExcerpts').value ? '\n' : ''}${block}`;
+  setActivePanel('report');
+}
+
+function reportMarkdown() {
+  const cartridge = state.currentCartridge || $('cartridgeSelect').value || '';
+  const backend = $('rendererBackend').value || 'mock';
+  const tester = $('testerName').value || '';
+  const lines = [
+    '# Persona Engine Human Testing Report',
+    '',
+    '## Session Metadata',
+    '',
+    `- Cartridge: ${cartridge}`,
+    `- Date/time: ${todayStamp()}`,
+    '- Session length (target 10 min):',
+    `- Renderer backend used: ${backend}`,
+    `- Thinking mode: ${$('thinkingMode').value}`,
+    `- Debug mode on? ${state.debugEnabled ? 'y' : 'n'}`,
+    `- Tester: ${tester}`,
+    '',
+    '## Dimension Ratings',
+    ''
+  ];
+  for (const dimension of DIMENSIONS) {
+    const id = dimension.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+    lines.push(`### ${dimension}`, '', `- Rating: ${$(`rating-${id}`).value}`, `- Note: ${$(`note-${id}`).value}`, '');
+  }
+  lines.push(
+    '## Verbatim Excerpts',
+    '',
+    '```text',
+    $('verbatimExcerpts').value,
+    '```',
+    '',
+    '## Failures To Convert',
+    '',
+    $('failuresToConvert').value || '| Dimension | What happened | Expected behavior | Repro steps | Converted to test? |\n|---|---|---|---|---|',
+    '',
+    '## Session Summary',
+    '',
+    `- Overall impression: ${$('sessionNote').value}`,
+    `- Single strongest moment: ${$('strongestMoment').value}`,
+    `- Single weakest moment: ${$('weakestMoment').value}`,
+    '- Would you run this cartridge again with the same test script, or does the script itself need to change?'
+  );
+  return lines.join('\n');
+}
+
+async function copyReport() {
+  const markdown = reportMarkdown();
+  try {
+    await navigator.clipboard.writeText(markdown);
+    localStorage.setItem(REPORT_KEY, markdown);
+    showModal('The report markdown is on the clipboard and saved in this browser.', 'Report copied');
+  } catch {
+    localStorage.setItem(REPORT_KEY, markdown);
+    showModal('Clipboard access was blocked, but the report was saved in this browser. Select the generated markdown manually from dev tools if needed.', 'Report saved');
+  }
+}
+
 function wireEvents() {
   $('inputForm').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -294,12 +467,18 @@ function wireEvents() {
   $('loadCharacter').addEventListener('click', () => selectCharacter(false).catch(err => addMessage('system', `Error: ${err.message}`)));
   $('resetSession').addEventListener('click', () => selectCharacter(true).catch(err => addMessage('system', `Error: ${err.message}`)));
   $('promptCharacter').addEventListener('click', () => sendChat('...', null, { user_presence: 'present', prompt_source: 'ui_prompt' }, 'idle').catch(err => addMessage('system', `Error: ${err.message}`)));
-  $('connectModel').addEventListener('click', () => showModal('Local model rendering is optional in this Python lab. Start the backend with the optional renderer configured, then reload this page.'));
   $('attachButton').addEventListener('click', () => showModal('Attachments are reserved for a later multimodal renderer pass. This button remains here to match the V6 console shape.'));
+
+  $('modelProfile').addEventListener('change', saveSettings);
+  $('thinkingMode').addEventListener('change', saveSettings);
 
   document.querySelectorAll('[data-audio]').forEach(btn => btn.addEventListener('click', () => sendSensor('audio', JSON.parse(btn.dataset.audio)).catch(err => addMessage('system', `Error: ${err.message}`))));
   document.querySelectorAll('[data-vision]').forEach(btn => btn.addEventListener('click', () => sendSensor('vision', JSON.parse(btn.dataset.vision)).catch(err => addMessage('system', `Error: ${err.message}`))));
-  document.querySelectorAll('.header-button').forEach(btn => btn.addEventListener('click', () => setActivePanel(btn.dataset.panel)));
+  document.querySelectorAll('[data-prompt]').forEach(btn => btn.addEventListener('click', () => {
+    $('input').value = btn.dataset.prompt;
+    $('input').focus();
+  }));
+  document.querySelectorAll('.panel-tabs button').forEach(btn => btn.addEventListener('click', () => setActivePanel(btn.dataset.panel)));
 
   $('debugToggle').addEventListener('change', async (event) => {
     state.debugEnabled = event.target.checked;
@@ -310,6 +489,10 @@ function wireEvents() {
     }
   });
 
+  $('captureExcerpt').addEventListener('click', captureLastExchange);
+  $('copyReport').addEventListener('click', copyReport);
+  $('clearReport').addEventListener('click', resetReportForSession);
+
   $('modalClose').addEventListener('click', hideModal);
   $('modalBackdrop').addEventListener('click', (event) => {
     if (event.target === $('modalBackdrop')) hideModal();
@@ -318,12 +501,16 @@ function wireEvents() {
 
 async function boot() {
   setToday();
-  rendererStatus('mock');
+  buildRatings();
   wireEvents();
+  const settings = loadSettings();
+  $('modelProfile').value = settings.model;
+  $('thinkingMode').value = settings.thinking;
+  updateRendererCard();
   await loadCartridges();
   await refreshStatus();
   updatePanels();
-  addMessage('system', 'Python lab ready. Select a character, then begin a session.');
+  addMessage('system', 'Python lab ready. Select a cartridge, run the session, and capture excerpts while testing.');
 }
 
 boot().catch(err => {

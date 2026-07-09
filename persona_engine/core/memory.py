@@ -38,6 +38,44 @@ class MemoryUnit:
     compressed: bool = False
 
 
+def first_person_memory_content(content: str) -> str:
+    """Return memory text in the character's first-person record style."""
+
+    text = str(content or "").strip()
+    if not text:
+        return "I noticed something, but the detail is unavailable."
+    lowered = text.lower()
+    if lowered.startswith(("i ", "i'", "i.", "i:", "my ", "we ")):
+        return text
+    if lowered.startswith("user stated:"):
+        return "I heard you say:" + text.split(":", 1)[1]
+    if lowered.startswith("user mentioned "):
+        return "I heard you mention " + text[len("User mentioned "):]
+    if lowered.startswith("user accused "):
+        return "I heard an accusation: " + text[len("User accused "):]
+    if lowered.startswith("user made "):
+        return "I noticed you made " + text[len("User made "):]
+    if lowered.startswith("[sensorium]"):
+        detail = text.split("]", 1)[1].strip()
+        if ":" in detail:
+            kind, value = [part.strip() for part in detail.split(":", 1)]
+            if kind == "body_state":
+                return f"I noticed my body state: {value}"
+            if kind == "movement_need":
+                return f"I felt a need to move: {value}"
+            if kind == "sensory_load":
+                return f"I felt sensory load: {value}"
+            if kind == "user_absence":
+                return f"I noticed your absence: {value}"
+            if kind == "ambient_event":
+                return f"I noticed an ambient event: {value}"
+            return f"I noticed {kind}: {value}"
+        return f"I noticed {detail}"
+    if lowered.startswith("[reflection]"):
+        return "I formed a reflection:" + text.split("]", 1)[1]
+    return text
+
+
 _SYNONYM_GROUPS = [
     {"sad", "upset", "hurt", "down", "depressed", "miserable", "unhappy", "low"},
     {"angry", "mad", "furious", "irritated", "annoyed", "resentful"},
@@ -120,6 +158,7 @@ class MemoryStore:
         self.memories: List[MemoryUnit] = []
 
     def add(self, mem: MemoryUnit):
+        mem.content = first_person_memory_content(mem.content)
         if any(existing.id == mem.id for existing in self.memories):
             return
         self.memories.append(mem)

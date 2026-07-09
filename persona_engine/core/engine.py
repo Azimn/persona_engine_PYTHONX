@@ -308,7 +308,7 @@ class InteriorEngine:
             self.ledger.propose_trait_update("reflective_pattern", 0.05, candidate.source_memory_ids)
             self.ledger.set_relationship_belief(self.user_id, "recent_reflection", candidate.claim)
             self.memory.add(MemoryUnit(
-                content=f"[reflection] {candidate.claim}",
+                content=f"I formed a reflection: {candidate.claim}",
                 created_at=now,
                 source=KnowledgeSource.REFLECTION,
                 emotional_intensity=0.35,
@@ -776,7 +776,7 @@ class InteriorEngine:
                 "renderer speech logged as noncanonical evidence",
             ))
         mem = MemoryUnit(
-            content=f"User stated: {user_text[:120]}",
+            content=f"I heard you say: {user_text[:120]}",
             created_at=now,
             emotional_valence=-0.3 if risk > 0.6 else 0.2,
             emotional_intensity=max(risk, appraisal.accusation, appraisal.threat, appraisal.boundary_violation),

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PersonaConsole Python Lab</title>
+<style>
+:root{--bg:#0f1012;--panel:#191a1e;--panel2:#222329;--border:#303137;--text:#f0eee9;--muted:#a7a49e;--accent:#d4a574}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:44px 22px 64px}
+header{margin-bottom:28px}
+h1{font-size:34px;margin:0 0 8px;color:var(--accent)}
+h2{font-size:22px;margin:0 0 8px}
+p{color:var(--muted);margin:0}
+.hero{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:18px}
+.primary{display:inline-block;margin:18px 10px 0 0;background:var(--accent);color:#16120d;text-decoration:none;border-radius:8px;padding:12px 16px;font-weight:700}
+.secondary{display:inline-block;margin-top:18px;color:var(--text);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:11px 14px}
+.secondary:hover{border-color:var(--accent)}
+.note{margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:#141519;color:var(--muted)}
+.steps{display:grid;gap:10px;margin-top:16px}
+.step{padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:#141519}
+.step b{color:var(--text)}
+.step p{margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.card{display:block;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;color:inherit;text-decoration:none}
+.card:hover{background:var(--panel2);border-color:var(--accent)}
+.card strong{display:block;margin-bottom:5px}
+.card span{color:var(--muted);font-size:14px}
+details{margin-top:18px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;color:var(--muted)}
+summary{cursor:pointer;color:var(--text)}
+code{color:var(--accent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+ol{margin:10px 0 0;padding-left:20px}
+li{margin:5px 0}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>PersonaConsole Python Lab</h1>
+    <p>Shape and human-test the Persona Engine before selected polish is ported back toward the low-hardware C99/P99 console line.</p>
+  </header>
+
+  <section class="hero">
+    <h2>Start Human Testing</h2>
+    <p>The console page works after the local Python UI server is running.</p>
+    <div class="steps">
+      <div class="step">
+        <b>1. Start the local server</b>
+        <p>From this repository, run <code>persona-engine-ui</code> or start Uvicorn with the package entry point.</p>
+      </div>
+      <div class="step">
+        <b>2. Open the human-test console</b>
+        <p>Open <code>http://127.0.0.1:8012/</code>, choose a cartridge, run the session, and capture the report while the exchange is fresh.</p>
+      </div>
+    </div>
+    <a class="primary" href="/">Open Human Test Console</a>
+    <a class="secondary" href="/api/cartridges">View Cartridges</a>
+    <p class="note">The Python lab can use mock rendering for baseline testing or optional local Ollama models for realistic reply testing. Renderer output is not canonical truth.</p>
+  </section>
+
+  <section class="grid">
+    <a class="card" href="/"><strong>Run A Cartridge Session</strong><span>Chat, inspect beliefs, capture excerpts, and export a report.</span></a>
+    <a class="card" href="/api/status"><strong>Inspect Public Status</strong><span>Read categorical public organism state only.</span></a>
+    <a class="card" href="/api/proactive"><strong>Check Proposals</strong><span>View read-only proactive events from approved channels.</span></a>
+  </section>
+
+  <details>
+    <summary>Advanced and developer options</summary>
+    <ol>
+      <li>Install the package with <code>python -m pip install -e .</code>.</li>
+      <li>Run tests with <code>python -m pytest persona_engine/tests -q</code>.</li>
+      <li>Run the simulator with <code>persona-engine-sim --help</code>.</li>
+      <li>Run the UI with <code>persona-engine-ui</code>.</li>
+      <li>Optional local model testing is available through Ollama. Mock mode remains dependency-free.</li>
+    </ol>
+  </details>
+</main>
+</body>
+</html>

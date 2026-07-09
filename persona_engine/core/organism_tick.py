@@ -68,8 +68,20 @@ class OrganismTick:
                 if kind in {"sensory_load", "body_state"}:
                     pressures.ensure("fear").magnitude = min(1.0, pressures.ensure("fear").magnitude + intensity * 0.05)
             if intensity >= 0.45:
+                if kind == "body_state":
+                    content = f"I noticed my body state: {detail}"
+                elif kind == "movement_need":
+                    content = f"I felt a need to move: {detail}"
+                elif kind == "sensory_load":
+                    content = f"I felt sensory load: {detail}"
+                elif kind == "user_absence":
+                    content = f"I noticed your absence: {detail}"
+                elif kind == "ambient_event":
+                    content = f"I noticed an ambient event: {detail}"
+                else:
+                    content = f"I noticed {kind}: {detail}"
                 memory.add(MemoryUnit(
-                    content=f"[sensorium] {kind}: {detail}",
+                    content=content,
                     created_at=now,
                     emotional_intensity=min(1.0, intensity),
                     relationship_relevance=0.3 if kind == "user_absence" else 0.1,

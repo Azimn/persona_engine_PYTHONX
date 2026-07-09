@@ -188,6 +188,11 @@ def create_app(
         html = static_dir.joinpath("index.html").read_text(encoding="utf-8")
         return HTMLResponse(html)
 
+    @app.get("/start", response_class=HTMLResponse)
+    def start():
+        html = static_dir.joinpath("start.html").read_text(encoding="utf-8")
+        return HTMLResponse(html)
+
     @app.get("/health")
     def health():
         return {"ok": True, "session": session.info()}
