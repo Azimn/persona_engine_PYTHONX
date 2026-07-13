@@ -71,4 +71,7 @@ def test_dependency_free_mock_renderer_path_still_works():
         )
         result = agent.say("Hello.")
     assert result["response"]
-    assert "mock renderer" in result["response"].lower()
+    lowered = result["response"].lower()
+    assert "ollama" not in lowered
+    assert "mock renderer" not in lowered
+    assert any(term in lowered for term in ["i hear you", "listening", "hello", "thread", "here"])

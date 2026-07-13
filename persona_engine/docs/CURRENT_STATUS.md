@@ -31,7 +31,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-102 passed
+152 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.

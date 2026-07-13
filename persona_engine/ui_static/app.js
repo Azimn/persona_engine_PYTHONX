@@ -34,7 +34,9 @@ const MODEL_ADVICE = {
 const $ = (id) => document.getElementById(id);
 
 function cartridgeLabel(name) {
-  return String(name || 'persona').replace(/\.snp$/i, '').replaceAll('_', ' ');
+  const stem = String(name || 'persona').replace(/\.snp$/i, '');
+  if (stem.endsWith('_v6')) return `${stem.slice(0, -3).replaceAll('_', ' ')} (v6 compat)`;
+  return stem.replaceAll('_', ' ');
 }
 
 function escapeHtml(value) {
@@ -466,6 +468,7 @@ function wireEvents() {
 
   $('loadCharacter').addEventListener('click', () => selectCharacter(false).catch(err => addMessage('system', `Error: ${err.message}`)));
   $('resetSession').addEventListener('click', () => selectCharacter(true).catch(err => addMessage('system', `Error: ${err.message}`)));
+  $('cartridgeSelect').addEventListener('change', () => selectCharacter(false).catch(err => addMessage('system', `Error: ${err.message}`)));
   $('promptCharacter').addEventListener('click', () => sendChat('...', null, { user_presence: 'present', prompt_source: 'ui_prompt' }, 'idle').catch(err => addMessage('system', `Error: ${err.message}`)));
   $('attachButton').addEventListener('click', () => showModal('Attachments are reserved for a later multimodal renderer pass. This button remains here to match the V6 console shape.'));
 

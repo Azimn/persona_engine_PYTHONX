@@ -167,7 +167,7 @@ def create_app(
 
     try:
         from fastapi import FastAPI, HTTPException, Body
-        from fastapi.responses import HTMLResponse, StreamingResponse
+        from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
         from fastapi.staticfiles import StaticFiles
     except Exception as exc:
         raise InterfaceDependencyError("Install fastapi and uvicorn to run the UI server") from exc
@@ -192,6 +192,13 @@ def create_app(
     def start():
         html = static_dir.joinpath("start.html").read_text(encoding="utf-8")
         return HTMLResponse(html)
+
+    @app.get("/launcher")
+    def launcher():
+        launcher_path = package_root.parent / "Start_PersonaConsole_Python.cmd"
+        if not launcher_path.exists():
+            raise HTTPException(status_code=404, detail="launcher file is not available in this install")
+        return FileResponse(str(launcher_path), filename="Start_PersonaConsole_Python.cmd")
 
     @app.get("/health")
     def health():

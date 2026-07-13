@@ -21,6 +21,7 @@ class BeliefRecord:
     decay_rate: float
     description: str
     fixed: bool = False
+    disclosure: dict[str, Any] | None = None
 
 
 class BeliefLedger:
@@ -37,6 +38,7 @@ class BeliefLedger:
                 decay_rate=float(item["decay_rate"]),
                 description=str(item["description"]),
                 fixed=bool(item.get("fixed", False)),
+                disclosure=item.get("disclosure"),
             )
 
     @property
@@ -82,6 +84,27 @@ class BeliefLedger:
                 changed.append(belief_id)
         return changed
 
+    def is_disclosure_eligible(self, belief_id: str, current_trust: float, event_log) -> bool:
+        """Return eligibility only; expression remains a later decision."""
+
+        if belief_id not in self.records:
+            raise KeyError(f"unknown belief id: {belief_id}")
+        disclosure = self.records[belief_id].disclosure or {}
+        if disclosure.get("default") != "concealed":
+            return True
+        minimum_trust = float(disclosure.get("minimum_trust", 1.0))
+        if current_trust >= minimum_trust:
+            return True
+        forced = {str(x) for x in disclosure.get("forced_reveal_conditions", []) or []}
+        if not forced:
+            return False
+        for event in event_log or []:
+            payload = event.get("payload", {}) if isinstance(event, dict) else {}
+            event_type = str(payload.get("disclosure_event") or payload.get("condition") or event.get("event_type", ""))
+            if event_type in forced:
+                return True
+        return False
+
     def to_state(self) -> dict[str, Any]:
         return {
             "records": {k: rec.__dict__ for k, rec in self.records.items()},
@@ -101,5 +124,10 @@ class BeliefLedger:
             led.records[key] = BeliefRecord(
                 id=item["id"], value=float(item["value"]), minimum=float(item["minimum"]), maximum=float(item["maximum"]),
                 decay_rate=float(item["decay_rate"]), description=item.get("description", ""), fixed=bool(item.get("fixed", False)),
+                disclosure=item.get("disclosure"),
             )
         return led
+
+
+def is_disclosure_eligible(ledger: BeliefLedger, belief_id: str, current_trust: float, event_log) -> bool:
+    return ledger.is_disclosure_eligible(belief_id, current_trust, event_log)

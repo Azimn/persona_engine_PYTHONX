@@ -48,3 +48,8 @@ persona_engine = [
   "tests/*.py",
   "ui_static/*",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: optional tests that may require local models or external runtimes",
+]

@@ -31,6 +31,10 @@ _SAFE_INTERPRETIVE_TERMS = {
     "the", "to", "trust", "uncertainty", "unproven", "user", "visible", "watchfulness",
     "while", "without",
 }
+_SENTENCE_INITIAL_SAFE = _SAFE_INTERPRETIVE_TERMS | {
+    "that", "this", "there", "then", "yes", "no", "slow", "i", "it", "what",
+    "ask", "keep",
+}
 
 
 def _get_path(data: dict, dotted: str):
@@ -58,10 +62,18 @@ def _fact_leak_warnings(text: str, turn: dict, result: dict, label: str = "respo
         for key in ("support_keys", "source_ids"):
             allowed |= _terms_from(belief.get(key, []))
     allowed |= _SAFE_INTERPRETIVE_TERMS
-    # Capitalized proper noun style leak, excluding first word of sentence by allowing common character names from prompt.
+    sentence_initials = {
+        match.group(1).lower()
+        for match in re.finditer(r"(?:^|[.!?]\s+)([A-Z][a-zA-Z0-9_'-]{1,})", text)
+    }
+    # Capitalized proper noun style leak. Sentence-initial stop words are not
+    # named entities and should not contaminate review logs.
     warnings = []
     for token in re.findall(r"\b[A-Z][a-zA-Z0-9_'-]{2,}\b", text):
-        if token.lower() not in allowed and token.lower() not in {"the", "and", "but"}:
+        lowered = token.lower()
+        if lowered in sentence_initials and lowered in _SENTENCE_INITIAL_SAFE:
+            continue
+        if lowered not in allowed and lowered not in {"the", "and", "but"}:
             warnings.append(f"{label} proper noun/object not in visible frame: {token}")
     for obj in _CONCRETE_OBJECTS:
         if re.search(rf"\b{re.escape(obj)}\b", text.lower()) and obj not in allowed:

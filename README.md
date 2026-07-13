@@ -72,7 +72,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-102 passed
+152 passed, 1 skipped
 ```
 
 ## Run Simulators
