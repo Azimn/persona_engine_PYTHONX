@@ -8,6 +8,7 @@ from typing import Any, Callable
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+from .model_capabilities import capabilities_for_model
 from .model_registry import DEFAULT_MODEL_REGISTRY
 from .renderer import LocalLLMRenderer
 
@@ -20,7 +21,7 @@ VALID_THINKING_MODES = {"auto", "on", "off"}
 class RendererConfig:
     provider: str = "offline"
     model_name: str = "offline-template"
-    thinking_mode: str = "auto"
+    thinking_mode: str = "off"
     timeout_seconds: float = 60.0
     token_budget: int = 256
 
@@ -47,6 +48,7 @@ class BackendDiscovery:
     available: bool
     models: tuple[str, ...]
     detail: str
+    model_capabilities: dict[str, dict]
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -84,13 +86,26 @@ class RendererControlService:
             pass
 
         providers = (
-            BackendDiscovery("offline", True, ("offline-template",), "Deterministic dependency-free renderer."),
-            BackendDiscovery("ollama", available, models, detail),
+            BackendDiscovery(
+                "offline",
+                True,
+                ("offline-template",),
+                "Deterministic dependency-free renderer.",
+                {"offline-template": capabilities_for_model("offline-template", "offline").to_dict()},
+            ),
+            BackendDiscovery(
+                "ollama",
+                available,
+                models,
+                detail,
+                {name: capabilities_for_model(name, "ollama").to_dict() for name in models},
+            ),
             BackendDiscovery(
                 "local_hf",
                 False,
                 tuple(sorted(DEFAULT_MODEL_REGISTRY)),
                 "Future local-HF provider; registry entries are visible but runtime selection is disabled.",
+                {name: capabilities_for_model(name, "local_hf").to_dict() for name in sorted(DEFAULT_MODEL_REGISTRY)},
             ),
         )
         return {"providers": [provider.to_dict() for provider in providers]}
@@ -98,10 +113,12 @@ class RendererControlService:
     def config_from_mapping(self, raw: dict[str, Any]) -> RendererConfig:
         provider = str(raw.get("provider", "offline"))
         default_model = "offline-template" if provider == "offline" else ""
+        model_name = str(raw.get("model_name", default_model))
+        recommended_thinking = capabilities_for_model(model_name, provider).recommended_thinking
         config = RendererConfig(
             provider=provider,
-            model_name=str(raw.get("model_name", default_model)),
-            thinking_mode=str(raw.get("thinking_mode", "auto")),
+            model_name=model_name,
+            thinking_mode=str(raw.get("thinking_mode", recommended_thinking)),
             timeout_seconds=float(raw.get("timeout_seconds", 60.0)),
             token_budget=int(raw.get("token_budget", 256)),
         ).validate()
@@ -111,6 +128,9 @@ class RendererControlService:
                 raise ValueError("Ollama is not reachable")
             if config.model_name not in ollama["models"]:
                 raise ValueError(f"Ollama model is not installed: {config.model_name}")
+            capabilities = capabilities_for_model(config.model_name, "ollama")
+            if capabilities.supports_thinking is False and config.thinking_mode == "on":
+                raise ValueError(f"thinking mode is not supported by the selected model profile: {config.model_name}")
         return config
 
     def build_renderer(self, config: RendererConfig):

@@ -144,7 +144,33 @@ function applyRendererStatus(renderer = {}) {
   $('rendererBackend').value = `${actual} / ${model} / thinking ${config.thinking_mode || 'auto'}`;
 }
 
-function populateModels(discovery, selectedModel) {
+function showModelCapabilities(applyDefaults = false) {
+  const provider = $('rendererProvider').value;
+  const entry = (state.rendererDiscovery?.providers || []).find(item => item.provider === provider);
+  const model = $('modelProfile').value;
+  const capability = entry?.model_capabilities?.[model];
+  if (!capability) {
+    $('modelCapabilities').textContent = 'No capability profile is available for this model.';
+    $('thinkingMode').disabled = false;
+    return;
+  }
+  if (applyDefaults) {
+    $('thinkingMode').value = capability.recommended_thinking || 'auto';
+    $('rendererTimeout').value = capability.practical_timeout_seconds || 60;
+    $('rendererTokens').value = capability.recommended_token_budget || 256;
+  }
+  $('thinkingMode').disabled = capability.supports_thinking === false;
+  const thinking = capability.supports_thinking === null ? 'unknown' : capability.supports_thinking ? 'supported' : 'not supported';
+  const context = capability.context_size ? `${Number(capability.context_size).toLocaleString()} tokens` : 'not applicable / unknown';
+  $('modelCapabilities').innerHTML = `
+    <div><strong>thinking</strong><span>${escapeHtml(thinking)} | recommended ${escapeHtml(capability.recommended_thinking)}</span></div>
+    <div><strong>cognition JSON</strong><span>${escapeHtml(capability.private_cognition_json_reliability)}</span></div>
+    <div><strong>context</strong><span>${escapeHtml(context)}</span></div>
+    <div><strong>final answer</strong><span>${escapeHtml(capability.final_answer_behavior)}</span></div>
+  `;
+}
+
+function populateModels(discovery, selectedModel, applyDefaults = false) {
   const provider = $('rendererProvider').value;
   const entry = (discovery.providers || []).find(item => item.provider === provider);
   const select = $('modelProfile');
@@ -159,6 +185,7 @@ function populateModels(discovery, selectedModel) {
   select.disabled = !entry?.available || select.options.length === 0;
   $('applyRenderer').disabled = !entry?.available;
   $('modelAdvice').textContent = entry?.detail || 'Renderer provider unavailable.';
+  showModelCapabilities(applyDefaults);
 }
 
 async function loadRendererControls() {
@@ -170,6 +197,7 @@ async function loadRendererControls() {
   $('thinkingMode').value = config.thinking_mode || 'auto';
   $('rendererTimeout').value = config.timeout_seconds || 60;
   $('rendererTokens').value = config.token_budget || 256;
+  showModelCapabilities(false);
   applyRendererStatus(discovery.current);
 }
 
@@ -209,7 +237,8 @@ function updateStatus(status = {}) {
     $('characterName').textContent = label;
     $('chatTitle').textContent = label;
     $('portraitInitial').textContent = label.trim().charAt(0).toUpperCase() || '?';
-    $('chatSubtitle').textContent = `${cartridge} | private local Python session`;
+    const sessionMode = status.session?.mode || 'active';
+    $('chatSubtitle').textContent = `${cartridge} | ${sessionMode} local Python session`;
   }
 
   const avatar = payload.avatar_state || 'neutral';
@@ -312,7 +341,8 @@ async function selectCharacter(reset = false) {
   updateStatus({ session: data.session, status: data.status });
   if (data.renderer) applyRendererStatus(data.renderer);
   await loadRendererControls();
-  addMessage('system', `Loaded ${data.session.cartridge}${reset ? ' with a fresh session' : ''}.`);
+  const modeLabel = data.session.mode === 'resumed' ? 'Resumed' : data.session.mode === 'fresh' ? 'Started fresh' : 'Started';
+  addMessage('system', `${modeLabel} ${data.session.cartridge}.`);
   resetReportForSession();
   await refreshStatus();
 }
@@ -505,7 +535,8 @@ function wireEvents() {
   $('promptCharacter').addEventListener('click', () => sendChat('...', null, { user_presence: 'present', prompt_source: 'ui_prompt' }, 'idle').catch(err => addMessage('system', `Error: ${err.message}`)));
   $('attachButton').addEventListener('click', () => showModal('Attachments are reserved for a later multimodal renderer pass. This button remains here to match the V6 console shape.'));
 
-  $('rendererProvider').addEventListener('change', () => populateModels(state.rendererDiscovery || {}, null));
+  $('rendererProvider').addEventListener('change', () => populateModels(state.rendererDiscovery || {}, null, true));
+  $('modelProfile').addEventListener('change', () => showModelCapabilities(true));
   $('applyRenderer').addEventListener('click', () => applyRendererConfig().catch(err => showModal(err.message, 'Renderer configuration failed')));
 
   document.querySelectorAll('[data-audio]').forEach(btn => btn.addEventListener('click', () => sendSensor('audio', JSON.parse(btn.dataset.audio)).catch(err => addMessage('system', `Error: ${err.message}`))));

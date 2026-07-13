@@ -655,6 +655,16 @@ class InteriorEngine:
         top_for_match = self.pressures.top()
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
         retrieved = self.memory.retrieve(user_text, now, top_k=4, emotional_state_match=affect_match)
+        retrieved_memory_trace = [
+            {
+                "memory_id": memory.id,
+                "source": memory.source.value,
+                "tags": sorted(memory.tags),
+                "created_at": memory.created_at,
+                "content": memory.content,
+            }
+            for memory in retrieved
+        ]
 
         triggers = []
         if forced_rewrite:
@@ -798,6 +808,7 @@ class InteriorEngine:
             "server_truth": server_truth,
             "visible_context": visible_context,
             "suppression_trace": suppression_payload,
+            "retrieved_memory_trace": retrieved_memory_trace,
             "memory_types": memory_types or ["neutral_turn"],
         })
 
@@ -822,6 +833,7 @@ class InteriorEngine:
             "interpretation_source_digest": interpretation_result.source_digest,
             "decision_payload": decision_payload,
             "cognitive_application_report": cognition_report_payload,
+            "retrieved_memory_trace": retrieved_memory_trace,
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
             "avatar_projection": self.avatar_projection(bucket, dominant_name),

@@ -61,6 +61,7 @@ def _public_status_payload(session: "HumanTestingSession") -> dict[str, Any]:
         "session": {
             "cartridge": session.cartridge_path.name,
             "user_id": session.user_id,
+            "mode": session.session_mode,
         },
         "status": session.agent.public_status(),
         "avatar_state": session.agent.avatar_projection(),
@@ -90,6 +91,7 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
     ]
     workspace_rows = [row for row in rows if row["event_type"] in {"turn", "input", "sensorium"}]
     latest_workspace = workspace_rows[-1] if workspace_rows else None
+    latest_turn = next((row for row in reversed(rows) if row["event_type"] == "turn"), None)
     debug_refs = [
         {
             "event_id": row["id"],
@@ -106,6 +108,7 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
             "latest_timestep": latest_workspace["timestep"] if latest_workspace else None,
             "visible_context_keys": sorted((latest_workspace or {}).get("payload", {}).get("visible_context", {}).keys()),
             "memory_types": (latest_workspace or {}).get("payload", {}).get("memory_types", []),
+            "retrieved_memory_trace": (latest_turn or {}).get("payload", {}).get("retrieved_memory_trace", []),
         },
         "validator_actions": validator_actions,
         "replay_debug_refs": debug_refs,
@@ -129,6 +132,7 @@ class HumanTestingSession:
         self.user_id = user_id
         self.renderer_control = renderer_control
         self._renderer_configs: dict[str, RendererConfig] = {}
+        self.session_mode = "new"
         self.cartridge_path = _safe_cartridge_path(cartridges_dir, default_cartridge)
         self.agent = self._make_agent(reset=False)
 
@@ -143,8 +147,10 @@ class HumanTestingSession:
     def _make_agent(self, reset: bool = False) -> CharacterAgent:
         self.db_dir.mkdir(parents=True, exist_ok=True)
         db_path = self._db_path_for(self.cartridge_path)
+        existed = db_path.exists()
         if reset and db_path.exists():
             db_path.unlink()
+        self.session_mode = "fresh" if reset else "resumed" if existed else "new"
         agent = CharacterAgent(cartridge_path=str(self.cartridge_path), user_id=self.user_id, db_path=str(db_path))
         agent.engine.set_renderer(self.renderer_control.build_renderer(self._renderer_config()))
         return agent
@@ -176,6 +182,7 @@ class HumanTestingSession:
             "cartridge": self.cartridge_path.name,
             "user_id": self.user_id,
             "db_path": str(self._db_path_for(self.cartridge_path)),
+            "mode": self.session_mode,
             "renderer": self.renderer_status(),
         }
 
@@ -263,13 +270,13 @@ def create_app(
             info = session.select(str(req.get("cartridge", "")), reset=bool(req.get("reset", False)))
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
+        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"], "mode": info["mode"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
 
     @app.post("/api/session/reset")
     @app.post("/session/reset")
     def reset_session():
         info = session.reset()
-        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
+        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"], "mode": info["mode"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
 
     @app.get("/api/status")
     @app.get("/status")

@@ -226,6 +226,25 @@ h1 {
   font-size: 12px;
   margin: 0 0 10px;
 }
+
+.capability-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.capability-list div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.capability-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
 .sensor-grid,
 .script-stack {
   display: grid;

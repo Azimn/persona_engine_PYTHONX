@@ -72,7 +72,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-161 passed, 1 skipped
+171 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -140,9 +140,13 @@ Included cartridges:
 
 The human UI discovers Ollama directly through its local HTTP service and lists models actually installed on the machine. No Ollama Python package is required. Renderer settings are scoped per cartridge and include provider, model, thinking mode, request timeout, and token budget.
 
+Detected models include conservative capability hints for thinking support, recommended thinking mode, private-cognition JSON reliability, context size, practical timeout, token budget, and final-answer behavior. These are model-family guidance for testing, not benchmark claims. Unsupported thinking settings are rejected by the server.
+
 Offline rendering is always available and dependency-free. If a selected Ollama request fails or returns no final response text, the turn falls back to the deterministic offline renderer and the UI shows the requested backend, actual backend, and fallback reason. Renderer output remains noncanonical speech evidence in every mode.
 
 `local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
+
+Character sessions use separate persistence and renderer configuration. The UI labels a session as new, resumed, or fresh after reset. Read-only debug traces show retrieved-memory IDs and provenance; normal public status does not expose private memory state.
 
 ## Known Limitations
 

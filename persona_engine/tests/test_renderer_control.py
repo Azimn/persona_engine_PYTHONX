@@ -35,6 +35,8 @@ def test_discovery_lists_local_ollama_models():
     ollama = next(item for item in result["providers"] if item["provider"] == "ollama")
     assert ollama["available"] is True
     assert ollama["models"] == ["gemma3:1b", "qwen3:8b"]
+    assert ollama["model_capabilities"]["qwen3:8b"]["supports_thinking"] is True
+    assert ollama["model_capabilities"]["gemma3:1b"]["recommended_thinking"] == "off"
 
 
 def test_discovery_preserves_offline_when_ollama_is_unreachable():
@@ -81,6 +83,18 @@ def test_ollama_request_uses_thinking_timeout_and_token_budget():
     assert captured["payload"]["options"]["num_predict"] == 384
     assert captured["payload"]["options"]["seed"] == 7
     assert renderer.runtime_status()["actual_provider"] == "ollama"
+
+
+def test_config_rejects_thinking_for_profiled_nonthinking_model():
+    control = RendererControlService(opener=lambda _request, timeout: _Response({"models": [{"name": "gemma3:1b"}]}))
+    with pytest.raises(ValueError, match="thinking mode is not supported"):
+        control.config_from_mapping({
+            "provider": "ollama",
+            "model_name": "gemma3:1b",
+            "thinking_mode": "on",
+            "timeout_seconds": 60,
+            "token_budget": 256,
+        })
 
 
 def test_ollama_failure_falls_back_with_visible_reason():

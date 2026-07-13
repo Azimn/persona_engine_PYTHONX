@@ -30,11 +30,15 @@ Testers can select any cartridge in `persona_engine/cartridges`, reset that char
 
 Renderer configuration is scoped by cartridge. Switching characters restores that cartridge's own renderer settings instead of carrying the previous character's selection across. Offline rendering is always available. When an Ollama turn fails, the runtime falls back to offline expression and exposes the reason without changing organism state.
 
+The Renderer Lab shows conservative model-family capability hints and recommends thinking mode, timeout, and token budget. Nonthinking model profiles disable the thinking selector; thinking-capable profiles retain `auto`, `on`, and `off` for comparison. Session headers identify new, resumed, and freshly reset sessions.
+
 The UI does not receive raw private pressure values in normal mode. Normal
 status is served from `/api/status` and contains only categorical public status,
 the active cartridge, tester id, and avatar-safe projection. Debug mode can be
 enabled for developer inspection by passing `debug=True` to `create_app`; the
 frontend toggle is still off by default.
+
+Read-only debug workspace summaries include retrieved-memory IDs, source type, tags, timestamp, and first-person content. This provenance is not exposed by normal public status.
 
 API endpoints:
 
