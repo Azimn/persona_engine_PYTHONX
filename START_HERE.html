@@ -27,55 +27,39 @@ p{color:var(--muted);margin:0}
 .card:hover{background:var(--panel2);border-color:var(--accent)}
 .card strong{display:block;margin-bottom:5px}
 .card span{color:var(--muted);font-size:14px}
-details{margin-top:18px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;color:var(--muted)}
-summary{cursor:pointer;color:var(--text)}
 code{color:var(--accent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-ol{margin:10px 0 0;padding-left:20px}
-li{margin:5px 0}
 </style>
 </head>
 <body>
 <main class="wrap">
   <header>
     <h1>PersonaConsole Python Lab</h1>
-    <p>Shape and human-test the Persona Engine before selected polish is ported back toward the low-hardware C99/P99 console line.</p>
+    <p>Local human-testing console for Persona Engine. Internet is not required for mock mode or local Ollama testing.</p>
   </header>
 
   <section class="hero">
-    <h2>Start Human Testing</h2>
-    <p>The local Python UI is running. Open the console and start testing.</p>
+    <h2>Start Here</h2>
+    <p>If the console is not already running, start it from this folder first.</p>
     <div class="steps">
       <div class="step">
-        <b>1. Open the console</b>
-        <p>Use the button below. Choose a cartridge, then press <code>fresh</code> when you want a clean session.</p>
+        <b>1. Double-click the launcher</b>
+        <p>In File Explorer, double-click <code>Start_PersonaConsole_Python.cmd</code>. A terminal window will stay open while the local server is running.</p>
       </div>
       <div class="step">
-        <b>2. Run the session</b>
-        <p>Chat normally, switch characters when needed, and use the report panel to capture excerpts before they get stale.</p>
+        <b>2. Open the console</b>
+        <p>After the launcher starts, use the button below. If the page cannot be reached, the local server is not running yet.</p>
       </div>
     </div>
-    <a class="primary" href="/">Open Console</a>
-    <a class="secondary" href="/launcher">Windows Launcher</a>
-    <a class="secondary" href="/api/cartridges">View Cartridges</a>
-    <p class="note">Internet is not required. Mock rendering works offline, and optional Ollama models run locally. If this page cannot be reached later, a web button cannot start it because the local server is off; double-click <code>Start_PersonaConsole_Python.cmd</code> from the repository folder or open <code>START_HERE.html</code>.</p>
+    <a class="primary" href="http://127.0.0.1:8012/start">Open Console</a>
+    <a class="secondary" href="Start_PersonaConsole_Python.cmd">Show Launcher File</a>
+    <p class="note">A browser page cannot directly start a local program for security reasons. The launcher file is the safe Windows button for starting the offline local server.</p>
   </section>
 
   <section class="grid">
-    <a class="card" href="/"><strong>Run A Cartridge Session</strong><span>Chat, inspect beliefs, capture excerpts, and export a report.</span></a>
-    <a class="card" href="/api/status"><strong>Inspect Public Status</strong><span>Read categorical public organism state only.</span></a>
-    <a class="card" href="/api/proactive"><strong>Check Proposals</strong><span>View read-only proactive events from approved channels.</span></a>
+    <a class="card" href="http://127.0.0.1:8012/"><strong>Human Test Console</strong><span>Works after the local server starts.</span></a>
+    <a class="card" href="persona_engine/docs/HUMAN_TESTING_REPORT_TEMPLATE.md"><strong>Report Template</strong><span>Use one report per cartridge session.</span></a>
+    <a class="card" href="README.md"><strong>Project README</strong><span>Install, test, simulator, and doctrine notes.</span></a>
   </section>
-
-  <details>
-    <summary>Advanced and developer options</summary>
-    <ol>
-      <li>Install the package with <code>python -m pip install -e .</code>.</li>
-      <li>Run tests with <code>python -m pytest persona_engine/tests -q</code>.</li>
-      <li>Run the simulator with <code>persona-engine-sim --help</code>.</li>
-      <li>Run the UI with <code>persona-engine-ui</code>.</li>
-      <li>Optional local model testing is available through Ollama. Mock mode remains dependency-free.</li>
-    </ol>
-  </details>
 </main>
 </body>
 </html>

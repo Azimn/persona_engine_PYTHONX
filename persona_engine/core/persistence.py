@@ -10,6 +10,8 @@ import sqlite3
 import time
 from contextlib import contextmanager
 
+from .deception_ledger import DeceptionLedger
+
 SCHEMA = """
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS state (
@@ -89,6 +91,12 @@ class Persistence:
             )
             row = cur.fetchone()
         return json.loads(row[0]) if row else default
+
+    def save_deception_ledger(self, character_id: str, user_id: str, ledger: DeceptionLedger):
+        self.save(character_id, user_id, "deception_ledger", ledger.to_state())
+
+    def load_deception_ledger(self, character_id: str, user_id: str) -> DeceptionLedger:
+        return DeceptionLedger.from_state(self.load(character_id, user_id, "deception_ledger", []))
 
     def save_many(self, character_id: str, user_id: str, items: dict):
         now = time.time()

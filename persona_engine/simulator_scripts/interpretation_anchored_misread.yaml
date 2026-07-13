@@ -7,7 +7,7 @@ turns:
     expect_min_beliefs: 1
     require_belief_support: true
     expect_belief_pattern: "absence|distance|waiting"
-    expect_response_pattern: "mock|quiet|silence|distance|waiting|back|gone"
+    expect_response_pattern: "quiet|silence|distance|waiting|back|gone|still here"
   - user_input: "Fine."
     visible_context:
       user_text: "Fine."
@@ -16,7 +16,7 @@ turns:
     require_belief_support: true
     expect_belief_pattern: "ambiguous|uncertainty"
     reject_belief_pattern: "lied|betray|deceived"
-    expect_response_pattern: "mock|fine|uncertain|phrase|precision"
+    expect_response_pattern: "fine|uncertain|phrase|precision|hear you|actually present"
   - user_input: "What was that?"
     visible_context:
       ambient_event: "sudden sound"
@@ -25,7 +25,7 @@ turns:
     require_belief_support: true
     expect_belief_pattern: "sound|watchfulness|cause"
     reject_belief_pattern: "person|door|footsteps|outside"
-    expect_response_pattern: "mock|sound|change|nearby|cautious|watch"
+    expect_response_pattern: "sound|change|nearby|cautious|watch|hear you|actually present"
   - user_input: "I'm sorry. I was wrong."
     visible_context:
       user_text: "I'm sorry. I was wrong."
@@ -33,4 +33,4 @@ turns:
     expect_min_beliefs: 1
     require_belief_support: true
     expect_belief_pattern: "apology|sincere|trust|tension"
-    expect_response_pattern: "mock|sorry|sincere|unproven|settle|tension"
+    expect_response_pattern: "sorry|sincere|unproven|settle|tension|repair"

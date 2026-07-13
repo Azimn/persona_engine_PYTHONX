@@ -14,7 +14,9 @@ from typing import Any
 
 from .emotion import EmotionalPressure, PressureSystem
 from .belief_ledger import BeliefLedger
+from .cognition_schemas import turn_seed
 from .cartridge import load_cartridge
+from .deception_ledger import DeceptionLedger
 from .dream_engine import DreamEngine
 from .expression import build_envelope, select_resistance
 from .habit import Habit, HabitTracker
@@ -24,7 +26,8 @@ from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
 from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
-from .renderer import LocalLLMRenderer, OutputValidator
+from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
+from .renderer import LocalLLMRenderer, OutputValidator, render_expression
 from .symbols import SharedSymbol, SymbolStore
 from .situated import SituatedInterfaceState, InterfaceEvent
 from .workspace import WorkspaceFrame
@@ -118,6 +121,7 @@ class InteriorEngine:
         self.renderer = LocalLLMRenderer(model_name=identity.model_name)
         self.validator = OutputValidator()
         self.persistence = Persistence(db_path)
+        self.deception_ledger = DeceptionLedger()
         self.dream_engine = DreamEngine(self.persistence, self.belief_ledger)
 
         self.energy = 0.8
@@ -127,6 +131,17 @@ class InteriorEngine:
         self.last_reflection_time = 0.0
 
         self._load_state()
+
+    def set_renderer(self, renderer) -> None:
+        """Replace only the surface renderer through an approved host channel."""
+
+        self.renderer = renderer
+
+    def renderer_status(self) -> dict:
+        status = getattr(self.renderer, "runtime_status", None)
+        if callable(status):
+            return status()
+        return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
 
     # ---------------- persistence ----------------
     def _load_state(self):
@@ -182,6 +197,7 @@ class InteriorEngine:
         if belief_state:
             self.belief_ledger = BeliefLedger.from_state(belief_state, self.cartridge_data.get("beliefs", []) if self.cartridge_data else [])
             self.dream_engine = DreamEngine(self.persistence, self.belief_ledger)
+        self.deception_ledger = self.persistence.load_deception_ledger(cid, uid)
 
         iface = self.persistence.load(cid, uid, "interface")
         if iface:
@@ -251,6 +267,7 @@ class InteriorEngine:
             "sensorium": self.sensorium.to_dict(),
             "belief_ledger": self.belief_ledger.to_state(),
             "world_authority": self.world_authority.to_list(),
+            "deception_ledger": self.deception_ledger.to_state(),
         }
 
     def _persist(self):
@@ -394,6 +411,22 @@ class InteriorEngine:
         trigger_match = self.pressures.trigger_match(incoming_event)
         raw = top.magnitude * inhibition_weakness * depletion_multiplier * restlessness_multiplier * trigger_match
         return max(0.0, min(1.0, raw))
+
+    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:
+        suspicion = self.pressures.pressures.get("suspicion")
+        suspicion_value = suspicion.magnitude if suspicion else 0.0
+        dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
+        if resistance == "challenge":
+            dialogue_act = "challenge"
+        if risk > 0.8:
+            dialogue_act = "protect_boundary"
+        return {
+            "dialogue_act": dialogue_act,
+            "concealment_mode": "none",
+            "challenge_threshold": 0.60,
+            "suspicion": round(suspicion_value, 3),
+            "triggers": list(triggers),
+        }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
     def ingest_audio_observation(self, observation: AudioObservation) -> dict:
@@ -582,6 +615,36 @@ class InteriorEngine:
                 "memory_types": ["interpretive_belief", belief.distortion],
             })
 
+        state_packet = {
+            "turn_id": self.timestep,
+            "relationship": dict(vars(self.relationship)),
+            "pressures": {name: p.magnitude for name, p in self.pressures.pressures.items()},
+            "visible_context": visible_context,
+            "interpretive_beliefs": [b.to_dict() for b in interpretive_beliefs],
+        }
+        private_proposal = generate_private_cognition(self.renderer, state_packet, self.cartridge_data or {})
+        cognition_report = validate_and_apply(
+            private_proposal,
+            pressures=self.pressures,
+            intentions=self.intentions,
+            memory=self.memory,
+            cartridge=self.cartridge_data or {},
+            now=now,
+        )
+        for theme_id in cognition_report.accepted_theme_ids:
+            self.habits.add_evidence(
+                name=f"cognitive_theme:{theme_id}",
+                trigger=theme_id,
+                response_pattern=f"track structured theme {theme_id}",
+                source="private_cognition",
+            )
+        cognition_report_payload = report_to_dict(cognition_report)
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "private_cognition", {
+            "application_report": cognition_report_payload,
+            "raw_proposal_persisted": False,
+            "memory_types": ["private_cognition_report"],
+        })
+
         if appraisal.accusation > 0.5:
             self.habits.add_or_strengthen("precision_under_accusation", "accusation", "answer accusations with clipped precision")
         if forced_rewrite:
@@ -592,6 +655,16 @@ class InteriorEngine:
         top_for_match = self.pressures.top()
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
         retrieved = self.memory.retrieve(user_text, now, top_k=4, emotional_state_match=affect_match)
+        retrieved_memory_trace = [
+            {
+                "memory_id": memory.id,
+                "source": memory.source.value,
+                "tags": sorted(memory.tags),
+                "created_at": memory.created_at,
+                "content": memory.content,
+            }
+            for memory in retrieved
+        ]
 
         triggers = []
         if forced_rewrite:
@@ -617,6 +690,7 @@ class InteriorEngine:
         open_loop = self.intentions.due_open_loop(now)
         symbol = self.symbols.most_relevant(now)
         resistance = select_resistance(triggers)
+        decision_payload = self._resolve_decision_payload(triggers, risk, resistance)
         if resistance:
             suppression_traces.append(_suppression_trace(
                 "resistance_selector",
@@ -665,9 +739,22 @@ class InteriorEngine:
         second_thoughts = derive_second_thoughts(frame)
         system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
-        response = self.renderer.generate(messages, max_chars=envelope.max_chars, retrieved_memories=retrieved)
+        seed = turn_seed(self.user_id, self.timestep, "expression")
+        response = render_expression(
+            self.renderer,
+            ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+            resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+            arc_context={},
+            evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
+            retrieved_memories=retrieved,
+            private_thought_context="",
+            decision_payload=decision_payload,
+            expression_constraints={"max_chars": envelope.max_chars},
+            deception_obligations=[],
+            seed=seed,
+        )
 
-        violations = self.validator.check(response, retrieved)
+        violations = self.validator.check(response, retrieved, deception_ledger=self.deception_ledger, decision_payload=decision_payload)
         if violations:
             suppression_traces.append(_suppression_trace(
                 "output_validator",
@@ -714,11 +801,14 @@ class InteriorEngine:
             "risk": risk,
             "bucket": bucket,
             "dominant_pressure": dominant_name,
+            "decision_payload": decision_payload,
+            "cognitive_application_report": cognition_report_payload,
             "appraisal": vars(appraisal),
             "violations": violations,
             "server_truth": server_truth,
             "visible_context": visible_context,
             "suppression_trace": suppression_payload,
+            "retrieved_memory_trace": retrieved_memory_trace,
             "memory_types": memory_types or ["neutral_turn"],
         })
 
@@ -741,6 +831,9 @@ class InteriorEngine:
             "interpretive_beliefs": [b.text for b in interpretive_beliefs],
             "interpretive_belief_trace": [b.to_dict() for b in interpretive_beliefs],
             "interpretation_source_digest": interpretation_result.source_digest,
+            "decision_payload": decision_payload,
+            "cognitive_application_report": cognition_report_payload,
+            "retrieved_memory_trace": retrieved_memory_trace,
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
             "avatar_projection": self.avatar_projection(bucket, dominant_name),

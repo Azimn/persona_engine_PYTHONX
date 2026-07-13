@@ -35,16 +35,19 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
     "sensory_profile": {"audio_sensitivity", "vision_sensitivity", "interruption_sensitivity", "silence_sensitivity"},
     "voice_profile": {"default_rate", "default_volume", "hesitation_bias", "interruptible"},
     "avatar_profile": {"default_face", "guarded_face", "tired_face", "attention_style", "overloaded_face", "restless_motion"},
+    "cognitive_themes": {"allowed", "retrieval_filters"},
+    "concealment": {"weights"},
+    "arc": {"earned_changes"},
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
-_ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed"}
+_ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
 _REQUIRED_RULE = ("belief_id", "trigger_memory_type", "threshold_count", "delta")
 _ALLOWED_RULE = set(_REQUIRED_RULE)
 
@@ -176,6 +179,8 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
     for optional_section in _OPTIONAL_SECTIONS:
         if optional_section in data:
             _require_section(data, optional_section)
+    if "cognitive_themes" in data:
+        _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -228,6 +233,9 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "sensory_profile": data.get("sensory_profile", {}),
         "voice_profile": data.get("voice_profile", {}),
         "avatar_profile": data.get("avatar_profile", {}),
+        "cognitive_themes": data.get("cognitive_themes", {}),
+        "concealment": data.get("concealment", {}),
+        "arc": data.get("arc", {}),
         "path": str(Path(path)),
     }
     return core, ledger, raw

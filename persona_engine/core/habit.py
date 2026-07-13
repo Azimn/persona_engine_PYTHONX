@@ -4,9 +4,11 @@ A habit is not prose flavor. It is a stateful tendency: when a trigger type
 recurs, the character becomes more likely to use a stable response pattern.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 import time
+
+from .cognition_schemas import EVIDENCE_WEIGHTS, HabitEvidenceSource
 
 
 @dataclass
@@ -17,6 +19,7 @@ class Habit:
     strength: float = 0.1
     uses: int = 0
     last_used: float = 0.0
+    evidence_log: list[tuple[HabitEvidenceSource, float]] = field(default_factory=list)
 
 
 class HabitTracker:
@@ -32,6 +35,12 @@ class HabitTracker:
             habit.strength = max(0.0, min(1.0, habit.strength + delta))
             habit.uses += 1
             habit.last_used = now
+
+    def add_evidence(self, name: str, trigger: str, response_pattern: str, source: HabitEvidenceSource):
+        delta = EVIDENCE_WEIGHTS[source]
+        self.add_or_strengthen(name, trigger, response_pattern, delta=delta)
+        habit = self.habits[name]
+        habit.evidence_log.append((source, delta))
 
     def most_relevant(self, trigger: str) -> Optional[Habit]:
         candidates = [h for h in self.habits.values() if h.trigger == trigger]

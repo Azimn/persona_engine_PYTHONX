@@ -160,3 +160,28 @@ def test_ui_static_files_are_served(tmp_path):
     assert script.status_code == 200
     assert "Human Test Console" in page.text
     assert "debugEnabled: false" in script.text
+
+
+def test_session_reports_new_resumed_and_fresh_modes(tmp_path):
+    client = _client(tmp_path)
+    assert client.get("/health").json()["session"]["mode"] == "new"
+
+    switched = client.post("/api/session/select", json={"cartridge": "friendly.snp"})
+    assert switched.json()["session"]["mode"] == "new"
+
+    resumed = client.post("/api/session/select", json={"cartridge": "neutral.snp"})
+    assert resumed.json()["session"]["mode"] == "resumed"
+
+    fresh = client.post("/api/session/reset")
+    assert fresh.json()["session"]["mode"] == "fresh"
+
+
+def test_debug_trace_exposes_retrieved_memory_provenance(tmp_path):
+    client = _client(tmp_path, debug=True)
+    client.post("/api/chat", json={"text": "Lantern is the word for this test."})
+    client.post("/api/chat", json={"text": "What word did I give you?"})
+
+    trace = client.get("/api/debug").json()["workspace_summary"]["retrieved_memory_trace"]
+    assert trace
+    assert {"memory_id", "source", "tags", "created_at", "content"}.issubset(trace[0])
+    assert trace[0]["content"].lower().startswith(("i ", "i'", "my ", "we "))

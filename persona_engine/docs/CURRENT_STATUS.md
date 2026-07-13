@@ -19,6 +19,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Mock-safe audio and vision observation endpoints.
 - Voice-plan state and avatar-safe state projection.
 - FastAPI human-testing UI with cartridge selection, session reset, streamed chat, public status, current beliefs, proactive proposals, mock sensors, and optional read-only debug details.
+- Server-backed renderer controls with local Ollama discovery, per-cartridge configuration, timeout and token limits, thinking mode, explicit offline selection, and visible fallback status.
+- Conservative model capability profiles for thinking support, JSON reliability, context hints, practical generation limits, and final-answer behavior.
+- Explicit new/resumed/fresh session modes, tested cartridge isolation, and read-only retrieved-memory provenance traces.
 
 ## Current Tests
 
@@ -31,7 +34,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-102 passed
+171 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -45,6 +48,7 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - No GPU support is required or tested.
 - No mobile-native app is implemented.
 - Ollama is optional and local-only when installed.
+- Local-HF registry entries are scaffolding only; the provider is not enabled in the human UI.
 - Tide drift is deterministic only; stochastic mood weather is not implemented.
 - The UI sensor controls are mock adapters.
 - Debug mode is read-only and intended for local developer inspection.
@@ -55,5 +59,5 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 1. Run a structured human-testing pass across all included cartridges.
 2. Add observability and replay export from UI sessions.
 3. Add cartridge tooling: lint, compare, and authoring helpers.
-4. Cleanly abstract renderer providers beyond the current local Ollama/mock path.
+4. Complete the optional local-HF provider only after live renderer comparisons justify a base model.
 5. Begin C99 or mobile host work only after the Python reference contracts and human-test findings stabilize.

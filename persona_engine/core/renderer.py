@@ -1,10 +1,16 @@
 """Local Ollama renderer plus output validation and streaming rhythm."""
 
 import asyncio
+import json
 import re
 import time
 from typing import List, Dict, Optional, Iterator, AsyncIterator
+from urllib.request import Request, urlopen
+from .cognition_schemas import DeceptionAuthorization, PrivateCognitionProposal
+from .deception_ledger import DeceptionLedger
 from .memory import MemoryUnit
+from .offline_template_renderer import OfflineTemplateRenderer
+from .renderer_contract import ExpressionRequest, PrivateCognitionRequest, PrivateCognitionResult
 
 
 class OutputValidator:
@@ -13,7 +19,14 @@ class OutputValidator:
         r"i don't have (feelings|emotions)", r"i cannot experience",
     ]
 
-    def check(self, text: str, retrieved_memories: Optional[List[MemoryUnit]] = None) -> List[str]:
+    def check(
+        self,
+        text: str,
+        retrieved_memories: Optional[List[MemoryUnit]] = None,
+        authorization: DeceptionAuthorization | None = None,
+        deception_ledger: DeceptionLedger | None = None,
+        decision_payload: dict | None = None,
+    ) -> List[str]:
         lowered = text.lower()
         violations = []
         for p in self.FORBIDDEN_PHRASES:
@@ -21,54 +34,147 @@ class OutputValidator:
                 violations.append(f"meta_break:{p}")
         retrieved_memories = retrieved_memories or []
         memory_text = " ".join(m.content.lower() for m in retrieved_memories)
-        claims = re.findall(r"i remember\s+([^.!?]+)", lowered)
+        claims = re.findall(r"\bi remember\s+([^.!?]+)", lowered)
         for claim in claims:
             claim_words = {w for w in re.findall(r"[a-z0-9']+", claim) if len(w) > 3}
             if claim_words and not any(w in memory_text for w in claim_words):
-                violations.append(f"false_memory_claim:{claim[:40]}")
+                if authorization is not None and authorization.may_fabricate_memory:
+                    scope_text = " ".join(authorization.permitted_claim_scope).lower()
+                    topic_text = authorization.topic.lower()
+                    if any(word in scope_text or word in topic_text for word in claim_words):
+                        continue
+                    violations.append(f"unauthorized_fabrication:{claim[:40]}")
+                elif authorization is not None:
+                    violations.append(f"unauthorized_fabrication:{claim[:40]}")
+                else:
+                    violations.append(f"false_memory_claim:{claim[:40]}")
         unsupported_absolutes = ["you always", "you never"]
         for phrase in unsupported_absolutes:
             if phrase in lowered and phrase not in memory_text:
                 violations.append(f"unsupported_absolute:{phrase}")
-        if re.search(r"i know (exactly )?what you (think|feel|want)", lowered):
+        if re.search(r"\bi know (exactly )?what you (think|feel|want)\b", lowered):
             violations.append("unsupported_private_user_state")
+        if deception_ledger is not None:
+            reveal_allowed = (decision_payload or {}).get("dialogue_act") in {"reveal", "confess"}
+            for active in deception_ledger.claims:
+                if active.status != "active":
+                    continue
+                obligation = active.consistency_obligation.lower()
+                spoken = active.spoken_claim.lower()
+                if reveal_allowed and any(word in lowered for word in ["truth", "lied", "confess", "reveal"]):
+                    continue
+                if obligation and obligation not in lowered and spoken and spoken not in lowered:
+                    if active.topic.lower() in lowered or active.audience.lower() in lowered:
+                        violations.append(f"deception_contradiction:{active.claim_id}")
         return violations
 
     def sanitize(self, text: str) -> str:
         for pattern in self.FORBIDDEN_PHRASES:
             text = re.sub(pattern, "...", text, flags=re.IGNORECASE)
-        text = re.sub(r"I remember\s+[^.!?]+[.!?]?", "Something about that remains with me.", text, flags=re.IGNORECASE)
-        text = re.sub(r"you always", "you seem to", text, flags=re.IGNORECASE)
-        text = re.sub(r"you never", "you rarely", text, flags=re.IGNORECASE)
-        text = re.sub(r"I know exactly what you (think|feel|want)", "I can only infer so much", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bI remember\s+[^.!?]+[.!?]?", "Something about that remains with me.", text, flags=re.IGNORECASE)
+        text = re.sub(r"\byou always\b", "you seem to", text, flags=re.IGNORECASE)
+        text = re.sub(r"\byou never\b", "you rarely", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bI know exactly what you (think|feel|want)\b", "I can only infer so much", text, flags=re.IGNORECASE)
         return text.strip()
 
 
 class LocalLLMRenderer:
-    def __init__(self, model_name: str = "gemma3", host: str = "http://localhost:11434"):
+    def __init__(
+        self,
+        model_name: str = "gemma3",
+        host: str = "http://localhost:11434",
+        provider: str | None = None,
+        thinking_mode: str = "auto",
+        timeout_seconds: float = 60.0,
+        token_budget: int = 256,
+        opener=urlopen,
+    ):
         self.model_name = model_name
-        self.host = host
-        self._client = None
-        try:
-            from ollama import Client
-            self._client = Client(host=host)
-        except Exception:
-            self._client = None
+        self.host = host.rstrip("/")
+        self.provider = provider or ("offline" if model_name.startswith("missing-model-for-mock") else "ollama")
+        self.thinking_mode = thinking_mode
+        self.timeout_seconds = float(timeout_seconds)
+        self.token_budget = int(token_budget)
+        self._opener = opener
+        self._offline = OfflineTemplateRenderer()
+        self._actual_backend = "offline" if self.provider == "offline" else "pending"
+        self._fallback_reason = None
 
-    def generate(self, messages: List[Dict[str, str]], max_chars: int = 200, retrieved_memories: Optional[List[MemoryUnit]] = None) -> str:
-        if self._client is not None:
+    def runtime_status(self) -> dict:
+        return {
+            "requested_provider": self.provider,
+            "actual_provider": self._actual_backend,
+            "model_name": self.model_name,
+            "thinking_mode": self.thinking_mode,
+            "timeout_seconds": self.timeout_seconds,
+            "token_budget": self.token_budget,
+            "fallback_reason": self._fallback_reason,
+        }
+
+    def _ollama_chat(self, messages: List[Dict[str, str]], seed: int | None) -> str:
+        options = {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "num_predict": self.token_budget,
+            "num_ctx": 4096,
+            "seed": int(seed or 0),
+        }
+        payload = {"model": self.model_name, "messages": messages, "stream": False, "options": options}
+        if self.thinking_mode != "auto":
+            payload["think"] = self.thinking_mode == "on"
+        request = Request(
+            f"{self.host}/api/chat",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            method="POST",
+        )
+        with self._opener(request, timeout=self.timeout_seconds) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        return str(result.get("message", {}).get("content", "")).strip()
+
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        max_chars: int = 200,
+        retrieved_memories: Optional[List[MemoryUnit]] = None,
+        seed: int | None = None,
+    ) -> str:
+        if self.provider == "ollama":
             try:
-                response = self._client.chat(
-                    model=self.model_name,
-                    messages=messages,
-                    options={"temperature": 0.7, "top_p": 0.9, "num_predict": max(16, max_chars // 3), "num_ctx": 4096, "seed": 42},
-                )
-                return self._clean_truncate(response["message"]["content"].strip(), max_chars)
-            except Exception as e:
-                return self._mock(messages, max_chars, error=str(e))
-        return self._mock(messages, max_chars)
+                content = self._ollama_chat(messages, seed)
+                if content:
+                    self._actual_backend = "ollama"
+                    self._fallback_reason = None
+                    return self._clean_truncate(content, max_chars)
+                self._fallback_reason = "Ollama returned no final response text."
+            except Exception as exc:
+                self._fallback_reason = f"Ollama request failed ({type(exc).__name__})."
+        else:
+            self._fallback_reason = None
+        self._actual_backend = "offline"
+        return self._mock(messages, max_chars, seed=seed)
 
-    def generate_stream(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200) -> Iterator[str]:
+    def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
+        proposal = PrivateCognitionProposal(
+            prose="",
+            attention_targets=[],
+            pressure_deltas={},
+            impulse_candidates=[],
+            memory_activation_requests=[],
+            cognitive_theme_ids=[],
+        )
+        return PrivateCognitionResult(proposal=proposal, diagnostics={"backend": "mock_noop"})
+
+    def generate_expression(self, request: ExpressionRequest) -> str:
+        if isinstance(request.expression_constraints, dict):
+            max_chars = request.expression_constraints.get("max_chars", 200)
+        else:
+            max_chars = getattr(request.expression_constraints, "max_chars", 200)
+        user_text = str(request.resolved_state.get("user_text", "")) if isinstance(request.resolved_state, dict) else ""
+        messages = [{"role": "system", "content": str(request.resolved_state)}, {"role": "user", "content": user_text}]
+        return self.generate(messages, max_chars=max_chars, retrieved_memories=request.retrieved_memories, seed=request.seed)
+
+    def generate_stream(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200, seed: int | None = None) -> Iterator[str]:
         """Synchronous token stream. UIs can render these chunks directly.
 
         If Ollama is unavailable, this streams the mock response in word chunks so
@@ -79,45 +185,19 @@ class LocalLLMRenderer:
         initial_delay = min(1.2, 0.05 + guardedness * 0.25)
         token_delay = min(0.12, 0.005 + (1.0 - warmth) * 0.025)
         time.sleep(initial_delay)
-        yielded = 0
-        if self._client is not None:
-            try:
-                stream = self._client.chat(
-                    model=self.model_name,
-                    messages=messages,
-                    stream=True,
-                    options={"temperature": 0.7, "top_p": 0.9, "num_predict": max(16, max_chars // 3), "num_ctx": 4096, "seed": 42},
-                )
-                for chunk in stream:
-                    token = chunk.get("message", {}).get("content", "")
-                    if not token:
-                        continue
-                    if yielded + len(token) > max_chars:
-                        token = token[:max(0, max_chars - yielded)]
-                    if token:
-                        yielded += len(token)
-                        yield token
-                        time.sleep(token_delay)
-                    if yielded >= max_chars:
-                        break
-                if guardedness > 0.72 and yielded + 3 <= max_chars:
-                    yield "..."
-                return
-            except Exception:
-                pass
-        mock = self._mock(messages, max_chars)
-        words = mock.split(" ")
+        rendered = self.generate(messages, max_chars=max_chars, seed=seed)
+        words = rendered.split(" ")
         for i, word in enumerate(words):
             piece = word if i == 0 else " " + word
             yield piece
             time.sleep(token_delay)
 
-    async def generate_stream_async(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200) -> AsyncIterator[str]:
+    async def generate_stream_async(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200, seed: int | None = None) -> AsyncIterator[str]:
         guardedness = getattr(envelope, "guardedness", 0.5) if envelope else 0.5
         warmth = getattr(envelope, "warmth", 0.5) if envelope else 0.5
         await asyncio.sleep(min(1.2, 0.05 + guardedness * 0.25))
         token_delay = min(0.12, 0.005 + (1.0 - warmth) * 0.025)
-        for token in self.generate_stream(messages, envelope=envelope, max_chars=max_chars):
+        for token in self.generate_stream(messages, envelope=envelope, max_chars=max_chars, seed=seed):
             yield token
             await asyncio.sleep(token_delay)
 
@@ -134,7 +214,61 @@ class LocalLLMRenderer:
             return cut[:last_space].rstrip(",;:") + "..."
         return cut.rstrip(",;:") + "..."
 
-    def _mock(self, messages, max_chars, error: Optional[str] = None) -> str:
-        tag = f"[mock renderer{' - ollama unreachable: ' + error if error else ' - ollama not installed'}] "
-        user_msg = messages[-1]["content"] if messages else ""
-        return self._clean_truncate(tag + f"(would respond in character to: {user_msg[:60]!r})", max_chars)
+    def _mock(self, messages, max_chars, error: Optional[str] = None, seed: int | None = None) -> str:
+        return self._offline.render(messages, max_chars=max_chars, seed=seed)
+
+
+def render_expression(
+    renderer,
+    ledger_digest,
+    resolved_state,
+    arc_context,
+    evidence,
+    retrieved_memories,
+    private_thought_context,
+    decision_payload,
+    expression_constraints,
+    deception_obligations,
+    seed: int | None = None,
+) -> str:
+    """Render expression from an already-resolved decision payload."""
+
+    request = ExpressionRequest(
+        ledger_digest=ledger_digest,
+        resolved_state=resolved_state,
+        arc_context=arc_context,
+        evidence=evidence,
+        retrieved_memories=retrieved_memories,
+        private_thought_context=private_thought_context,
+        decision_payload=decision_payload,
+        expression_constraints=expression_constraints,
+        deception_obligations=deception_obligations,
+        seed=seed,
+    )
+    if hasattr(renderer, "generate_expression"):
+        return renderer.generate_expression(request)
+
+    lines = [
+        f"Resolved decision: {decision_payload}",
+        f"Ledger digest: {ledger_digest}",
+        f"Resolved state: {resolved_state}",
+        f"Arc context: {arc_context}",
+        f"Evidence: {evidence}",
+        f"Private thought context: {private_thought_context}",
+        f"Expression constraints: {expression_constraints}",
+        f"Deception obligations: {deception_obligations}",
+    ]
+    user_text = ""
+    if isinstance(resolved_state, dict):
+        user_text = str(resolved_state.get("user_text", ""))
+    messages = [{"role": "system", "content": "\n".join(lines)}, {"role": "user", "content": user_text}]
+    if isinstance(expression_constraints, dict):
+        max_chars = expression_constraints.get("max_chars", 200)
+    else:
+        max_chars = getattr(expression_constraints, "max_chars", 200)
+    return renderer.generate(
+        messages,
+        max_chars=max_chars,
+        retrieved_memories=retrieved_memories,
+        seed=seed,
+    )
