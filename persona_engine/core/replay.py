@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from ..agent import CharacterAgent
+from .audio_sensor import AudioObservation
+from .vision_sensor import VisionObservation
 
 
 @dataclass
@@ -22,6 +24,7 @@ class ReplayResult:
 
     turns_replayed: int
     final_digest: dict[str, Any]
+    events_replayed: int = 0
 
 
 def state_digest(agent: CharacterAgent) -> dict[str, Any]:
@@ -59,18 +62,39 @@ def export_event_log(persistence, character_id: str, user_id: str) -> list[dict[
         conn.close()
 
 
+def replay_events_into_agent(agent: CharacterAgent, events: list[dict[str, Any]]) -> ReplayResult:
+    """Replay approved canonical events through normal agent channels."""
+
+    turns = 0
+    replayed = 0
+    for event in sorted(events, key=lambda item: int(item.get("sequence", item.get("id", 0)))):
+        event_type = event.get("event_type")
+        payload = event.get("payload") or {}
+        if event_type == "input":
+            user_text = payload.get("user_text")
+            if not isinstance(user_text, str):
+                continue
+            agent.say(
+                user_text,
+                server_truth=payload.get("submitted_server_truth", payload.get("server_truth")),
+                visible_context=payload.get("submitted_visible_context", payload.get("visible_context")),
+            )
+            turns += 1
+            replayed += 1
+        elif event_type == "sensor_observation" and payload.get("sensor_type") == "audio":
+            agent.observe_audio(AudioObservation(**dict(payload.get("observation") or {})))
+            replayed += 1
+        elif event_type == "sensor_observation" and payload.get("sensor_type") == "vision":
+            agent.observe_vision(VisionObservation(**dict(payload.get("observation") or {})))
+            replayed += 1
+        elif event_type == "world_action_resolution":
+            agent.propose_world_action(str(payload.get("action_type", "")), dict(payload.get("payload") or {}))
+            replayed += 1
+    return ReplayResult(turns_replayed=turns, final_digest=state_digest(agent), events_replayed=replayed)
+
+
 def replay_from_events(cartridge_path: str, events: list[dict[str, Any]], user_id: str = "replay_user") -> ReplayResult:
-    """Replay canonical input events through a new engine instance."""
+    """Replay canonical events through a new engine instance."""
     db_path = str(Path(tempfile.mkdtemp()) / "replay_state.db")
     agent = CharacterAgent(cartridge_path=cartridge_path, user_id=user_id, db_path=db_path)
-    turns = 0
-    for event in events:
-        if event.get("event_type") != "input":
-            continue
-        payload = event.get("payload") or {}
-        user_text = payload.get("user_text")
-        if not isinstance(user_text, str):
-            continue
-        agent.say(user_text, server_truth=payload.get("server_truth"), visible_context=payload.get("visible_context"))
-        turns += 1
-    return ReplayResult(turns_replayed=turns, final_digest=state_digest(agent))
+    return replay_events_into_agent(agent, events)

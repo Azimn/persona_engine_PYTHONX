@@ -516,6 +516,7 @@ class InteriorEngine:
         self.timestep += 1
         now = time.time()
         server_truth = dict(server_truth or {})
+        submitted_server_truth = dict(server_truth)
         visible_context = dict(visible_context or {})
         submitted_visible_context = dict(visible_context)
         server_truth.setdefault("user_text", user_text)
@@ -540,6 +541,8 @@ class InteriorEngine:
         input_payload = {
             "user_text": user_text,
             "server_truth": server_truth,
+            "submitted_server_truth": submitted_server_truth,
+            "submitted_visible_context": submitted_visible_context,
             "visible_context": visible_context,
             "memory_types": ["user_input"],
         }
@@ -622,7 +625,8 @@ class InteriorEngine:
             "visible_context": visible_context,
             "interpretive_beliefs": [b.to_dict() for b in interpretive_beliefs],
         }
-        private_proposal = generate_private_cognition(self.renderer, state_packet, self.cartridge_data or {})
+        cognition_seed = turn_seed(self.user_id, self.timestep, "private_cognition")
+        private_proposal = generate_private_cognition(self.renderer, state_packet, self.cartridge_data or {}, seed=cognition_seed)
         cognition_report = validate_and_apply(
             private_proposal,
             pressures=self.pressures,
@@ -809,6 +813,7 @@ class InteriorEngine:
             "visible_context": visible_context,
             "suppression_trace": suppression_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
+            "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "memory_types": memory_types or ["neutral_turn"],
         })
 
@@ -834,6 +839,7 @@ class InteriorEngine:
             "decision_payload": decision_payload,
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
+            "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
             "avatar_projection": self.avatar_projection(bucket, dominant_name),

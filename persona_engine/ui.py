@@ -15,7 +15,14 @@ from typing import Any
 
 from .agent import CharacterAgent
 from .core.public_state import debug_snapshot_from_engine
+from .core.replay import replay_events_into_agent
 from .core.renderer_control import RendererConfig, RendererControlService
+from .core.session_bundle import (
+    SessionBundleError,
+    build_session_bundle,
+    load_session_bundle,
+    validate_bundle_cartridge,
+)
 
 
 class InterfaceDependencyError(RuntimeError):
@@ -132,11 +139,15 @@ class HumanTestingSession:
         self.user_id = user_id
         self.renderer_control = renderer_control
         self._renderer_configs: dict[str, RendererConfig] = {}
+        self._replay_renderer_config: RendererConfig | None = None
+        self._active_db_path: Path | None = None
         self.session_mode = "new"
         self.cartridge_path = _safe_cartridge_path(cartridges_dir, default_cartridge)
         self.agent = self._make_agent(reset=False)
 
     def _renderer_config(self) -> RendererConfig:
+        if self.session_mode == "replay" and self._replay_renderer_config is not None:
+            return self._replay_renderer_config
         return self._renderer_configs.setdefault(self.cartridge_path.name, RendererConfig())
 
     def _db_path_for(self, cartridge_path: Path) -> Path:
@@ -151,6 +162,8 @@ class HumanTestingSession:
         if reset and db_path.exists():
             db_path.unlink()
         self.session_mode = "fresh" if reset else "resumed" if existed else "new"
+        self._replay_renderer_config = None
+        self._active_db_path = db_path
         agent = CharacterAgent(cartridge_path=str(self.cartridge_path), user_id=self.user_id, db_path=str(db_path))
         agent.engine.set_renderer(self.renderer_control.build_renderer(self._renderer_config()))
         return agent
@@ -167,9 +180,54 @@ class HumanTestingSession:
     def configure_renderer(self, raw: dict[str, Any]) -> dict[str, Any]:
         config = self.renderer_control.config_from_mapping(raw)
         renderer = self.renderer_control.build_renderer(config)
-        self._renderer_configs[self.cartridge_path.name] = config
+        if self.session_mode == "replay":
+            self._replay_renderer_config = config
+        else:
+            self._renderer_configs[self.cartridge_path.name] = config
         self.agent.engine.set_renderer(renderer)
         return self.renderer_status()
+
+    def export_bundle(self, transcript: list[dict[str, Any]], report_markdown: str) -> dict[str, Any]:
+        bundle = build_session_bundle(
+            self.agent,
+            self.cartridge_path,
+            self._renderer_config().to_dict(),
+            transcript=transcript,
+            report_markdown=report_markdown,
+        )
+        return bundle.to_dict()
+
+    def import_replay(self, raw: dict[str, Any]) -> dict[str, Any]:
+        bundle = load_session_bundle(raw)
+        cartridge_path = _safe_cartridge_path(self.cartridges_dir, bundle.cartridge)
+        validate_bundle_cartridge(bundle, cartridge_path)
+
+        safe_user = self.user_id.replace("/", "_").replace("\\", "_")
+        replay_path = self.db_dir / f"ui_{safe_user}_{cartridge_path.stem}_replay_{bundle.checksum[:12]}.db"
+        self.db_dir.mkdir(parents=True, exist_ok=True)
+        if replay_path.exists():
+            replay_path.unlink()
+
+        replay_agent = CharacterAgent(cartridge_path=str(cartridge_path), user_id=bundle.source_user_id, db_path=str(replay_path))
+        replay_config = RendererConfig()
+        replay_agent.engine.set_renderer(self.renderer_control.build_renderer(replay_config))
+        result = replay_events_into_agent(replay_agent, bundle.canonical_events)
+
+        self.cartridge_path = cartridge_path
+        self.agent = replay_agent
+        self.session_mode = "replay"
+        self._replay_renderer_config = replay_config
+        self._active_db_path = replay_path
+        return {
+            "session": self.info(),
+            "turns_replayed": result.turns_replayed,
+            "events_replayed": result.events_replayed,
+            "final_digest": result.final_digest,
+            "expected_digest": bundle.final_digest,
+            "digest_matches": result.final_digest == bundle.final_digest,
+            "transcript": bundle.transcript,
+            "report_markdown": bundle.report_markdown,
+        }
 
     def renderer_status(self) -> dict[str, Any]:
         return {
@@ -181,7 +239,7 @@ class HumanTestingSession:
         return {
             "cartridge": self.cartridge_path.name,
             "user_id": self.user_id,
-            "db_path": str(self._db_path_for(self.cartridge_path)),
+            "db_path": str(self._active_db_path or self._db_path_for(self.cartridge_path)),
             "mode": self.session_mode,
             "renderer": self.renderer_status(),
         }
@@ -277,6 +335,27 @@ def create_app(
     def reset_session():
         info = session.reset()
         return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"], "mode": info["mode"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
+
+    @app.post("/api/session/export")
+    @app.post("/session/export")
+    def export_session(req: dict = Body(...)):
+        transcript = req.get("transcript", [])
+        if not isinstance(transcript, list):
+            raise HTTPException(status_code=400, detail="transcript must be a list")
+        return session.export_bundle(transcript, str(req.get("report_markdown", "")))
+
+    @app.post("/api/session/replay")
+    @app.post("/session/replay")
+    def replay_session(req: dict = Body(...)):
+        try:
+            result = session.import_replay(req)
+        except (FileNotFoundError, SessionBundleError, TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {
+            **result,
+            "status": session.agent.public_status(),
+            "renderer": session.renderer_status(),
+        }
 
     @app.get("/api/status")
     @app.get("/status")

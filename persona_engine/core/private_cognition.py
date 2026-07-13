@@ -59,7 +59,7 @@ def _proposal_from_mapping(data: dict[str, Any]) -> PrivateCognitionProposal:
     )
 
 
-def generate_private_cognition(renderer, state_packet, cartridge) -> PrivateCognitionProposal:
+def generate_private_cognition(renderer, state_packet, cartridge, seed: int | None = None) -> PrivateCognitionProposal:
     """Call the renderer's private-cognition task without touching state."""
 
     if hasattr(renderer, "generate_private_cognition"):
@@ -71,6 +71,7 @@ def generate_private_cognition(renderer, state_packet, cartridge) -> PrivateCogn
                 evidence=[],
                 retrieved_memories=[],
                 cartridge=dict(cartridge or {}),
+                seed=seed,
             ))
         except TypeError:
             raw = renderer.generate_private_cognition(state_packet=state_packet, cartridge=cartridge)

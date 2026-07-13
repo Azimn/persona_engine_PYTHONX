@@ -40,6 +40,8 @@ frontend toggle is still off by default.
 
 Read-only debug workspace summaries include retrieved-memory IDs, source type, tags, timestamp, and first-person content. This provenance is not exposed by normal public status.
 
+The report workspace can export the current transcript and report draft with canonical replay events and diagnostic turn records. Import validates the bundle and cartridge checksums, creates a separate replay database, and replays only approved engine/world/session inputs. The original session database is not overwritten. Replay verifies deterministic state, not exact generated prose. Bundles may include private debug or submitted context and should be handled as sensitive local test artifacts.
+
 API endpoints:
 
 - `GET /` serves the human testing UI.
@@ -48,6 +50,8 @@ API endpoints:
 - `POST /api/renderer/config` validates and applies renderer settings to the active cartridge session.
 - `POST /api/session/select` switches cartridge through session construction.
 - `POST /api/session/reset` resets the current local session database.
+- `POST /api/session/export` creates a versioned, checksum-verified JSON session bundle.
+- `POST /api/session/replay` validates a bundle and replays approved events in an isolated session.
 - `GET /api/status` returns public categorical status only.
 - `GET /api/proactive` returns read-only proactive proposals.
 - `POST /api/chat` sends text through the engine.
@@ -67,6 +71,7 @@ Allowed UI actions:
 - Select a cartridge, which creates a new engine instance.
 - Reset a local session database for testing.
 - Configure the surface renderer through the session's validated renderer channel.
+- Export and replay validated session bundles through the session service.
 
 Forbidden UI actions:
 

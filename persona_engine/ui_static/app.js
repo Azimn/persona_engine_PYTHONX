@@ -513,6 +513,58 @@ async function copyReport() {
   }
 }
 
+function downloadJson(payload, filename) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportSessionBundle() {
+  const bundle = await api('/session/export', {
+    method: 'POST',
+    body: JSON.stringify({ transcript: state.transcript, report_markdown: reportMarkdown() })
+  });
+  const stem = String(bundle.cartridge || 'session').replace(/\.snp$/i, '');
+  downloadJson(bundle, `${stem}-persona-session.json`);
+  showModal(`Exported ${bundle.canonical_events.length} replayable events with checksum ${bundle.checksum.slice(0, 12)}.`, 'Session exported');
+}
+
+function restoreTranscript(transcript) {
+  state.transcript = [];
+  clearConversation();
+  for (const item of transcript || []) {
+    if (item.role === 'User') addMessage('user', item.text || '');
+    if (item.role === 'Character') addMessage('char', item.text || '');
+  }
+  state.transcript = (transcript || [])
+    .filter(item => item && (item.role === 'User' || item.role === 'Character'))
+    .map(item => ({ role: item.role, text: String(item.text || ''), time: item.time || '' }));
+}
+
+async function importReplayFile(file) {
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) throw new Error('Replay bundle exceeds the 10 MB UI limit.');
+  const bundle = JSON.parse(await file.text());
+  const result = await api('/session/replay', { method: 'POST', body: JSON.stringify(bundle) });
+  state.currentCartridge = result.session.cartridge;
+  $('cartridgeSelect').value = result.session.cartridge;
+  restoreTranscript(result.transcript || []);
+  if (result.report_markdown) localStorage.setItem(REPORT_KEY, result.report_markdown);
+  updateStatus({ session: result.session, status: result.status, renderer: result.renderer });
+  applyRendererStatus(result.renderer);
+  await loadRendererControls();
+  await refreshStatus();
+  const digest = result.digest_matches ? 'State digest matched.' : 'State digest differs; inspect the replay trace.';
+  addMessage('system', `Replayed ${result.events_replayed} canonical events in an isolated session. ${digest}`);
+  showModal(digest, 'Replay complete');
+}
+
 function wireEvents() {
   $('inputForm').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -558,6 +610,13 @@ function wireEvents() {
 
   $('captureExcerpt').addEventListener('click', captureLastExchange);
   $('copyReport').addEventListener('click', copyReport);
+  $('exportSession').addEventListener('click', () => exportSessionBundle().catch(err => showModal(err.message, 'Session export failed')));
+  $('importReplay').addEventListener('click', () => $('replayFile').click());
+  $('replayFile').addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    importReplayFile(file).catch(err => showModal(err.message, 'Replay import failed'));
+    event.target.value = '';
+  });
   $('clearReport').addEventListener('click', resetReportForSession);
 
   $('modalClose').addEventListener('click', hideModal);

@@ -22,6 +22,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Server-backed renderer controls with local Ollama discovery, per-cartridge configuration, timeout and token limits, thinking mode, explicit offline selection, and visible fallback status.
 - Conservative model capability profiles for thinking support, JSON reliability, context hints, practical generation limits, and final-answer behavior.
 - Explicit new/resumed/fresh session modes, tested cartridge isolation, and read-only retrieved-memory provenance traces.
+- Versioned, checksum-verified UI session bundles with transcript/report capture, canonical event separation, diagnostic turn traces, and isolated deterministic replay.
 
 ## Current Tests
 
@@ -34,7 +35,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-171 passed, 1 skipped
+177 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -57,7 +58,7 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 ## Recommended Next Work
 
 1. Run a structured human-testing pass across all included cartridges.
-2. Add observability and replay export from UI sessions.
+2. Compare offline and Ollama behavior using exported session bundles and paired cartridge scripts.
 3. Add cartridge tooling: lint, compare, and authoring helpers.
 4. Complete the optional local-HF provider only after live renderer comparisons justify a base model.
 5. Begin C99 or mobile host work only after the Python reference contracts and human-test findings stabilize.

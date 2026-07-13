@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PersonaConsole Python Lab - Human Test Console</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=20260712b" />
+  <link rel="stylesheet" href="/assets/styles.css?v=20260712c" />
 </head>
 <body>
   <main class="app-shell">
@@ -154,6 +154,9 @@
             <div class="report-actions">
               <button type="button" class="secondary-button" id="captureExcerpt">capture last exchange</button>
               <button type="button" class="secondary-button" id="copyReport">copy markdown</button>
+              <button type="button" class="secondary-button" id="exportSession">export session</button>
+              <button type="button" class="secondary-button" id="importReplay">import replay</button>
+              <input id="replayFile" type="file" accept="application/json,.json" hidden />
               <button type="button" class="secondary-button ghost-button" id="clearReport">clear form</button>
             </div>
             <label class="field-label compact">tester <input id="testerName" type="text" placeholder="name" /></label>
@@ -186,6 +189,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=20260712b"></script>
+  <script src="/assets/app.js?v=20260712c"></script>
 </body>
 </html>

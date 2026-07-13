@@ -72,7 +72,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-171 passed, 1 skipped
+177 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -110,7 +110,7 @@ Or use the installed entry point:
 persona-engine-ui
 ```
 
-Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, and working local renderer controls.
+Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, working local renderer controls, and checksum-verified session export/replay.
 
 ## Human Testing
 
@@ -147,6 +147,12 @@ Offline rendering is always available and dependency-free. If a selected Ollama 
 `local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
 
 Character sessions use separate persistence and renderer configuration. The UI labels a session as new, resumed, or fresh after reset. Read-only debug traces show retrieved-memory IDs and provenance; normal public status does not expose private memory state.
+
+## Session Export And Replay
+
+The report workspace can export a versioned JSON bundle containing the transcript, report draft, renderer configuration, cartridge checksum, canonical replay events, diagnostic turn records, stable turn seeds, and final state digest. Generated speech and renderer output are retained for human review but are never promoted into the canonical replay event stream.
+
+Importing a valid bundle creates an isolated replay database and replays only approved input, bounded sensor, and world-action events. Checksums and cartridge identity are verified before replay. Deterministic state is compared with the exported digest; exact LLM prose reproduction is not promised. Export bundles can contain private debug and submitted context, so treat them as sensitive local test artifacts.
 
 ## Known Limitations
 
