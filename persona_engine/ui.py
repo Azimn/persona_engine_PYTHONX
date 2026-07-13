@@ -15,6 +15,7 @@ from typing import Any
 
 from .agent import CharacterAgent
 from .core.public_state import debug_snapshot_from_engine
+from .core.renderer_control import RendererConfig, RendererControlService
 
 
 class InterfaceDependencyError(RuntimeError):
@@ -115,12 +116,24 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
 class HumanTestingSession:
     """Small holder for a selected cartridge and its current agent instance."""
 
-    def __init__(self, cartridges_dir: Path, db_dir: Path, default_cartridge: str, user_id: str):
+    def __init__(
+        self,
+        cartridges_dir: Path,
+        db_dir: Path,
+        default_cartridge: str,
+        user_id: str,
+        renderer_control: RendererControlService,
+    ):
         self.cartridges_dir = cartridges_dir
         self.db_dir = db_dir
         self.user_id = user_id
+        self.renderer_control = renderer_control
+        self._renderer_configs: dict[str, RendererConfig] = {}
         self.cartridge_path = _safe_cartridge_path(cartridges_dir, default_cartridge)
         self.agent = self._make_agent(reset=False)
+
+    def _renderer_config(self) -> RendererConfig:
+        return self._renderer_configs.setdefault(self.cartridge_path.name, RendererConfig())
 
     def _db_path_for(self, cartridge_path: Path) -> Path:
         stem = cartridge_path.stem.replace(" ", "_")
@@ -132,7 +145,9 @@ class HumanTestingSession:
         db_path = self._db_path_for(self.cartridge_path)
         if reset and db_path.exists():
             db_path.unlink()
-        return CharacterAgent(cartridge_path=str(self.cartridge_path), user_id=self.user_id, db_path=str(db_path))
+        agent = CharacterAgent(cartridge_path=str(self.cartridge_path), user_id=self.user_id, db_path=str(db_path))
+        agent.engine.set_renderer(self.renderer_control.build_renderer(self._renderer_config()))
+        return agent
 
     def select(self, cartridge_name: str, reset: bool = False) -> dict:
         self.cartridge_path = _safe_cartridge_path(self.cartridges_dir, cartridge_name)
@@ -143,11 +158,25 @@ class HumanTestingSession:
         self.agent = self._make_agent(reset=True)
         return self.info()
 
+    def configure_renderer(self, raw: dict[str, Any]) -> dict[str, Any]:
+        config = self.renderer_control.config_from_mapping(raw)
+        renderer = self.renderer_control.build_renderer(config)
+        self._renderer_configs[self.cartridge_path.name] = config
+        self.agent.engine.set_renderer(renderer)
+        return self.renderer_status()
+
+    def renderer_status(self) -> dict[str, Any]:
+        return {
+            "config": self._renderer_config().to_dict(),
+            "runtime": self.agent.engine.renderer_status(),
+        }
+
     def info(self) -> dict:
         return {
             "cartridge": self.cartridge_path.name,
             "user_id": self.user_id,
             "db_path": str(self._db_path_for(self.cartridge_path)),
+            "renderer": self.renderer_status(),
         }
 
 
@@ -157,6 +186,7 @@ def create_app(
     user_id: str = "ui_user",
     debug: bool = False,
     cartridges_dir: str | None = None,
+    renderer_control: RendererControlService | None = None,
 ):
     """Create a FastAPI app if FastAPI is installed.
 
@@ -178,7 +208,8 @@ def create_app(
     db_target = Path(db_path)
     db_dir = db_target if db_target.suffix == "" else db_target.parent
     default_cartridge = Path(cartridge_path).name if cartridge_path else "pretorius.snp"
-    session = HumanTestingSession(selected_cartridges_dir, db_dir, default_cartridge, user_id)
+    control = renderer_control or RendererControlService()
+    session = HumanTestingSession(selected_cartridges_dir, db_dir, default_cartridge, user_id, control)
 
     app = FastAPI(title="Persona Engine Human Testing UI", version="12.0")
     app.mount("/assets", StaticFiles(directory=str(static_dir)), name="assets")
@@ -202,7 +233,20 @@ def create_app(
 
     @app.get("/health")
     def health():
-        return {"ok": True, "session": session.info()}
+        return {"ok": True, "session": session.info(), "renderer": session.renderer_status()}
+
+    @app.get("/api/renderers")
+    @app.get("/renderers")
+    def renderers():
+        return {**control.discover(), "current": session.renderer_status()}
+
+    @app.post("/api/renderer/config")
+    @app.post("/renderer/config")
+    def configure_renderer(req: dict = Body(...)):
+        try:
+            return session.configure_renderer(req)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/cartridges")
     @app.get("/cartridges")
@@ -219,13 +263,13 @@ def create_app(
             info = session.select(str(req.get("cartridge", "")), reset=bool(req.get("reset", False)))
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status()}
+        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
 
     @app.post("/api/session/reset")
     @app.post("/session/reset")
     def reset_session():
         info = session.reset()
-        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status()}
+        return {"session": {"cartridge": info["cartridge"], "user_id": info["user_id"]}, "status": session.agent.public_status(), "renderer": session.renderer_status()}
 
     @app.get("/api/status")
     @app.get("/status")
@@ -276,6 +320,7 @@ def create_app(
             "proactive_events": result["proactive_events"],
             "interpretive_beliefs": result.get("interpretive_beliefs", []),
             "bucket": result.get("bucket"),
+            "renderer": session.renderer_status(),
         }
 
     @app.post("/api/chat/stream")
@@ -290,7 +335,7 @@ def create_app(
                 yield chunk
             for thought in result.get("second_thoughts", []):
                 yield f"data: {json.dumps({'type': 'second_thought', 'text': thought})}\n\n"
-            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'beliefs': result.get('interpretive_beliefs', [])})}\n\n"
+            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'beliefs': result.get('interpretive_beliefs', []), 'renderer': session.renderer_status()})}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(events(), media_type="text/event-stream")

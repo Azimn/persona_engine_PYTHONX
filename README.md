@@ -72,7 +72,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-152 passed, 1 skipped
+161 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -110,7 +110,7 @@ Or use the installed entry point:
 persona-engine-ui
 ```
 
-Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, and optional read-only debug details.
+Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, and working local renderer controls.
 
 ## Human Testing
 
@@ -138,15 +138,11 @@ Included cartridges:
 
 ## Renderer Backends
 
-By default, the renderer falls back to bounded mock output if Ollama is not installed or reachable. This is intentional so tests, simulators, and UI smoke tests remain dependency-light.
+The human UI discovers Ollama directly through its local HTTP service and lists models actually installed on the machine. No Ollama Python package is required. Renderer settings are scoped per cartridge and include provider, model, thinking mode, request timeout, and token budget.
 
-Optional local Ollama experiment:
+Offline rendering is always available and dependency-free. If a selected Ollama request fails or returns no final response text, the turn falls back to the deterministic offline renderer and the UI shows the requested backend, actual backend, and fallback reason. Renderer output remains noncanonical speech evidence in every mode.
 
-```bash
-python -m pip install "ollama>=0.3.0"
-```
-
-Then configure cartridge `model_name` values to match locally available Ollama models. Renderer output still remains noncanonical speech evidence.
+`local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
 
 ## Known Limitations
 

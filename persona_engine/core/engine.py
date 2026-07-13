@@ -132,6 +132,17 @@ class InteriorEngine:
 
         self._load_state()
 
+    def set_renderer(self, renderer) -> None:
+        """Replace only the surface renderer through an approved host channel."""
+
+        self.renderer = renderer
+
+    def renderer_status(self) -> dict:
+        status = getattr(self.renderer, "runtime_status", None)
+        if callable(status):
+            return status()
+        return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
+
     # ---------------- persistence ----------------
     def _load_state(self):
         cid, uid = self.identity.name, self.user_id

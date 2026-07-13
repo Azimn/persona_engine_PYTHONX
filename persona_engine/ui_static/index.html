@@ -21,7 +21,7 @@
       <div class="renderer-card renderer-offline" id="rendererStatus" aria-live="polite">
         <span class="renderer-light" aria-hidden="true"></span>
         <div>
-          <strong id="rendererLabel">mock renderer</strong>
+          <strong id="rendererLabel">offline renderer</strong>
           <span id="rendererDetail">Python package runtime</span>
         </div>
       </div>
@@ -41,16 +41,16 @@
       <details class="rail-section" open>
         <summary>Renderer Lab</summary>
         <label class="field-label compact">
-          model profile
-          <select id="modelProfile">
-            <option value="mock">mock renderer</option>
-            <option value="gemma3:1b">gemma3:1b</option>
-            <option value="mistral:latest">mistral:latest</option>
-            <option value="qwen3:8b">qwen3:8b</option>
-            <option value="qwen3:14b">qwen3:14b</option>
-            <option value="ornith:latest">ornith:latest</option>
-            <option value="hf.co/huzpsb/MiniMax-M2-her-4b:latest">MiniMax-M2-her-4b</option>
+          provider
+          <select id="rendererProvider">
+            <option value="offline">offline</option>
+            <option value="ollama">ollama</option>
+            <option value="local_hf" disabled>local HF (future)</option>
           </select>
+        </label>
+        <label class="field-label compact">
+          model
+          <select id="modelProfile"><option value="offline-template">offline-template</option></select>
         </label>
         <label class="field-label compact">
           thinking mode
@@ -60,7 +60,12 @@
             <option value="on">on</option>
           </select>
         </label>
-        <p class="fineprint" id="modelAdvice">Mock is deterministic and dependency-free. Record the real backend you use in the report.</p>
+        <div class="two-buttons">
+          <label class="field-label compact">timeout (s)<input id="rendererTimeout" type="number" min="1" max="600" value="60" /></label>
+          <label class="field-label compact">token budget<input id="rendererTokens" type="number" min="16" max="8192" value="256" /></label>
+        </div>
+        <button type="button" class="secondary-button" id="applyRenderer">apply renderer</button>
+        <p class="fineprint" id="modelAdvice">Offline rendering is deterministic and dependency-free.</p>
       </details>
 
       <details class="rail-section" open>
@@ -180,6 +185,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=20260709a"></script>
+  <script src="/assets/app.js?v=20260712a"></script>
 </body>
 </html>

@@ -10,7 +10,6 @@ const state = {
 
 const API_BASE = '/api';
 const REPORT_KEY = 'persona_engine_human_test_report_v1';
-const SETTINGS_KEY = 'persona_engine_ui_renderer_settings_v1';
 const DIMENSIONS = [
   'Continuity',
   'Boundedness',
@@ -124,36 +123,66 @@ function setPresence(text, active = false) {
   node.classList.toggle('active', active);
 }
 
-function loadSettings() {
-  try {
-    return Object.assign({ model: 'mock', thinking: 'auto' }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
-  } catch {
-    return { model: 'mock', thinking: 'auto' };
-  }
-}
-
-function saveSettings() {
-  const settings = { model: $('modelProfile').value, thinking: $('thinkingMode').value };
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  updateRendererCard();
-}
-
-function updateRendererCard() {
-  const model = $('modelProfile').value;
-  const thinking = $('thinkingMode').value;
+function applyRendererStatus(renderer = {}) {
+  const config = renderer.config || {};
+  const runtime = renderer.runtime || {};
+  const requested = runtime.requested_provider || config.provider || 'offline';
+  const actual = runtime.actual_provider || 'offline';
+  const model = runtime.model_name || config.model_name || 'offline-template';
   const status = $('rendererStatus');
   status.classList.remove('renderer-offline', 'renderer-online', 'renderer-thinking');
-  if (model === 'mock') {
+  if (actual === 'offline') {
     status.classList.add('renderer-offline');
-    $('rendererLabel').textContent = 'mock renderer';
-    $('rendererDetail').textContent = 'deterministic baseline';
+    $('rendererLabel').textContent = 'offline renderer';
   } else {
-    status.classList.add(thinking === 'on' || thinking === 'auto' ? 'renderer-thinking' : 'renderer-online');
+    status.classList.add(config.thinking_mode === 'on' || config.thinking_mode === 'auto' ? 'renderer-thinking' : 'renderer-online');
     $('rendererLabel').textContent = model;
-    $('rendererDetail').textContent = `thinking: ${thinking}`;
   }
-  $('modelAdvice').textContent = MODEL_ADVICE[model] || 'Record this backend in the report before testing.';
-  $('rendererBackend').value = model === 'mock' ? 'mock' : `ollama / ${model} / thinking ${thinking}`;
+  const fallback = runtime.fallback_reason;
+  $('rendererDetail').textContent = fallback ? `${requested} fell back: ${fallback}` : `${actual} | thinking: ${config.thinking_mode || 'auto'}`;
+  $('modelAdvice').textContent = fallback || MODEL_ADVICE[model] || (actual === 'offline' ? 'Deterministic dependency-free renderer.' : 'Server-confirmed local renderer.');
+  $('rendererBackend').value = `${actual} / ${model} / thinking ${config.thinking_mode || 'auto'}`;
+}
+
+function populateModels(discovery, selectedModel) {
+  const provider = $('rendererProvider').value;
+  const entry = (discovery.providers || []).find(item => item.provider === provider);
+  const select = $('modelProfile');
+  select.innerHTML = '';
+  for (const model of (entry?.models || [])) {
+    const option = document.createElement('option');
+    option.value = model;
+    option.textContent = model;
+    select.appendChild(option);
+  }
+  if (selectedModel && [...select.options].some(option => option.value === selectedModel)) select.value = selectedModel;
+  select.disabled = !entry?.available || select.options.length === 0;
+  $('applyRenderer').disabled = !entry?.available;
+  $('modelAdvice').textContent = entry?.detail || 'Renderer provider unavailable.';
+}
+
+async function loadRendererControls() {
+  const discovery = await api('/renderers');
+  state.rendererDiscovery = discovery;
+  const config = discovery.current?.config || {};
+  $('rendererProvider').value = config.provider || 'offline';
+  populateModels(discovery, config.model_name);
+  $('thinkingMode').value = config.thinking_mode || 'auto';
+  $('rendererTimeout').value = config.timeout_seconds || 60;
+  $('rendererTokens').value = config.token_budget || 256;
+  applyRendererStatus(discovery.current);
+}
+
+async function applyRendererConfig() {
+  const payload = {
+    provider: $('rendererProvider').value,
+    model_name: $('modelProfile').value,
+    thinking_mode: $('thinkingMode').value,
+    timeout_seconds: Number($('rendererTimeout').value),
+    token_budget: Number($('rendererTokens').value)
+  };
+  const renderer = await api('/renderer/config', { method: 'POST', body: JSON.stringify(payload) });
+  applyRendererStatus(renderer);
 }
 
 function pct(value, fallback = 0) {
@@ -196,6 +225,7 @@ function updateStatus(status = {}) {
   $('needTension').style.width = `${pct(payload.tension, 20)}%`;
   $('needComfort').style.width = `${pct(payload.comfort, 70)}%`;
   setPresence(payload.presence ? String(payload.presence) : 'offline-ready', false);
+  if (status.renderer) applyRendererStatus(status.renderer);
 }
 
 function beliefMarkup() {
@@ -280,6 +310,8 @@ async function selectCharacter(reset = false) {
   state.transcript = [];
   clearConversation();
   updateStatus({ session: data.session, status: data.status });
+  if (data.renderer) applyRendererStatus(data.renderer);
+  await loadRendererControls();
   addMessage('system', `Loaded ${data.session.cartridge}${reset ? ' with a fresh session' : ''}.`);
   resetReportForSession();
   await refreshStatus();
@@ -327,6 +359,7 @@ async function sendChat(text, serverTruth = null, visibleContext = null, kind = 
         state.lastVoicePlan = event.voice_plan;
         state.lastBeliefs = event.beliefs || [];
         updatePanels();
+        if (event.renderer) applyRendererStatus(event.renderer);
       }
     }
   }
@@ -472,8 +505,8 @@ function wireEvents() {
   $('promptCharacter').addEventListener('click', () => sendChat('...', null, { user_presence: 'present', prompt_source: 'ui_prompt' }, 'idle').catch(err => addMessage('system', `Error: ${err.message}`)));
   $('attachButton').addEventListener('click', () => showModal('Attachments are reserved for a later multimodal renderer pass. This button remains here to match the V6 console shape.'));
 
-  $('modelProfile').addEventListener('change', saveSettings);
-  $('thinkingMode').addEventListener('change', saveSettings);
+  $('rendererProvider').addEventListener('change', () => populateModels(state.rendererDiscovery || {}, null));
+  $('applyRenderer').addEventListener('click', () => applyRendererConfig().catch(err => showModal(err.message, 'Renderer configuration failed')));
 
   document.querySelectorAll('[data-audio]').forEach(btn => btn.addEventListener('click', () => sendSensor('audio', JSON.parse(btn.dataset.audio)).catch(err => addMessage('system', `Error: ${err.message}`))));
   document.querySelectorAll('[data-vision]').forEach(btn => btn.addEventListener('click', () => sendSensor('vision', JSON.parse(btn.dataset.vision)).catch(err => addMessage('system', `Error: ${err.message}`))));
@@ -506,11 +539,8 @@ async function boot() {
   setToday();
   buildRatings();
   wireEvents();
-  const settings = loadSettings();
-  $('modelProfile').value = settings.model;
-  $('thinkingMode').value = settings.thinking;
-  updateRendererCard();
   await loadCartridges();
+  await loadRendererControls();
   await refreshStatus();
   updatePanels();
   addMessage('system', 'Python lab ready. Select a cartridge, run the session, and capture excerpts while testing.');

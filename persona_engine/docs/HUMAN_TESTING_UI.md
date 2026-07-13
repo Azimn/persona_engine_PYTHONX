@@ -26,7 +26,9 @@ Open the local URL printed by Uvicorn.
 
 ## What testers can do
 
-Testers can select any cartridge in `persona_engine/cartridges`, reset that character's local session, chat through the normal input channel, simulate a few bounded audio and vision observations, inspect public organism status, see avatar-safe state, see voice-plan output, and see interpretive beliefs exposed for the current turn.
+Testers can select any cartridge in `persona_engine/cartridges`, reset that character's local session, chat through the normal input channel, simulate a few bounded audio and vision observations, inspect public organism status, see avatar-safe state, see voice-plan output, and see interpretive beliefs exposed for the current turn. The Renderer Lab discovers locally installed Ollama models and applies provider, model, thinking mode, timeout, and token-budget settings to the active cartridge session.
+
+Renderer configuration is scoped by cartridge. Switching characters restores that cartridge's own renderer settings instead of carrying the previous character's selection across. Offline rendering is always available. When an Ollama turn fails, the runtime falls back to offline expression and exposes the reason without changing organism state.
 
 The UI does not receive raw private pressure values in normal mode. Normal
 status is served from `/api/status` and contains only categorical public status,
@@ -38,6 +40,8 @@ API endpoints:
 
 - `GET /` serves the human testing UI.
 - `GET /api/cartridges` lists `.snp` cartridges and the active cartridge.
+- `GET /api/renderers` discovers offline, Ollama, and future local-HF providers and reports the current runtime.
+- `POST /api/renderer/config` validates and applies renderer settings to the active cartridge session.
 - `POST /api/session/select` switches cartridge through session construction.
 - `POST /api/session/reset` resets the current local session database.
 - `GET /api/status` returns public categorical status only.
@@ -58,6 +62,7 @@ Allowed UI actions:
 - Submit bounded vision observations through `observe_vision`.
 - Select a cartridge, which creates a new engine instance.
 - Reset a local session database for testing.
+- Configure the surface renderer through the session's validated renderer channel.
 
 Forbidden UI actions:
 

@@ -1,9 +1,11 @@
 """Local Ollama renderer plus output validation and streaming rhythm."""
 
 import asyncio
+import json
 import re
 import time
 from typing import List, Dict, Optional, Iterator, AsyncIterator
+from urllib.request import Request, urlopen
 from .cognition_schemas import DeceptionAuthorization, PrivateCognitionProposal
 from .deception_ledger import DeceptionLedger
 from .memory import MemoryUnit
@@ -77,16 +79,58 @@ class OutputValidator:
 
 
 class LocalLLMRenderer:
-    def __init__(self, model_name: str = "gemma3", host: str = "http://localhost:11434"):
+    def __init__(
+        self,
+        model_name: str = "gemma3",
+        host: str = "http://localhost:11434",
+        provider: str | None = None,
+        thinking_mode: str = "auto",
+        timeout_seconds: float = 60.0,
+        token_budget: int = 256,
+        opener=urlopen,
+    ):
         self.model_name = model_name
-        self.host = host
-        self._client = None
+        self.host = host.rstrip("/")
+        self.provider = provider or ("offline" if model_name.startswith("missing-model-for-mock") else "ollama")
+        self.thinking_mode = thinking_mode
+        self.timeout_seconds = float(timeout_seconds)
+        self.token_budget = int(token_budget)
+        self._opener = opener
         self._offline = OfflineTemplateRenderer()
-        try:
-            from ollama import Client
-            self._client = Client(host=host)
-        except Exception:
-            self._client = None
+        self._actual_backend = "offline" if self.provider == "offline" else "pending"
+        self._fallback_reason = None
+
+    def runtime_status(self) -> dict:
+        return {
+            "requested_provider": self.provider,
+            "actual_provider": self._actual_backend,
+            "model_name": self.model_name,
+            "thinking_mode": self.thinking_mode,
+            "timeout_seconds": self.timeout_seconds,
+            "token_budget": self.token_budget,
+            "fallback_reason": self._fallback_reason,
+        }
+
+    def _ollama_chat(self, messages: List[Dict[str, str]], seed: int | None) -> str:
+        options = {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "num_predict": self.token_budget,
+            "num_ctx": 4096,
+            "seed": int(seed or 0),
+        }
+        payload = {"model": self.model_name, "messages": messages, "stream": False, "options": options}
+        if self.thinking_mode != "auto":
+            payload["think"] = self.thinking_mode == "on"
+        request = Request(
+            f"{self.host}/api/chat",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            method="POST",
+        )
+        with self._opener(request, timeout=self.timeout_seconds) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        return str(result.get("message", {}).get("content", "")).strip()
 
     def generate(
         self,
@@ -95,18 +139,19 @@ class LocalLLMRenderer:
         retrieved_memories: Optional[List[MemoryUnit]] = None,
         seed: int | None = None,
     ) -> str:
-        if self._client is not None:
+        if self.provider == "ollama":
             try:
-                response = self._client.chat(
-                    model=self.model_name,
-                    messages=messages,
-                    options={"temperature": 0.7, "top_p": 0.9, "num_predict": max(16, max_chars // 3), "num_ctx": 4096, "seed": int(seed or 0)},
-                )
-                content = response["message"]["content"].strip()
+                content = self._ollama_chat(messages, seed)
                 if content:
+                    self._actual_backend = "ollama"
+                    self._fallback_reason = None
                     return self._clean_truncate(content, max_chars)
-            except Exception:
-                pass
+                self._fallback_reason = "Ollama returned no final response text."
+            except Exception as exc:
+                self._fallback_reason = f"Ollama request failed ({type(exc).__name__})."
+        else:
+            self._fallback_reason = None
+        self._actual_backend = "offline"
         return self._mock(messages, max_chars, seed=seed)
 
     def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
@@ -140,34 +185,8 @@ class LocalLLMRenderer:
         initial_delay = min(1.2, 0.05 + guardedness * 0.25)
         token_delay = min(0.12, 0.005 + (1.0 - warmth) * 0.025)
         time.sleep(initial_delay)
-        yielded = 0
-        if self._client is not None:
-            try:
-                stream = self._client.chat(
-                    model=self.model_name,
-                    messages=messages,
-                    stream=True,
-                    options={"temperature": 0.7, "top_p": 0.9, "num_predict": max(16, max_chars // 3), "num_ctx": 4096, "seed": int(seed or 0)},
-                )
-                for chunk in stream:
-                    token = chunk.get("message", {}).get("content", "")
-                    if not token:
-                        continue
-                    if yielded + len(token) > max_chars:
-                        token = token[:max(0, max_chars - yielded)]
-                    if token:
-                        yielded += len(token)
-                        yield token
-                        time.sleep(token_delay)
-                    if yielded >= max_chars:
-                        break
-                if guardedness > 0.72 and yielded + 3 <= max_chars:
-                    yield "..."
-                return
-            except Exception:
-                pass
-        mock = self._mock(messages, max_chars, seed=seed)
-        words = mock.split(" ")
+        rendered = self.generate(messages, max_chars=max_chars, seed=seed)
+        words = rendered.split(" ")
         for i, word in enumerate(words):
             piece = word if i == 0 else " " + word
             yield piece
