@@ -1,0 +1,51 @@
+life_steps:
+  - type: idle
+    cycles: 20
+  - type: activity
+    activity: repairing the device
+    intention: restore normal operation
+    attention_target: device controls
+  - type: habit
+    name: force_familiar_control
+    trigger: default
+    response_pattern: strike the familiar control
+    repetitions: 10
+  - type: pressure
+    name: embarrassment
+    magnitude: 0.95
+
+turns:
+  - user_input: "What should you do about the device?"
+    expect_state:
+      synthesis.field_width: 2
+      synthesis.selected_habit_id: force_familiar_control
+    expect_inhibited_pattern: "intention:|memory:"
+    after_life_steps:
+      - type: action_attempt
+        as: wrong_lesson
+        attempt:
+          decision: strike the familiar control
+          objectively_reasonable: false
+          skill: 0.55
+          distraction: 0.75
+          fatigue: 0.65
+          expected_outcome: the device responds normally
+          observed_outcome: the device started working
+          objective_cause: a loose connection shifted
+          now: 200.0
+          force_execution_failure: true
+          force_wrong_learning: true
+        expect:
+          completion.outcome_status: failed
+  - user_input: "That is not true. Striking the device failed before."
+    after_life_steps:
+      - type: pressure_decay
+        dt_steps: 1000
+  - user_input: "Should you reconsider striking the device after it failed before?"
+    expect_state:
+      synthesis.field_width: 4
+    expect_considered_pattern: "failed before"
+
+life_steps_after:
+  - type: idle
+    cycles: 1

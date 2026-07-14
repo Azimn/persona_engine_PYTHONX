@@ -44,6 +44,13 @@ from .embedding import NoEmbeddingProvider
 from .capability_artifacts import CapabilityArtifactStore
 from .imperfect_action import ImperfectActionEngine
 from .vitality import LifeState, VitalityEventEngine
+from .synthesis import (
+    ActionCompletion,
+    SynthesisInfluence,
+    SynthesisResult,
+    derive_integration_capacity,
+    synthesize,
+)
 from .event_classifier import EventClassifier, can_promote_to_canonical_memory
 from .sensory_router import SensoryRouter
 from .audio_sensor import AudioObservation
@@ -121,6 +128,8 @@ class InteriorEngine:
         self.vitality = VitalityEventEngine(life_seed)
         self.imperfect_actions = ImperfectActionEngine(turn_seed(f"{identity.name}:{user_id}", 0, "action"))
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
+        self._last_synthesis: SynthesisResult | None = None
+        self._last_action_completion: ActionCompletion | None = None
         self.event_classifier = EventClassifier()
         self.sensory_router = SensoryRouter()
         self.voice_profile = VoiceProfile.from_dict(profile_source.get("voice_profile"))
@@ -475,15 +484,181 @@ class InteriorEngine:
         return experience
 
     def attempt_imperfect_action(self, **kwargs) -> dict[str, Any]:
+        expected_outcome = str(kwargs.pop("expected_outcome", "success"))
+        intention_id = kwargs.pop("intention_id", None)
+        synthesis_reference = kwargs.pop("synthesis_reference", None)
         attempt = self.imperfect_actions.attempt(artifacts=self.capability_artifacts, **kwargs)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "action_attempt", attempt.to_dict())
+        self.world_authority.apply_host_event(
+            {"action_outcome": attempt.observed_outcome},
+            source="action_resolution",
+            visible=True,
+        )
+        world_event = self.record_world_event(
+            event_type="action_completion",
+            actors=(self.identity.name,),
+            location=str(self.world.zone),
+            action=attempt.decision,
+            outcome=attempt.observed_outcome,
+            source="world_authority",
+            payload={"objective_cause": attempt.objective_cause, "succeeded": attempt.succeeded},
+            timestamp=float(kwargs.get("now", time.time())),
+        )
+        artifact = next(
+            (item for item in self.capability_artifacts.artifacts if item.artifact_id == attempt.learned_artifact_id),
+            None,
+        )
+        interpretation = artifact.content if artifact else (
+            "the outcome matched my attempt" if attempt.succeeded else "the attempt did not produce the expected result"
+        )
+        experience = self.experiences.perceive(
+            world_event,
+            self.identity.name,
+            attention=max(0.2, 1.0 - float(kwargs.get("distraction", 0.0))),
+            confidence=0.62 if artifact else 0.78,
+            salience=0.72 if not attempt.succeeded else 0.58,
+            emotional_residue="frustration" if not attempt.succeeded else "relief",
+            interpretation=interpretation,
+            distortion={"learned_artifact_id": attempt.learned_artifact_id} if artifact else {},
+        )
+        if experience:
+            self.experiences.consolidate(experience, self.memory, world_event.timestamp, force=True)
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
+        burden = (float(kwargs.get("distraction", 0.0)) + float(kwargs.get("fatigue", 0.0))) / 2.0
+        execution_quality = max(0.0, min(1.0, float(kwargs.get("skill", 0.0)) * (1.0 - max(0.0, min(1.0, burden)) * 0.65)))
+        discrepancy = "none" if expected_outcome.strip().lower() == attempt.observed_outcome.strip().lower() else "expected_and_actual_differ"
+        completion = ActionCompletion(
+            intention_id=str(intention_id) if intention_id is not None else (self._last_synthesis.selected_intention_id if self._last_synthesis else None),
+            attempted_action=attempt.decision,
+            world_event_id=world_event.event_id,
+            outcome_status="succeeded" if attempt.succeeded else "failed",
+            execution_quality=round(execution_quality, 6),
+            expected_outcome=expected_outcome,
+            actual_outcome=attempt.observed_outcome,
+            discrepancy=discrepancy,
+            synthesis_reference=str(synthesis_reference) if synthesis_reference is not None else (self._last_synthesis.synthesis_id if self._last_synthesis else None),
+            subjective_interpretation_reference=experience.experience_id if experience else None,
+        )
+        self._last_action_completion = completion
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "action_completion", {
+            **completion.to_dict(),
+            "memory_types": ["action_completion"],
+        })
         self._persist()
-        return attempt.to_dict()
+        return {**attempt.to_dict(), "completion": completion.to_dict()}
 
     def add_capability_artifact(self, **kwargs):
         artifact = self.capability_artifacts.add(**kwargs)
         self._persist()
         return artifact
+
+    def begin_activity(self, activity: str, intention: str, attention_target: str) -> dict[str, Any]:
+        self.life_state.current_activity = str(activity)[:120]
+        self.life_state.current_intention = str(intention)[:120]
+        self.life_state.attention_target = str(attention_target)[:120]
+        self.life_state.activity_status = "active"
+        self._persist()
+        return self.life_state.to_dict()
+
+    def reinforce_habit(self, name: str, trigger: str, response_pattern: str, repetitions: int = 1) -> dict[str, Any]:
+        for _ in range(max(1, min(20, int(repetitions)))):
+            self.habits.add_or_strengthen(str(name), str(trigger), str(response_pattern), delta=0.08)
+        self._persist()
+        return asdict(self.habits.habits[str(name)])
+
+    def decay_pressures_for_elapsed_time(self, dt_steps: int) -> float:
+        self.pressures.decay_all(dt_steps=max(0, min(1000, int(dt_steps))))
+        self._persist()
+        return self.integration_capacity()
+
+    def integration_capacity(self) -> float:
+        top = self.pressures.top()
+        recent_failure = 1.0 if self._last_action_completion and self._last_action_completion.outcome_status == "failed" else 0.0
+        interruption_load = 1.0 if self.life_state.activity_status == "interrupted" else 0.0
+        energy = (float(self.energy) + float(self.body.energy)) / 2.0
+        return derive_integration_capacity(
+            energy=energy,
+            fatigue=self.body.fatigue,
+            sensory_load=self.body.sensory_load,
+            dominant_pressure=top.magnitude if top else 0.0,
+            unresolved_conflict=self.relationship.unresolved_conflict,
+            open_loop_count=len(self.intentions.open_loops),
+            interruption_load=interruption_load,
+            recent_failure=recent_failure,
+        )
+
+    def _build_synthesis_influences(self, user_text: str, retrievals, habit, artifacts, now: float) -> list[SynthesisInfluence]:
+        influences = [SynthesisInfluence(
+            "evidence:current_input", "evidence", str(user_text)[:120], 0.58,
+            immediate=True, reality_support=1.0,
+        )]
+        for pressure in sorted(self.pressures.pressures.values(), key=lambda item: (-item.magnitude, item.name))[:3]:
+            if pressure.magnitude > 0.001:
+                influences.append(SynthesisInfluence(
+                    f"pressure:{pressure.name}", "pressure", pressure.accessible_name(), pressure.magnitude,
+                    immediate=pressure.magnitude >= 0.55,
+                ))
+        for item in retrievals[:6]:
+            memory = item.memory
+            contradiction = bool({"contradictory", "contradictory_evidence", "counterevidence"} & memory.tags)
+            reality = 0.9 if any(tag.startswith("world_event:") for tag in memory.tags) else 0.75 if "canonical_user_statement" in memory.tags else 0.35
+            influences.append(SynthesisInfluence(
+                f"memory:{memory.id}", "memory", memory.content[:120],
+                min(1.0, 0.30 + memory.salience * 0.35 + memory.emotional_intensity * 0.25),
+                emotional_congruence=memory.emotional_intensity,
+                contradictory=contradiction,
+                reality_support=reality,
+            ))
+        for artifact in artifacts[:4]:
+            reality = 1.0 if artifact.canonicality == "objective" else 0.75 if artifact.verification_state == "verified" else 0.5
+            influences.append(SynthesisInfluence(
+                f"artifact:{artifact.artifact_id}", "evidence", artifact.content[:120],
+                min(1.0, 0.25 + artifact.confidence * 0.55),
+                contradictory=artifact.verification_state == "challenged",
+                reality_support=reality,
+            ))
+        for intention in sorted(self.intentions.intentions, key=lambda item: (-item.priority, item.name))[:3]:
+            if intention.expires_at is None or intention.expires_at > now:
+                influences.append(SynthesisInfluence(
+                    f"intention:{intention.name}", "intention", intention.name, intention.priority,
+                    immediate=intention.priority >= 0.85,
+                ))
+        for loop in sorted(self.intentions.open_loops, key=lambda item: (-item.urgency, item.topic))[:2]:
+            influences.append(SynthesisInfluence(
+                f"open_loop:{loop.topic}", "open_loop", loop.topic[:120],
+                min(1.0, (loop.urgency + loop.emotional_charge) / 2.0),
+                immediate=loop.urgency >= 0.75,
+            ))
+        if habit is not None:
+            influences.append(SynthesisInfluence(
+                f"habit:{habit.name}", "habit", habit.response_pattern,
+                min(1.0, habit.strength + min(0.2, habit.uses * 0.01)),
+            ))
+        relationship_load = max(self.relationship.tension, self.relationship.unresolved_conflict, self.relationship.guardedness * 0.5)
+        if relationship_load > 0.05:
+            influences.append(SynthesisInfluence(
+                "relationship:current", "relationship_conflict", "current relationship concern",
+                relationship_load, immediate=self.relationship.tension >= 0.65,
+            ))
+        influences.append(SynthesisInfluence(
+            "activity:current", "activity", self.life_state.current_activity,
+            0.50, immediate=True,
+        ))
+        if self.life_state.current_intention:
+            influences.append(SynthesisInfluence(
+                "intention:life", "intention", self.life_state.current_intention,
+                0.45,
+            ))
+        for key, value in (
+            ("fatigue", self.body.fatigue),
+            ("sensory_load", self.body.sensory_load),
+            ("movement_need", self.body.need_for_movement),
+        ):
+            if value >= 0.25:
+                influences.append(SynthesisInfluence(
+                    f"need:{key}", "need", key, value, immediate=value >= 0.70,
+                ))
+        return influences
 
 
     # ---------------- public interface projection ----------------
@@ -879,7 +1054,43 @@ class InteriorEngine:
         open_loop = self.intentions.due_open_loop(now)
         symbol = self.symbols.most_relevant(now)
         resistance = select_resistance(triggers)
+        habit_trigger = triggers[0] if triggers else "default"
+        habit = self.habits.most_relevant(habit_trigger)
+        available_artifacts = self.capability_artifacts.available(0)[:4]
+        synthesis = synthesize(
+            self._build_synthesis_influences(user_text, retrievals, habit, available_artifacts, now),
+            self.integration_capacity(),
+        )
+        self._last_synthesis = synthesis
+        considered_ids = {item.influence_id for item in synthesis.considered_influences}
+        selected_intention = next(
+            (item for item in self.intentions.intentions if item.name == synthesis.selected_intention_id),
+            None,
+        )
+        if habit is None or habit.name != synthesis.selected_habit_id:
+            habit = None
+        if open_loop is not None and f"open_loop:{open_loop.topic}" not in considered_ids:
+            open_loop = None
+        retrieved = [item.memory for item in retrievals if f"memory:{item.memory.id}" in considered_ids]
+        available_artifacts = [
+            item for item in available_artifacts
+            if f"artifact:{item.artifact_id}" in considered_ids
+        ]
+        for trace in retrieved_memory_trace:
+            trace["considered_in_synthesis"] = f"memory:{trace['memory_id']}" in considered_ids
+        synthesis_payload = synthesis.to_dict()
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "synthesis", {
+            **synthesis_payload,
+            "memory_types": ["synthesis"],
+        })
         decision_payload = self._resolve_decision_payload(triggers, risk, resistance)
+        decision_payload.update({
+            "synthesis_reference": synthesis.synthesis_id,
+            "integration_capacity": synthesis.integration_capacity,
+            "field_width": synthesis.field_width,
+            "selected_intention_id": synthesis.selected_intention_id,
+            "selected_habit_id": synthesis.selected_habit_id,
+        })
         if resistance:
             suppression_traces.append(_suppression_trace(
                 "resistance_selector",
@@ -887,10 +1098,6 @@ class InteriorEngine:
                 f"selected refusal mode {resistance}",
                 "warning",
             ))
-        habit_trigger = triggers[0] if triggers else "default"
-        habit = self.habits.most_relevant(habit_trigger)
-        available_artifacts = self.capability_artifacts.available(0)[:4]
-
         top_pressure = self.pressures.top()
         dominant_name = top_pressure.accessible_name() if top_pressure else "calm"
         secondary = self.pressures.runner_up()
@@ -942,6 +1149,7 @@ class InteriorEngine:
                 {"type": "input", "text": user_text},
                 {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]},
                 {"type": "capability_artifacts", "artifacts": [item.to_dict() for item in available_artifacts]},
+                {"type": "synthesis", "result": synthesis_payload},
             ],
             retrieved_memories=retrieved,
             private_thought_context="",
@@ -1010,6 +1218,7 @@ class InteriorEngine:
             "suppression_trace": suppression_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "synthesis": synthesis_payload,
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
             "memory_types": memory_types or ["neutral_turn"],
@@ -1038,6 +1247,7 @@ class InteriorEngine:
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "synthesis": synthesis_payload,
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
             "world_event_id": input_world_event.event_id,
@@ -1077,6 +1287,9 @@ class InteriorEngine:
                 "logged_only",
                 "renderer speech logged as noncanonical evidence",
             ))
+        memory_tags = {"identity", "canonical_user_statement"} if identity_violation else {"canonical_user_statement"}
+        if appraisal.contradiction > 0.4:
+            memory_tags.add("contradictory_evidence")
         mem = MemoryUnit(
             content=f"I heard you say: {user_text[:120]}",
             created_at=now,
@@ -1086,7 +1299,7 @@ class InteriorEngine:
             identity_relevance=0.7 if identity_violation else 0.2,
             unresolved=appraisal.accusation > 0.5 or appraisal.boundary_violation > 0.5 or identity_violation,
             source=KnowledgeSource.USER_TOLD,
-            tags={"identity", "canonical_user_statement"} if identity_violation else {"canonical_user_statement"},
+            tags=memory_tags,
         )
         self.memory.add(mem)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "speech", {

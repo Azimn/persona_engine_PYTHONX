@@ -106,6 +106,10 @@ The Tide does not currently include stochastic mood weather, random affect varia
 
 The v0.2 simulated-life extension explicitly authorizes `VitalityEventEngine` as a separate seeded subsystem for whims, ordinary limitations, and rare true-chaos events. It must remain distinct from Tide, persist its replay counter, record provenance, produce bounded proposals/effects, and never author objective facts or bypass action validation.
 
+### Situated Synthesis Narrows Attention, Not Authority
+
+Integration capacity is derived from existing organism load and may narrow the structured influences considered during a turn. The resulting `SynthesisResult` is immutable diagnostic evidence, not a second decision engine. Minimum capacity never disables identity, safety, canonicality, World Authority, action validation, or memory-firewall rules. Recovery widens access to evidence; it does not automatically rewrite beliefs or memories.
+
 ### Mask Suppression Is Traceable
 
 Mask Suppression is distributed across existing gates:

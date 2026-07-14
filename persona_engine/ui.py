@@ -99,6 +99,8 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
     workspace_rows = [row for row in rows if row["event_type"] in {"turn", "input", "sensorium"}]
     latest_workspace = workspace_rows[-1] if workspace_rows else None
     latest_turn = next((row for row in reversed(rows) if row["event_type"] == "turn"), None)
+    latest_synthesis = next((row for row in reversed(rows) if row["event_type"] == "synthesis"), None)
+    latest_completion = next((row for row in reversed(rows) if row["event_type"] == "action_completion"), None)
     debug_refs = [
         {
             "event_id": row["id"],
@@ -108,6 +110,11 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
         for row in rows
     ]
     private_snapshot = debug_snapshot_from_engine(engine)
+    life_inspector = private_snapshot.get("life_inspector", {})
+    if life_inspector.get("synthesis") is None and latest_synthesis:
+        life_inspector["synthesis"] = latest_synthesis["payload"]
+    if life_inspector.get("action_completion") is None and latest_completion:
+        life_inspector["action_completion"] = latest_completion["payload"]
     return {
         "enabled": True,
         "event_ids": [row["id"] for row in rows],
@@ -120,7 +127,7 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
         },
         "validator_actions": validator_actions,
         "replay_debug_refs": debug_refs,
-        "life_inspector": private_snapshot.get("life_inspector", {}),
+        "life_inspector": life_inspector,
         "private_snapshot": private_snapshot,
     }
 

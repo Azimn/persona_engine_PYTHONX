@@ -25,6 +25,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Versioned, checksum-verified UI session bundles with transcript/report capture, canonical event separation, diagnostic turn traces, and isolated deterministic replay.
 - Lean v0.2 simulated life: objective world-event ledger, subjective experience lifecycle, explained retrieval, optional embedding adapter, persisted activity/interruption state, bounded seeded vitality events, imperfect execution/learning, and cross-tier capability artifacts.
 - Read-only life inspector showing objective/subjective discrepancies, recall reasons, vitality provenance, and learning artifacts.
+- Situated synthesis derives integration capacity from existing organism load, narrows structured influences under strain, and links action outcomes to objective and subjective records.
 
 ## Current Tests
 
@@ -37,10 +38,10 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-195 passed, 1 skipped
+206 passed, 1 skipped
 ```
 
-The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
+The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
 
 ## Known Limitations
 

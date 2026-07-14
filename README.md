@@ -23,6 +23,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Deterministic pressure, relationship, body, world, memory, intention, habit, symbol, belief-ledger, interpretation, and replay/debug systems.
 - Append-only objective world events, per-character subjective experience traces, bounded memory lifecycle, and explained hybrid retrieval.
 - Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
+- Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
 - Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
 - World Authority for objective facts.
 - Noncanonical, traceable interpretive belief objects.
@@ -75,7 +76,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-195 passed, 1 skipped
+206 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -85,6 +86,7 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/pre
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/organism_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_anchored_misread.yaml --cartridge persona_engine/cartridges/pretorius.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/synthesis_strain_recovery.yaml --cartridge persona_engine/cartridges/neutral.snp
 ```
 
 After editable install, the simulator entry point is also available:
