@@ -18,6 +18,16 @@ from .audio_sensor import AudioObservation
 from .vision_sensor import VisionObservation
 
 
+def _normalized(value: Any) -> Any:
+    if isinstance(value, float):
+        return round(value, 6)
+    if isinstance(value, dict):
+        return {key: _normalized(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_normalized(item) for item in value]
+    return value
+
+
 @dataclass
 class ReplayResult:
     """Summary of replayed deterministic state."""
@@ -30,6 +40,7 @@ class ReplayResult:
 def state_digest(agent: CharacterAgent) -> dict[str, Any]:
     """Return a compact deterministic digest of inspectable runtime state."""
     engine = agent.engine
+    life = engine.life_state
     return {
         "relationship": dict(vars(engine.relationship)),
         "pressures": {name: round(p.magnitude, 6) for name, p in sorted(engine.pressures.pressures.items())},
@@ -39,6 +50,19 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
         "symbol_count": len(engine.symbols.symbols),
         "habit_count": len(engine.habits.habits),
         "timestep": engine.timestep,
+        "life": {
+            "current_activity": life.current_activity,
+            "current_intention": life.current_intention,
+            "attention_target": life.attention_target,
+            "unresolved_concern": life.unresolved_concern,
+            "activity_status": life.activity_status,
+            "entropy": round(life.entropy, 6),
+            "rng_counter": life.rng_counter,
+            "events": [_normalized(event.to_dict()) for event in life.events],
+        },
+        "world_events": _normalized(engine.world_events.to_list()),
+        "subjective_experiences": _normalized(engine.experiences.to_list()),
+        "capability_artifacts": _normalized(engine.capability_artifacts.to_list()),
     }
 
 
@@ -78,6 +102,7 @@ def replay_events_into_agent(agent: CharacterAgent, events: list[dict[str, Any]]
                 user_text,
                 server_truth=payload.get("submitted_server_truth", payload.get("server_truth")),
                 visible_context=payload.get("submitted_visible_context", payload.get("visible_context")),
+                event_time=payload.get("event_time"),
             )
             turns += 1
             replayed += 1
@@ -88,7 +113,11 @@ def replay_events_into_agent(agent: CharacterAgent, events: list[dict[str, Any]]
             agent.observe_vision(VisionObservation(**dict(payload.get("observation") or {})))
             replayed += 1
         elif event_type == "world_action_resolution":
-            agent.propose_world_action(str(payload.get("action_type", "")), dict(payload.get("payload") or {}))
+            agent.propose_world_action(
+                str(payload.get("action_type", "")),
+                dict(payload.get("payload") or {}),
+                event_time=payload.get("event_time"),
+            )
             replayed += 1
     return ReplayResult(turns_replayed=turns, final_digest=state_digest(agent), events_replayed=replayed)
 

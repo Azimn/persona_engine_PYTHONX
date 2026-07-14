@@ -10,7 +10,7 @@ import math
 import re
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Set, Dict
+from typing import Any, List, Set, Dict
 from enum import Enum
 
 
@@ -36,6 +36,17 @@ class MemoryUnit:
     source: KnowledgeSource = KnowledgeSource.OBSERVED
     tags: Set[str] = field(default_factory=set)
     compressed: bool = False
+    confidence: float = 1.0
+    salience: float = 0.5
+    provenance: dict[str, Any] = field(default_factory=dict)
+    source_tier: int = 0
+
+
+@dataclass(frozen=True)
+class MemoryRetrieval:
+    memory: MemoryUnit
+    score: float
+    reasons: dict[str, float | str]
 
 
 def first_person_memory_content(content: str) -> str:
@@ -154,8 +165,9 @@ def simple_similarity(query: str, content: str) -> float:
 
 
 class MemoryStore:
-    def __init__(self):
+    def __init__(self, embedding_provider=None):
         self.memories: List[MemoryUnit] = []
+        self.embedding_provider = embedding_provider
 
     def add(self, mem: MemoryUnit):
         mem.content = first_person_memory_content(mem.content)
@@ -165,19 +177,70 @@ class MemoryStore:
 
     def retrieve(self, query: str, now: float, top_k: int = 5,
                  emotional_state_match: float = 0.0) -> List[MemoryUnit]:
-        scored = []
+        return [item.memory for item in self.retrieve_explained(query, now, top_k, emotional_state_match)]
+
+    def retrieve_explained(self, query: str, now: float, top_k: int = 5,
+                           emotional_state_match: float = 0.0,
+                           goal_tags: Set[str] | None = None,
+                           relationship_tags: Set[str] | None = None) -> List[MemoryRetrieval]:
+        """Return bounded hybrid retrievals with inspectable selection reasons."""
+
+        provider = self.embedding_provider
+        query_vector: list[float] = []
+        try:
+            embeddings_available = bool(provider and provider.available())
+        except Exception:
+            embeddings_available = False
+        if embeddings_available:
+            try:
+                query_vector = provider.embed_text(query)
+            except Exception:
+                embeddings_available = False
+                query_vector = []
+        goal_tags = set(goal_tags or ())
+        relationship_tags = set(relationship_tags or ())
+        scored: list[MemoryRetrieval] = []
         for mem in self.memories:
-            sem = semantic_similarity(query, mem.content)
-            score = activation(mem, now, sem, emotional_state_match)
-            scored.append((score, mem))
-        scored.sort(key=lambda x: x[0], reverse=True)
-        top = [m for _, m in scored[:top_k]]
-        for m in top:
-            m.recall_times.append(now)
-        return top
+            lexical = lexical_similarity(query, mem.content)
+            symbolic = semantic_similarity(query, mem.content)
+            vector_score = 0.0
+            if embeddings_available:
+                try:
+                    vector_score = max(0.0, provider.similarity(query_vector, provider.embed_text(mem.content)))
+                except Exception:
+                    vector_score = 0.0
+            age = max(0.0, now - mem.created_at)
+            recency = 1.0 / (1.0 + age / 86400.0)
+            emotional = max(0.0, min(1.0, mem.emotional_intensity + emotional_state_match))
+            goal = 0.15 if goal_tags & mem.tags else 0.0
+            relationship = 0.15 if relationship_tags & mem.tags else min(0.15, mem.relationship_relevance * 0.15)
+            direct_link = 0.12 if any(tag.startswith("world_event:") for tag in mem.tags) else 0.0
+            score = (
+                activation(mem, now, symbolic * 0.65, emotional_state_match)
+                + lexical * 0.45 + vector_score * 0.55 + recency * 0.18
+                + goal + relationship + direct_link + mem.salience * 0.2
+            )
+            scored.append(MemoryRetrieval(mem, score, {
+                "lexical_match": round(lexical, 4),
+                "symbolic_similarity": round(symbolic, 4),
+                "semantic_similarity": round(vector_score, 4),
+                "recency_boost": round(recency * 0.18, 4),
+                "salience": round(mem.salience, 4),
+                "emotional_relevance": round(emotional, 4),
+                "goal_relevance": round(goal, 4),
+                "relationship_relevance": round(relationship, 4),
+                "direct_link": round(direct_link, 4),
+                "embedding_provider": "available" if embeddings_available else "fallback",
+            }))
+        scored.sort(key=lambda item: (-item.score, item.memory.id))
+        selected = scored[:max(0, int(top_k))]
+        for item in selected:
+            item.memory.recall_times.append(now)
+        return selected
 
     def compress_old(self, now: float, age_threshold: float = 86400 * 30):
         for mem in self.memories:
             if not mem.compressed and (now - mem.created_at) > age_threshold and mem.emotional_intensity < 0.3:
                 mem.content = f"[impression] {mem.content[:60]}"
                 mem.compressed = True
+                mem.confidence = max(0.1, mem.confidence - 0.2)

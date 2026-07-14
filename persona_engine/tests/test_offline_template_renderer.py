@@ -42,3 +42,13 @@ def test_offline_renderer_does_not_invent_unobserved_sound():
     assert "sound" in lowered
     assert "anchor" in lowered or "detail" in lowered
     assert "footsteps" not in lowered and "door" not in lowered
+
+
+def test_offline_renderer_surfaces_engine_owned_interrupted_activity():
+    renderer = OfflineTemplateRenderer()
+    response = renderer.render([
+        {"role": "system", "content": "World: study | before interruption: rehearsing a plan | attention: user"},
+        {"role": "user", "content": "What were you doing before I arrived?"},
+    ], seed=1)
+    assert "rehearsing a plan" in response.lower()
+    assert "before you interrupted" in response.lower()

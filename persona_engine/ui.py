@@ -107,6 +107,7 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
         }
         for row in rows
     ]
+    private_snapshot = debug_snapshot_from_engine(engine)
     return {
         "enabled": True,
         "event_ids": [row["id"] for row in rows],
@@ -119,7 +120,8 @@ def _debug_payload(session: "HumanTestingSession", enabled: bool) -> dict[str, A
         },
         "validator_actions": validator_actions,
         "replay_debug_refs": debug_refs,
-        "private_snapshot": debug_snapshot_from_engine(engine),
+        "life_inspector": private_snapshot.get("life_inspector", {}),
+        "private_snapshot": private_snapshot,
     }
 
 

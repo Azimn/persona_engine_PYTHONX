@@ -39,6 +39,11 @@ from .public_state import public_status_from_engine, debug_snapshot_from_engine
 from .proactive import ProactiveQueue
 from .second_thought import derive_second_thoughts
 from .world_authority import WorldAuthority, WorldActionProposal
+from .lived_experience import ExperienceStore, WorldEvent, WorldEventLedger
+from .embedding import NoEmbeddingProvider
+from .capability_artifacts import CapabilityArtifactStore
+from .imperfect_action import ImperfectActionEngine
+from .vitality import LifeState, VitalityEventEngine
 from .event_classifier import EventClassifier, can_promote_to_canonical_memory
 from .sensory_router import SensoryRouter
 from .audio_sensor import AudioObservation
@@ -94,7 +99,7 @@ class InteriorEngine:
         self.user_id = user_id
         self.ledger = loaded_ledger
         self.relationship = RelationshipState(user_id=user_id)
-        self.memory = MemoryStore()
+        self.memory = MemoryStore(embedding_provider=NoEmbeddingProvider())
         self.pressures = PressureSystem()
         self.intentions = IntentionQueue()
         self.symbols = SymbolStore()
@@ -108,6 +113,14 @@ class InteriorEngine:
         self.organism_tick = OrganismTick(self.world_profile, self.body_profile)
         self.proactive = ProactiveQueue()
         self.world_authority = WorldAuthority()
+        self.world_events = WorldEventLedger()
+        self.experiences = ExperienceStore()
+        self.capability_artifacts = CapabilityArtifactStore()
+        life_seed = turn_seed(f"{identity.name}:{user_id}", 0, "vitality")
+        self.life_state = LifeState()
+        self.vitality = VitalityEventEngine(life_seed)
+        self.imperfect_actions = ImperfectActionEngine(turn_seed(f"{identity.name}:{user_id}", 0, "action"))
+        self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self.event_classifier = EventClassifier()
         self.sensory_router = SensoryRouter()
         self.voice_profile = VoiceProfile.from_dict(profile_source.get("voice_profile"))
@@ -173,6 +186,10 @@ class InteriorEngine:
                 source=KnowledgeSource(m.get("source", "observed")),
                 tags=set(m.get("tags", [])),
                 compressed=m.get("compressed", False),
+                confidence=m.get("confidence", 1.0),
+                salience=m.get("salience", 0.5),
+                provenance=dict(m.get("provenance", {})),
+                source_tier=m.get("source_tier", 0),
             ))
 
         for p in self.persistence.load(cid, uid, "pressures", []):
@@ -212,6 +229,12 @@ class InteriorEngine:
         self.world = WorldState.from_dict(self.persistence.load(cid, uid, "world"), self.world_profile)
         self.sensorium = SensoriumProcessor.from_list(self.persistence.load(cid, uid, "sensorium", []))
         self.world_authority = WorldAuthority.from_list(self.persistence.load(cid, uid, "world_authority", []))
+        self.world_events = WorldEventLedger.from_list(self.persistence.load(cid, uid, "world_events", []))
+        self.experiences = ExperienceStore.from_list(self.persistence.load(cid, uid, "subjective_experiences", []))
+        self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
+        self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
+        action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
+        self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
     def _serialize_state(self) -> dict:
         memories = []
@@ -229,6 +252,10 @@ class InteriorEngine:
                 "source": _enum_value(m.source),
                 "tags": list(m.tags),
                 "compressed": m.compressed,
+                "confidence": m.confidence,
+                "salience": m.salience,
+                "provenance": m.provenance,
+                "source_tier": m.source_tier,
             })
         pressures = [asdict(p) for p in self.pressures.pressures.values()]
         intentions = [asdict(i) for i in self.intentions.intentions]
@@ -267,6 +294,11 @@ class InteriorEngine:
             "sensorium": self.sensorium.to_dict(),
             "belief_ledger": self.belief_ledger.to_state(),
             "world_authority": self.world_authority.to_list(),
+            "world_events": self.world_events.to_list(),
+            "subjective_experiences": self.experiences.to_list(),
+            "capability_artifacts": self.capability_artifacts.to_list(),
+            "life_state": self.life_state.to_dict(),
+            "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
 
@@ -280,7 +312,21 @@ class InteriorEngine:
         self.last_wall_time = now
         steps = min(int(elapsed / 5.0), 200)
         for _ in range(steps):
-            self._run_single_idle_cycle(elapsed_seconds=5.0)
+            self._run_single_idle_cycle(elapsed_seconds=5.0, include_vitality=False)
+        life_events = self.vitality.catch_up(
+            self.life_state,
+            self.timestep,
+            elapsed,
+            max_steps=12,
+            whim_weights=self._whim_weights(),
+        )
+        self.experiences.decay(now)
+        self.last_catch_up_summary = {
+            "elapsed_seconds": round(elapsed, 3),
+            "tide_steps": steps,
+            "life_steps": self.life_state.last_catch_up_steps,
+            "life_events": [event.to_dict() for event in life_events],
+        }
         self.timestep += steps
 
     def run_idle_cycle(self):
@@ -289,7 +335,7 @@ class InteriorEngine:
         self.last_wall_time = time.time()
         self._persist()
 
-    def _run_single_idle_cycle(self, elapsed_seconds: float = 5.0):
+    def _run_single_idle_cycle(self, elapsed_seconds: float = 5.0, include_vitality: bool = True):
         now = time.time()
         total_pressure = sum(p.magnitude for p in self.pressures.pressures.values())
         self.energy = max(0.1, self.energy - total_pressure * 0.01)
@@ -309,6 +355,11 @@ class InteriorEngine:
         self.habits.decay_all()
         self.symbols.lifecycle_tick(now)
         self.memory.compress_old(now)
+        if include_vitality:
+            self.experiences.decay(now)
+            life_events = self.vitality.tick(self.life_state, self.timestep, elapsed_seconds, self._whim_weights())
+            for event in life_events:
+                self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "life_event", event.to_dict())
         if (self.energy < 0.3 or self.relationship.unresolved_conflict > 0.6) and (now - self.last_reflection_time > 300):
             self._trigger_reflection(now)
 
@@ -359,6 +410,80 @@ class InteriorEngine:
         self._idle_stop.set()
         if self._idle_thread and self._idle_thread.is_alive():
             self._idle_thread.join(timeout=1.0)
+
+    def _whim_weights(self) -> dict[str, float]:
+        vitality = (self.cartridge_data or {}).get("vitality", {})
+        weights = vitality.get("whim_weights", {}) if isinstance(vitality, dict) else {}
+        return {str(key): float(value) for key, value in weights.items()} if isinstance(weights, dict) else {}
+
+    def force_life_event(self, category: str) -> list[dict[str, Any]]:
+        events = self.vitality.tick(self.life_state, self.timestep, 5.0, self._whim_weights(), force_category=category)
+        for event in events:
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "life_event", event.to_dict())
+        self._persist()
+        return [event.to_dict() for event in events]
+
+    def record_world_event(self, *, event_type: str, actors=(), location="unknown", action="observed",
+                           targets=(), outcome="", source="host", payload=None, timestamp: float | None = None) -> WorldEvent:
+        event = self.world_events.create(
+            tick=self.timestep, timestamp=time.time() if timestamp is None else timestamp, event_type=event_type,
+            actors=actors, location=location, action=action, targets=targets, outcome=outcome,
+            source=source, payload=payload,
+        )
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "objective_world_event", event.to_dict())
+        return event
+
+    def _record_resolved_experience(self, *, event_type: str, action: str, outcome: str, source: str,
+                                    targets=(), timestamp: float | None = None, confidence: float = 0.8,
+                                    salience: float = 0.45) -> tuple[WorldEvent, Any]:
+        event = self.record_world_event(
+            event_type=event_type,
+            actors=(self.identity.name,),
+            location=str(self.world.zone),
+            action=action,
+            targets=targets,
+            outcome=outcome,
+            source=source,
+            timestamp=timestamp,
+        )
+        experience = self.experiences.perceive(
+            event, self.identity.name, attention=confidence, confidence=confidence,
+            salience=salience, emotional_residue="neutral", interpretation="bounded observation",
+        )
+        if experience:
+            self.experiences.consolidate(experience, self.memory, event.timestamp)
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
+        return event, experience
+
+    def perceive_world_event(self, event_id: str, *, attention: float = 0.8, confidence: float = 0.8,
+                             salience: float = 0.5, emotional_residue: str = "neutral",
+                             interpretation: str = "ordinary", source_tier: int = 0,
+                             distortion: dict[str, Any] | None = None, consolidate: bool = True):
+        event = self.world_events.fetch(event_id)
+        if event is None:
+            raise KeyError(event_id)
+        experience = self.experiences.perceive(
+            event, self.identity.name, attention=attention, confidence=confidence, salience=salience,
+            emotional_residue=emotional_residue, interpretation=interpretation,
+            source_tier=source_tier, distortion=distortion,
+        )
+        if experience and consolidate:
+            self.experiences.consolidate(experience, self.memory, event.timestamp)
+        if experience:
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
+        self._persist()
+        return experience
+
+    def attempt_imperfect_action(self, **kwargs) -> dict[str, Any]:
+        attempt = self.imperfect_actions.attempt(artifacts=self.capability_artifacts, **kwargs)
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "action_attempt", attempt.to_dict())
+        self._persist()
+        return attempt.to_dict()
+
+    def add_capability_artifact(self, **kwargs):
+        artifact = self.capability_artifacts.add(**kwargs)
+        self._persist()
+        return artifact
 
 
     # ---------------- public interface projection ----------------
@@ -452,6 +577,12 @@ class InteriorEngine:
         if observation.speech_activity:
             host["sound"] = "speech activity"
         self.world.apply_host_facts(host, host, now=observation.created_at)
+        self._record_resolved_experience(
+            event_type="audio_observation", action="heard", outcome=routed.resolution.reason,
+            source="audio_sensor", targets=tuple(fact.key for fact in routed.resolution.facts_created),
+            timestamp=observation.created_at, confidence=observation.confidence,
+            salience=0.65 if observation.sudden_onset else 0.35,
+        )
         self._persist()
         return {"accepted": routed.resolution.accepted, "facts": [f.to_dict() for f in routed.resolution.facts_created], "pressure_unchanged": before_pressures == {name: p.magnitude for name, p in self.pressures.pressures.items()}}
 
@@ -472,11 +603,17 @@ class InteriorEngine:
         if observation.scene_change:
             host["ambient_event"] = "scene change"
         self.world.apply_host_facts(host, host, now=observation.created_at)
+        self._record_resolved_experience(
+            event_type="vision_observation", action="saw", outcome=routed.resolution.reason,
+            source="vision_sensor", targets=tuple(fact.key for fact in routed.resolution.facts_created),
+            timestamp=observation.created_at, confidence=observation.confidence,
+            salience=0.6 if observation.scene_change else 0.35,
+        )
         self._persist()
         return {"accepted": routed.resolution.accepted, "facts": [f.to_dict() for f in routed.resolution.facts_created], "relationship_unchanged": before_relationship == dict(vars(self.relationship))}
 
-    def propose_world_action(self, action_type: str, payload: dict | None = None) -> dict:
-        proposal = WorldActionProposal(self.identity.name, action_type, dict(payload or {}), time.time())
+    def propose_world_action(self, action_type: str, payload: dict | None = None, event_time: float | None = None) -> dict:
+        proposal = WorldActionProposal(self.identity.name, action_type, dict(payload or {}), float(event_time) if event_time is not None else time.time())
         resolution = self.world_authority.resolve_action(proposal)
         visible = {fact.key: fact.value for fact in resolution.facts_created if fact.visible_to_character}
         self.world.apply_host_facts(visible, visible, now=proposal.created_at)
@@ -486,8 +623,15 @@ class InteriorEngine:
             "accepted": resolution.accepted,
             "reason": resolution.reason,
             "facts": [f.to_dict() for f in resolution.facts_created],
+            "event_time": proposal.created_at,
             "memory_types": ["world_fact", "action_resolution"],
         })
+        self._record_resolved_experience(
+            event_type="action_resolution", action=action_type, outcome=resolution.reason,
+            source="world_authority", targets=tuple(fact.key for fact in resolution.facts_created),
+            timestamp=proposal.created_at, confidence=proposal.confidence,
+            salience=0.55 if resolution.accepted else 0.45,
+        )
         self._persist()
         return {"accepted": resolution.accepted, "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created]}
 
@@ -511,14 +655,27 @@ class InteriorEngine:
         return classification.__dict__
 
     # ---------------- main turn ----------------
-    def receive_input(self, user_text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
+    def receive_input(self, user_text: str, server_truth: dict | None = None, visible_context: dict | None = None,
+                      event_time: float | None = None) -> dict:
         self._catch_up_idle()
         self.timestep += 1
-        now = time.time()
+        now = float(event_time) if event_time is not None else time.time()
+        interruption = self.vitality.interrupt(self.life_state, user_text)
         server_truth = dict(server_truth or {})
         submitted_server_truth = dict(server_truth)
         visible_context = dict(visible_context or {})
         submitted_visible_context = dict(visible_context)
+        input_world_event = self.record_world_event(
+            event_type="player_interruption",
+            actors=(self.user_id,),
+            location=str(self.world.zone),
+            action="interrupted",
+            targets=(self.identity.name,),
+            outcome="a player message arrived",
+            source="user_input",
+            payload={"text": user_text[:500]},
+            timestamp=now,
+        )
         server_truth.setdefault("user_text", user_text)
         self.world_authority.apply_host_event(server_truth, source="server_truth", visible=False)
         self.world_authority.apply_host_event(visible_context, source="visible_context", visible=True)
@@ -544,6 +701,7 @@ class InteriorEngine:
             "submitted_server_truth": submitted_server_truth,
             "submitted_visible_context": submitted_visible_context,
             "visible_context": visible_context,
+            "event_time": now,
             "memory_types": ["user_input"],
         }
         input_classification = self.event_classifier.classify("input", input_payload, event_id=f"turn_{self.timestep}_input")
@@ -618,12 +776,30 @@ class InteriorEngine:
                 "memory_types": ["interpretive_belief", belief.distortion],
             })
 
+        top_after_appraisal = self.pressures.top()
+        experience = self.experiences.perceive(
+            input_world_event,
+            self.identity.name,
+            attention=0.9 if self.life_state.attention_target != "uncertain" else 0.45,
+            confidence=0.82,
+            salience=max(0.35, min(1.0, appraisal.accusation + appraisal.intimacy_bid + appraisal.repair_attempt + 0.25)),
+            emotional_residue=top_after_appraisal.accessible_name() if top_after_appraisal else "neutral",
+            interpretation=interpretive_beliefs[0].text if interpretive_beliefs else "ordinary interruption",
+            source_tier=0,
+            distortion={"belief_ids": [belief.belief_id for belief in interpretive_beliefs]},
+        )
+        if experience:
+            self.experiences.consolidate(experience, self.memory, now)
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
+
         state_packet = {
             "turn_id": self.timestep,
             "relationship": dict(vars(self.relationship)),
             "pressures": {name: p.magnitude for name, p in self.pressures.pressures.items()},
             "visible_context": visible_context,
             "interpretive_beliefs": [b.to_dict() for b in interpretive_beliefs],
+            "life_context": self.life_state.to_dict(),
+            "interruption": interruption,
         }
         cognition_seed = turn_seed(self.user_id, self.timestep, "private_cognition")
         private_proposal = generate_private_cognition(self.renderer, state_packet, self.cartridge_data or {}, seed=cognition_seed)
@@ -658,17 +834,26 @@ class InteriorEngine:
         bucket = bucket_risk(risk)
         top_for_match = self.pressures.top()
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
-        retrieved = self.memory.retrieve(user_text, now, top_k=4, emotional_state_match=affect_match)
+        retrievals = self.memory.retrieve_explained(
+            user_text, now, top_k=4, emotional_state_match=affect_match,
+            relationship_tags={"canonical_user_statement", "subjective_experience"},
+        )
+        retrieved = [item.memory for item in retrievals]
         retrieved_memory_trace = [
             {
-                "memory_id": memory.id,
-                "source": memory.source.value,
-                "tags": sorted(memory.tags),
-                "created_at": memory.created_at,
-                "content": memory.content,
+                "memory_id": item.memory.id,
+                "source": item.memory.source.value,
+                "tags": sorted(item.memory.tags),
+                "created_at": item.memory.created_at,
+                "content": item.memory.content,
+                "confidence": item.memory.confidence,
+                "salience": item.memory.salience,
+                "source_tier": item.memory.source_tier,
+                "reasons": item.reasons,
             }
-            for memory in retrieved
+            for item in retrievals
         ]
+        self._last_retrieved_memory_trace = retrieved_memory_trace
 
         triggers = []
         if forced_rewrite:
@@ -704,6 +889,7 @@ class InteriorEngine:
             ))
         habit_trigger = triggers[0] if triggers else "default"
         habit = self.habits.most_relevant(habit_trigger)
+        available_artifacts = self.capability_artifacts.available(0)[:4]
 
         top_pressure = self.pressures.top()
         dominant_name = top_pressure.accessible_name() if top_pressure else "calm"
@@ -725,12 +911,15 @@ class InteriorEngine:
             dominant_pressure=dominant_name,
             secondary_pressure=secondary_name,
             selected_intention=selected_intention.name if selected_intention else None,
-            retrieved_memories=[m.content for m in retrieved],
+            retrieved_memories=[m.content for m in retrieved] + [f"Validated knowledge: {item.content}" for item in available_artifacts],
             open_loop=open_loop.topic if open_loop else None,
             shared_symbol=symbol.name if symbol else None,
             active_habit=habit.response_pattern if habit else None,
             situated_summary=self.interface.summary(now),
-            world_summary=self.world.summary(),
+            world_summary=(
+                f"{self.world.summary()} | before interruption: {interruption['previous_activity']} | "
+                f"attention: {self.life_state.attention_target} | intention: {self.life_state.current_intention}"
+            ),
             body_summary=self.body.summary(),
             sensorium_summary=self.sensorium.summary(),
             access_rules=self.interface.access_rules(),
@@ -747,9 +936,13 @@ class InteriorEngine:
         response = render_expression(
             self.renderer,
             ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-            resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+            resolved_state={"system_prompt": system_prompt, "user_text": user_text, "life_context": self.life_state.to_dict()},
             arc_context={},
-            evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
+            evidence=[
+                {"type": "input", "text": user_text},
+                {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]},
+                {"type": "capability_artifacts", "artifacts": [item.to_dict() for item in available_artifacts]},
+            ],
             retrieved_memories=retrieved,
             private_thought_context="",
             decision_payload=decision_payload,
@@ -786,6 +979,9 @@ class InteriorEngine:
         self._appraise_response_effect(response, risk, bucket)
         self.interface.mark_output(now)
 
+        limitation_active = bool(self.life_state.events and self.life_state.events[-1].category == "limitation" and self.life_state.events[-1].tick >= self.timestep - 1)
+        activity_outcome = self.vitality.resolve_interruption(self.life_state, risk, limitation=limitation_active)
+
         self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
         self._persist()
         suppression_payload = [trace.to_dict() for trace in suppression_traces]
@@ -814,6 +1010,8 @@ class InteriorEngine:
             "suppression_trace": suppression_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "life_context": self.life_state.to_dict(),
+            "interruption": {**interruption, "outcome": activity_outcome},
             "memory_types": memory_types or ["neutral_turn"],
         })
 
@@ -840,6 +1038,11 @@ class InteriorEngine:
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "life_context": self.life_state.to_dict(),
+            "interruption": {**interruption, "outcome": activity_outcome},
+            "world_event_id": input_world_event.event_id,
+            "subjective_experience_id": experience.experience_id if experience else None,
+            "catch_up_summary": dict(self.last_catch_up_summary),
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
             "avatar_projection": self.avatar_projection(bucket, dominant_name),

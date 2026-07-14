@@ -67,6 +67,10 @@ class OfflineTemplateRenderer:
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
         group = self._classify(user_text, system_text)
+        if group == "activity":
+            return self._clean_truncate(self._render_activity(system_text), max_chars)
+        if group == "knowledge":
+            return self._clean_truncate(self._render_knowledge(system_text), max_chars)
         template = self._choose(group, user_text, system_text, seed)
         text = self._apply_tone(template.text, system_text, seed)
         return self._clean_truncate(text, max_chars)
@@ -74,6 +78,10 @@ class OfflineTemplateRenderer:
     def _classify(self, user_text: str, system_text: str) -> str:
         lowered = user_text.lower().strip()
         system_lowered = system_text.lower()
+        if any(phrase in lowered for phrase in ("what were you doing", "before i arrived", "before this")) and "before interruption:" in system_lowered:
+            return "activity"
+        if any(phrase in lowered for phrase in ("what did you learn", "what did you research", "what procedure")) and "validated knowledge:" in system_lowered:
+            return "knowledge"
         if any(phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not"]):
             return "identity_boundary"
         if lowered.rstrip(".") == "fine":
@@ -101,6 +109,24 @@ class OfflineTemplateRenderer:
         if "?" in user_text:
             return "question"
         return "default"
+
+    def _render_activity(self, system_text: str) -> str:
+        match = re.search(r"before interruption:\s*([^|\n]+)", system_text, re.IGNORECASE)
+        activity = "occupied with something"
+        if match:
+            candidate = re.sub(r"[^A-Za-z0-9 '\-]", "", match.group(1)).strip().lower()
+            if candidate:
+                activity = candidate[:80]
+        return f"I was {activity} before you interrupted me. I can return to it after this."
+
+    def _render_knowledge(self, system_text: str) -> str:
+        match = re.search(r"Validated knowledge:\s*([^\n]+)", system_text, re.IGNORECASE)
+        knowledge = "I retained a verified result, but its detail is unavailable here."
+        if match:
+            candidate = re.sub(r"[\r\n]+", " ", match.group(1)).strip()
+            if candidate:
+                knowledge = f"I retained this: {candidate[:140]}"
+        return knowledge
 
     def _choose(self, group: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
         candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]

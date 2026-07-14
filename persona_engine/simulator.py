@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,6 +82,56 @@ def _fact_leak_warnings(text: str, turn: dict, result: dict, label: str = "respo
     return warnings
 
 
+def _run_life_steps(agent: CharacterAgent, steps: list[dict]) -> int:
+    """Run compact simulated-life setup/check steps through approved agent APIs."""
+
+    aliases: dict[str, str] = {}
+    failures = 0
+    for index, step in enumerate(steps, start=1):
+        kind = str(step.get("type", ""))
+        result = None
+        try:
+            if kind == "world_event":
+                payload = dict(step.get("event", {}))
+                result = agent.record_world_event(**payload)
+                if step.get("as"):
+                    aliases[str(step["as"])] = result["event_id"]
+            elif kind == "subjective_experience":
+                event_id = aliases.get(str(step.get("event")), str(step.get("event", "")))
+                result = agent.perceive_world_event(event_id, **dict(step.get("perception", {})))
+            elif kind == "life_event":
+                result = agent.force_life_event(str(step.get("category", "whim")))
+            elif kind == "action_attempt":
+                payload = dict(step.get("attempt", {}))
+                payload["supporting_event_ids"] = tuple(aliases.get(str(item), str(item)) for item in payload.get("supporting_event_ids", ()))
+                result = agent.attempt_imperfect_action(**payload)
+                if step.get("as") and result.get("learned_artifact_id"):
+                    aliases[str(step["as"])] = result["learned_artifact_id"]
+            elif kind == "challenge_artifact":
+                artifact_id = aliases.get(str(step.get("artifact")), str(step.get("artifact", "")))
+                artifact = agent.engine.capability_artifacts.challenge(artifact_id, float(step.get("evidence_strength", 0.5)))
+                agent.engine._persist()
+                result = artifact.to_dict() if artifact else None
+            elif kind == "idle":
+                for _ in range(max(0, int(step.get("cycles", 1)))):
+                    agent.idle()
+                result = agent.engine.life_state.to_dict()
+            elif kind == "recall":
+                results = agent.engine.memory.retrieve_explained(str(step.get("query", "")), time.time(), top_k=int(step.get("top_k", 3)))
+                result = [{"memory_id": item.memory.id, "content": item.memory.content, "reasons": item.reasons} for item in results]
+            else:
+                raise ValueError(f"unsupported life step: {kind}")
+            expected = step.get("expect") or {}
+            for key, value in expected.items():
+                if _get_path(result, key) != value:
+                    raise AssertionError(f"{key} expected {value!r}, got {_get_path(result, key)!r}")
+            print(f"Life step {index} ({kind}): PASS")
+        except (KeyError, TypeError, ValueError, AssertionError) as exc:
+            failures += 1
+            print(f"Life step {index} ({kind}): FAIL - {exc}")
+    return failures
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--script", required=True)
@@ -93,7 +144,7 @@ def main(argv=None) -> int:
     db_path = args.db or os.path.join(tempfile.mkdtemp(), "sim_state.db")
     agent = CharacterAgent(cartridge_path=args.cartridge, user_id="sim_user", db_path=db_path)
 
-    failures = 0
+    failures = _run_life_steps(agent, script.get("life_steps", []))
     leak_warnings = 0
     for idx, turn in enumerate(script.get("turns", []), start=1):
         user_input = turn["user_input"]
@@ -142,6 +193,7 @@ def main(argv=None) -> int:
             for reason in reasons:
                 print(" ", reason)
             print("  result:", result)
+    failures += _run_life_steps(agent, script.get("life_steps_after", []))
     changed = agent.dream(min_interval_seconds=0)
     print("Dream changed:", changed)
     if script.get("fail_on_fact_leak", False) and leak_warnings:

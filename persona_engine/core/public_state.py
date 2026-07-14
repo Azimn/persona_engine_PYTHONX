@@ -117,6 +117,11 @@ def public_status_from_engine(engine, affect_bucket: str | None = None, dominant
 def debug_snapshot_from_engine(engine) -> dict[str, Any]:
     """Private debug view for development. Not intended for public UI mode."""
 
+    recent_events = engine.world_events.recent(20) if hasattr(engine, "world_events") else []
+    recent_experiences = engine.experiences.recent(20) if hasattr(engine, "experiences") else []
+    experiences_by_event: dict[str, list[dict[str, Any]]] = {}
+    for experience in recent_experiences:
+        experiences_by_event.setdefault(experience.world_event_id, []).append(experience.to_dict())
     return {
         "timestep": engine.timestep,
         "relationship": dict(vars(engine.relationship)),
@@ -128,4 +133,22 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
         "symbols": [vars(s) for s in engine.symbols.symbols.values()],
         "habits": [vars(h) for h in engine.habits.habits.values()],
         "memory_count": len(engine.memory.memories),
+        "life_inspector": {
+            "state": engine.life_state.to_dict() if hasattr(engine, "life_state") else {},
+            "catch_up": dict(getattr(engine, "last_catch_up_summary", {})),
+            "objective_events": [event.to_dict() for event in recent_events],
+            "subjective_experiences": [experience.to_dict() for experience in recent_experiences],
+            "discrepancies": [
+                {
+                    "world_event_id": event.event_id,
+                    "objective": event.outcome,
+                    "subjective": [item["perceived_summary"] for item in experiences_by_event.get(event.event_id, [])],
+                    "interpretations": [item["interpretation"] for item in experiences_by_event.get(event.event_id, [])],
+                }
+                for event in recent_events if experiences_by_event.get(event.event_id)
+            ],
+            "learning_artifacts": [item.to_dict() for item in getattr(engine, "capability_artifacts", []).artifacts]
+            if hasattr(getattr(engine, "capability_artifacts", None), "artifacts") else [],
+            "retrievals": list(getattr(engine, "_last_retrieved_memory_trace", [])),
+        },
     }

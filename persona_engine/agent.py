@@ -24,8 +24,9 @@ class CharacterAgent:
         self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
         self.engine._persist()
 
-    def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
-        return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context)
+    def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None,
+            event_time: float | None = None) -> dict:
+        return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context, event_time=event_time)
 
     def dream(self, min_interval_seconds: int = 3600) -> list[str]:
         return self.engine.dream(min_interval_seconds=min_interval_seconds)
@@ -68,8 +69,8 @@ class CharacterAgent:
             observation = VisionObservation(**observation)
         return self.engine.ingest_vision_observation(observation)
 
-    def propose_world_action(self, action_type: str, payload: dict | None = None) -> dict:
-        return self.engine.propose_world_action(action_type, payload)
+    def propose_world_action(self, action_type: str, payload: dict | None = None, event_time: float | None = None) -> dict:
+        return self.engine.propose_world_action(action_type, payload, event_time=event_time)
 
     def plan_voice(self, text: str) -> dict:
         return self.engine.plan_voice(text)
@@ -79,6 +80,21 @@ class CharacterAgent:
 
     def idle(self):
         self.engine.run_idle_cycle()
+
+    def record_world_event(self, **kwargs):
+        event = self.engine.record_world_event(**kwargs)
+        self.engine._persist()
+        return event.to_dict()
+
+    def perceive_world_event(self, event_id: str, **kwargs):
+        experience = self.engine.perceive_world_event(event_id, **kwargs)
+        return experience.to_dict() if experience else None
+
+    def force_life_event(self, category: str):
+        return self.engine.force_life_event(category)
+
+    def attempt_imperfect_action(self, **kwargs):
+        return self.engine.attempt_imperfect_action(**kwargs)
 
     def start_background_idle(self, interval_seconds: float = 30.0):
         self.engine.start_background_idle(interval_seconds)
