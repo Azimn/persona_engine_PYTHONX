@@ -21,6 +21,9 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Installable `persona_engine` package.
 - Strict `.snp` cartridge validation.
 - Deterministic pressure, relationship, body, world, memory, intention, habit, symbol, belief-ledger, interpretation, and replay/debug systems.
+- Append-only objective world events, per-character subjective experience traces, bounded memory lifecycle, and explained hybrid retrieval.
+- Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
+- Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
 - World Authority for objective facts.
 - Noncanonical, traceable interpretive belief objects.
 - Mock-safe audio and vision observation plumbing.
@@ -72,7 +75,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-177 passed, 1 skipped
+195 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -111,6 +114,8 @@ persona-engine-ui
 ```
 
 Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, working local renderer controls, and checksum-verified session export/replay.
+
+When the server is started with `--debug`, the debug tab includes a read-only life inspector for current activity, intention, attention, recent objective events, subjective experience versions, recall reasons, vitality events, and learning artifacts.
 
 ## Human Testing
 
@@ -169,6 +174,7 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 ## More Docs
 
 - `AGENTS.md`
+- `persona_engine/docs/V02_LIFE_SIMULATION.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`
 - `persona_engine/docs/CURRENT_STATUS.md`

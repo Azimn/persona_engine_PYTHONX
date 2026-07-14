@@ -23,6 +23,8 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Conservative model capability profiles for thinking support, JSON reliability, context hints, practical generation limits, and final-answer behavior.
 - Explicit new/resumed/fresh session modes, tested cartridge isolation, and read-only retrieved-memory provenance traces.
 - Versioned, checksum-verified UI session bundles with transcript/report capture, canonical event separation, diagnostic turn traces, and isolated deterministic replay.
+- Lean v0.2 simulated life: objective world-event ledger, subjective experience lifecycle, explained retrieval, optional embedding adapter, persisted activity/interruption state, bounded seeded vitality events, imperfect execution/learning, and cross-tier capability artifacts.
+- Read-only life inspector showing objective/subjective discrepancies, recall reasons, vitality provenance, and learning artifacts.
 
 ## Current Tests
 
@@ -35,7 +37,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-177 passed, 1 skipped
+195 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -51,14 +53,15 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Ollama is optional and local-only when installed.
 - Local-HF registry entries are scaffolding only; the provider is not enabled in the human UI.
 - Tide drift is deterministic only; stochastic mood weather is not implemented.
+- Seeded whim, limitation, and rare chaos events exist only in the separate bounded vitality subsystem; they do not author world facts.
 - The UI sensor controls are mock adapters.
 - Debug mode is read-only and intended for local developer inspection.
 - Autonomous behavior is limited to local engine idle hooks, not a full background agent runtime.
 
 ## Recommended Next Work
 
-1. Run a structured human-testing pass across all included cartridges.
-2. Compare offline and Ollama behavior using exported session bundles and paired cartridge scripts.
-3. Add cartridge tooling: lint, compare, and authoring helpers.
-4. Complete the optional local-HF provider only after live renderer comparisons justify a base model.
-5. Begin C99 or mobile host work only after the Python reference contracts and human-test findings stabilize.
+1. Run a structured human-testing pass focused on whether pre-existing activity and interruption are perceptible in expression.
+2. Add conservative cartridge vitality weights only where human tests show a visible benefit.
+3. Compare offline and Ollama behavior using exported session bundles and paired cartridge scripts.
+4. Add cartridge tooling: lint, compare, and authoring helpers.
+5. Begin C99 port fixtures for the stable event, experience, life-state, and artifact records.

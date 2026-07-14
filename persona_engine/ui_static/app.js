@@ -406,7 +406,34 @@ async function sendSensor(kind, payload) {
 
 async function refreshDebug() {
   const data = await api('/debug');
+  renderLifeInspector(data.life_inspector || {});
   $('debugData').textContent = JSON.stringify(data, null, 2);
+}
+
+function renderLifeInspector(inspector) {
+  const holder = $('lifeInspector');
+  const life = inspector.state || {};
+  const events = inspector.objective_events || [];
+  const experiences = inspector.subjective_experiences || [];
+  const retrievals = inspector.retrievals || [];
+  const lifeEvents = life.events || [];
+  const artifacts = inspector.learning_artifacts || [];
+  const lifeEventRows = lifeEvents.slice(-5).reverse().map(item => `<p><strong>${escapeHtml(item.category)}</strong> ${escapeHtml(item.action)} <small>${escapeHtml(item.origin)}</small></p>`).join('');
+  const artifactRows = artifacts.slice(-4).reverse().map(item => `<p><strong>${escapeHtml(item.kind)}</strong> ${escapeHtml(item.content)} <small>tier ${item.source_tier} · ${escapeHtml(item.verification_state)}</small></p>`).join('');
+  holder.hidden = false;
+  holder.innerHTML = `
+    <section class="life-summary">
+      <div><span>activity</span><strong>${escapeHtml(life.current_activity || 'unknown')}</strong></div>
+      <div><span>intention</span><strong>${escapeHtml(life.current_intention || 'none')}</strong></div>
+      <div><span>attention</span><strong>${escapeHtml(life.attention_target || 'none')}</strong></div>
+      <div><span>status</span><strong>${escapeHtml(life.activity_status || 'unknown')}</strong></div>
+    </section>
+    <section class="life-list"><h3>World and experience</h3>${events.slice(0, 5).map(event => {
+      const versions = experiences.filter(item => item.world_event_id === event.event_id);
+      return `<article><strong>World: ${escapeHtml(event.outcome || event.action)}</strong>${versions.map(item => `<p>${escapeHtml(item.character_id)}: ${escapeHtml(item.perceived_summary)} <small>${escapeHtml(item.emotional_residue)} · ${Number(item.confidence || 0).toFixed(2)}</small></p>`).join('')}</article>`;
+    }).join('') || '<p class="empty-state">No objective events yet.</p>'}</section>
+    <section class="life-list"><h3>Recall reasons</h3>${retrievals.slice(0, 4).map(item => `<article><strong>${escapeHtml(item.content || item.memory_id)}</strong><p>${Object.entries(item.reasons || {}).filter(([, value]) => Number(value) > 0 || value === 'available').map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(String(value))}`).join(' · ')}</p></article>`).join('') || '<p class="empty-state">No memories recalled yet.</p>'}</section>
+    <section class="life-list"><h3>Life events and learning</h3>${lifeEventRows || artifactRows ? lifeEventRows + artifactRows : '<p class="empty-state">No life events or artifacts yet.</p>'}</section>`;
 }
 
 function buildRatings() {
@@ -602,6 +629,7 @@ function wireEvents() {
   $('debugToggle').addEventListener('change', async (event) => {
     state.debugEnabled = event.target.checked;
     $('debugData').textContent = state.debugEnabled ? 'Loading debug details...' : 'Debug mode is off.';
+    $('lifeInspector').hidden = !state.debugEnabled;
     if (state.debugEnabled) {
       try { await refreshDebug(); }
       catch (err) { $('debugData').textContent = `Debug unavailable: ${err.message}`; }

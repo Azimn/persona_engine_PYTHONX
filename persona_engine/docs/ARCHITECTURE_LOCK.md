@@ -102,6 +102,10 @@ The Tide means deterministic pressure, body, world, and sensorium drift during i
 
 The Tide does not currently include stochastic mood weather, random affect variance, calendar-based mood variance, or model-generated mood shifts. Do not add randomness without an explicit architecture change request.
 
+### Vitality Noise Is Separate And Bounded
+
+The v0.2 simulated-life extension explicitly authorizes `VitalityEventEngine` as a separate seeded subsystem for whims, ordinary limitations, and rare true-chaos events. It must remain distinct from Tide, persist its replay counter, record provenance, produce bounded proposals/effects, and never author objective facts or bypass action validation.
+
 ### Mask Suppression Is Traceable
 
 Mask Suppression is distributed across existing gates:

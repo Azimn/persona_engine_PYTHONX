@@ -560,6 +560,16 @@ h1 {
   padding: 10px;
   font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+.life-inspector { display: grid; gap: 12px; margin-bottom: 12px; }
+.life-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.life-summary div { min-width: 0; border-left: 2px solid var(--accent); padding-left: 8px; }
+.life-summary span, .life-list small { display: block; color: var(--muted); font-size: 11px; }
+.life-summary strong { display: block; margin-top: 2px; overflow-wrap: anywhere; font-size: 13px; }
+.life-list { border-top: 1px solid var(--border); padding-top: 10px; }
+.life-list h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; color: var(--muted); }
+.life-list article, .life-list p { margin: 0 0 8px; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.life-list article p { margin: 4px 0 0; color: var(--muted); }
+.empty-state { color: var(--muted); }
 
 .modal-backdrop {
   position: fixed;
