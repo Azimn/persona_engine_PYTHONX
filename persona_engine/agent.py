@@ -114,6 +114,18 @@ class CharacterAgent:
     def reinforce_habit(self, name: str, trigger: str, response_pattern: str, repetitions: int = 1):
         return self.engine.reinforce_habit(name, trigger, response_pattern, repetitions)
 
+    def replay_genesis(self, *, end_time: float | None = None):
+        return self.engine.replay_genesis(end_time=end_time)
+
+    def write_journal_entry(self, text: str, **kwargs):
+        return self.engine.write_journal_entry(text, **kwargs)
+
+    def read_journal(self, query: str = "", **kwargs):
+        return self.engine.read_journal(query, **kwargs)
+
+    def materialize_journal(self, path: str | None = None):
+        return self.engine.materialize_journal(path)
+
     def decay_pressures_for_elapsed_time(self, dt_steps: int):
         return self.engine.decay_pressures_for_elapsed_time(dt_steps)
 

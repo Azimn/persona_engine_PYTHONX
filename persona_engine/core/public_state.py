@@ -169,6 +169,9 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             if getattr(engine, "dyadic_rituals", None) else [],
             "development_episodes": getattr(engine, "development_episodes", None).to_list()[-20:]
             if getattr(engine, "development_episodes", None) else [],
+            "genesis_replays": list(getattr(engine, "genesis_replays", ())),
+            "journal": getattr(engine, "journal", None).to_dict()
+            if getattr(engine, "journal", None) else None,
             "discrepancies": [
                 {
                     "world_event_id": event.event_id,

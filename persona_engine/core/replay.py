@@ -105,6 +105,9 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
             "state": item.state,
         } for item in engine.dyadic_rituals.rituals]),
         "development_episode_count": len(engine.development_episodes.episodes),
+        "genesis_replays": _normalized(list(getattr(engine, "genesis_replays", ()))),
+        "journal": _normalized(getattr(engine, "journal", None).to_dict())
+        if getattr(engine, "journal", None) else None,
         "capability_artifacts": _normalized(engine.capability_artifacts.to_list()),
         "self_monitor": _normalized(engine._last_self_monitor.to_dict())
         if getattr(engine, "_last_self_monitor", None) else None,

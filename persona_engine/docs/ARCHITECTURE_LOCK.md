@@ -71,6 +71,15 @@ original perception or encoding-time interpretation. Later meaning is
 append-only, evidence-linked, bounded, and governed by self-monitor awareness
 and reconsolidation validation. Renderer prose cannot create or revise it.
 
+Cartridge-authored genesis history is input history, not imported memory. It
+must pass through ordinary world-event, perception, consolidation, decay, and
+autobiographical pathways. Conflicting fictional continuities may coexist when
+their authority and provenance remain explicit.
+
+A personal journal is a character-authored world artifact. Its text proves
+only what was written. Reading it creates a new observation; journal text does
+not overwrite memory or objective history.
+
 ### Renderer Owns Surface Language Only
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.

@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -63,6 +63,8 @@ _ALLOWED_SECTION_FIELDS.update({
         "minimum_distinct_contexts", "minimum_distinct_days",
         "identity_commit_delta", "growth_rules",
     },
+    "genesis": {"version", "episodes"},
+    "journal": {"object_name"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
@@ -336,6 +338,16 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
                 raise CartridgeError(f"invalid development growth rule at index {index}")
             if not -1.0 <= float(rule["direction"]) <= 1.0:
                 raise CartridgeError("development growth direction must be within [-1, 1]")
+    if "genesis" in data:
+        from .genesis import GenesisReplayer
+        try:
+            GenesisReplayer().parse(data["genesis"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid genesis history: {exc}") from exc
+    if "journal" in data:
+        object_name = data["journal"].get("object_name")
+        if not isinstance(object_name, str) or not object_name.strip() or len(object_name) > 120:
+            raise CartridgeError("[journal].object_name must contain 1..120 characters")
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:
@@ -403,6 +415,8 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "self_monitor": data.get("self_monitor", {}),
         "autobiographical_reconsolidation": data.get("autobiographical_reconsolidation", {}),
         "development": data.get("development", {}),
+        "genesis": data.get("genesis", {}),
+        "journal": data.get("journal", {}),
         "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }

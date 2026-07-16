@@ -32,6 +32,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Private cognition has deterministic, model-optional, and model-required session modes with separate cognition/expression call accounting. Non-speech turns can complete with zero renderer calls.
 - Interruption records distinguish input arrival, attention capture, actual activity interruption, urgency, and prior interruptibility.
 - Pretorius and Kiki provide cartridge-authored dependency-free realization pools without placing character phrases in core modules.
+- Pretorius has a bounded 23-episode autobiographical genesis replay with one missed event, conflicting fictional continuities, first-person perceived summaries, and a persistent black laboratory notebook.
+- Explicit remote-memory cues can overcome unrelated recency; only memories admitted to the considered synthesis field receive recall strengthening.
+- Model answers to explicit autobiographical questions are checked for retrieved-memory grounding and fall back safely when they improvise unsupported history.
 - A bounded read-only semantic substrate provides explicit generic features, inheritance, one-hop associations, unknowns, and candidate affordances from structured concept IDs.
 - Deterministic fallible self-monitoring distinguishes actual engine condition from character-perceived capacity, memory reliability, bias, conflict awareness, and attributed cause.
 - Self-monitoring emits bounded regulation candidates into situated synthesis; selected delay, clarification, correction, concealment, withdrawal, habitual continuation, or doubling down changes action and multimodal performance without bypassing the executive.
@@ -53,7 +56,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-305 passed, 1 skipped
+315 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.

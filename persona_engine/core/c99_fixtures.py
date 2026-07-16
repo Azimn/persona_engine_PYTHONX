@@ -51,6 +51,9 @@ def developmental_fixture(engine) -> dict[str, Any]:
         "dyadic_rituals": engine.dyadic_rituals.to_list(),
         "development_episodes": engine.development_episodes.to_list(),
         "development_signals": list(engine.development_signals),
+        "genesis_replays": list(getattr(engine, "genesis_replays", ())),
+        "journal": getattr(engine, "journal", None).to_dict()
+        if getattr(engine, "journal", None) else None,
         "earned_traits": [vars(item) for item in engine.ledger.earned_traits.values()],
     }
 

@@ -145,6 +145,23 @@ class WorldAuthority:
                 return WorldResolution(False, [], "movement proposal missing zone")
             fact = self.add_fact("zone", zone, source="action_resolution", confidence=proposal.confidence, visible_to_character=True, tags=["action", "movement"])
             return WorldResolution(True, [fact], "movement proposal resolved")
+        if action == "read_journal":
+            fact = self.add_fact(
+                "journal_action", "read", source="action_resolution",
+                confidence=proposal.confidence, visible_to_character=True,
+                tags=["action", "journal"],
+            )
+            return WorldResolution(True, [fact], "journal reading proposal resolved")
+        if action == "write_journal":
+            text = payload.get("text")
+            if not isinstance(text, str) or not text.strip() or len(text) > 4000:
+                return WorldResolution(False, [], "journal writing proposal requires bounded text")
+            fact = self.add_fact(
+                "journal_action", "write", source="action_resolution",
+                confidence=proposal.confidence, visible_to_character=True,
+                tags=["action", "journal"],
+            )
+            return WorldResolution(True, [fact], "journal writing proposal resolved")
         return WorldResolution(False, [], f"unsupported action proposal: {action}")
 
     def get_server_truth(self) -> dict[str, Any]:

@@ -49,6 +49,10 @@ src/
 
 The C runtime should support a replay mode where a cartridge plus canonical input events reproduces the same state digest. The digest does not need generated prose. It should include relationship floats, pressure floats, belief values, memory count, open loop count, habit count, symbol count, and timestep.
 
+Genesis episodes and journal entries use fixed schema versions, bounded arrays,
+stable IDs, scalar fields, and UTF-8 text. A C runtime may materialize the
+journal as text while retaining the bounded entry table as replay authority.
+
 ## Memory firewall rule
 
 User statements, server truth, visible context, sensorium events, validated interpretive beliefs, and explicit authorial cartridge data can become canonical memory candidates.

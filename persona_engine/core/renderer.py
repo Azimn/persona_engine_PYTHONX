@@ -173,15 +173,64 @@ class LocalLLMRenderer:
         else:
             max_chars = getattr(request.expression_constraints, "max_chars", 200)
             offline_realization = getattr(request.expression_constraints, "offline_realization", None)
-        user_text = str(request.resolved_state.get("user_text", "")) if isinstance(request.resolved_state, dict) else ""
-        messages = [{"role": "system", "content": str(request.resolved_state)}, {"role": "user", "content": user_text}]
-        return self.generate(
+        if isinstance(request.resolved_state, dict):
+            user_text = str(request.resolved_state.get("user_text", ""))
+            system_content = str(request.resolved_state.get("system_prompt") or request.resolved_state)
+        else:
+            user_text = ""
+            system_content = str(request.resolved_state)
+        messages = [{"role": "system", "content": system_content}, {"role": "user", "content": user_text}]
+        grounding_mode = (
+            request.expression_constraints.get("memory_grounding_mode", "optional")
+            if isinstance(request.expression_constraints, dict) else "optional"
+        )
+        if grounding_mode == "unavailable":
+            self._actual_backend = "offline"
+            self._fallback_reason = "No directly relevant memory was available for a memory-grounded answer."
+            return self._offline.render(
+                messages, max_chars=max_chars, seed=request.seed, realization=offline_realization,
+            )
+        rendered = self.generate(
             messages,
             max_chars=max_chars,
             retrieved_memories=request.retrieved_memories,
             seed=request.seed,
             offline_realization=offline_realization,
         )
+        if grounding_mode == "required" and self._actual_backend != "offline" and not self._memory_grounded(
+            rendered, user_text, request.retrieved_memories,
+        ):
+            self._actual_backend = "offline"
+            self._fallback_reason = "Model output failed the explicit autobiographical grounding check."
+            return self._offline.render(
+                messages, max_chars=max_chars, seed=request.seed, realization=offline_realization,
+            )
+        return rendered
+
+    @staticmethod
+    def _memory_grounded(text: str, user_text: str, memories) -> bool:
+        stop = {
+            "about", "after", "being", "does", "from", "happened", "memory", "memories",
+            "remember", "that", "their", "there", "these", "they", "this", "what", "when",
+            "where", "which", "with", "would", "your",
+        }
+
+        def tokens(value: str) -> set[str]:
+            return {item for item in re.findall(r"[a-z0-9']+", value.lower()) if len(item) >= 4 and item not in stop}
+
+        user_tokens = tokens(user_text)
+        response_tokens = tokens(text) - user_tokens
+        memory_tokens = set()
+        for memory in list(memories or ())[:1]:
+            content = memory.content if hasattr(memory, "content") else str(memory)
+            memory_tokens.update(tokens(content))
+        overlap = response_tokens & memory_tokens
+        if len(overlap) >= 2:
+            return True
+        return sum(
+            1 for left in response_tokens for right in memory_tokens
+            if len(left) >= 6 and len(right) >= 6 and left[:6] == right[:6]
+        ) >= 2
 
     def generate_stream(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200, seed: int | None = None) -> Iterator[str]:
         """Synchronous token stream. UIs can render these chunks directly.

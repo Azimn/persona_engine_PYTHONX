@@ -458,17 +458,20 @@ class ExperienceStore:
 
     def perceive(self, event: WorldEvent, character_id: str, *, attention: float, confidence: float = 0.8,
                  salience: float = 0.5, emotional_residue: str = "neutral", interpretation: str = "ordinary",
-                 source_tier: int = 0, distortion: dict[str, Any] | None = None) -> SubjectiveExperience | None:
+                 source_tier: int = 0, distortion: dict[str, Any] | None = None,
+                 perceived_summary: str | None = None) -> SubjectiveExperience | None:
         attention = _bounded(attention)
         if attention < 0.15:
             return None
-        summary = event.outcome or " ".join(part for part in (event.action, *event.targets) if part).strip()
+        summary = str(perceived_summary).strip() if perceived_summary is not None else event.outcome or " ".join(part for part in (event.action, *event.targets) if part).strip()
         if not summary:
             summary = event.event_type
+        if perceived_summary is None:
+            summary = f"I noticed {summary}."
         experience = SubjectiveExperience(
             experience_id=_stable_id("experience", character_id, event.event_id, len(self.experiences)),
             character_id=str(character_id), world_event_id=event.event_id,
-            perceived_summary=f"I noticed {summary}.", interpretation=str(interpretation),
+            perceived_summary=summary, interpretation=str(interpretation),
             emotional_residue=str(emotional_residue), attention_weight=attention,
             confidence=_bounded(confidence), salience=_bounded(salience),
             encoding_strength=_bounded((attention + salience) / 2.0), source_tier=max(0, int(source_tier)),

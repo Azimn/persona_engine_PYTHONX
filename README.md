@@ -83,7 +83,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-305 passed, 1 skipped
+315 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -100,6 +100,16 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/aut
 python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
 python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/steady_collaborator_30_days.yaml --actor-mode scripted --judge deterministic --output-dir playtest_output/steady
 ```
+
+Compare a fresh Pretorius with the same organism after authored history has
+passed through ordinary perception, consolidation, forgetting, and retrieval:
+
+```bash
+python -m persona_engine.genesis --cartridge persona_engine/cartridges/pretorius.snp --db genesis_eval.db --compare-fresh
+```
+
+See `persona_engine/docs/GENESIS_REPLAY.md` and
+`persona_engine/docs/PERSONAL_JOURNAL.md` for authority and portability rules.
 
 After editable install, the simulator entry point is also available:
 

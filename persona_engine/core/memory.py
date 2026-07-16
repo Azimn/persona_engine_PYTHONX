@@ -123,7 +123,11 @@ def _char_ngrams(text: str, n: int = 4) -> Set[str]:
 def activation(mem: MemoryUnit, now: float, query_similarity: float = 0.0,
                emotional_state_match: float = 0.0, decay: float = 0.5) -> float:
     times = [max(now - mem.created_at, 0.001)] + [max(now - t, 0.001) for t in mem.recall_times]
-    base = math.log(sum(t ** -decay for t in times))
+    # Raw ACT-R seconds otherwise make an old memory effectively impossible to
+    # retrieve: a months-old trace can trail a new one by eight or more points
+    # while all cue relevance is bounded below one. Keep decay meaningful but
+    # bounded so an explicit cue can reactivate remote autobiography.
+    base = max(-3.0, min(3.0, math.log(sum(t ** -decay for t in times))))
     salience = (
         mem.emotional_intensity * 1.5
         + mem.relationship_relevance * 1.0
@@ -139,6 +143,42 @@ def lexical_similarity(query: str, content: str) -> float:
     if not q or not c:
         return 0.0
     return len(q & c) / math.sqrt(len(q) * len(c))
+
+
+_CUE_STOPWORDS = {
+    "about", "after", "again", "being", "could", "does", "from", "have",
+    "happened", "mean", "memories", "memory", "remember", "that", "their",
+    "there", "these", "they", "this", "what", "when", "where", "which",
+    "with", "would", "your", "were", "never", "proof",
+}
+
+
+def direct_symbolic_cue(query: str, content: str, tags: Set[str] | None = None) -> float:
+    """Return a deterministic exact-topic cue for remote-memory access."""
+
+    query_tokens = {item for item in _tokens(query) if len(item) >= 4 and item not in _CUE_STOPWORDS}
+    if not query_tokens:
+        return 0.0
+    content_tokens = _tokens(content)
+    tag_tokens = set()
+    for tag in tags or ():
+        tag_tokens.update(_tokens(tag.replace("_", " ")))
+    if query_tokens & content_tokens:
+        return 1.0
+    if any(
+        len(query_token) >= 6 and len(candidate) >= 6
+        and query_token[:6] == candidate[:6]
+        for query_token in query_tokens for candidate in content_tokens
+    ):
+        return 1.0
+    # Tags are context hints, not equivalent to an explicit textual match.
+    if query_tokens & tag_tokens or any(
+        len(query_token) >= 6 and len(candidate) >= 6
+        and query_token[:6] == candidate[:6]
+        for query_token in query_tokens for candidate in tag_tokens
+    ):
+        return 0.5
+    return 0.0
 
 
 def semantic_similarity(query: str, content: str) -> float:
@@ -205,6 +245,7 @@ class MemoryStore:
         for mem in self.memories:
             lexical = lexical_similarity(query, mem.content)
             symbolic = semantic_similarity(query, mem.content)
+            direct_cue = direct_symbolic_cue(query, mem.content, mem.tags)
             vector_score = 0.0
             if embeddings_available:
                 try:
@@ -221,11 +262,13 @@ class MemoryStore:
             score = (
                 activation(mem, now, symbolic * 0.65, emotional_state_match)
                 + lexical * 0.45 + vector_score * 0.55 + recency * 0.18
-                + goal + relationship + direct_link + learned_association + mem.salience * 0.2
+                + direct_cue * 6.0 + goal + relationship + direct_link
+                + learned_association + mem.salience * 0.2
             )
             scored.append(MemoryRetrieval(mem, score, {
                 "lexical_match": round(lexical, 4),
                 "symbolic_similarity": round(symbolic, 4),
+                "direct_symbolic_cue": round(direct_cue, 4),
                 "semantic_similarity": round(vector_score, 4),
                 "recency_boost": round(recency * 0.18, 4),
                 "salience": round(mem.salience, 4),
@@ -237,10 +280,14 @@ class MemoryStore:
                 "embedding_provider": "available" if embeddings_available else "fallback",
             }))
         scored.sort(key=lambda item: (-item.score, item.memory.id))
-        selected = scored[:max(0, int(top_k))]
-        for item in selected:
-            item.memory.recall_times.append(now)
-        return selected
+        return scored[:max(0, int(top_k))]
+
+    @staticmethod
+    def record_recall(memories: List[MemoryUnit], now: float) -> None:
+        """Strengthen only memories that entered the considered cognitive field."""
+
+        for memory in memories:
+            memory.recall_times.append(float(now))
 
     def compress_old(self, now: float, age_threshold: float = 86400 * 30):
         for mem in self.memories:

@@ -82,6 +82,8 @@ from .dyadic_ritual import DyadicRitualStore
 from .developmental_learning import (
     DevelopmentEpisodeStore, RelationshipExpectationStore, build_episode,
 )
+from .genesis import GenesisReplayer
+from .journal import PersonalJournal
 
 
 def bucket_risk(risk: float) -> str:
@@ -167,6 +169,11 @@ class InteriorEngine:
         self.dyadic_rituals = DyadicRitualStore()
         self.development_episodes = DevelopmentEpisodeStore()
         self.development_signals: list[dict[str, Any]] = []
+        self.genesis_replays: list[dict[str, Any]] = []
+        self.genesis_replayer = GenesisReplayer()
+        self.journal = PersonalJournal(
+            object_name=str(profile_source.get("journal", {}).get("object_name", "personal notebook")),
+        )
         self._pending_skill_id: str | None = None
         self.capability_artifacts = CapabilityArtifactStore()
         life_seed = turn_seed(f"{identity.name}:{user_id}", 0, "vitality")
@@ -355,6 +362,11 @@ class InteriorEngine:
             self.persistence.load(cid, uid, "development_episodes", [])
         )
         self.development_signals = list(self.persistence.load(cid, uid, "development_signals", []))[-256:]
+        self.genesis_replays = list(self.persistence.load(cid, uid, "genesis_replays", []))[-8:]
+        self.journal = PersonalJournal.from_dict(
+            self.persistence.load(cid, uid, "journal", {}),
+            object_name=str((self.cartridge_data or {}).get("journal", {}).get("object_name", "personal notebook")),
+        )
         self._pending_skill_id = self.persistence.load(cid, uid, "pending_skill_id")
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
@@ -462,6 +474,8 @@ class InteriorEngine:
             "dyadic_rituals": self.dyadic_rituals.to_list(),
             "development_episodes": self.development_episodes.to_list(),
             "development_signals": list(self.development_signals),
+            "genesis_replays": list(self.genesis_replays),
+            "journal": self.journal.to_dict(),
             "pending_skill_id": self._pending_skill_id,
             "capability_artifacts": self.capability_artifacts.to_list(),
             "life_state": self.life_state.to_dict(),
@@ -477,6 +491,65 @@ class InteriorEngine:
 
     def _persist(self):
         self.persistence.save_many(self.identity.name, self.user_id, self._serialize_state())
+
+    def replay_genesis(self, *, end_time: float | None = None) -> dict[str, Any]:
+        """Replay cartridge-authored history through ordinary lived-state owners."""
+
+        return self.genesis_replayer.replay(
+            self, end_time=time.time() if end_time is None else float(end_time),
+        ).to_dict()
+
+    def write_journal_entry(
+        self, text: str, *, entry_kind: str = "private_note", source: str = "character_action",
+        source_event_ids=(), historical_year: int | None = None,
+        timestamp: float | None = None, persist: bool = True,
+    ) -> dict[str, Any]:
+        """Write deliberate character text; the entry is subjective, not world truth."""
+
+        when = time.time() if timestamp is None else float(timestamp)
+        entry = self.journal.write(
+            tick=self.timestep, timestamp=when, text=text, entry_kind=entry_kind,
+            source=source, source_event_ids=source_event_ids, historical_year=historical_year,
+        )
+        self.persistence.log_event(
+            self.identity.name, self.user_id, self.timestep, "journal_entry_written",
+            {**entry.to_dict(), "record_authority": "character_authored_artifact"},
+        )
+        if persist:
+            self._persist()
+        return entry.to_dict()
+
+    def read_journal(self, query: str = "", *, limit: int = 4, timestamp: float | None = None) -> dict[str, Any]:
+        """Read notebook text as a new bounded observation and possible memory."""
+
+        entries = self.journal.search(query, limit)
+        excerpt = " ".join(item.text for item in reversed(entries))[:1200]
+        if not excerpt:
+            return {"object_name": self.journal.object_name, "entries": [], "experience": None}
+        event = self.record_world_event(
+            event_type="journal_reading",
+            actors=(self.identity.name,), location=str(self.world.zone), action="read",
+            targets=(self.journal.object_name,),
+            outcome=f"The notebook contains: {excerpt}", source="journal_artifact",
+            payload={"journal_entry_ids": [item.entry_id for item in entries]},
+            timestamp=time.time() if timestamp is None else float(timestamp),
+        )
+        experience = self.perceive_world_event(
+            event.event_id, attention=0.85, confidence=0.75,
+            salience=0.6,
+            emotional_residue="reflective", interpretation="my written account may support or challenge recollection",
+            distortion={"journal_is_evidence_of_writing_not_objective_truth": True},
+        )
+        return {
+            "object_name": self.journal.object_name,
+            "entries": [item.to_dict() for item in entries],
+            "world_event_id": event.event_id,
+            "experience": experience.to_dict() if experience else None,
+        }
+
+    def materialize_journal(self, path: str | None = None) -> str:
+        target = path or str(self.persistence.path) + ".journal.txt"
+        return str(self.journal.materialize(target))
 
     # ---------------- idle and silent processing ----------------
     def _catch_up_idle(self):
@@ -971,14 +1044,15 @@ class InteriorEngine:
     def perceive_world_event(self, event_id: str, *, attention: float = 0.8, confidence: float = 0.8,
                              salience: float = 0.5, emotional_residue: str = "neutral",
                              interpretation: str = "ordinary", source_tier: int = 0,
-                             distortion: dict[str, Any] | None = None, consolidate: bool = True):
+                             distortion: dict[str, Any] | None = None, consolidate: bool = True,
+                             perceived_summary: str | None = None):
         event = self.world_events.fetch(event_id)
         if event is None:
             raise KeyError(event_id)
         experience = self.experiences.perceive(
             event, self.identity.name, attention=attention, confidence=confidence, salience=salience,
             emotional_residue=emotional_residue, interpretation=interpretation,
-            source_tier=source_tier, distortion=distortion,
+            source_tier=source_tier, distortion=distortion, perceived_summary=perceived_summary,
         )
         if experience and consolidate:
             self.experiences.consolidate(experience, self.memory, event.timestamp)
@@ -1390,6 +1464,48 @@ class InteriorEngine:
     def propose_world_action(self, action_type: str, payload: dict | None = None, event_time: float | None = None) -> dict:
         proposal = WorldActionProposal(self.identity.name, action_type, dict(payload or {}), float(event_time) if event_time is not None else time.time())
         resolution = self.world_authority.resolve_action(proposal)
+        if resolution.accepted and action_type == "read_journal":
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "world_action_resolution", {
+                "action_type": action_type, "payload": payload or {}, "accepted": True,
+                "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created],
+                "event_time": proposal.created_at, "memory_types": ["world_fact", "action_resolution", "journal"],
+            })
+            result = self.read_journal(
+                str(proposal.payload.get("query", "")),
+                limit=int(proposal.payload.get("limit", 4)), timestamp=proposal.created_at,
+            )
+            return {"accepted": True, "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created], "journal": result}
+        if resolution.accepted and action_type == "write_journal":
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "world_action_resolution", {
+                "action_type": action_type, "payload": payload or {}, "accepted": True,
+                "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created],
+                "event_time": proposal.created_at, "memory_types": ["world_fact", "action_resolution", "journal"],
+            })
+            event = self.record_world_event(
+                event_type="journal_writing", actors=(self.identity.name,), location=str(self.world.zone),
+                action="wrote", targets=(self.journal.object_name,),
+                outcome="A new entry was written in the personal notebook.",
+                source="world_authority", payload={"journal_action": "write"},
+                timestamp=proposal.created_at,
+            )
+            entry = self.write_journal_entry(
+                str(proposal.payload["text"]),
+                entry_kind=str(proposal.payload.get("entry_kind", "private_note")),
+                source="character_world_action", source_event_ids=(event.event_id,),
+                timestamp=proposal.created_at, persist=False,
+            )
+            experience = self.perceive_world_event(
+                event.event_id, attention=0.9, confidence=0.95, salience=0.55,
+                emotional_residue="deliberate", interpretation="I chose to preserve these words in my notebook.",
+                distortion={"journal_text_is_subjective_not_objective_truth": True},
+            )
+            self._persist()
+            return {
+                "accepted": True, "reason": resolution.reason,
+                "facts": [f.to_dict() for f in resolution.facts_created],
+                "journal_entry": entry,
+                "subjective_experience_id": experience.experience_id if experience else None,
+            }
         visible = {fact.key: fact.value for fact in resolution.facts_created if fact.visible_to_character}
         self.world.apply_host_facts(visible, visible, now=proposal.created_at)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "world_action_resolution", {
@@ -1813,6 +1929,19 @@ class InteriorEngine:
         if open_loop is not None and f"open_loop:{open_loop.topic}" not in considered_ids:
             open_loop = None
         retrieved = [item.memory for item in retrievals if f"memory:{item.memory.id}" in considered_ids]
+        self.memory.record_recall(retrieved, now)
+        memory_request = any(
+            phrase in user_text.lower()
+            for phrase in ("remember", "what happened", "your memories", "what do you recall")
+        )
+        direct_grounding = any(
+            f"memory:{item.memory.id}" in considered_ids
+            and float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
+            for item in retrievals
+        )
+        memory_grounding_mode = (
+            "required" if direct_grounding else "unavailable" if memory_request else "optional"
+        )
         available_artifacts = [
             item for item in available_artifacts
             if f"artifact:{item.artifact_id}" in considered_ids
@@ -2019,6 +2148,13 @@ class InteriorEngine:
                     )]
                     if item is not None and self.autobiographical_interpretations.current(item.experience_id) == item
                 )[:2],
+                memory_grounding=(
+                    "Answer from the listed memories and current autobiographical meaning only. "
+                    "Include at least one recalled detail not supplied by the interlocutor; do not invent connective detail."
+                    if memory_grounding_mode == "required" else
+                    "No directly relevant memory is accessible. Do not invent an event; state bounded uncertainty."
+                    if memory_grounding_mode == "unavailable" else None
+                ),
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
@@ -2045,6 +2181,7 @@ class InteriorEngine:
                 expression_constraints={
                     "max_chars": envelope.max_chars,
                     "offline_realization": dict((self.cartridge_data or {}).get("offline_expression", {})),
+                    "memory_grounding_mode": memory_grounding_mode,
                     "action_decision": action_decision.to_dict(),
                     "performance_plan": performance_payload,
                 },

@@ -73,6 +73,8 @@ class OfflineTemplateRenderer:
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
         group = self._classify(user_text, system_text)
+        if group == "grounded_memory":
+            return self._clean_truncate(self._render_grounded_memory(user_text, system_text), max_chars)
         if group == "activity":
             return self._clean_truncate(self._render_activity(system_text), max_chars)
         if group == "knowledge":
@@ -98,6 +100,8 @@ class OfflineTemplateRenderer:
             return "care"
         if "slow down" in lowered:
             return "slow"
+        if "relevant memories, use only as background" in system_lowered and self._memory_cue_matches(lowered, system_text):
+            return "grounded_memory"
         if any(word in lowered for word in ["remember", "word", "said before", "recall"]):
             return "memory"
         if "what was that" in lowered or (
@@ -115,6 +119,42 @@ class OfflineTemplateRenderer:
         if "?" in user_text:
             return "question"
         return "default"
+
+    @staticmethod
+    def _memory_cue_matches(user_text: str, system_text: str) -> bool:
+        match = re.search(
+            r"Relevant memories, use only as background and do not recite verbatim:\s*([^\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if not match:
+            return False
+        stop = {"about", "being", "does", "from", "happened", "memory", "memories", "remember", "that", "this", "what", "when", "where", "which", "with", "your"}
+        query = {item for item in re.findall(r"[a-z0-9']+", user_text) if len(item) >= 4 and item not in stop}
+        memory = set(re.findall(r"[a-z0-9']+", match.group(1).lower()))
+        if query & memory:
+            return True
+        return any(
+            len(left) >= 6 and len(right) >= 6 and left[:6] == right[:6]
+            for left in query for right in memory
+        )
+
+    @staticmethod
+    def _render_grounded_memory(user_text: str, system_text: str) -> str:
+        meaning = re.search(
+            r"Current autobiographical meaning, use only if disclosure permits:\s*([^|\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if meaning:
+            return meaning.group(1).strip()
+        memories = re.search(
+            r"Relevant memories, use only as background and do not recite verbatim:\s*([^|\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if not memories:
+            return "The relevant detail is not presently accessible to me."
+        detail = memories.group(1).strip()
+        detail = re.sub(r"^I noticed\s+", "", detail, flags=re.IGNORECASE).rstrip(" .")
+        return f"I remember that {detail}."
 
     def _render_activity(self, system_text: str) -> str:
         match = re.search(r"before interruption:\s*([^|\n]+)", system_text, re.IGNORECASE)

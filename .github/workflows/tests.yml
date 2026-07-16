@@ -33,3 +33,6 @@ jobs:
           python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/kiki_tests_pretorius_30_days.yaml --actor-mode character --judge deterministic --output-dir /tmp/kiki-tests
           python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/pretorius_tests_kiki_30_days.yaml --actor-mode character --judge deterministic --output-dir /tmp/pretorius-tests
           python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/kiki_pretorius_crossplay_30_days.yaml --actor-mode character --judge deterministic --output-dir /tmp/crossplay
+      - name: Pretorius genesis replay
+        run: |
+          python -m persona_engine.genesis --cartridge persona_engine/cartridges/pretorius.snp --db /tmp/pretorius-genesis.db --end-time 1800000000 --compare-fresh --output /tmp/genesis-comparison.json
