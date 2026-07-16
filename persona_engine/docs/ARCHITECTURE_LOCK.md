@@ -80,12 +80,12 @@ A personal journal is a character-authored world artifact. Its text proves
 only what was written. Reading it creates a new observation; journal text does
 not overwrite memory or objective history.
 
-All characters have the journal capability. A cartridge may name the artifact,
-author a bounded pending-note template, and choose open, guarded, private, or
-deniable unsolicited disclosure. Saying that a note was made requires a real
-World Authority writing action. A journal allusion may expose the artifact and
-entry provenance but not private text unless a separate read/disclosure action
-permits it.
+All characters have the journal capability and possess its artifact in world
+inventory. A cartridge may name the artifact and author a bounded pending-note
+template. Saying that a note was made requires a real World Authority writing
+action. The journal is not an unsolicited life callback; its existence or text
+may enter conversation only through a relevant selected read, write, or
+disclosure action.
 
 ### Actor Identity Owns Social Reference
 

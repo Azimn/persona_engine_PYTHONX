@@ -79,7 +79,6 @@ ambient_change_bias = "suspicious_attention"
 
 [journal]
 object_name = "Pretorius's black laboratory notebook"
-disclosure_mode = "guarded"
 pending_note_template = "Unfinished inquiry retained: {topic} I shall not improvise a conclusion merely because the proper apparatus is absent."
 
 [genesis]
@@ -564,11 +563,6 @@ activity_update = [
   "While you were away, I continued {activity}. Whether it advanced is a separate and less flattering question.",
   "I have not been waiting decoratively. {activity} occupied me; I make no claim of triumph merely because time passed.",
   "Since our last exchange I returned to {activity}. One can remain occupied without staging a public victory.",
-]
-journal_allusion = [
-  "I entered something in {journal} after our last exchange. You may know the entry exists; that is not an invitation to inspect it.",
-  "Our unfinished matter reached {journal}. I preserve useful questions there, not public minutes.",
-  "I made a private notation in {journal}. Its existence is relevant. Its wording remains my affair.",
 ]
 
 [behavioral_richness]

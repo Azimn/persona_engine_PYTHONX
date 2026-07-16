@@ -265,9 +265,6 @@ class BehavioralEvaluationHarness:
                 "activity_update_count": sum(
                     item.conversation_candidate.get("move") == "activity_update" for item in causal
                 ),
-                "journal_allusion_count": sum(
-                    item.conversation_candidate.get("move") == "journal_allusion" for item in causal
-                ),
             },
         )
 

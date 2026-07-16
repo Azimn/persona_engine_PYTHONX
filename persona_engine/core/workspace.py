@@ -39,7 +39,6 @@ class WorkspaceFrame:
     conversation_topic: Optional[str] = None
     activity_transition: Optional[str] = None
     activity_context: Optional[str] = None
-    journal_context: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -65,8 +64,6 @@ class WorkspaceFrame:
             lines.append(f"Observable activity transition: {self.activity_transition}")
         if self.activity_context:
             lines.append(f"Observable activity context: {self.activity_context}")
-        if self.journal_context:
-            lines.append(f"Journal disclosure boundary: {self.journal_context}")
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:

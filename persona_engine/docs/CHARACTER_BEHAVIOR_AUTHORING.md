@@ -41,15 +41,15 @@ Every character has a bounded journal artifact even when its cartridge omits a
 ```toml
 [journal]
 object_name = "private field notebook"
-disclosure_mode = "guarded"
 pending_note_template = "I retained this unfinished question: {topic}"
 ```
 
-`disclosure_mode` is `open`, `guarded`, `private`, or `deniable`. `private` and
-`deniable` suppress unsolicited allusions; they do not themselves force a lie.
 The pending-note template creates subjective artifact text only after the
 selected action passes World Authority. Keep it first-person, bounded, and free
-of claims that the character could not know.
+of claims that the character could not know. Journal existence and contents
+are not unsolicited conversation callbacks. Character truthfulness or
+concealment about possessions belongs to ordinary action, disclosure, and
+deception rules.
 
 ## Authoring Rules
 
@@ -77,7 +77,8 @@ at least one contrasting cartridge:
 - a correction under low and high pressure;
 - repeated low-information input;
 - a pending topic after offline capability loss and restoration.
-- a return after two minutes with a newly written journal entry;
+- a return after two minutes with a newly written journal entry that is not
+  mentioned without conversational cause;
 - a return after ten minutes while a real activity continues.
 
 Review the blind transcript first. Confirm that the character seems occupied,

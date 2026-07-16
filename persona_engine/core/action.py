@@ -207,7 +207,7 @@ def resolve_action_decision(
         elif selected_conversation.move == "continue_working":
             action_kind = "continue_activity"
             communicative_function = None
-        elif selected_conversation.move in {"activity_update", "journal_allusion"}:
+        elif selected_conversation.move == "activity_update":
             action_kind = "speak"
             communicative_function = selected_conversation.move
         else:

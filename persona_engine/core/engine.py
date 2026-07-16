@@ -190,6 +190,8 @@ class InteriorEngine:
         self.journal = PersonalJournal(
             object_name=str(profile_source.get("journal", {}).get("object_name", "personal notebook")),
         )
+        if self.journal.object_name not in self.world.objects:
+            self.world.objects.append(self.journal.object_name)
         self._pending_skill_id: str | None = None
         self.capability_artifacts = CapabilityArtifactStore()
         life_seed = turn_seed(f"{identity.name}:{user_id}", 0, "vitality")
@@ -465,6 +467,8 @@ class InteriorEngine:
             self.persistence.load(cid, uid, "journal", {}),
             object_name=str((self.cartridge_data or {}).get("journal", {}).get("object_name", "personal notebook")),
         )
+        if self.journal.object_name not in self.world.objects:
+            self.world.objects.append(self.journal.object_name)
         self._pending_skill_id = self.persistence.load(cid, uid, "pending_skill_id")
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
@@ -2037,13 +2041,6 @@ class InteriorEngine:
             activity_status=self.life_state.activity_status,
             dominant_pressure=top_for_match.magnitude if top_for_match else 0.0,
             elapsed_since_contact=float(self.last_catch_up_summary.get("elapsed_seconds", 0.0)),
-            recent_journal_entry_id=next((
-                item.entry_id for item in reversed(self.journal.entries)
-                if item.source == "character_world_action"
-            ), None),
-            journal_disclosure_mode=str(
-                (self.cartridge_data or {}).get("journal", {}).get("disclosure_mode", "guarded")
-            ),
             life_callback_history=self._life_callback_history,
         )
         self._last_conversation_candidate = conversation_candidate
@@ -2449,11 +2446,6 @@ class InteriorEngine:
                 activity_context=(
                     self.life_state.current_activity
                     if selected_conversation and selected_conversation.move == "activity_update"
-                    else None
-                ),
-                journal_context=(
-                    self.journal.object_name
-                    if selected_conversation and selected_conversation.move == "journal_allusion"
                     else None
                 ),
             )

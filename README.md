@@ -32,7 +32,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Genesis years produce realistic historical age while sparse chapter summaries represent long periods without fabricating a lifetime of daily memories.
 - Portable offline conversation uses bounded input acts, memory-grounded reminiscence, capability-tagged pending topics, nonverbal acknowledgements, and persistent shuffle cooldowns without model calls.
 - Cartridge-authored Behavioral Richness tendencies expose probing, comparison, speculation, curiosity, and continued work through synthesis-selected actions and deterministic activity callbacks.
-- Grounded life callbacks can report actual elapsed activity, resume ordinary open loops, and allude once to a real journal entry; every character has the journal capability, while cartridges govern its name, note voice, and unsolicited disclosure.
+- Grounded life callbacks can report actual elapsed activity and resume ordinary open loops. Every character possesses a journal artifact for private recall; cartridges govern its name and note voice, while conversation mentions require a relevant selected action.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
