@@ -27,6 +27,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Read-only life inspector showing objective/subjective discrepancies, recall reasons, vitality provenance, and learning artifacts.
 - Situated synthesis derives integration capacity from existing organism load, narrows structured influences under strain, and links action outcomes to objective and subjective records.
 - Bounded intrinsic motivation selects cartridge-authored wants and activities into inspectable speech or nonverbal action decisions; Pretorius and Kiki carry distinct profiles.
+- Blind behavioral evaluation can run isolated paired characters and export visible transcript separately from causal synthesis, retrieval, interpretation, and world-event records.
 
 ## Current Tests
 
@@ -39,10 +40,10 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-216 passed, 1 skipped
+223 passed, 1 skipped
 ```
 
-The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
+The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
 
 ## Known Limitations
 
@@ -59,11 +60,12 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - The UI sensor controls are mock adapters.
 - Debug mode is read-only and intended for local developer inspection.
 - Autonomous behavior is limited to local engine idle hooks, not a full background agent runtime.
+- The first paired offline evaluation preserves isolation but exposes repetitive generic surface performance; behavior/performance separation is the next visible-quality target.
 
 ## Recommended Next Work
 
-1. Run a structured human-testing pass focused on whether pre-existing activity and interruption are perceptible in expression.
-2. Compare Pretorius and Kiki offline and through Ollama, including a paired-character host scenario, without sharing private state.
-3. Add conservative cartridge vitality weights only where human tests show a visible benefit.
-4. Add cartridge tooling: lint, compare, and authoring helpers.
-5. Begin C99 port fixtures for the stable event, experience, life-state, and artifact records.
+1. Separate `ActionDecision` from portable performance planning so silence, gesture, delay, continued work, and speech are equally valid outcomes.
+2. Add cartridge-authored offline realization and rerun the blind Pretorius/Kiki evaluation against the current repetition baseline.
+3. Compare the same paired causal setup through Ollama without sharing private state.
+4. Prototype paper-inspired tri-state semantic affordances only after behavioral tests expose a relevance or knowledge failure.
+5. Begin C99 fixtures for stable action, performance, event, experience, and semantic-affordance records.

@@ -1,0 +1,9 @@
+scenario_id: pretorius_kiki_paired_offline
+participants:
+  - id: pretorius
+    cartridge: pretorius.snp
+  - id: kiki
+    cartridge: kiki.snp
+first_responder: kiki
+turns: 8
+starter: "The other person has arrived while you are occupied and asks whether a created mind can keep its memories when its body changes."

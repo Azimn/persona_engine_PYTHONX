@@ -76,7 +76,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-216 passed, 1 skipped
+223 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -87,6 +87,7 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/int
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/organism_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_anchored_misread.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/synthesis_strain_recovery.yaml --cartridge persona_engine/cartridges/neutral.snp
+python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
 ```
 
 After editable install, the simulator entry point is also available:
@@ -178,6 +179,7 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 - `AGENTS.md`
 - `persona_engine/docs/V02_LIFE_SIMULATION.md`
 - `persona_engine/docs/INTRINSIC_MOTIVATION.md`
+- `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`
 - `persona_engine/docs/CURRENT_STATUS.md`
