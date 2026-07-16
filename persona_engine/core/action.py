@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .intrinsic import IntrinsicProposal
     from .synthesis import SynthesisResult
     from .self_monitor import RegulationCandidate
+    from .dyadic_ritual import DyadicRitual
 
 
 ACTION_KINDS = frozenset({
@@ -56,6 +57,8 @@ class ActionDecision:
     visibility: str
     reason_codes: tuple[str, ...]
     selected_regulation_id: str | None = None
+    selected_skill_id: str | None = None
+    selected_dyadic_ritual_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.action_kind not in ACTION_KINDS:
@@ -71,6 +74,8 @@ class ActionDecision:
         values = {key: data[key] for key in cls.__dataclass_fields__ if key in data}
         values["reason_codes"] = tuple(values.get("reason_codes", ()))
         values.setdefault("selected_regulation_id", None)
+        values.setdefault("selected_skill_id", None)
+        values.setdefault("selected_dyadic_ritual_id", None)
         return cls(**values)
 
 
@@ -87,6 +92,7 @@ def resolve_action_decision(
     interruption: Mapping[str, Any],
     current_pressure: float = 0.0,
     selected_regulation: "RegulationCandidate | None" = None,
+    selected_ritual: "DyadicRitual | None" = None,
 ) -> ActionDecision:
     """Resolve selected structured evidence into exactly one action."""
 
@@ -164,6 +170,10 @@ def resolve_action_decision(
         elif kind == "continue_habitually":
             action_kind = "continue_activity"
             communicative_function = None
+    elif selected_ritual is not None:
+        action_kind = selected_ritual.response_action_kind
+        communicative_function = selected_ritual.communicative_function
+        reasons.append(f"dyadic_ritual:{selected_ritual.ritual_id}")
     elif proposal_selected and intrinsic_proposal is not None:
         source = f"intrinsic:{intrinsic_proposal.proposal_id}"
         target = intrinsic_proposal.target
@@ -246,4 +256,6 @@ def resolve_action_decision(
         visibility=str(visibility),
         reason_codes=tuple(reasons),
         selected_regulation_id=applied_regulation_id,
+        selected_skill_id=synthesis.selected_skill_id,
+        selected_dyadic_ritual_id=synthesis.selected_dyadic_ritual_id,
     )

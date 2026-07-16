@@ -39,6 +39,8 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Original subjective experience survives decay unchanged; faded recall is a derived accessibility surface.
 - Append-only autobiographical interpretations preserve historical meaning, defer missed corrections, and activate current meaning during retrieval and synthesis.
 - Histories, use outcomes, replay state, private inspector chains, and C99 JSON fixtures persist without granting the renderer memory authority.
+- Developmental Life v1 includes explicit autobiographical evidence routing, bounded memory associations, procedural skills, outcome-sensitive habit adjustment, relationship expectations, dyadic rituals, and slow earned-trait evidence.
+- The automated playtest laboratory supports scripted humans, isolated character crossplay, optional Ollama actors, move replay, blind/causal report separation, deterministic judges, and bounded failure minimization.
 
 ## Current Tests
 
@@ -51,7 +53,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-290 passed, 1 skipped
+305 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -76,6 +78,6 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 
 ## Recommended Next Work
 
-1. Human-review the simulated-weeks causal trace and offline behavior before adding adaptive memory connectivity.
-2. Add bounded social attribution using versioned relationship meanings only after the behavioral proof is accepted.
-3. Extend C99 conformance fixtures from autobiographical history to complete replay comparisons.
+1. Reduce the exact repetition and all-speech behavior exposed by 30-day blind transcripts without weakening identity.
+2. Human-review early/late transcript pairs before adding bounded SocialMind.
+3. Extend C99 conformance fixtures into native cross-language replay comparisons.

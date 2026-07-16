@@ -77,6 +77,7 @@ class SynthesisResult:
     selected_regulation_candidate_id: str | None
     selected_social_hypothesis_ids: tuple[str, ...]
     selected_skill_id: str | None
+    selected_dyadic_ritual_id: str | None
     inhibited_influences: tuple[SynthesisInfluence, ...]
     unresolved_conflicts: tuple[str, ...]
     reality_support: float
@@ -165,6 +166,7 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
     regulation = [item for item in considered if item.kind == "regulation"]
     social = [item for item in considered if item.kind == "social_model"]
     skills = [item for item in considered if item.kind == "skill"]
+    rituals = [item for item in considered if item.kind == "dyadic_ritual"]
     conflicts = tuple(
         item.influence_id for item in bounded
         if item.kind in {"open_loop", "relationship_conflict"} or item.contradictory
@@ -208,6 +210,7 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
             item.influence_id.removeprefix("social:") for item in social
         ),
         selected_skill_id=skills[0].influence_id.removeprefix("skill:") if skills else None,
+        selected_dyadic_ritual_id=(rituals[0].influence_id.removeprefix("dyadic_ritual:") if rituals else None),
         inhibited_influences=inhibited,
         unresolved_conflicts=conflicts,
         reality_support=reality_support,

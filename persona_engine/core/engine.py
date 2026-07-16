@@ -45,6 +45,7 @@ from .lived_experience import (
     AutobiographicalInterpretationStore, DeferredReinterpretation,
     ExperienceStore, InterpretationUseOutcome, ReinterpretationCandidate,
     SubjectiveExperience, WorldEvent, WorldEventLedger,
+    interpretation_use_modifier,
 )
 from .autobiographical_reconsolidation import (
     AutobiographicalReconsolidator, ReconsolidationContext,
@@ -72,6 +73,15 @@ from .avatar import AvatarProfile, AvatarProjector
 from .suppression import SuppressionTrace
 from .semantic_substrate import SemanticActivationFrame, load_default_substrate
 from .self_monitor import SelfMonitor, SelfMonitorProfile, SelfMonitorResult
+from .autobiographical_evidence import (
+    AutobiographicalEvidenceLink, AutobiographicalEvidenceRouter, InterpretationStatusStore,
+)
+from .memory_connectivity import MemoryConnectionStore
+from .skills import SkillStore
+from .dyadic_ritual import DyadicRitualStore
+from .developmental_learning import (
+    DevelopmentEpisodeStore, RelationshipExpectationStore, build_episode,
+)
 
 
 def bucket_risk(risk: float) -> str:
@@ -148,6 +158,16 @@ class InteriorEngine:
         self._last_reinterpretation_candidate: ReinterpretationCandidate | None = None
         self._last_autobiographical_interpretation: AutobiographicalInterpretation | None = None
         self._last_autobiographical_activations: tuple[AutobiographicalActivation, ...] = ()
+        self.autobiographical_evidence_router = AutobiographicalEvidenceRouter()
+        self.autobiographical_evidence_links: list[AutobiographicalEvidenceLink] = []
+        self.interpretation_status_events = InterpretationStatusStore()
+        self.memory_connections = MemoryConnectionStore()
+        self.skills = SkillStore()
+        self.relationship_expectations = RelationshipExpectationStore()
+        self.dyadic_rituals = DyadicRitualStore()
+        self.development_episodes = DevelopmentEpisodeStore()
+        self.development_signals: list[dict[str, Any]] = []
+        self._pending_skill_id: str | None = None
         self.capability_artifacts = CapabilityArtifactStore()
         life_seed = turn_seed(f"{identity.name}:{user_id}", 0, "vitality")
         self.life_state = LifeState()
@@ -314,6 +334,28 @@ class InteriorEngine:
         self._last_autobiographical_interpretation = (
             AutobiographicalInterpretation.from_dict(last_interpretation) if last_interpretation else None
         )
+        self.autobiographical_evidence_links = [
+            AutobiographicalEvidenceLink.from_dict(item) for item in
+            self.persistence.load(cid, uid, "autobiographical_evidence_links", [])
+        ][-1024:]
+        self.interpretation_status_events = InterpretationStatusStore.from_list(
+            self.persistence.load(cid, uid, "interpretation_status_events", [])
+        )
+        self.memory_connections = MemoryConnectionStore.from_list(
+            self.persistence.load(cid, uid, "memory_connections", [])
+        )
+        self.skills = SkillStore.from_list(self.persistence.load(cid, uid, "skills", []))
+        self.relationship_expectations = RelationshipExpectationStore.from_list(
+            self.persistence.load(cid, uid, "relationship_expectations", [])
+        )
+        self.dyadic_rituals = DyadicRitualStore.from_list(
+            self.persistence.load(cid, uid, "dyadic_rituals", [])
+        )
+        self.development_episodes = DevelopmentEpisodeStore.from_list(
+            self.persistence.load(cid, uid, "development_episodes", [])
+        )
+        self.development_signals = list(self.persistence.load(cid, uid, "development_signals", []))[-256:]
+        self._pending_skill_id = self.persistence.load(cid, uid, "pending_skill_id")
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
         self.intrinsic_state = IntrinsicState.from_dict(self.persistence.load(cid, uid, "intrinsic_state"))
@@ -412,6 +454,15 @@ class InteriorEngine:
             if self._last_reinterpretation_candidate else None,
             "last_autobiographical_interpretation": self._last_autobiographical_interpretation.to_dict()
             if self._last_autobiographical_interpretation else None,
+            "autobiographical_evidence_links": [item.to_dict() for item in self.autobiographical_evidence_links],
+            "interpretation_status_events": self.interpretation_status_events.to_list(),
+            "memory_connections": self.memory_connections.to_list(),
+            "skills": self.skills.to_list(),
+            "relationship_expectations": self.relationship_expectations.to_list(),
+            "dyadic_rituals": self.dyadic_rituals.to_list(),
+            "development_episodes": self.development_episodes.to_list(),
+            "development_signals": list(self.development_signals),
+            "pending_skill_id": self._pending_skill_id,
             "capability_artifacts": self.capability_artifacts.to_list(),
             "life_state": self.life_state.to_dict(),
             "intrinsic_state": self.intrinsic_state.to_dict(),
@@ -721,6 +772,21 @@ class InteriorEngine:
             actors=actors, location=location, action=action, targets=targets, outcome=outcome,
             source=source, payload=payload,
         )
+        evidence_links = self.autobiographical_evidence_router.route(
+            event=event, interpretations=self.autobiographical_interpretations,
+            experiences=self.experiences, tick=self.timestep,
+        )
+        for link in evidence_links:
+            if not any(item.link_id == link.link_id for item in self.autobiographical_evidence_links):
+                self.autobiographical_evidence_links = [*self.autobiographical_evidence_links, link][-1024:]
+                if link.relation in {"contradicts", "corrects_cause"}:
+                    self.interpretation_status_events.add(
+                        link.interpretation_id, "challenged", link.link_id, self.timestep,
+                    )
+                self.persistence.log_event(
+                    self.identity.name, self.user_id, self.timestep,
+                    "autobiographical_evidence_link", link.to_dict(),
+                )
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "objective_world_event", event.to_dict())
         return event
 
@@ -805,6 +871,12 @@ class InteriorEngine:
             self._persist()
             return None
         self._last_autobiographical_interpretation = revised
+        self.interpretation_status_events.add(
+            current.interpretation_id, "superseded", revised.interpretation_id, context.tick,
+        )
+        self.interpretation_status_events.add(
+            revised.interpretation_id, "current", candidate.candidate_id, context.tick,
+        )
         self.deferred_reinterpretations = [
             item for item in self.deferred_reinterpretations if item.experience_id != experience_id
         ]
@@ -840,6 +912,38 @@ class InteriorEngine:
             proposed_meaning_code=proposed_meaning,
         )
         return self.reconsider_experience(experience_id, context)
+
+    def _reconsider_recent_evidence(
+        self, self_monitor: SelfMonitorResult, actual_capacity: float,
+    ) -> AutobiographicalInterpretation | None:
+        """Try one explicit evidence link; never infer links from prose."""
+
+        for link in reversed(self.autobiographical_evidence_links[-8:]):
+            if link.relation not in {"contradicts", "corrects_cause", "clarifies"}:
+                continue
+            current = self.autobiographical_interpretations.current(link.experience_id)
+            if current is None or link.evidence_event_id in current.contradicting_world_event_ids:
+                continue
+            evidence_influence_id = f"autobiographical_evidence:{link.link_id}"
+            noticed = evidence_influence_id in self_monitor.noticed_conflict_ids
+            profile = (self.cartridge_data or {}).get("autobiographical_reconsolidation", {})
+            templates = dict(profile.get("meaning_templates", {}))
+            meaning = templates.get(
+                "corrected_accident",
+                "I now understand that incomplete information may have caused the earlier failure.",
+            )
+            context = ReconsolidationContext(
+                tick=self.timestep, trigger_type="contradictory_evidence",
+                integration_capacity=actual_capacity,
+                perceived_capacity=self_monitor.perceived_capacity,
+                conflict_noticed=noticed, conflict_strength=link.strength,
+                dominant_pressure=self.pressures.top().magnitude if self.pressures.top() else 0.0,
+                contradicting_world_event_ids=(link.evidence_event_id,),
+                proposed_meaning_kind="reconciled_meaning",
+                proposed_meaning_code=str(meaning),
+            )
+            return self.reconsider_experience(link.experience_id, context)
+        return None
 
     def _record_resolved_experience(self, *, event_type: str, action: str, outcome: str, source: str,
                                     targets=(), timestamp: float | None = None, confidence: float = 0.8,
@@ -1031,6 +1135,33 @@ class InteriorEngine:
                 contradictory=contradiction,
                 reality_support=reality,
             ))
+        for link in self.autobiographical_evidence_links[-4:]:
+            influences.append(SynthesisInfluence(
+                f"autobiographical_evidence:{link.link_id}", "evidence",
+                f"{link.relation}:{link.interpretation_id}", link.strength,
+                contradictory=link.relation in {"contradicts", "corrects_cause"},
+                reality_support=1.0 if link.evidence_tier == "objective" else .6,
+            ))
+        context_tags = {"interaction", "interruption" if self.life_state.activity_status == "interrupted" else "ongoing"}
+        for skill in sorted(self.skills.skills.values(), key=lambda item: (-item.competence, item.skill_id))[:3]:
+            forecast = self.skills.forecast(skill, context_tags, fatigue=self.body.fatigue)
+            influences.append(SynthesisInfluence(
+                f"skill:{skill.skill_id}", "skill", skill.name,
+                min(.75, .25 + forecast.effective_competence * .5),
+                immediate=skill.automaticity >= .7,
+            ))
+        for expectation in sorted(self.relationship_expectations.items.values(), key=lambda item: (-item.confidence, item.key))[:2]:
+            if expectation.value in {"usually", "strongly_expected"}:
+                influences.append(SynthesisInfluence(
+                    f"relationship_expectation:{expectation.key}", "relationship_expectation",
+                    f"{expectation.key}:{expectation.value}", min(.65, expectation.confidence),
+                ))
+        for ritual in sorted(self.dyadic_rituals.rituals, key=lambda item: (-item.strength, item.ritual_id))[:2]:
+            if ritual.state == "supported":
+                influences.append(SynthesisInfluence(
+                    f"dyadic_ritual:{ritual.ritual_id}", "dyadic_ritual",
+                    ritual.trigger_pattern, min(.7, ritual.strength),
+                ))
         for artifact in artifacts[:4]:
             reality = 1.0 if artifact.canonicality == "objective" else 0.75 if artifact.verification_state == "verified" else 0.5
             influences.append(SynthesisInfluence(
@@ -1081,6 +1212,51 @@ class InteriorEngine:
                     f"need:{key}", "need", key, value, immediate=value >= 0.70,
                 ))
         return influences
+
+    def _development_summary(self) -> dict[str, Any]:
+        return {
+            "autobiographical_evidence_link_count": len(self.autobiographical_evidence_links),
+            "reinterpretation_count": max(0, len(self.autobiographical_interpretations.interpretations) - len(self.experiences.experiences)),
+            "deferred_reinterpretation_count": len(self.deferred_reinterpretations),
+            "memory_connection_count": len(self.memory_connections.connections),
+            "skills": self.skills.to_list(),
+            "relationship_expectations": self.relationship_expectations.to_list(),
+            "dyadic_rituals": self.dyadic_rituals.to_list(),
+            "development_episode_count": len(self.development_episodes.episodes),
+            "development_signal_count": len(self.development_signals),
+            "earned_traits": [asdict(item) for item in self.ledger.earned_traits.values()],
+        }
+
+    def _record_development_signal(
+        self, signal: str, day: int, context: str, confidence: float, now: float,
+    ) -> None:
+        signal_id = _stable_record_id("development_signal", signal, day, context, self.timestep)
+        if not any(item.get("signal_id") == signal_id for item in self.development_signals):
+            self.development_signals = [*self.development_signals, {
+                "signal_id": signal_id, "signal": signal, "day": int(day),
+                "context": str(context), "confidence": max(0.0, min(1.0, float(confidence))),
+                "committed": False,
+            }][-256:]
+        config = dict((self.cartridge_data or {}).get("development", {}))
+        for rule in config.get("growth_rules", []):
+            if str(rule.get("signal")) != signal:
+                continue
+            eligible = [item for item in self.development_signals if item["signal"] == signal and not item.get("committed")]
+            if len(eligible) < int(config.get("minimum_identity_evidence", 5)):
+                continue
+            if len({item["day"] for item in eligible}) < int(config.get("minimum_distinct_days", 3)):
+                continue
+            if len({item["context"] for item in eligible}) < int(config.get("minimum_distinct_contexts", 2)):
+                continue
+            if sum(item["confidence"] for item in eligible) / len(eligible) < float(config.get("minimum_identity_confidence", .75)):
+                continue
+            self.ledger.propose_trait_update(
+                str(rule["trait"]),
+                float(config.get("identity_commit_delta", .015)) * float(rule.get("direction", 1.0)),
+                [item["signal_id"] for item in eligible], now=now,
+            )
+            for item in eligible:
+                item["committed"] = True
 
 
     # ---------------- public interface projection ----------------
@@ -1359,6 +1535,27 @@ class InteriorEngine:
         pressure_before = {name: p.magnitude for name, p in self.pressures.pressures.items()}
         apply_appraisal(self.relationship, appraisal)
         self.pressures.apply_appraisal(appraisal, self.relationship.trust)
+        day_index = int(now // 86400)
+        if appraisal.repair_attempt > 0.5:
+            self._record_development_signal(
+                "successful_repair", day_index,
+                "after_interruption" if interruption.get("activity_interrupted") else "ordinary_interaction",
+                min(1.0, .65 + appraisal.repair_attempt * .25), now,
+            )
+        if self._pending_skill_id and self.development_episodes.episodes:
+            self.skills.update(
+                self._pending_skill_id, evidence_tier="supported_subjective",
+                succeeded=bool(user_text.strip()), tick=self.timestep,
+                episode_id=self.development_episodes.episodes[-1].episode_id,
+            )
+            self._pending_skill_id = None
+        if self.development_episodes.episodes:
+            prior_episode = self.development_episodes.episodes[-1].episode_id
+            expectation = self.relationship_expectations.observe(
+                "returns_to_open_loops", prior_episode, day_index, supported=True,
+            )
+            if expectation and expectation.value in {"usually", "strongly_expected"}:
+                self.ledger.set_relationship_belief(self.user_id, expectation.key, expectation.value)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "state_transition", {
             "appraisal": vars(appraisal),
             "relationship_before": relationship_before,
@@ -1477,9 +1674,15 @@ class InteriorEngine:
         bucket = bucket_risk(risk)
         top_for_match = self.pressures.top()
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
+        active_meaning_ids = tuple(
+            item.interpretation_id for item in self.autobiographical_interpretations.interpretations
+            if self.autobiographical_interpretations.current(item.experience_id) == item
+        )
+        association_boosts = self.memory_connections.boosts_for(active_meaning_ids)
         retrievals = self.memory.retrieve_explained(
             user_text, now, top_k=4, emotional_state_match=affect_match,
             relationship_tags={"canonical_user_statement", "subjective_experience"},
+            association_boosts=association_boosts,
         )
         retrieved = [item.memory for item in retrievals]
         memory_links = {
@@ -1491,6 +1694,15 @@ class InteriorEngine:
             identity_relevance=max(appraisal.accusation, appraisal.boundary_violation),
             emotional_match=top_for_match.magnitude if top_for_match else 0.0,
             memory_links=memory_links,
+            use_modifiers={
+                interpretation_id: interpretation_use_modifier([
+                    item for item in self.interpretation_use_outcomes
+                    if item.interpretation_id == interpretation_id
+                ])
+                for interpretation_id in {
+                    item.interpretation_id for item in self.interpretation_use_outcomes
+                }
+            },
         )
         self._last_autobiographical_activations = autobiographical_activations
         retrieved_memory_trace = [
@@ -1577,6 +1789,7 @@ class InteriorEngine:
             stable_seed=turn_seed(self.user_id, self.timestep, "self_monitor"),
         )
         self._last_self_monitor = self_monitor
+        self._reconsider_recent_evidence(self_monitor, actual_capacity)
         regulation_influences = [SynthesisInfluence(
             influence_id=f"regulation:{candidate.candidate_id}",
             kind="regulation",
@@ -1619,6 +1832,10 @@ class InteriorEngine:
         )
         communicative = self._resolve_communicative_candidate(triggers, risk, resistance)
         selected_regulation = self_monitor.candidate(synthesis.selected_regulation_candidate_id)
+        selected_ritual = next(
+            (item for item in self.dyadic_rituals.rituals if item.ritual_id == synthesis.selected_dyadic_ritual_id),
+            None,
+        )
         action_decision = resolve_action_decision(
             tick=self.timestep,
             synthesis=synthesis,
@@ -1631,8 +1848,54 @@ class InteriorEngine:
             interruption=interruption,
             current_pressure=top_after_appraisal.magnitude if top_after_appraisal else 0.0,
             selected_regulation=selected_regulation,
+            selected_ritual=selected_ritual,
         )
         self._accept_action_decision(action_decision, selected_proposal)
+        active_autobiographical_ids = tuple(
+            item.influence_id.removeprefix("autobiographical:")
+            for item in synthesis.considered_influences
+            if item.kind == "autobiographical_meaning"
+        )
+        context_tags = (
+            "interaction",
+            "interruption" if interruption.get("activity_interrupted") else "ongoing",
+            communicative.dialogue_act,
+        )
+        selected_skill = self.skills.skills.get(action_decision.selected_skill_id or "")
+        if selected_skill is None:
+            selected_skill = self.skills.get_or_create(
+                f"{action_decision.action_kind}:{action_decision.communicative_function or 'none'}",
+                action_decision.action_kind, action_decision.communicative_function,
+                context_tags, self.timestep,
+            )
+        self._pending_skill_id = selected_skill.skill_id if selected_skill else None
+        expectation_record, outcome_record, prediction_record, development_episode = build_episode(
+            tick=self.timestep, decision=action_decision, synthesis=synthesis,
+            active_interpretation_ids=active_autobiographical_ids,
+            retrieved_memory_ids=tuple(item.memory.id for item in retrievals),
+            world_event_ids=(input_world_event.event_id,),
+            subjective_experience_ids=(experience.experience_id,) if experience else (),
+            day=day_index,
+        )
+        self.development_episodes.add(development_episode)
+        ritual_trigger = "work_interruption_acknowledgment" if interruption.get("input_arrived") else "ongoing_presence"
+        self.dyadic_rituals.observe(
+            self.user_id, ritual_trigger, action_decision.action_kind,
+            action_decision.communicative_function, self.timestep,
+            development_episode.episode_id, success=True,
+        )
+        for interpretation_id in active_autobiographical_ids:
+            for memory_item in retrievals[:4]:
+                self.memory_connections.connect(
+                    interpretation_id, memory_item.memory.id, "interpretation_context",
+                    development_episode.context_signature, self.timestep,
+                    (interpretation_id, memory_item.memory.id, development_episode.episode_id),
+                )
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "development_episode", {
+            "expectation": expectation_record.to_dict(), "outcome": outcome_record.to_dict(),
+            "prediction_error": prediction_record.to_dict(), "episode": development_episode.to_dict(),
+            "memory_types": ["development_episode"],
+        })
         for influence in [
             item for item in (*synthesis.considered_influences, *synthesis.inhibited_influences)
             if item.kind == "autobiographical_meaning"
@@ -1648,6 +1911,8 @@ class InteriorEngine:
                 influence.emotional_congruence if considered else 0.0,
                 "subjective", self.timestep,
                 (interpretation_id, synthesis.synthesis_id, action_decision.decision_id),
+                development_episode.context_signature if 'development_episode' in locals() else "",
+                considered, not considered, .35 if considered else .1,
             )
             if not any(item.use_outcome_id == use.use_outcome_id for item in self.interpretation_use_outcomes):
                 self.interpretation_use_outcomes = [*self.interpretation_use_outcomes, use][-512:]
@@ -1867,6 +2132,7 @@ class InteriorEngine:
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
             "self_monitor": self_monitor.to_dict(),
+            "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
@@ -1905,6 +2171,7 @@ class InteriorEngine:
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
             "self_monitor": self_monitor.to_dict(),
+            "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},

@@ -79,6 +79,32 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
             "evidence_tier": item.evidence_tier,
             "created_tick": item.created_tick,
         } for item in engine.interpretation_use_outcomes]),
+        "autobiographical_evidence_links": _normalized([
+            item.to_dict() for item in engine.autobiographical_evidence_links
+        ]),
+        "interpretation_status_events": _normalized(engine.interpretation_status_events.to_list()),
+        "memory_connections": _normalized([{
+            "relation_kind": item.relation_kind, "context_signature": item.context_signature,
+            "strength": item.strength, "confidence": item.confidence, "state": item.state,
+        } for item in engine.memory_connections.connections]),
+        "skills": _normalized([{
+            "name": item.name, "action_kind": item.action_kind,
+            "communicative_function": item.communicative_function, "attempts": item.attempts,
+            "competence": item.competence, "automaticity": item.automaticity,
+            "expected_effort": item.expected_effort, "state": item.state,
+        } for item in engine.skills.skills.values()]),
+        "relationship_expectations": _normalized([{
+            "key": item.key, "value": item.value, "confidence": item.confidence,
+            "support_count": len(item.supporting_episode_ids), "distinct_days": list(item.distinct_days),
+            "violations": item.violations,
+        } for item in engine.relationship_expectations.items.values()]),
+        "dyadic_rituals": _normalized([{
+            "trigger_pattern": item.trigger_pattern, "response_action_kind": item.response_action_kind,
+            "communicative_function": item.communicative_function, "strength": item.strength,
+            "repetitions": item.repetitions, "successful_repetitions": item.successful_repetitions,
+            "state": item.state,
+        } for item in engine.dyadic_rituals.rituals]),
+        "development_episode_count": len(engine.development_episodes.episodes),
         "capability_artifacts": _normalized(engine.capability_artifacts.to_list()),
         "self_monitor": _normalized(engine._last_self_monitor.to_dict())
         if getattr(engine, "_last_self_monitor", None) else None,
@@ -88,6 +114,8 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
             "target": engine._last_action_decision.target,
             "communicative_function": engine._last_action_decision.communicative_function,
             "selected_regulation_id": engine._last_action_decision.selected_regulation_id,
+            "selected_skill_id": engine._last_action_decision.selected_skill_id,
+            "selected_dyadic_ritual_id": engine._last_action_decision.selected_dyadic_ritual_id,
         } if getattr(engine, "_last_action_decision", None) else None,
     }
 

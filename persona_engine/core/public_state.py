@@ -157,6 +157,18 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             "interpretation_use_outcomes": [
                 item.to_dict() for item in getattr(engine, "interpretation_use_outcomes", [])[-20:]
             ],
+            "autobiographical_evidence_links": [item.to_dict() for item in getattr(engine, "autobiographical_evidence_links", [])[-20:]],
+            "interpretation_status_events": getattr(engine, "interpretation_status_events", None).to_list()
+            if getattr(engine, "interpretation_status_events", None) else [],
+            "memory_connections": getattr(engine, "memory_connections", None).to_list()
+            if getattr(engine, "memory_connections", None) else [],
+            "skills": getattr(engine, "skills", None).to_list() if getattr(engine, "skills", None) else [],
+            "relationship_expectations": getattr(engine, "relationship_expectations", None).to_list()
+            if getattr(engine, "relationship_expectations", None) else [],
+            "dyadic_rituals": getattr(engine, "dyadic_rituals", None).to_list()
+            if getattr(engine, "dyadic_rituals", None) else [],
+            "development_episodes": getattr(engine, "development_episodes", None).to_list()[-20:]
+            if getattr(engine, "development_episodes", None) else [],
             "discrepancies": [
                 {
                     "world_event_id": event.event_id,

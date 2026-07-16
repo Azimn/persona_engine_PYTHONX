@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -57,6 +57,11 @@ _ALLOWED_SECTION_FIELDS.update({
     "autobiographical_reconsolidation": {
         "minimum_interval_ticks", "maximum_versions_per_experience",
         "calm_capacity_threshold", "conflict_threshold", "meaning_templates",
+    },
+    "development": {
+        "minimum_identity_evidence", "minimum_identity_confidence",
+        "minimum_distinct_contexts", "minimum_distinct_days",
+        "identity_commit_delta", "growth_rules",
     },
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
@@ -313,6 +318,24 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
             for key, value in templates.items()
         ):
             raise CartridgeError("autobiographical meaning_templates must be non-empty strings")
+    if "development" in data:
+        section = data["development"]
+        for field in ("minimum_identity_evidence", "minimum_distinct_contexts", "minimum_distinct_days"):
+            if int(section.get(field, 1)) < 1:
+                raise CartridgeError(f"[development].{field} must be positive")
+        for field in ("minimum_identity_confidence", "identity_commit_delta"):
+            value = float(section.get(field, 0.0))
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise CartridgeError(f"[development].{field} must be within [0, 1]")
+        rules = section.get("growth_rules", [])
+        if not isinstance(rules, list):
+            raise CartridgeError("[development].growth_rules must be an array")
+        allowed = {"signal", "trait", "direction"}
+        for index, rule in enumerate(rules):
+            if not isinstance(rule, dict) or set(rule) - allowed or not {"signal", "trait", "direction"}.issubset(rule):
+                raise CartridgeError(f"invalid development growth rule at index {index}")
+            if not -1.0 <= float(rule["direction"]) <= 1.0:
+                raise CartridgeError("development growth direction must be within [-1, 1]")
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:
@@ -379,6 +402,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "performance_tendencies": data.get("performance_tendencies", {}),
         "self_monitor": data.get("self_monitor", {}),
         "autobiographical_reconsolidation": data.get("autobiographical_reconsolidation", {}),
+        "development": data.get("development", {}),
         "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }

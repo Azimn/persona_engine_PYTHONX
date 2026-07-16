@@ -101,3 +101,10 @@ two-version chain.
 
 Each stage must demonstrate a visible behavioral gain before the next one adds
 runtime structure.
+
+## Stage 6: Automated Developmental Play (Implemented)
+
+Scripted users, isolated character crossplay, optional Ollama actors, saved
+move replay, deterministic metrics, blind reports, and bounded developmental
+stores now run over accelerated weeks. The first unresolved outward failure is
+high exact repetition in deterministic offline expression.

@@ -167,6 +167,14 @@ Mask Suppression is distributed across existing gates:
 
 Suppression traces are observability records only. They must not decide character behavior or mutate private state.
 
+### Developmental Learning Remains Subordinate
+
+Explicit evidence routing, memory connections, skills, relationship
+expectations, rituals, and earned-trait signals may supply bounded synthesis
+influences. They do not select actions independently. Actors and judges are
+test infrastructure, see observable state only, and may never write canonical
+learning. Cross-character play shares no private organism state.
+
 ## Allowed Change Types
 
 Safe changes usually include:

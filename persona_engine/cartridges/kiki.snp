@@ -198,6 +198,16 @@ relationship_repair = "I can see the incident as proof that repair between us is
 continued_resentment = "The explanation fixes the facts, but it does not magically erase how it felt."
 procedural_lesson = "I learned to check the cause before treating silence like rejection."
 
+[development]
+minimum_identity_evidence = 5
+minimum_identity_confidence = 0.75
+minimum_distinct_contexts = 2
+minimum_distinct_days = 3
+identity_commit_delta = 0.015
+growth_rules = [
+  { signal = "successful_repair", trait = "repair_willingness", direction = 1.0 },
+]
+
 [performance_tendencies.bright_scientific_precision]
 social_stance = "animated"
 directness_delta = 0.08

@@ -183,6 +183,16 @@ relationship_repair = "I now regard the incident as evidence that repair remains
 continued_resentment = "The explanation corrects the facts; it does not erase what the experience did to me."
 procedural_lesson = "I learned to verify the cause before treating silence as rejection."
 
+[development]
+minimum_identity_evidence = 5
+minimum_identity_confidence = 0.75
+minimum_distinct_contexts = 2
+minimum_distinct_days = 3
+identity_commit_delta = 0.015
+growth_rules = [
+  { signal = "successful_repair", trait = "repair_willingness", direction = 1.0 },
+]
+
 [performance_tendencies.guard_exacting_work]
 social_stance = "guarded"
 directness_delta = 0.14

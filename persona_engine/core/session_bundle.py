@@ -12,7 +12,7 @@ from typing import Any
 from .replay import export_event_log, state_digest
 
 
-BUNDLE_SCHEMA_VERSION = "1.0"
+BUNDLE_SCHEMA_VERSION = "1.1"
 REPLAYABLE_EVENT_TYPES = {"input", "sensor_observation", "world_action_resolution"}
 MAX_EVENTS = 10000
 MAX_TRANSCRIPT_ITEMS = 10000
@@ -127,7 +127,7 @@ def load_session_bundle(raw: dict[str, Any]) -> SessionBundle:
         bundle = SessionBundle(**raw)
     except (TypeError, ValueError) as exc:
         raise SessionBundleError(f"invalid session bundle shape: {exc}") from exc
-    if bundle.schema_version != BUNDLE_SCHEMA_VERSION:
+    if bundle.schema_version not in {"1.0", BUNDLE_SCHEMA_VERSION}:
         raise SessionBundleError(f"unsupported session bundle schema: {bundle.schema_version}")
     if Path(bundle.cartridge).name != bundle.cartridge or not bundle.cartridge.endswith(".snp"):
         raise SessionBundleError("session bundle cartridge name is invalid")

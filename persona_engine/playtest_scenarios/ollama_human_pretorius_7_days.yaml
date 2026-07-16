@@ -1,0 +1,14 @@
+schema_version: 1
+scenario_id: ollama_human_pretorius_7_days
+description: Optional observable-only Ollama human actor with scripted fallback.
+total_days: 7
+max_turns_per_day: 1
+stable_seed: 1901
+participants:
+  - {id: human, kind: ollama_human, policy: steady_collaborator}
+  - {id: pretorius, kind: character, cartridge: pretorius.snp, user_id: ollama_human}
+actor_profiles: {}
+phases:
+  - {id: exploratory, start_day: 1, end_day: 7, goal: test natural interruption and correction}
+scheduled_events: []
+acceptance_rules: []

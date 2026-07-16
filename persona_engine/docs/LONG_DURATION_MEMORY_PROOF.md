@@ -45,3 +45,6 @@ two-version history:
 
 These timings describe one development machine and are not hard acceptance
 thresholds.
+
+The automated playtest laboratory extends this proof to 14-, 21-, and 30-day
+observable histories with actor-move replay and state-growth reports.

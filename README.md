@@ -27,6 +27,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - One canonical typed action per situated turn, selected from synthesis rather than by intrinsic motivation or the renderer.
 - Deterministic fallible self-monitoring that can miss conflict, overestimate capacity, conceal uncertainty, delay, clarify, correct, withdraw, or double down through synthesis-selected regulation.
 - Non-destructive autobiographical reconsolidation preserves original experience while versioning later evidence-backed meaning, including bounded deferral when contradiction is missed under strain.
+- Developmental Life v1 adds explicit evidence routing, bounded memory connections, procedural skills, relationship expectations, dyadic rituals, slow cartridge-authorized trait evidence, and observable-only automated playtesting.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
@@ -82,7 +83,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-290 passed, 1 skipped
+305 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -97,6 +98,7 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/sel
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/self_monitor_correction.yaml --cartridge persona_engine/cartridges/kiki.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/autobiographical_reconsolidation_weeks.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
+python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/steady_collaborator_30_days.yaml --actor-mode scripted --judge deterministic --output-dir playtest_output/steady
 ```
 
 After editable install, the simulator entry point is also available:
@@ -196,6 +198,9 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 - `persona_engine/docs/INTRINSIC_MOTIVATION.md`
 - `persona_engine/docs/AUTOBIOGRAPHICAL_RECONSOLIDATION.md`
 - `persona_engine/docs/LONG_DURATION_MEMORY_PROOF.md`
+- `persona_engine/docs/DEVELOPMENTAL_LIFE_V1.md`
+- `persona_engine/docs/AUTOMATED_PLAYTESTING.md`
+- `persona_engine/docs/CHARACTER_CROSSPLAY.md`
 - `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`

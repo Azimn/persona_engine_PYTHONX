@@ -51,3 +51,11 @@ class HabitTracker:
     def decay_all(self, amount: float = 0.001):
         for h in self.habits.values():
             h.strength = max(0.0, h.strength - amount)
+
+    def adjust_after_outcome(self, *, name: str, delta: float, now: float) -> Habit | None:
+        habit = self.habits.get(name)
+        if habit is None:
+            return None
+        habit.strength = max(0.0, min(1.0, habit.strength + max(-0.025, min(0.025, float(delta)))))
+        habit.last_used = float(now)
+        return habit

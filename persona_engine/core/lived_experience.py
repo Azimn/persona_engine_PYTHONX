@@ -298,15 +298,34 @@ class InterpretationUseOutcome:
     evidence_tier: str
     created_tick: int
     provenance_ids: tuple[str, ...]
+    context_signature: str = ""
+    considered: bool = False
+    inhibited: bool = False
+    causal_confidence: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "InterpretationUseOutcome":
-        raw = dict(data)
+        raw = {key: data[key] for key in cls.__dataclass_fields__ if key in data}
         raw["provenance_ids"] = tuple(raw.get("provenance_ids", ()))
+        raw.setdefault("context_signature", "")
+        raw.setdefault("considered", False)
+        raw.setdefault("inhibited", False)
+        raw.setdefault("causal_confidence", 0.0)
         return cls(**raw)
+
+
+def interpretation_use_modifier(outcomes: Sequence[InterpretationUseOutcome]) -> float:
+    weighted = 0.0
+    for item in outcomes[-16:]:
+        confidence = _bounded(item.causal_confidence)
+        if item.contribution == "helpful": weighted += .03 * confidence
+        elif item.contribution == "contradictory_but_useful": weighted += .02 * confidence
+        elif item.contribution == "emotionally_influential": weighted += .01 * confidence
+        elif item.contribution == "misleading": weighted -= .04 * confidence
+    return max(-.15, min(.15, weighted))
 
 
 class AutobiographicalInterpretationStore:
@@ -385,9 +404,11 @@ class AutobiographicalInterpretationStore:
     def activate_for_memories(self, memory_ids: Sequence[str], *, relationship_relevance: float,
                               identity_relevance: float, emotional_match: float,
                               memory_links: Mapping[str, str] | None = None,
+                              use_modifiers: Mapping[str, float] | None = None,
                               max_results: int = 4) -> tuple[AutobiographicalActivation, ...]:
         ids = set(memory_ids)
         links = dict(memory_links or {})
+        modifiers = dict(use_modifiers or {})
         activations = []
         for item in self.interpretations:
             linked_memory = item.memory_id or links.get(item.experience_id)
@@ -401,7 +422,7 @@ class AutobiographicalInterpretationStore:
                 + 0.20 * item.relationship_relevance * _bounded(relationship_relevance)
                 + 0.20 * item.identity_relevance * _bounded(identity_relevance)
                 + 0.25 * max(0.0, 1.0 - abs(item.emotional_charge - _signed_bounded(emotional_match)))
-            ))
+            ) + max(-.15, min(.15, float(modifiers.get(item.interpretation_id, 0.0)))))
             activations.append(AutobiographicalActivation(
                 item.interpretation_id, item.experience_id, linked_memory, round(score, 6),
                 "current" if is_current else "historical",

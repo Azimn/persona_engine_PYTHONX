@@ -1,0 +1,14 @@
+schema_version: 1
+scenario_id: ollama_human_kiki_7_days
+description: Optional observable-only Ollama human actor with scripted fallback.
+total_days: 7
+max_turns_per_day: 1
+stable_seed: 1902
+participants:
+  - {id: human, kind: ollama_human, policy: skeptical_human}
+  - {id: kiki, kind: character, cartridge: kiki.snp, user_id: ollama_human}
+actor_profiles: {}
+phases:
+  - {id: exploratory, start_day: 1, end_day: 7, goal: test correction while preserving playfulness}
+scheduled_events: []
+acceptance_rules: []

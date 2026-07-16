@@ -182,7 +182,8 @@ class MemoryStore:
     def retrieve_explained(self, query: str, now: float, top_k: int = 5,
                            emotional_state_match: float = 0.0,
                            goal_tags: Set[str] | None = None,
-                           relationship_tags: Set[str] | None = None) -> List[MemoryRetrieval]:
+                           relationship_tags: Set[str] | None = None,
+                           association_boosts: Dict[str, float] | None = None) -> List[MemoryRetrieval]:
         """Return bounded hybrid retrievals with inspectable selection reasons."""
 
         provider = self.embedding_provider
@@ -199,6 +200,7 @@ class MemoryStore:
                 query_vector = []
         goal_tags = set(goal_tags or ())
         relationship_tags = set(relationship_tags or ())
+        association_boosts = dict(association_boosts or {})
         scored: list[MemoryRetrieval] = []
         for mem in self.memories:
             lexical = lexical_similarity(query, mem.content)
@@ -215,10 +217,11 @@ class MemoryStore:
             goal = 0.15 if goal_tags & mem.tags else 0.0
             relationship = 0.15 if relationship_tags & mem.tags else min(0.15, mem.relationship_relevance * 0.15)
             direct_link = 0.12 if any(tag.startswith("world_event:") for tag in mem.tags) else 0.0
+            learned_association = max(0.0, min(0.25, float(association_boosts.get(mem.id, 0.0))))
             score = (
                 activation(mem, now, symbolic * 0.65, emotional_state_match)
                 + lexical * 0.45 + vector_score * 0.55 + recency * 0.18
-                + goal + relationship + direct_link + mem.salience * 0.2
+                + goal + relationship + direct_link + learned_association + mem.salience * 0.2
             )
             scored.append(MemoryRetrieval(mem, score, {
                 "lexical_match": round(lexical, 4),
@@ -230,6 +233,7 @@ class MemoryStore:
                 "goal_relevance": round(goal, 4),
                 "relationship_relevance": round(relationship, 4),
                 "direct_link": round(direct_link, 4),
+                "learned_association": round(learned_association, 4),
                 "embedding_provider": "available" if embeddings_available else "fallback",
             }))
         scored.sort(key=lambda item: (-item.score, item.memory.id))

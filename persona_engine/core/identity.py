@@ -36,14 +36,14 @@ class IdentityLedger:
     per_relationship_beliefs: Dict[str, Dict[str, str]] = field(default_factory=dict)
     max_trait_delta_per_commit: float = 0.05
 
-    def propose_trait_update(self, trait_name: str, delta: float, source_memory_ids: List[str]):
+    def propose_trait_update(self, trait_name: str, delta: float, source_memory_ids: List[str], now: float | None = None):
         delta = max(-self.max_trait_delta_per_commit, min(self.max_trait_delta_per_commit, delta))
         existing = self.earned_traits.get(trait_name)
         if existing:
             existing.strength = max(0.0, min(1.0, existing.strength + delta))
             existing.source_memory_ids = list(dict.fromkeys(existing.source_memory_ids + list(source_memory_ids)))
         else:
-            self.earned_traits[trait_name] = EarnedTrait(trait_name, max(0.0, delta), time.time(), list(source_memory_ids))
+            self.earned_traits[trait_name] = EarnedTrait(trait_name, max(0.0, delta), time.time() if now is None else float(now), list(source_memory_ids))
 
     def set_relationship_belief(self, user_id: str, key: str, value: str):
         self.per_relationship_beliefs.setdefault(user_id, {})[key] = value

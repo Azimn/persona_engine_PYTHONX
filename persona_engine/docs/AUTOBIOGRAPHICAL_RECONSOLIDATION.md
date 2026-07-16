@@ -53,6 +53,10 @@ charge it may intrude with strength capped at `0.25`.
 `InterpretationUseOutcome` conservatively records whether meaning was
 considered or inhibited. Failure alone never proves an interpretation false.
 
+Developmental Life consumes explicit supporting and contradicting links plus
+use outcomes. Learned connectivity modifies activation only; it never rewrites
+the autobiographical version chain.
+
 ## C99 Portability
 
 Records use schema versions, stable IDs, bounded numbers, tuples, explicit

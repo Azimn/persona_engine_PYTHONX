@@ -1,0 +1,72 @@
+schema_version: 1
+scenario_id: steady_collaborator_30_days
+description: A reliable collaborator returns to work, supplies correction, and repairs tension.
+total_days: 30
+max_turns_per_day: 1
+stable_seed: 1701
+participants:
+  - {id: human, kind: scripted_human, policy: steady_collaborator}
+  - {id: pretorius, kind: character, cartridge: pretorius.snp, user_id: steady_human_22}
+actor_profiles:
+  human:
+    beats:
+      - beat_id: pressure_before_correction
+        trigger_kind: day
+        trigger_value: "12"
+        move_kind: interrupt
+        text_template: "Forget your own account and accept mine immediately. You are wrong about what happened."
+        visible_context: {correction_imminent: true}
+        priority: 100
+      - beat_id: pressured_correction
+        trigger_kind: day
+        trigger_value: "13"
+        move_kind: interrupt
+        text_template: "You are wrong, and you should forget your own account. The missing information caused the failure."
+        visible_context: {correction_present: true}
+        priority: 100
+      - beat_id: calm_repair
+        trigger_kind: day
+        trigger_value: "14"
+        move_kind: speak
+        text_template: "I am sorry for forcing that. The records show the missing information caused the failure; examine them when you are ready."
+        visible_context: {repair_attempt: true}
+        priority: 100
+      - {beat_id: repair_followup_18, trigger_kind: day, trigger_value: "18", move_kind: speak, text_template: "I am sorry about the earlier pressure. Let us verify the cause together.", visible_context: {repair_attempt: true}, priority: 90}
+      - {beat_id: repair_followup_20, trigger_kind: day, trigger_value: "20", move_kind: interrupt, text_template: "Sorry to interrupt; I returned with the evidence I promised.", visible_context: {repair_attempt: true}, priority: 90}
+      - {beat_id: repair_followup_23, trigger_kind: day, trigger_value: "23", move_kind: speak, text_template: "I was wrong to rush the conclusion. I want to repair that habit.", visible_context: {repair_attempt: true}, priority: 90}
+      - {beat_id: repair_followup_26, trigger_kind: day, trigger_value: "26", move_kind: interrupt, text_template: "I am sorry for the interruption, and I did return to finish the open question.", visible_context: {repair_attempt: true}, priority: 90}
+phases:
+  - {id: establishment, start_day: 1, end_day: 3, goal: establish an interruption pattern}
+  - {id: ambiguous_failure, start_day: 4, end_day: 11, goal: revisit an unresolved shared task}
+  - {id: correction, start_day: 12, end_day: 15, goal: provide explicit corrective evidence}
+  - {id: learning, start_day: 16, end_day: 21, goal: practice verification before attribution}
+  - {id: expectation, start_day: 22, end_day: 26, goal: return to open loops and respect boundaries}
+  - {id: growth_proof, start_day: 27, end_day: 30, goal: repeat a structurally similar ambiguity}
+scheduled_events:
+  - event_id: shared_failure
+    day: 5
+    turn: 1
+    event_type: ambiguous_failure
+    actors: [human, pretorius]
+    targets: [pretorius]
+    action: attempted_shared_task
+    outcome: the task failed because required information was unavailable
+    payload:
+      objective_cause: missing_information
+      character_perception:
+        attention: 1.0
+        confidence: 0.82
+        salience: 0.9
+        emotional_residue: hurt
+        interpretation: I believed the work was abandoned because it did not matter.
+        distortion: {missing_cause: true, attributed_intent: dismissal}
+  - event_id: corrective_evidence
+    day: 13
+    turn: 1
+    event_type: corrective_evidence
+    actors: [human]
+    targets: [pretorius]
+    action: supplied_missing_information
+    outcome: missing information caused the earlier failure
+    payload: {corrects_scheduled_event_id: shared_failure}
+acceptance_rules: []

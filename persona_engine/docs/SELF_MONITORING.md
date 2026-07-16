@@ -58,6 +58,9 @@ Noticed contradiction may make an evidence-linked autobiographical revision
 eligible. Missed contradiction creates no revision; evidence may remain in a
 bounded deferred record for later calm reconsideration.
 
+Playtest actors never receive either actual or perceived self-monitor state.
+The causal report may capture it after a move for diagnosis only.
+
 ## Portability
 
 The implementation uses bounded floats, stable IDs, tuples, sorted influences,
