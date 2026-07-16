@@ -1340,9 +1340,18 @@ class InteriorEngine:
             memory = item.memory
             contradiction = bool({"contradictory", "contradictory_evidence", "counterevidence"} & memory.tags)
             reality = 0.9 if any(tag.startswith("world_event:") for tag in memory.tags) else 0.75 if "canonical_user_statement" in memory.tags else 0.35
+            # Counterevidence must remain cognitively available when an immediate
+            # conversational obligation also occupies the bounded synthesis field.
+            contradiction_boost = 0.12 if contradiction else 0.0
             influences.append(SynthesisInfluence(
                 f"memory:{memory.id}", "memory", memory.content[:120],
-                min(1.0, 0.30 + memory.salience * 0.35 + memory.emotional_intensity * 0.25),
+                min(
+                    1.0,
+                    0.30
+                    + memory.salience * 0.35
+                    + memory.emotional_intensity * 0.25
+                    + contradiction_boost,
+                ),
                 emotional_congruence=memory.emotional_intensity,
                 contradictory=contradiction,
                 reality_support=reality,
