@@ -12,6 +12,27 @@ LIMITATION_ACTIONS = ("attention_drift", "minor_mistake", "forget_detail", "choo
 CHAOS_ACTIONS = ("strange_association", "sudden_inspiration", "unexplained_impulse", "intrusive_memory", "irrational_preference")
 
 
+def _clamp(value: float) -> float:
+    return max(0.0, min(1.0, float(value)))
+
+
+@dataclass(frozen=True)
+class InterruptionResult:
+    previous_activity: str
+    current_activity: str
+    input_arrived: bool
+    attention_capture: float
+    activity_interrupted: bool
+    response_urgency: float
+    previous_activity_interruptible: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+
 @dataclass
 class LifeEvent:
     event_id: str
@@ -120,13 +141,54 @@ class VitalityEventEngine:
             state.attention_target = "uncertain"
         return [event]
 
-    def interrupt(self, state: LifeState, interruption: str) -> dict[str, str | None]:
+    def interrupt(
+        self,
+        state: LifeState,
+        interruption: str,
+        *,
+        previous_activity_interruptible: bool = True,
+        interruption_sensitivity: float = 0.5,
+        direct_address: bool = False,
+    ) -> InterruptionResult:
         previous = state.current_activity
-        state.interrupted_activity = previous
-        state.current_activity = "responding to interruption"
-        state.attention_target = str(interruption)[:120]
-        state.activity_status = "interrupted"
-        return {"previous_activity": previous, "current_activity": state.current_activity}
+        text = str(interruption).strip()
+        lowered = text.lower()
+        input_arrived = bool(text)
+        urgency_cues = ("urgent", "help", "now", "stop", "listen", "danger", "please answer")
+        direct_cues = ("you", "your", "?", "!")
+        question_directed = "?" in text or " asks " in f" {lowered} " or lowered.startswith("ask ")
+        urgency = _clamp(
+            0.18
+            + 0.18 * text.count("!")
+            + 0.42 * any(cue in lowered for cue in urgency_cues)
+            + 0.58 * question_directed
+            + 0.60 * bool(direct_address)
+        ) if input_arrived else 0.0
+        capture = _clamp(
+            0.18
+            + 0.36 * _clamp(interruption_sensitivity)
+            + 0.18 * any(cue in lowered for cue in direct_cues)
+            + 0.24 * urgency
+        ) if input_arrived else 0.0
+        interrupted = bool(previous_activity_interruptible and capture >= 0.55)
+        if input_arrived:
+            # Preserve the prior activity for the existing resume/abandon
+            # resolver even when attention capture did not fully interrupt it.
+            state.interrupted_activity = previous
+        if interrupted:
+            state.current_activity = "responding to interruption"
+            state.activity_status = "interrupted"
+        if capture >= 0.30:
+            state.attention_target = text[:120]
+        return InterruptionResult(
+            previous_activity=previous,
+            current_activity=state.current_activity,
+            input_arrived=input_arrived,
+            attention_capture=round(capture, 6),
+            activity_interrupted=interrupted,
+            response_urgency=round(urgency, 6),
+            previous_activity_interruptible=bool(previous_activity_interruptible),
+        )
 
     def resolve_interruption(self, state: LifeState, pressure: float, limitation: bool = False) -> str:
         if limitation or pressure > 0.75:

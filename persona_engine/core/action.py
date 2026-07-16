@@ -62,7 +62,7 @@ class ActionDecision:
             raise ValueError("action confidence must be finite and within [0, 1]")
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {**asdict(self), "record_authority": "canonical_cognitive_record"}
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ActionDecision":
@@ -82,6 +82,7 @@ def resolve_action_decision(
     resistance: str | None,
     current_activity: str,
     interruption: Mapping[str, Any],
+    current_pressure: float = 0.0,
 ) -> ActionDecision:
     """Resolve selected structured evidence into exactly one action."""
 
@@ -98,10 +99,26 @@ def resolve_action_decision(
     visibility = "observable"
     intention_id = selected_intention.name if selected_intention else None
 
+    capture = max(0.0, min(1.0, float(interruption.get("attention_capture", 0.0))))
+    urgency = max(0.0, min(1.0, float(interruption.get("response_urgency", 0.0))))
+    activity_interrupted = bool(interruption.get("activity_interrupted", False))
+    pressure = max(0.0, min(1.0, float(current_pressure)))
+
     if resistance == "go_quiet":
         action_kind = "silence"
         communicative_function = "withhold_response"
         reasons.append("resistance:go_quiet")
+        if capture > 0.0:
+            reasons.append("interruption:noticed_without_speech")
+    elif (
+        resistance == "character_refusal"
+        and pressure >= 0.85
+        and capture >= 0.75
+        and urgency >= 0.65
+    ):
+        action_kind = "withdraw"
+        communicative_function = "protect_boundary"
+        reasons.append("resistance:high_exposure_withdrawal")
     elif resistance:
         reasons.append(f"resistance:{resistance}")
     elif proposal_selected and intrinsic_proposal is not None:
@@ -111,13 +128,36 @@ def resolve_action_decision(
         interruptible = intrinsic_proposal.interruptible
         intention_id = intrinsic_proposal.intention
         proposed = intrinsic_proposal.proposed_action_kind
-        if not interruption or proposed in {"gesture", "silence", "observe"} or not intrinsic_proposal.interruptible:
+        proposal_influence = next(
+            (
+                item for item in synthesis.considered_influences
+                if item.influence_id == f"intrinsic:{intrinsic_proposal.proposal_id}"
+            ),
+            None,
+        )
+        proposal_strength = float(proposal_influence.strength) if proposal_influence else 0.0
+        attention_pressure = 0.60 * capture + 0.40 * urgency
+        displacement_threshold = min(0.9, 0.42 + 0.24 * proposal_strength + 0.12 * pressure)
+        if not intrinsic_proposal.interruptible:
             action_kind = proposed
             communicative_function = None if proposed != "gesture" else "acknowledge"
-            reasons.append("intrinsic_proposal:selected")
+            reasons.append("intrinsic_proposal:noninterruptible")
+        elif proposed in {"gesture", "silence"}:
+            action_kind = proposed
+            communicative_function = None if proposed == "silence" else "acknowledge"
+            reasons.append("intrinsic_proposal:bounded_acknowledgement")
+        elif not activity_interrupted or attention_pressure < displacement_threshold:
+            action_kind = proposed
+            communicative_function = None
+            reasons.append("intrinsic_proposal:survived_low_value_interruption")
+        elif urgency < 0.72:
+            action_kind = "delay"
+            communicative_function = "defer_response"
+            reasons.append("interruption:captured_but_not_urgent")
         else:
             target = "current interlocutor"
-            reasons.append("intrinsic_proposal:informs_interruption_response")
+            action_kind = "speak"
+            reasons.append("interruption:urgent_direct_address")
     else:
         reasons.append("communicative_candidate:selected")
 
@@ -140,7 +180,8 @@ def resolve_action_decision(
         "synthesis_id": synthesis.synthesis_id,
         "intention_id": intention_id,
         "habit_id": selected_habit.name if selected_habit else None,
-        "interrupted": bool(interruption),
+        "activity_interrupted": activity_interrupted,
+        "attention_capture": round(capture, 6),
     }
     digest = hashlib.blake2b(
         json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8,

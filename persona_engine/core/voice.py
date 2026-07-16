@@ -69,6 +69,26 @@ class VoicePlanner:
         interruptible = self.profile.interruptible
         if performance_plan and performance_plan.acts:
             interruptible = all(act.suppressible for act in performance_plan.acts)
+            voice_act = next((act for act in performance_plan.acts if act.channel == "voice"), None)
+            timing_act = next((act for act in performance_plan.acts if act.channel == "timing"), None)
+            if voice_act:
+                rate = {
+                    "clipped": "fast",
+                    "measured": "slow",
+                    "fluid": "fluid",
+                    "expansive": "fluid",
+                    "quiet": "slow",
+                }.get(voice_act.function, rate)
+                if voice_act.function == "quiet":
+                    volume = "low"
+            if timing_act:
+                pause_before = max(pause_before, {
+                    "immediate": 0,
+                    "brief": 250,
+                    "delayed": 900,
+                    "variable": 500,
+                    "delay": 1000,
+                }.get(timing_act.function, pause_before))
         return VoicePlan(
             str(text), rate, volume, pause_before, pause_after, hesitation,
             bool(interruptible),

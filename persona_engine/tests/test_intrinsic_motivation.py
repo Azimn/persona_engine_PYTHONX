@@ -144,6 +144,18 @@ def test_intrinsic_schema_rejects_nonfinite_utility(tmp_path):
         load_cartridge(str(bad))
 
 
+def test_intrinsic_schema_rejects_unknown_performance_tendency(tmp_path):
+    text = (CARTRIDGES / "pretorius.snp").read_text(encoding="utf-8")
+    bad = tmp_path / "bad-tendency.snp"
+    bad.write_text(
+        text.replace('performance_tendency_id = "guard_exacting_work"', 'performance_tendency_id = "missing_tendency"', 1),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(CartridgeError, match="unknown performance tendency"):
+        load_cartridge(str(bad))
+
+
 def test_intrinsic_core_contains_no_character_literals():
     source = (ROOT / "core" / "intrinsic.py").read_text(encoding="utf-8").lower()
     for literal in ("pretorius", "kiki", "henry", "jay"):

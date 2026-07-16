@@ -28,7 +28,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Situated synthesis derives integration capacity from existing organism load, narrows structured influences under strain, and links action outcomes to objective and subjective records.
 - Bounded intrinsic motivation supplies cartridge-authored proposals to situated synthesis; it no longer owns final actions or changes accepted activity before selection.
 - Blind behavioral evaluation can run isolated paired characters and export visible transcript separately from causal synthesis, retrieval, interpretation, and world-event records.
-- A single canonical typed `ActionDecision` owns each situated turn. Immutable performance plans realize it as speech, gesture, observation, silence, withdrawal, world action, delay, or continued activity; non-speech behavior skips rendering.
+- A single canonical typed `ActionDecision` owns each situated turn. Replay-authoritative deterministic performance plans coordinate speech, voice, gaze, face, gesture, timing, posture, activity, and movement without becoming world facts.
+- Private cognition has deterministic, model-optional, and model-required session modes with separate cognition/expression call accounting. Non-speech turns can complete with zero renderer calls.
+- Interruption records distinguish input arrival, attention capture, actual activity interruption, urgency, and prior interruptibility.
 - Pretorius and Kiki provide cartridge-authored dependency-free realization pools without placing character phrases in core modules.
 - A bounded read-only semantic substrate provides explicit generic features, inheritance, one-hop associations, unknowns, and candidate affordances from structured concept IDs.
 
@@ -43,7 +45,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-239 passed, 1 skipped
+255 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -68,7 +70,7 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 
 ## Recommended Next Work
 
-1. Blind-review the improved offline Pretorius/Kiki transcript; the current eight-turn baseline has zero exact or opener repeats, assistant drift, or identity bleed.
-2. Compare the same paired causal setup through Ollama without sharing private state.
-3. Exercise the semantic pilot in a locked-object scenario and add concepts only where visible behavior demonstrates a gap.
-4. Begin C99 fixtures for stable action, performance, event, experience, and semantic-activation records.
+1. Add fallible self-monitoring from existing capacity, conflict, fatigue, failure, memory-confidence, pressure, and identity-threat inputs; make it visibly affect delay, clarification, confidence, concealment, and recovery.
+2. Add bounded social attribution only after self-monitoring can make those hypotheses affect observable action or performance.
+3. Blind-review the improved offline Pretorius/Kiki transcript and compare the same causal setup through Ollama without sharing private state.
+4. Begin C99 fixtures for stable action, interruption, performance, event, experience, and semantic-activation records.

@@ -26,7 +26,7 @@ from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
 from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
-from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
+from .private_cognition import execute_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
 from .symbols import SharedSymbol, SymbolStore
 from .situated import SituatedInterfaceState, InterfaceEvent
@@ -137,6 +137,14 @@ class InteriorEngine:
         self._last_action_decision: ActionDecision | None = None
         self.performance_planner = PerformancePlanner()
         self._last_performance_plan: PerformancePlan | None = None
+        self._last_model_call_metrics: dict[str, Any] = {
+            "private_cognition_renderer_called": False,
+            "expression_renderer_called": False,
+            "total_model_calls": 0,
+        }
+        cognition_config = dict(profile_source.get("private_cognition", {}))
+        self.private_cognition_mode = str(cognition_config.get("mode", "deterministic"))
+        self.private_cognition_optional_threshold = float(cognition_config.get("optional_threshold", 0.65))
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -170,6 +178,18 @@ class InteriorEngine:
         """Replace only the surface renderer through an approved host channel."""
 
         self.renderer = renderer
+
+    def set_private_cognition_mode(self, mode: str, optional_threshold: float | None = None) -> None:
+        """Configure this session's bounded private-cognition capability."""
+
+        if mode not in {"deterministic", "model_optional", "model_required"}:
+            raise ValueError(f"unsupported private cognition mode: {mode}")
+        self.private_cognition_mode = mode
+        if optional_threshold is not None:
+            threshold = float(optional_threshold)
+            if not 0.0 <= threshold <= 1.0:
+                raise ValueError("private cognition threshold must be within [0, 1]")
+            self.private_cognition_optional_threshold = threshold
 
     def renderer_status(self) -> dict:
         status = getattr(self.renderer, "runtime_status", None)
@@ -275,6 +295,9 @@ class InteriorEngine:
         )
         last_performance = self.persistence.load(cid, uid, "last_performance_plan")
         self._last_performance_plan = PerformancePlan.from_dict(last_performance) if last_performance else None
+        self._last_model_call_metrics = self.persistence.load(
+            cid, uid, "last_model_call_metrics", self._last_model_call_metrics,
+        )
         action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
         self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
@@ -344,6 +367,7 @@ class InteriorEngine:
             "last_intrinsic_proposal": self._last_intrinsic_proposal.to_dict() if self._last_intrinsic_proposal else None,
             "last_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
             "last_performance_plan": self._last_performance_plan.to_dict() if self._last_performance_plan else None,
+            "last_model_call_metrics": dict(self._last_model_call_metrics),
             "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
@@ -512,7 +536,11 @@ class InteriorEngine:
             self.user_id,
             self.timestep,
             "action_decision",
-            {**decision.to_dict(), "canonical": True, "memory_types": ["action_decision"]},
+            {
+                **decision.to_dict(),
+                "record_authority": "canonical_cognitive_record",
+                "memory_types": ["action_decision"],
+            },
         )
 
     def _resolve_idle_intrinsic_proposal(self, proposal: IntrinsicProposal, now: float) -> ActionDecision:
@@ -534,6 +562,7 @@ class InteriorEngine:
             resistance=None,
             current_activity=self.life_state.current_activity,
             interruption={},
+            current_pressure=self.pressures.top().magnitude if self.pressures.top() else 0.0,
         )
         self._last_synthesis = synthesis
         self._accept_action_decision(decision, proposal)
@@ -543,14 +572,19 @@ class InteriorEngine:
             pressures=self.pressures,
             capacity=synthesis.integration_capacity,
             interruption={},
-            performance_profile=PerformanceProfile(
-                default_stance=proposal.performance_tendency_id or "character_consistent",
+            performance_profile=PerformanceProfile.from_cartridge_tendency(
+                (self.cartridge_data or {}).get("performance_tendencies", {}),
+                proposal.performance_tendency_id,
             ),
         )
         self._last_performance_plan = plan
         self.persistence.log_event(
             self.identity.name, self.user_id, self.timestep, "performance_plan",
-            {**plan.to_dict(), "canonical": False, "memory_types": ["performance_plan"]},
+            {
+                **plan.to_dict(),
+                "record_authority": "deterministic_performance_record",
+                "memory_types": ["performance_plan"],
+            },
         )
         return decision
 
@@ -1058,7 +1092,18 @@ class InteriorEngine:
         self._catch_up_idle()
         self.timestep += 1
         now = float(event_time) if event_time is not None else time.time()
-        interruption = self.vitality.interrupt(self.life_state, user_text)
+        prior_proposal = self._last_intrinsic_proposal
+        prior_interruptible = prior_proposal.interruptible if prior_proposal else True
+        submitted_interaction = visible_context if isinstance(visible_context, dict) else {}
+        interruption = self.vitality.interrupt(
+            self.life_state,
+            user_text,
+            previous_activity_interruptible=prior_interruptible,
+            interruption_sensitivity=float(
+                (self.cartridge_data or {}).get("sensory_profile", {}).get("interruption_sensitivity", 0.5)
+            ),
+            direct_address=submitted_interaction.get("interaction_type") == "character_to_character",
+        ).to_dict()
         server_truth = dict(server_truth or {})
         submitted_server_truth = dict(server_truth)
         visible_context = dict(visible_context or {})
@@ -1207,7 +1252,26 @@ class InteriorEngine:
             "interruption": interruption,
         }
         cognition_seed = turn_seed(self.user_id, self.timestep, "private_cognition")
-        private_proposal = generate_private_cognition(self.renderer, state_packet, self.cartridge_data or {}, seed=cognition_seed)
+        ambiguity_need = 0.75 if any(
+            belief.distortion == "uncertain_read" for belief in interpretive_beliefs
+        ) else 0.0
+        pressure_need = top_after_appraisal.magnitude if top_after_appraisal else 0.0
+        cognition_need = max(
+            ambiguity_need,
+            pressure_need,
+            float(self.relationship.unresolved_conflict),
+            0.9 if forced_rewrite else 0.0,
+        )
+        cognition_execution = execute_private_cognition(
+            self.renderer,
+            state_packet,
+            self.cartridge_data or {},
+            mode=self.private_cognition_mode,
+            need_score=cognition_need,
+            optional_threshold=self.private_cognition_optional_threshold,
+            seed=cognition_seed,
+        )
+        private_proposal = cognition_execution.proposal
         cognition_report = validate_and_apply(
             private_proposal,
             pressures=self.pressures,
@@ -1226,6 +1290,7 @@ class InteriorEngine:
         cognition_report_payload = report_to_dict(cognition_report)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "private_cognition", {
             "application_report": cognition_report_payload,
+            "execution": cognition_execution.to_dict(),
             "raw_proposal_persisted": False,
             "memory_types": ["private_cognition_report"],
         })
@@ -1333,6 +1398,7 @@ class InteriorEngine:
             resistance=resistance,
             current_activity=self.life_state.current_activity,
             interruption=interruption,
+            current_pressure=top_after_appraisal.magnitude if top_after_appraisal else 0.0,
         )
         self._accept_action_decision(action_decision, selected_proposal)
         decision_payload = {
@@ -1372,12 +1438,9 @@ class InteriorEngine:
             capacity=synthesis.integration_capacity,
             concealment_mode=communicative.concealment_mode,
             interruption=interruption,
-            performance_profile=PerformanceProfile(
-                default_stance=(
-                    selected_proposal.performance_tendency_id
-                    if selected_proposal and selected_proposal.performance_tendency_id
-                    else "character_consistent"
-                ),
+            performance_profile=PerformanceProfile.from_cartridge_tendency(
+                (self.cartridge_data or {}).get("performance_tendencies", {}),
+                selected_proposal.performance_tendency_id if selected_proposal else None,
             ),
         )
         self._last_performance_plan = performance_plan
@@ -1385,7 +1448,7 @@ class InteriorEngine:
         decision_payload["performance_plan"] = performance_payload
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "performance_plan", {
             **performance_payload,
-            "canonical": False,
+            "record_authority": "deterministic_performance_record",
             "memory_types": ["performance_plan"],
         })
 
@@ -1434,7 +1497,9 @@ class InteriorEngine:
         seed = turn_seed(self.user_id, self.timestep, "expression")
         response = ""
         violations: list[str] = []
+        expression_renderer_called = False
         if performance_plan.requires_language_renderer:
+            expression_renderer_called = True
             response = render_expression(
                 self.renderer,
                 ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
@@ -1484,6 +1549,15 @@ class InteriorEngine:
                 "memory_types": ["validation"],
             })
 
+        model_call_metrics = {
+            "private_cognition_renderer_called": cognition_execution.renderer_called,
+            "expression_renderer_called": expression_renderer_called,
+            "total_model_calls": int(cognition_execution.renderer_called) + int(expression_renderer_called),
+            "private_cognition_mode": cognition_execution.mode,
+            "private_cognition_reason": cognition_execution.reason,
+            "private_cognition_fallback_used": cognition_execution.fallback_used,
+        }
+        self._last_model_call_metrics = model_call_metrics
         self._apply_action_expression_effect(action_decision, performance_plan, risk)
         self.interface.mark_output(now)
 
@@ -1524,6 +1598,7 @@ class InteriorEngine:
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
+            "model_calls": model_call_metrics,
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
@@ -1556,6 +1631,7 @@ class InteriorEngine:
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
+            "model_calls": model_call_metrics,
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
@@ -1624,6 +1700,10 @@ class InteriorEngine:
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, event_type, {
             "response": response,
             "response_is_canonical_truth": False,
+            "record_authority": (
+                "noncanonical_renderer_output" if response
+                else "deterministic_performance_record"
+            ),
             "suppression_trace": [trace.to_dict() for trace in (suppression_traces or [])],
             "memory_types": [event_type],
         })

@@ -36,8 +36,9 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
+_ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
     "sensory_profile": {"audio_sensitivity", "vision_sensitivity", "interruption_sensitivity", "silence_sensitivity"},
@@ -47,6 +48,7 @@ _ALLOWED_SECTION_FIELDS.update({
     "concealment": {"weights"},
     "arc": {"earned_changes"},
     "intrinsic": {"selection_interval_ticks", "wants", "activities"},
+    "private_cognition": {"mode", "optional_threshold"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
@@ -235,6 +237,26 @@ def _validate_intrinsic(section: dict[str, Any]) -> None:
             raise CartridgeError(f"[intrinsic].activities[{index}].pressure_affinities must be numeric")
 
 
+def _validate_performance_tendencies(data: dict[str, Any], intrinsic: dict[str, Any]) -> None:
+    from .performance import PerformanceProfile
+
+    tendencies = data.get("performance_tendencies", {})
+    if not isinstance(tendencies, dict):
+        raise CartridgeError("[performance_tendencies] must be a table")
+    for tendency_id, tendency in tendencies.items():
+        if not isinstance(tendency, dict):
+            raise CartridgeError(f"[performance_tendencies.{tendency_id}] must be a table")
+        try:
+            PerformanceProfile.from_cartridge_tendency(tendencies, str(tendency_id))
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid performance tendency {tendency_id}: {exc}") from exc
+    known = {str(key) for key in tendencies}
+    for activity in intrinsic.get("activities", []):
+        tendency_id = activity.get("performance_tendency_id")
+        if tendency_id and str(tendency_id) not in known:
+            raise CartridgeError(f"intrinsic activity references unknown performance tendency: {tendency_id}")
+
+
 def validate_cartridge_data(data: dict[str, Any]) -> None:
     """Validate raw TOML data before constructing runtime objects."""
     _unknown_keys(data, _ALLOWED_TOP_LEVEL, "top level")
@@ -251,6 +273,14 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
     if "intrinsic" in data:
         _validate_intrinsic(data["intrinsic"])
+    _validate_performance_tendencies(data, data.get("intrinsic", {}))
+    if "private_cognition" in data:
+        mode = str(data["private_cognition"].get("mode", "deterministic"))
+        if mode not in {"deterministic", "model_optional", "model_required"}:
+            raise CartridgeError(f"unsupported private cognition mode: {mode}")
+        threshold = float(data["private_cognition"].get("optional_threshold", 0.65))
+        if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+            raise CartridgeError("[private_cognition].optional_threshold must be within [0, 1]")
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:
@@ -313,6 +343,8 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
         "intrinsic": data.get("intrinsic", {}),
+        "private_cognition": data.get("private_cognition", {}),
+        "performance_tendencies": data.get("performance_tendencies", {}),
         "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }

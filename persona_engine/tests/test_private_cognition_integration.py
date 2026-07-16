@@ -28,6 +28,7 @@ def test_same_turn_private_cognition_influences_decision():
             db_path=os.path.join(d, "state.db"),
         )
         agent.engine.renderer = SuspicionRenderer()
+        agent.set_private_cognition_mode("model_required")
         agent.add_pressure("suspicion", 0.55)
         result = agent.say("Fine.")
     assert result["cognitive_application_report"]["applied_pressure_deltas"]["suspicion"] == 0.10
@@ -43,6 +44,7 @@ def test_private_cognition_report_persisted_without_raw_prose():
             db_path=os.path.join(d, "state.db"),
         )
         agent.engine.renderer = SuspicionRenderer()
+        agent.set_private_cognition_mode("model_required")
         agent.say("Hello.")
         events = agent.engine.persistence.load_events_since(agent.engine.identity.name, "cog_report", 0, event_type="private_cognition")
     assert events

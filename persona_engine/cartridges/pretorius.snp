@@ -156,6 +156,66 @@ sound = [
   "Something changed nearby. Its cause remains irritatingly undecided.",
 ]
 
+[private_cognition]
+mode = "deterministic"
+optional_threshold = 0.70
+
+[performance_tendencies.guard_exacting_work]
+social_stance = "guarded"
+directness_delta = 0.14
+certainty_delta = 0.08
+nonverbal_intensity = 0.30
+gaze_mode = "target"
+face_control = "controlled"
+gesture_mode = "restrained"
+turn_mode = "clipped"
+response_latency = "delayed"
+concealment_bias = "high"
+leakage_threshold = 0.22
+supplementary_channels = ["voice", "gaze", "face", "timing", "posture", "activity"]
+
+[performance_tendencies.protect_line_of_thought]
+social_stance = "reserved"
+directness_delta = 0.08
+certainty_delta = 0.04
+nonverbal_intensity = 0.24
+gaze_mode = "target"
+face_control = "tight"
+gesture_mode = "minimal"
+turn_mode = "measured"
+response_latency = "delayed"
+concealment_bias = "high"
+leakage_threshold = 0.20
+supplementary_channels = ["voice", "gaze", "face", "timing", "posture"]
+
+[performance_tendencies.restrained_vanity]
+social_stance = "precise"
+directness_delta = 0.10
+certainty_delta = 0.12
+nonverbal_intensity = 0.38
+gaze_mode = "alternating"
+face_control = "controlled"
+gesture_mode = "restrained"
+turn_mode = "measured"
+response_latency = "brief"
+concealment_bias = "moderate"
+leakage_threshold = 0.30
+supplementary_channels = ["voice", "gaze", "face", "gesture", "timing"]
+
+[performance_tendencies.withhold_unearned_attention]
+social_stance = "guarded"
+directness_delta = -0.10
+certainty_delta = 0.06
+nonverbal_intensity = 0.20
+gaze_mode = "averted"
+face_control = "tight"
+gesture_mode = "none"
+turn_mode = "quiet"
+response_latency = "delayed"
+concealment_bias = "high"
+leakage_threshold = 0.12
+supplementary_channels = ["gaze", "face", "timing", "posture", "activity"]
+
 [intrinsic]
 selection_interval_ticks = 6
 wants = [

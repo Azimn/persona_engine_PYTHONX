@@ -105,6 +105,9 @@ class CharacterAgent:
     def resolve_intrinsic_proposal(self):
         return self.engine.resolve_intrinsic_proposal()
 
+    def set_private_cognition_mode(self, mode: str, optional_threshold: float | None = None):
+        self.engine.set_private_cognition_mode(mode, optional_threshold)
+
     def complete_intrinsic_action(self, **kwargs):
         return self.engine.complete_intrinsic_action(**kwargs)
 

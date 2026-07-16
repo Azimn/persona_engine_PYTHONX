@@ -64,16 +64,27 @@ class AvatarProjector:
         gaze = "toward_user" if attention == "user" else "averted" if avatar in {"guarded", "tense"} else "soft_focus"
         motion = self.profile.restless_motion if public_status.get("movement_need") == "high" else "still"
         if performance_plan and performance_plan.acts:
-            act = performance_plan.acts[0]
-            if act.channel == "gesture":
-                motion = "gesture"
-            elif act.channel == "activity":
-                motion = "continue_activity"
-            elif act.channel == "movement" and act.function == "withdraw":
-                gaze = "averted"
-                motion = "withdraw"
-            elif act.channel == "gaze":
-                gaze = "toward_target"
+            for act in performance_plan.acts:
+                if act.channel == "face":
+                    face = act.function
+                elif act.channel == "gaze":
+                    gaze = {
+                        "target": "toward_target",
+                        "interlocutor": "toward_user",
+                        "averted": "averted",
+                        "alternating": "alternating",
+                        "steady": "steady",
+                    }.get(act.function, gaze)
+                elif act.channel == "gesture":
+                    motion = f"gesture_{act.function}"
+                elif act.channel == "activity":
+                    motion = "continue_activity"
+                elif act.channel == "movement":
+                    motion = act.function
+                    if act.function == "withdraw":
+                        gaze = "averted"
+                elif act.channel == "posture":
+                    public_status = {**public_status, "posture": act.function}
         return AvatarState(
             face, gaze, public_status.get("posture", "settled"), attention, motion,
             getattr(performance_plan, "plan_id", None),

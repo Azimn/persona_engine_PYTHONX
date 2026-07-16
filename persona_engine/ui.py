@@ -414,6 +414,7 @@ def create_app(
             "action_decision": result.get("action_decision"),
             "performance_plan": result.get("performance_plan"),
             "observable_action": result.get("observable_action"),
+            "model_calls": result.get("model_calls"),
             "second_thoughts": result["second_thoughts"],
             "proactive_events": result["proactive_events"],
             "interpretive_beliefs": result.get("interpretive_beliefs", []),
@@ -436,7 +437,7 @@ def create_app(
                 yield f"data: {json.dumps({'type': 'performance', 'performance': result.get('performance_plan')})}\n\n"
             for thought in result.get("second_thoughts", []):
                 yield f"data: {json.dumps({'type': 'second_thought', 'text': thought})}\n\n"
-            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'action_decision': result.get('action_decision'), 'performance_plan': result.get('performance_plan'), 'observable_action': result.get('observable_action'), 'beliefs': result.get('interpretive_beliefs', []), 'renderer': session.renderer_status()})}\n\n"
+            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'action_decision': result.get('action_decision'), 'performance_plan': result.get('performance_plan'), 'observable_action': result.get('observable_action'), 'model_calls': result.get('model_calls'), 'beliefs': result.get('interpretive_beliefs', []), 'renderer': session.renderer_status()})}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(events(), media_type="text/event-stream")

@@ -157,6 +157,7 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             } if hasattr(engine, "intrinsic_state") else {},
             "performance_plan": engine._last_performance_plan.to_dict()
             if getattr(engine, "_last_performance_plan", None) else None,
+            "model_calls": dict(getattr(engine, "_last_model_call_metrics", {})),
             "synthesis": engine._last_synthesis.to_dict() if getattr(engine, "_last_synthesis", None) else None,
             "action_completion": engine._last_action_completion.to_dict() if getattr(engine, "_last_action_completion", None) else None,
             "semantic_activation": engine._last_semantic_activation.to_dict()

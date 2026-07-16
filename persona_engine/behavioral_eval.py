@@ -39,6 +39,7 @@ class CausalTurnRecord:
     decision_payload: dict[str, Any]
     retrieved_memories: tuple[dict[str, Any], ...]
     life_context: dict[str, Any]
+    model_calls: dict[str, Any]
     speech_world_event_ids: tuple[str, ...]
 
 
@@ -197,6 +198,7 @@ class BehavioralEvaluationHarness:
                 decision_payload=dict(result.get("decision_payload") or {}),
                 retrieved_memories=tuple(result.get("retrieved_memory_trace") or ()),
                 life_context=dict(result.get("life_context") or {}),
+                model_calls=dict(result.get("model_calls") or {}),
                 speech_world_event_ids=speech_ids,
             ))
             current_input = reply or "(silence)"
@@ -208,7 +210,16 @@ class BehavioralEvaluationHarness:
             blind_transcript=tuple(blind),
             causal_prelude=tuple(prelude),
             causal_turns=tuple(causal),
-            metrics=_score_transcript(blind, participant_ids),
+            metrics={
+                **_score_transcript(blind, participant_ids),
+                "private_cognition_renderer_calls": sum(
+                    int(item.model_calls.get("private_cognition_renderer_called", False)) for item in causal
+                ),
+                "expression_renderer_calls": sum(
+                    int(item.model_calls.get("expression_renderer_called", False)) for item in causal
+                ),
+                "total_model_calls": sum(int(item.model_calls.get("total_model_calls", 0)) for item in causal),
+            },
         )
 
 

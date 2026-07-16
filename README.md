@@ -25,7 +25,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
 - Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
 - One canonical typed action per situated turn, selected from synthesis rather than by intrinsic motivation or the renderer.
-- Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an LLM call.
+- Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
 - Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
@@ -80,7 +80,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-239 passed, 1 skipped
+255 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -155,6 +155,11 @@ The human UI discovers Ollama directly through its local HTTP service and lists 
 Detected models include conservative capability hints for thinking support, recommended thinking mode, private-cognition JSON reliability, context size, practical timeout, token budget, and final-answer behavior. These are model-family guidance for testing, not benchmark claims. Unsupported thinking settings are rejected by the server.
 
 Offline rendering is always available and dependency-free. If a selected Ollama request fails or returns no final response text, the turn falls back to the deterministic offline renderer and the UI shows the requested backend, actual backend, and fallback reason. Renderer output remains noncanonical speech evidence in every mode.
+
+Private cognition is independently configured as `deterministic`,
+`model_optional`, or `model_required`. The portable default is deterministic.
+Turn results and the debug inspector report private-cognition renderer calls,
+expression renderer calls, fallback reasons, and total task calls separately.
 
 `local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
 

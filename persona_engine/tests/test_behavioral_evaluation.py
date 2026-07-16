@@ -93,6 +93,9 @@ def test_paired_metrics_flag_no_offline_assistant_or_identity_drift(tmp_path):
     assert result.metrics["identity_bleed_suspicions"] == []
     assert result.metrics["exact_repeats"] == 0
     assert result.metrics["opener_repeats"] == 0
+    assert result.metrics["private_cognition_renderer_calls"] == 0
+    assert result.metrics["expression_renderer_calls"] == 4
+    assert result.metrics["total_model_calls"] == 4
 
 
 def test_nonverbal_behavior_is_observed_as_performance_not_speech(tmp_path):

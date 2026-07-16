@@ -100,7 +100,16 @@ into the turn's canonical `ActionDecision`. A `PerformancePlan` may realize
 that decision through speech, gesture, observation, continued activity, delay,
 silence, world action, or withdrawal, but may not change its intention, target,
 or expected effect. Language rendering occurs only when the plan contains a
-speech act. Voice and avatar projection consume the same performance plan.
+speech act. Private cognition is a separate optional renderer task and must be
+reported separately. Its portable default is deterministic. Voice and avatar
+projection consume the same performance plan.
+
+Record authority uses explicit categories:
+
+- `canonical_cognitive_record`: accepted organism decisions such as `ActionDecision`.
+- `canonical_world_record`: objective outcomes owned by World Authority.
+- `deterministic_performance_record`: replay-authoritative realization derived from an accepted action, but not an objective world fact.
+- `noncanonical_renderer_output`: generated surface language, never canonical truth.
 
 ### Dream and Reflection Own Evidence-Backed Consolidation
 

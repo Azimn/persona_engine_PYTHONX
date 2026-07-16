@@ -10,6 +10,23 @@ from typing import Any, Mapping
 from .action import ActionDecision
 
 
+TENDENCY_FIELDS = frozenset({
+    "social_stance", "directness_delta", "certainty_delta", "nonverbal_intensity",
+    "gaze_mode", "face_control", "gesture_mode", "turn_mode", "response_latency",
+    "concealment_bias", "leakage_threshold", "supplementary_channels",
+})
+TENDENCY_ENUMS = {
+    "social_stance": frozenset({"neutral", "guarded", "precise", "warm", "open", "reserved", "animated"}),
+    "gaze_mode": frozenset({"target", "averted", "interlocutor", "alternating", "steady"}),
+    "face_control": frozenset({"neutral", "tight", "controlled", "open", "expressive"}),
+    "gesture_mode": frozenset({"none", "minimal", "restrained", "animated", "warm"}),
+    "turn_mode": frozenset({"clipped", "measured", "fluid", "expansive", "quiet"}),
+    "response_latency": frozenset({"immediate", "brief", "delayed", "variable"}),
+    "concealment_bias": frozenset({"none", "low", "moderate", "high"}),
+}
+ALLOWED_CHANNELS = frozenset({"voice", "gaze", "face", "gesture", "timing", "posture", "activity", "movement"})
+
+
 @dataclass(frozen=True)
 class PerformanceAct:
     channel: str
@@ -47,6 +64,8 @@ class PerformancePlan:
     def to_dict(self) -> dict[str, Any]:
         raw = asdict(self)
         raw["requires_language_renderer"] = self.requires_language_renderer
+        raw["record_authority"] = "deterministic_performance_record"
+        raw["replay_authoritative"] = True
         return raw
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -68,8 +87,64 @@ class PerformancePlan:
 
 @dataclass(frozen=True)
 class PerformanceProfile:
-    default_stance: str = "character_consistent"
+    tendency_id: str = "default"
+    social_stance: str = "neutral"
+    directness_delta: float = 0.0
+    certainty_delta: float = 0.0
     nonverbal_intensity: float = 0.45
+    gaze_mode: str = "interlocutor"
+    face_control: str = "neutral"
+    gesture_mode: str = "minimal"
+    turn_mode: str = "measured"
+    response_latency: str = "brief"
+    concealment_bias: str = "none"
+    leakage_threshold: float = 0.5
+    supplementary_channels: tuple[str, ...] = ("voice", "gaze", "face", "timing")
+
+    @classmethod
+    def from_cartridge_tendency(
+        cls,
+        tendencies: Mapping[str, Any] | None,
+        tendency_id: str | None,
+    ) -> "PerformanceProfile":
+        if not tendency_id:
+            return cls()
+        source = dict(tendencies or {})
+        if tendency_id not in source:
+            raise ValueError(f"unknown tendency id: {tendency_id}")
+        raw = dict(source[tendency_id])
+        unknown = sorted(set(raw) - TENDENCY_FIELDS)
+        if unknown:
+            raise ValueError(f"unknown field: {unknown[0]}")
+        for field, allowed in TENDENCY_ENUMS.items():
+            if field in raw and str(raw[field]) not in allowed:
+                raise ValueError(f"unsupported {field}: {raw[field]}")
+        for field in ("directness_delta", "certainty_delta"):
+            value = float(raw.get(field, 0.0))
+            if not -1.0 <= value <= 1.0:
+                raise ValueError(f"{field} must be within [-1, 1]")
+        for field in ("nonverbal_intensity", "leakage_threshold"):
+            value = float(raw.get(field, getattr(cls(), field)))
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{field} must be within [0, 1]")
+        channels = tuple(str(item) for item in raw.get("supplementary_channels", cls().supplementary_channels))
+        if any(item not in ALLOWED_CHANNELS for item in channels):
+            raise ValueError("supplementary_channels contains unsupported channel")
+        return cls(
+            tendency_id=str(tendency_id),
+            social_stance=str(raw.get("social_stance", "neutral")),
+            directness_delta=float(raw.get("directness_delta", 0.0)),
+            certainty_delta=float(raw.get("certainty_delta", 0.0)),
+            nonverbal_intensity=float(raw.get("nonverbal_intensity", 0.45)),
+            gaze_mode=str(raw.get("gaze_mode", "interlocutor")),
+            face_control=str(raw.get("face_control", "neutral")),
+            gesture_mode=str(raw.get("gesture_mode", "minimal")),
+            turn_mode=str(raw.get("turn_mode", "measured")),
+            response_latency=str(raw.get("response_latency", "brief")),
+            concealment_bias=str(raw.get("concealment_bias", "none")),
+            leakage_threshold=float(raw.get("leakage_threshold", 0.5)),
+            supplementary_channels=channels,
+        )
 
 
 class PerformancePlanner:
@@ -89,15 +164,16 @@ class PerformancePlanner:
     ) -> PerformancePlan:
         profile = performance_profile or PerformanceProfile()
         guardedness = max(0.0, min(1.0, float(getattr(relationship, "guardedness", 0.5))))
-        directness = max(0.15, min(1.0, 0.85 - guardedness * 0.35))
+        directness = max(0.0, min(1.0, 0.85 - guardedness * 0.35 + profile.directness_delta))
+        certainty = max(0.0, min(1.0, decision.confidence + profile.certainty_delta))
         intensity = max(0.1, min(1.0, profile.nonverbal_intensity + (1.0 - capacity) * 0.2))
-        act = self._act_for(decision, intensity)
+        acts = self._acts_for(decision, intensity, profile)
         literal = decision.communicative_function if decision.action_kind == "speak" else None
         withheld = ("unselected_private_state",) if concealment_mode != "none" else ()
         canonical = {
             "decision_id": decision.decision_id,
             "action_kind": decision.action_kind,
-            "function": act.function,
+            "acts": [(act.channel, act.function) for act in acts],
             "capacity": round(float(capacity), 6),
             "concealment": concealment_mode,
         }
@@ -111,36 +187,67 @@ class PerformancePlanner:
             communicative_goal=decision.communicative_function,
             literal_content_requirement=literal,
             withheld_content_ids=withheld,
-            social_stance=profile.default_stance,
-            certainty=decision.confidence,
+            social_stance=profile.social_stance,
+            certainty=round(certainty, 6),
             directness=round(directness, 6),
             turn_intention=decision.intention_id or decision.action_kind,
-            acts=(act,),
+            acts=acts,
             completion_conditions=(decision.expected_effect,),
             failure_conditions=("performance does not match canonical action",),
             provenance_ids=(decision.decision_id, decision.synthesis_id),
         )
 
     @staticmethod
-    def _act_for(decision: ActionDecision, intensity: float) -> PerformanceAct:
-        mapping = {
-            "speak": ("speech", decision.communicative_function or "respond", "immediate", "brief"),
-            "gesture": ("gesture", decision.communicative_function or "acknowledge", "immediate", "brief"),
-            "observe": ("gaze", "inspect", "immediate", "sustained"),
-            "continue_activity": ("activity", "continue", "immediate", "sustained"),
-            "delay": ("timing", "delay", "delayed", "brief"),
-            "silence": ("speech", "none", "immediate", "sustained"),
-            "world_action": ("action", "perform", "immediate", "bounded"),
-            "withdraw": ("movement", "withdraw", "immediate", "sustained"),
+    def _acts_for(
+        decision: ActionDecision,
+        intensity: float,
+        profile: PerformanceProfile,
+    ) -> tuple[PerformanceAct, ...]:
+        acts: list[PerformanceAct] = []
+
+        def add(channel: str, function: str, onset: str = "immediate", duration: str = "brief") -> None:
+            acts.append(PerformanceAct(
+                channel=channel, function=function, target=decision.target,
+                intensity=round(intensity, 6), onset=onset, duration=duration,
+                voluntary=True, suppressible=decision.action_kind != "world_action",
+            ))
+
+        if decision.action_kind == "speak":
+            add("speech", decision.communicative_function or "respond")
+            if "voice" in profile.supplementary_channels:
+                add("voice", profile.turn_mode)
+        elif decision.action_kind == "gesture":
+            add("gesture", profile.gesture_mode if profile.gesture_mode != "none" else "acknowledge")
+        elif decision.action_kind == "observe":
+            add("gaze", profile.gaze_mode, duration="sustained")
+            add("posture", "orient_to_target", duration="sustained")
+            if "movement" in profile.supplementary_channels:
+                add("movement", "approach_for_observation")
+        elif decision.action_kind == "continue_activity":
+            add("activity", "continue", duration="sustained")
+            add("posture", "task_engaged", duration="sustained")
+        elif decision.action_kind == "delay":
+            add("timing", "delay", onset="delayed")
+            add("activity", "preserve_current_intention", duration="sustained")
+        elif decision.action_kind == "silence":
+            add("activity", "continue", duration="sustained")
+        elif decision.action_kind == "world_action":
+            add("action", "perform", duration="bounded")
+        elif decision.action_kind == "withdraw":
+            add("movement", "withdraw", duration="sustained")
+
+        existing = {act.channel for act in acts}
+        supplemental = {
+            "gaze": profile.gaze_mode,
+            "face": profile.face_control,
+            "gesture": profile.gesture_mode,
+            "timing": profile.response_latency,
+            "posture": "task_engaged",
+            "activity": "continue",
         }
-        channel, function, onset, duration = mapping[decision.action_kind]
-        return PerformanceAct(
-            channel=channel,
-            function=function,
-            target=decision.target,
-            intensity=round(intensity, 6),
-            onset=onset,
-            duration=duration,
-            voluntary=True,
-            suppressible=decision.action_kind not in {"world_action"},
-        )
+        for channel in profile.supplementary_channels:
+            function = supplemental.get(channel)
+            if function and channel not in existing and not (channel == "gesture" and function == "none"):
+                add(channel, function, onset="delayed" if profile.response_latency == "delayed" else "immediate")
+                existing.add(channel)
+        return tuple(acts)

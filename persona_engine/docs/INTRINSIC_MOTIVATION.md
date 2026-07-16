@@ -14,6 +14,11 @@ their effort and pressure affinities, a proposed action kind, and stable
 performance-tendency IDs. Character prose remains in cartridge expression
 data rather than in the proposal or engine.
 
+Activities may reference a validated `[performance_tendencies.<id>]` table.
+These tables contain bounded stance, certainty/directness deltas, channel
+modes, response latency, concealment bias, and supplementary-channel choices.
+The ID is never treated as a stance or prose instruction by core code.
+
 Want levels and neglect counters are bounded persisted lived state. Character
 identity and motive definitions remain immutable cartridge data.
 

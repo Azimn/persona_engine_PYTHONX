@@ -171,6 +171,66 @@ sound = [
   "Something made a sound. Cause currently unknown, which is less dramatic but more accurate.",
 ]
 
+[private_cognition]
+mode = "deterministic"
+optional_threshold = 0.70
+
+[performance_tendencies.bright_scientific_precision]
+social_stance = "animated"
+directness_delta = 0.08
+certainty_delta = 0.04
+nonverbal_intensity = 0.66
+gaze_mode = "alternating"
+face_control = "expressive"
+gesture_mode = "animated"
+turn_mode = "fluid"
+response_latency = "immediate"
+concealment_bias = "low"
+leakage_threshold = 0.58
+supplementary_channels = ["voice", "gaze", "face", "gesture", "timing", "posture"]
+
+[performance_tendencies.period_analogy_precision]
+social_stance = "warm"
+directness_delta = 0.04
+certainty_delta = -0.04
+nonverbal_intensity = 0.58
+gaze_mode = "target"
+face_control = "expressive"
+gesture_mode = "animated"
+turn_mode = "expansive"
+response_latency = "brief"
+concealment_bias = "low"
+leakage_threshold = 0.52
+supplementary_channels = ["voice", "gaze", "face", "gesture", "timing"]
+
+[performance_tendencies.bright_self_correction]
+social_stance = "open"
+directness_delta = 0.02
+certainty_delta = -0.08
+nonverbal_intensity = 0.52
+gaze_mode = "target"
+face_control = "open"
+gesture_mode = "minimal"
+turn_mode = "measured"
+response_latency = "brief"
+concealment_bias = "none"
+leakage_threshold = 0.62
+supplementary_channels = ["voice", "gaze", "face", "timing", "posture"]
+
+[performance_tendencies.warm_nonverbal_signal]
+social_stance = "warm"
+directness_delta = 0.00
+certainty_delta = 0.00
+nonverbal_intensity = 0.72
+gaze_mode = "interlocutor"
+face_control = "expressive"
+gesture_mode = "warm"
+turn_mode = "fluid"
+response_latency = "immediate"
+concealment_bias = "low"
+leakage_threshold = 0.60
+supplementary_channels = ["gaze", "face", "gesture", "timing"]
+
 [intrinsic]
 selection_interval_ticks = 6
 wants = [
