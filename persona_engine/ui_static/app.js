@@ -381,7 +381,8 @@ async function sendChat(text, serverTruth = null, visibleContext = null, kind = 
       }
       if (event.type === 'performance') {
         const performance = event.performance || {};
-        const visibleAction = performance.gesture || performance.reaction || performance.animation_directive || performance.action_type || 'remains silent';
+        const act = (performance.acts || [])[0] || {};
+        const visibleAction = act.function === 'none' ? 'withheld response' : `${act.function || 'continues'}${act.target ? ` ${act.target}` : ''}`;
         fullText = `*${visibleAction}*`;
         updateTranscriptNode(agentNode, fullText);
       }

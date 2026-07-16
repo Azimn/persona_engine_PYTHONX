@@ -18,7 +18,7 @@ from .cognition_schemas import turn_seed
 from .cartridge import load_cartridge
 from .deception_ledger import DeceptionLedger
 from .dream_engine import DreamEngine
-from .expression import build_envelope, build_performance_plan, select_resistance
+from .expression import build_envelope, select_resistance
 from .habit import Habit, HabitTracker
 from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_identity_command
 from .intention import Intention, IntentionQueue, OpenLoop
@@ -43,7 +43,9 @@ from .lived_experience import ExperienceStore, WorldEvent, WorldEventLedger
 from .embedding import NoEmbeddingProvider
 from .capability_artifacts import CapabilityArtifactStore
 from .imperfect_action import ImperfectActionEngine
-from .intrinsic import ActionDecision, IntrinsicMotivationEngine, IntrinsicState
+from .action import ActionDecision, CommunicativeCandidate, resolve_action_decision
+from .intrinsic import IntrinsicMotivationEngine, IntrinsicProposal, IntrinsicState
+from .performance import PerformancePlan, PerformancePlanner, PerformanceProfile
 from .vitality import LifeState, VitalityEventEngine
 from .synthesis import (
     ActionCompletion,
@@ -131,7 +133,10 @@ class InteriorEngine:
         self.imperfect_actions = ImperfectActionEngine(turn_seed(f"{identity.name}:{user_id}", 0, "action"))
         self.intrinsic = IntrinsicMotivationEngine.from_cartridge(profile_source.get("intrinsic"))
         self.intrinsic_state = IntrinsicState()
+        self._last_intrinsic_proposal: IntrinsicProposal | None = None
         self._last_action_decision: ActionDecision | None = None
+        self.performance_planner = PerformancePlanner()
+        self._last_performance_plan: PerformancePlan | None = None
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -250,8 +255,26 @@ class InteriorEngine:
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
         self.intrinsic_state = IntrinsicState.from_dict(self.persistence.load(cid, uid, "intrinsic_state"))
+        last_proposal = self.persistence.load(cid, uid, "last_intrinsic_proposal")
         last_decision = self.persistence.load(cid, uid, "last_action_decision")
-        self._last_action_decision = ActionDecision.from_dict(last_decision) if last_decision else None
+        if last_proposal:
+            self._last_intrinsic_proposal = IntrinsicProposal.from_dict(last_proposal)
+        elif last_decision and "schema_version" not in last_decision:
+            # v12 migration: the old key held an intrinsic selection, not a
+            # canonical situated action.
+            migrated = dict(last_decision)
+            migrated["proposal_id"] = migrated.pop("decision_id")
+            migrated["proposed_action_kind"] = migrated.pop("action_type")
+            migrated["performance_tendency_id"] = None
+            migrated.pop("performance_cue", None)
+            migrated.pop("requires_renderer", None)
+            self._last_intrinsic_proposal = IntrinsicProposal.from_dict(migrated)
+        self._last_action_decision = (
+            ActionDecision.from_dict(last_decision)
+            if last_decision and "schema_version" in last_decision else None
+        )
+        last_performance = self.persistence.load(cid, uid, "last_performance_plan")
+        self._last_performance_plan = PerformancePlan.from_dict(last_performance) if last_performance else None
         action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
         self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
@@ -318,7 +341,9 @@ class InteriorEngine:
             "capability_artifacts": self.capability_artifacts.to_list(),
             "life_state": self.life_state.to_dict(),
             "intrinsic_state": self.intrinsic_state.to_dict(),
+            "last_intrinsic_proposal": self._last_intrinsic_proposal.to_dict() if self._last_intrinsic_proposal else None,
             "last_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
+            "last_performance_plan": self._last_performance_plan.to_dict() if self._last_performance_plan else None,
             "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
@@ -376,7 +401,9 @@ class InteriorEngine:
         self.habits.decay_all()
         self.symbols.lifecycle_tick(now)
         self.memory.compress_old(now)
-        self._advance_intrinsic_motivation()
+        proposal = self._advance_intrinsic_motivation()
+        if proposal is not None:
+            self._resolve_idle_intrinsic_proposal(proposal, now)
         if include_vitality:
             self.experiences.decay(now)
             life_events = self.vitality.tick(self.life_state, self.timestep, elapsed_seconds, self._whim_weights())
@@ -438,8 +465,8 @@ class InteriorEngine:
         weights = vitality.get("whim_weights", {}) if isinstance(vitality, dict) else {}
         return {str(key): float(value) for key, value in weights.items()} if isinstance(weights, dict) else {}
 
-    def _advance_intrinsic_motivation(self, force: bool = False) -> ActionDecision | None:
-        decision = self.intrinsic.select(
+    def _advance_intrinsic_motivation(self, force: bool = False) -> IntrinsicProposal | None:
+        proposal = self.intrinsic.select(
             self.intrinsic_state,
             companion_id=str((self.cartridge_data or {}).get("metadata", {}).get("entity_id", self.identity.name)),
             tick=self.timestep,
@@ -448,17 +475,13 @@ class InteriorEngine:
             pressures={name: pressure.magnitude for name, pressure in self.pressures.pressures.items()},
             force=force,
         )
-        if decision is None:
+        if proposal is None:
             return None
-        self._last_action_decision = decision
-        self.life_state.current_activity = decision.activity_description[:120]
-        self.life_state.current_intention = decision.intention[:120]
-        self.life_state.attention_target = decision.target[:120]
-        self.life_state.activity_status = "active"
+        self._last_intrinsic_proposal = proposal
         self.intentions.add_intention(Intention(
-            name=decision.intention,
-            priority=max(0.0, min(1.0, decision.utility / 2.0)),
-            source=f"intrinsic:{decision.want_id}",
+            name=proposal.intention,
+            priority=max(0.0, min(1.0, proposal.utility / 2.0)),
+            source=f"intrinsic:{proposal.proposal_id}",
             created_at=time.time(),
             expires_at=None,
             requires_user_context=False,
@@ -467,17 +490,85 @@ class InteriorEngine:
             self.identity.name,
             self.user_id,
             self.timestep,
-            "intrinsic_action_decision",
-            {**decision.to_dict(), "memory_types": ["action_decision"]},
+            "intrinsic_proposal",
+            {**proposal.to_dict(), "memory_types": ["intrinsic_proposal"]},
+        )
+        return proposal
+
+    def _accept_action_decision(
+        self,
+        decision: ActionDecision,
+        proposal: IntrinsicProposal | None = None,
+    ) -> None:
+        self._last_action_decision = decision
+        if proposal is not None and decision.source == f"intrinsic:{proposal.proposal_id}":
+            if decision.action_kind in {"continue_activity", "observe", "gesture", "silence", "world_action"}:
+                self.life_state.current_activity = proposal.activity_description[:120]
+                self.life_state.current_intention = proposal.intention[:120]
+                self.life_state.attention_target = proposal.target[:120]
+                self.life_state.activity_status = "active"
+        self.persistence.log_event(
+            self.identity.name,
+            self.user_id,
+            self.timestep,
+            "action_decision",
+            {**decision.to_dict(), "canonical": True, "memory_types": ["action_decision"]},
+        )
+
+    def _resolve_idle_intrinsic_proposal(self, proposal: IntrinsicProposal, now: float) -> ActionDecision:
+        influences = self._build_synthesis_influences(
+            "", (), None, (), now, None, proposal,
+        )
+        synthesis = synthesize(influences, self.integration_capacity())
+        selected_intention = next(
+            (item for item in self.intentions.intentions if item.name == proposal.intention),
+            None,
+        )
+        decision = resolve_action_decision(
+            tick=self.timestep,
+            synthesis=synthesis,
+            selected_intention=selected_intention,
+            selected_habit=None,
+            intrinsic_proposal=proposal,
+            dialogue_act="none",
+            resistance=None,
+            current_activity=self.life_state.current_activity,
+            interruption={},
+        )
+        self._last_synthesis = synthesis
+        self._accept_action_decision(decision, proposal)
+        plan = self.performance_planner.plan(
+            decision=decision,
+            relationship=self.relationship,
+            pressures=self.pressures,
+            capacity=synthesis.integration_capacity,
+            interruption={},
+            performance_profile=PerformanceProfile(
+                default_stance=proposal.performance_tendency_id or "character_consistent",
+            ),
+        )
+        self._last_performance_plan = plan
+        self.persistence.log_event(
+            self.identity.name, self.user_id, self.timestep, "performance_plan",
+            {**plan.to_dict(), "canonical": False, "memory_types": ["performance_plan"]},
         )
         return decision
 
     def select_intrinsic_action(self, force: bool = True) -> dict[str, Any] | None:
-        """Select and persist one cartridge-authored action through the engine."""
+        """Generate and persist one cartridge-authored proposal."""
 
-        decision = self._advance_intrinsic_motivation(force=force)
+        proposal = self._advance_intrinsic_motivation(force=force)
         self._persist()
-        return decision.to_dict() if decision else None
+        return proposal.to_dict() if proposal else None
+
+    def resolve_intrinsic_proposal(self) -> dict[str, Any]:
+        """Resolve the latest proposal through synthesis for explicit hosts/tests."""
+
+        if self._last_intrinsic_proposal is None:
+            raise RuntimeError("no intrinsic proposal has been selected")
+        decision = self._resolve_idle_intrinsic_proposal(self._last_intrinsic_proposal, time.time())
+        self._persist()
+        return decision.to_dict()
 
     def complete_intrinsic_action(
         self,
@@ -495,10 +586,11 @@ class InteriorEngine:
         """Resolve the selected action through existing outcome and memory channels."""
 
         decision = self._last_action_decision
-        if decision is None:
-            raise RuntimeError("no intrinsic action has been selected")
+        proposal = self._last_intrinsic_proposal
+        if decision is None or proposal is None or decision.source != f"intrinsic:{proposal.proposal_id}":
+            raise RuntimeError("no intrinsic proposal has become the canonical action")
         result = self.attempt_imperfect_action(
-            decision=decision.activity_description,
+            decision=proposal.activity_description,
             objectively_reasonable=objectively_reasonable,
             skill=skill,
             distraction=distraction,
@@ -507,17 +599,25 @@ class InteriorEngine:
             objective_cause=objective_cause,
             now=time.time() if now is None else float(now),
             expected_outcome=expected_outcome,
-            intention_id=decision.intention,
+            intention_id=decision.intention_id,
             supporting_event_ids=(),
             force_execution_failure=force_execution_failure,
             force_wrong_learning=force_wrong_learning,
         )
         self.habits.add_evidence(
-            name=f"intrinsic:{decision.activity_id}",
-            trigger=decision.want_id,
-            response_pattern=decision.activity_description,
+            name=f"intrinsic:{proposal.activity_id}",
+            trigger=proposal.want_id,
+            response_pattern=proposal.activity_description,
             source="expressed_action",
         )
+        completion = result["completion"]
+        satisfaction = self.intrinsic.apply_completion(
+            self.intrinsic_state,
+            proposal,
+            succeeded=completion["outcome_status"] == "succeeded",
+            execution_quality=float(completion["execution_quality"]),
+        )
+        result["intrinsic_satisfaction_applied"] = satisfaction
         self._persist()
         return result
 
@@ -686,6 +786,7 @@ class InteriorEngine:
     def _build_synthesis_influences(
         self, user_text: str, retrievals, habit, artifacts, now: float,
         semantic_frame: SemanticActivationFrame | None = None,
+        intrinsic_proposal: IntrinsicProposal | None = None,
     ) -> list[SynthesisInfluence]:
         influences = [SynthesisInfluence(
             "evidence:current_input", "evidence", str(user_text)[:120], 0.58,
@@ -698,6 +799,15 @@ class InteriorEngine:
                     min(0.52, 0.18 + concept.activation / 300.0),
                     reality_support=0.0,
                 ))
+        if intrinsic_proposal is not None:
+            normalized_utility = max(0.10, min(0.90, 0.25 + intrinsic_proposal.utility * 0.35))
+            influences.append(SynthesisInfluence(
+                f"intrinsic:{intrinsic_proposal.proposal_id}",
+                "intrinsic_proposal",
+                intrinsic_proposal.intention,
+                normalized_utility,
+                immediate=not intrinsic_proposal.interruptible,
+            ))
         for pressure in sorted(self.pressures.pressures.values(), key=lambda item: (-item.magnitude, item.name))[:3]:
             if pressure.magnitude > 0.001:
                 influences.append(SynthesisInfluence(
@@ -818,7 +928,9 @@ class InteriorEngine:
         raw = top.magnitude * inhibition_weakness * depletion_multiplier * restlessness_multiplier * trigger_match
         return max(0.0, min(1.0, raw))
 
-    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:
+    def _resolve_communicative_candidate(
+        self, triggers: list[str], risk: float, resistance: str | None = None,
+    ) -> CommunicativeCandidate:
         suspicion = self.pressures.pressures.get("suspicion")
         suspicion_value = suspicion.magnitude if suspicion else 0.0
         dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
@@ -826,13 +938,13 @@ class InteriorEngine:
             dialogue_act = "challenge"
         if risk > 0.8:
             dialogue_act = "protect_boundary"
-        return {
-            "dialogue_act": dialogue_act,
-            "concealment_mode": "none",
-            "challenge_threshold": 0.60,
-            "suspicion": round(suspicion_value, 3),
-            "triggers": list(triggers),
-        }
+        return CommunicativeCandidate(
+            dialogue_act=dialogue_act,
+            communicative_function=dialogue_act,
+            concealment_mode="none",
+            suspicion=round(suspicion_value, 3),
+            trigger_ids=tuple(triggers),
+        )
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
     def ingest_audio_observation(self, observation: AudioObservation) -> dict:
@@ -916,18 +1028,23 @@ class InteriorEngine:
         self._persist()
         return {"accepted": resolution.accepted, "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created]}
 
-    def plan_voice(self, text: str, envelope=None) -> dict:
+    def plan_voice(self, text: str, envelope=None, performance_plan: PerformancePlan | None = None) -> dict:
         if envelope is None:
             top = self.pressures.top()
             risk = bucket_risk(self.compute_leak_risk(""))
             envelope = build_envelope(risk, self.relationship, top.name if top else "calm")
-        plan = self.voice_planner.plan(text, envelope)
+        plan = self.voice_planner.plan(text, performance_plan, envelope)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "voice_plan", {"plan": plan.to_dict(), "memory_types": ["voice_plan"]})
         return plan.to_dict()
 
-    def avatar_projection(self, affect_bucket: str | None = None, dominant_pressure: str | None = None) -> dict:
+    def avatar_projection(
+        self,
+        affect_bucket: str | None = None,
+        dominant_pressure: str | None = None,
+        performance_plan: PerformancePlan | None = None,
+    ) -> dict:
         status = self.public_status(affect_bucket, dominant_pressure)
-        state = self.avatar_projector.project(status)
+        state = self.avatar_projector.project(status, performance_plan)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "avatar_state", {"state": state.to_dict(), "memory_types": ["avatar_state"]})
         return state.to_dict()
 
@@ -1173,6 +1290,7 @@ class InteriorEngine:
         synthesis = synthesize(
             self._build_synthesis_influences(
                 user_text, retrievals, habit, available_artifacts, now, semantic_frame,
+                self._last_intrinsic_proposal,
             ),
             self.integration_capacity(),
         )
@@ -1198,15 +1316,36 @@ class InteriorEngine:
             **synthesis_payload,
             "memory_types": ["synthesis"],
         })
-        decision_payload = self._resolve_decision_payload(triggers, risk, resistance)
-        decision_payload.update({
+        selected_proposal = (
+            self._last_intrinsic_proposal
+            if self._last_intrinsic_proposal
+            and synthesis.selected_intrinsic_proposal_id == self._last_intrinsic_proposal.proposal_id
+            else None
+        )
+        communicative = self._resolve_communicative_candidate(triggers, risk, resistance)
+        action_decision = resolve_action_decision(
+            tick=self.timestep,
+            synthesis=synthesis,
+            selected_intention=selected_intention,
+            selected_habit=habit,
+            intrinsic_proposal=selected_proposal,
+            dialogue_act=communicative.dialogue_act,
+            resistance=resistance,
+            current_activity=self.life_state.current_activity,
+            interruption=interruption,
+        )
+        self._accept_action_decision(action_decision, selected_proposal)
+        decision_payload = {
+            **communicative.to_dict(),
+            "challenge_threshold": 0.60,
             "synthesis_reference": synthesis.synthesis_id,
             "integration_capacity": synthesis.integration_capacity,
             "field_width": synthesis.field_width,
             "selected_intention_id": synthesis.selected_intention_id,
             "selected_habit_id": synthesis.selected_habit_id,
-            "ongoing_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
-        })
+            "selected_intrinsic_proposal_id": synthesis.selected_intrinsic_proposal_id,
+            "action_decision": action_decision.to_dict(),
+        }
         if resistance:
             suppression_traces.append(_suppression_trace(
                 "resistance_selector",
@@ -1226,11 +1365,22 @@ class InteriorEngine:
         ))
         if resistance:
             envelope.refusal_mode = resistance
-        performance_plan = build_performance_plan(
-            decision_payload,
-            resistance,
-            self._last_action_decision.to_dict() if self._last_action_decision else None,
+        performance_plan = self.performance_planner.plan(
+            decision=action_decision,
+            relationship=self.relationship,
+            pressures=self.pressures,
+            capacity=synthesis.integration_capacity,
+            concealment_mode=communicative.concealment_mode,
+            interruption=interruption,
+            performance_profile=PerformanceProfile(
+                default_stance=(
+                    selected_proposal.performance_tendency_id
+                    if selected_proposal and selected_proposal.performance_tendency_id
+                    else "character_consistent"
+                ),
+            ),
         )
+        self._last_performance_plan = performance_plan
         performance_payload = performance_plan.to_dict()
         decision_payload["performance_plan"] = performance_payload
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "performance_plan", {
@@ -1239,51 +1389,52 @@ class InteriorEngine:
             "memory_types": ["performance_plan"],
         })
 
-        frame = WorkspaceFrame(
-            core_identity_summary=self.ledger.summary() + (f" | beliefs: {self.belief_ledger.values}" if self.belief_ledger.values else ""),
-            relationship_summary=relationship_to_qualitative(self.relationship),
-            current_affect_bucket=bucket,
-            dominant_pressure=dominant_name,
-            secondary_pressure=secondary_name,
-            selected_intention=selected_intention.name if selected_intention else None,
-            retrieved_memories=[m.content for m in retrieved] + [f"Validated knowledge: {item.content}" for item in available_artifacts],
-            open_loop=open_loop.topic if open_loop else None,
-            shared_symbol=symbol.name if symbol else None,
-            active_habit=habit.response_pattern if habit else None,
-            situated_summary=self.interface.summary(now),
-            world_summary=(
-                f"{self.world.summary()} | before interruption: {interruption['previous_activity']} | "
-                f"attention: {self.life_state.attention_target} | intention: {self.life_state.current_intention}"
-            ),
-            body_summary=self.body.summary(),
-            sensorium_summary=self.sensorium.summary(),
-            access_rules=self.interface.access_rules(),
-            expression_envelope=envelope,
-            interpretive_beliefs=[b.text for b in interpretive_beliefs],
-            interpretive_belief_trace=[b.to_dict() for b in interpretive_beliefs],
-            forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
-            performance_guidance=(
-                list(self.identity.speech_constraints)
-                + [str((self.cartridge_data or {}).get("voice", {}).get("speaking_style", ""))]
-                + ([self._last_action_decision.performance_cue] if self._last_action_decision and self._last_action_decision.performance_cue else [])
-            ),
-            semantic_candidates=[
-                f"concept:{item.name}" for item in semantic_frame.concepts[:3]
-            ] + [
-                f"affordance_candidate:{item.action}:{item.target_name}"
-                for item in semantic_frame.affordances[:3]
-            ],
-        )
-
-        second_thoughts = derive_second_thoughts(frame)
-        if not performance_plan.utterance_required:
-            second_thoughts = []
-        system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
-        messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
+        frame = None
+        second_thoughts: list[str] = []
+        system_prompt = ""
+        if performance_plan.requires_language_renderer:
+            frame = WorkspaceFrame(
+                core_identity_summary=self.ledger.summary() + (f" | beliefs: {self.belief_ledger.values}" if self.belief_ledger.values else ""),
+                relationship_summary=relationship_to_qualitative(self.relationship),
+                current_affect_bucket=bucket,
+                dominant_pressure=dominant_name,
+                secondary_pressure=secondary_name,
+                selected_intention=selected_intention.name if selected_intention else None,
+                retrieved_memories=[m.content for m in retrieved] + [f"Validated knowledge: {item.content}" for item in available_artifacts],
+                open_loop=open_loop.topic if open_loop else None,
+                shared_symbol=symbol.name if symbol else None,
+                active_habit=habit.response_pattern if habit else None,
+                situated_summary=self.interface.summary(now),
+                world_summary=(
+                    f"{self.world.summary()} | before interruption: {interruption['previous_activity']} | "
+                    f"attention: {self.life_state.attention_target} | intention: {self.life_state.current_intention}"
+                ),
+                body_summary=self.body.summary(),
+                sensorium_summary=self.sensorium.summary(),
+                access_rules=self.interface.access_rules(),
+                expression_envelope=envelope,
+                interpretive_beliefs=[b.text for b in interpretive_beliefs],
+                interpretive_belief_trace=[b.to_dict() for b in interpretive_beliefs],
+                forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
+                action_decision=action_decision.to_dict(),
+                performance_plan=performance_payload,
+                style_constraints=(
+                    list(self.identity.speech_constraints)
+                    + [str((self.cartridge_data or {}).get("voice", {}).get("speaking_style", ""))]
+                ),
+                semantic_candidates=[
+                    f"concept:{item.name}" for item in semantic_frame.concepts[:3]
+                ] + [
+                    f"affordance_candidate:{item.action}:{item.target_name}"
+                    for item in semantic_frame.affordances[:3]
+                ],
+            )
+            second_thoughts = derive_second_thoughts(frame)
+            system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
         seed = turn_seed(self.user_id, self.timestep, "expression")
         response = ""
         violations: list[str] = []
-        if performance_plan.utterance_required:
+        if performance_plan.requires_language_renderer:
             response = render_expression(
                 self.renderer,
                 ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
@@ -1301,6 +1452,8 @@ class InteriorEngine:
                 expression_constraints={
                     "max_chars": envelope.max_chars,
                     "offline_realization": dict((self.cartridge_data or {}).get("offline_expression", {})),
+                    "action_decision": action_decision.to_dict(),
+                    "performance_plan": performance_payload,
                 },
                 deception_obligations=[],
                 seed=seed,
@@ -1331,11 +1484,14 @@ class InteriorEngine:
                 "memory_types": ["validation"],
             })
 
-        self._appraise_response_effect(response, risk, bucket)
+        self._apply_action_expression_effect(action_decision, performance_plan, risk)
         self.interface.mark_output(now)
 
         limitation_active = bool(self.life_state.events and self.life_state.events[-1].category == "limitation" and self.life_state.events[-1].tick >= self.timestep - 1)
-        activity_outcome = self.vitality.resolve_interruption(self.life_state, risk, limitation=limitation_active)
+        if selected_proposal is not None and action_decision.action_kind != "speak":
+            activity_outcome = "continued_selected_action"
+        else:
+            activity_outcome = self.vitality.resolve_interruption(self.life_state, risk, limitation=limitation_active)
 
         self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
         self._persist()
@@ -1357,6 +1513,7 @@ class InteriorEngine:
             "bucket": bucket,
             "dominant_pressure": dominant_name,
             "decision_payload": decision_payload,
+            "action_decision": action_decision.to_dict(),
             "cognitive_application_report": cognition_report_payload,
             "appraisal": vars(appraisal),
             "violations": violations,
@@ -1393,6 +1550,7 @@ class InteriorEngine:
             "interpretive_belief_trace": [b.to_dict() for b in interpretive_beliefs],
             "interpretation_source_digest": interpretation_result.source_digest,
             "decision_payload": decision_payload,
+            "action_decision": action_decision.to_dict(),
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
@@ -1406,27 +1564,36 @@ class InteriorEngine:
             "catch_up_summary": dict(self.last_catch_up_summary),
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
-            "avatar_projection": self.avatar_projection(bucket, dominant_name),
-            "voice_plan": self.plan_voice(response, envelope) if performance_plan.utterance_required else None,
+            "avatar_projection": self.avatar_projection(bucket, dominant_name, performance_plan),
+            "voice_plan": self.plan_voice(response, envelope, performance_plan) if performance_plan.requires_language_renderer else None,
+            "observable_action": performance_plan.to_public_dict(),
             "second_thoughts": second_thoughts,
             "proactive_events": self.poll_proactive_events(),
             "stream_plan": {
                 "source": "core_engine",
-                "response_text_ready": True,
+                "response_text_ready": performance_plan.requires_language_renderer,
                 "second_thoughts_from_workspace": bool(second_thoughts),
             },
         }
 
-    def _appraise_response_effect(self, response: str, risk: float, bucket: str):
-        lowered = response.lower()
-        if bucket == "HIGH" and any(w in lowered for w in ["no", "stop", "enough", "won't"]):
+    def _apply_action_expression_effect(
+        self,
+        decision: ActionDecision,
+        performance_plan: PerformancePlan,
+        risk: float,
+    ) -> None:
+        """Apply bounded consequences from canonical action, never prose."""
+
+        if decision.communicative_function in {"protect_boundary", "challenge"} and risk > 0.6:
             top = self.pressures.top()
             if top:
                 top.magnitude = max(0.0, top.magnitude - 0.08)
             self.relationship.tension = min(1.0, self.relationship.tension + 0.02)
-        if "?" in response and self.relationship.tension < 0.5:
+        if decision.communicative_function == "ask_question" and self.relationship.tension < 0.5:
             curiosity = self.pressures.ensure("curiosity")
             curiosity.magnitude = min(1.0, curiosity.magnitude + 0.03)
+        if decision.action_kind in {"silence", "withdraw"}:
+            self.relationship.unresolved_conflict = min(1.0, self.relationship.unresolved_conflict + 0.01)
 
     def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool, suppression_traces: list[SuppressionTrace] | None = None):
         # Memory firewall: generated wording is logged as speech evidence, not
@@ -1453,11 +1620,12 @@ class InteriorEngine:
             tags=memory_tags,
         )
         self.memory.add(mem)
-        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "speech" if response else "nonverbal_performance", {
+        event_type = "speech" if response else "nonverbal_performance"
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, event_type, {
             "response": response,
             "response_is_canonical_truth": False,
             "suppression_trace": [trace.to_dict() for trace in (suppression_traces or [])],
-            "memory_types": ["speech"],
+            "memory_types": [event_type],
         })
 
         if mem.unresolved:

@@ -186,7 +186,7 @@ def _validate_intrinsic(section: dict[str, Any]) -> None:
     activity_fields = {
         "id", "want_id", "description", "intention", "attention_target", "action_type", "target",
         "base_utility", "energy_cost", "novelty_weight", "interruptible", "visibility",
-        "performance_cue", "pressure_affinities",
+        "performance_tendency_id", "pressure_affinities",
     }
     want_ids: set[str] = set()
     for index, want in enumerate(wants):
@@ -204,7 +204,7 @@ def _validate_intrinsic(section: dict[str, Any]) -> None:
             if not math.isfinite(number) or not 0.0 <= number <= 1.0:
                 raise CartridgeError(f"[intrinsic].wants[{index}].{field} must be within [0, 1]")
     activity_ids: set[str] = set()
-    required_activity = activity_fields - {"pressure_affinities"}
+    required_activity = activity_fields - {"pressure_affinities", "performance_tendency_id"}
     for index, activity in enumerate(activities):
         if not isinstance(activity, dict):
             raise CartridgeError(f"[intrinsic].activities[{index}] must be a table")

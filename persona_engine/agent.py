@@ -102,6 +102,9 @@ class CharacterAgent:
     def select_intrinsic_action(self, force: bool = True):
         return self.engine.select_intrinsic_action(force=force)
 
+    def resolve_intrinsic_proposal(self):
+        return self.engine.resolve_intrinsic_proposal()
+
     def complete_intrinsic_action(self, **kwargs):
         return self.engine.complete_intrinsic_action(**kwargs)
 

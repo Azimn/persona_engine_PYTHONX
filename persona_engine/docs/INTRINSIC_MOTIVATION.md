@@ -3,14 +3,16 @@
 Intrinsic motivation is a bounded bridge between existing organism state and
 situated action. It is not a second cognitive engine.
 
-The generic engine owns want activation and neglect, deterministic utility
-scoring, selection of one immutable `ActionDecision`, and routing through the
-existing intention, life-state, World Authority, experience, memory, habit,
-and learning channels.
+The generic intrinsic module owns want activation and neglect, deterministic
+utility scoring, and generation of one immutable `IntrinsicProposal`. A
+proposal is a candidate influence, not an accepted action. The situated
+synthesis and canonical action resolver decide whether it becomes the turn's
+single `ActionDecision`.
 
 Cartridges own what the character wants, which activities pursue each want,
-their effort and pressure affinities, whether an action speaks or acts
-nonverbally, and short performance cues for the renderer.
+their effort and pressure affinities, a proposed action kind, and stable
+performance-tendency IDs. Character prose remains in cartridge expression
+data rather than in the proposal or engine.
 
 Want levels and neglect counters are bounded persisted lived state. Character
 identity and motive definitions remain immutable cartridge data.
@@ -27,8 +29,10 @@ want activation
 - energy shortfall
 ```
 
-Ties resolve by stable activity ID. No model call is required. When an action
-is completed, the existing action pipeline records its objective outcome,
+Ties resolve by stable activity ID. Proposal generation may update bounded
+neglect evidence, but it does not change current activity or satisfy the want.
+Those changes occur only after synthesis accepts the proposal and an objective
+`ActionCompletion` is recorded. The completion pipeline records its outcome,
 subjective experience, first-person memory, and action evidence for habits.
 Generated prose never becomes the action or its outcome.
 

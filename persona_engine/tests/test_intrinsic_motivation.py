@@ -47,20 +47,26 @@ def test_intrinsic_selection_is_deterministic_and_structured():
 
     assert first == second
     assert first is not None
-    assert first.action_type in {"speak", "gesture", "continue_activity", "observe", "silence", "world_action"}
+    assert first.proposed_action_kind in {
+        "speak", "gesture", "continue_activity", "observe", "silence", "world_action",
+    }
     assert first.score_breakdown
     assert first.selection_reason
 
 
-def test_idle_intrinsic_action_uses_existing_life_and_intention_state(tmp_path):
+def test_intrinsic_proposal_does_not_prematurely_change_life_state(tmp_path):
     agent = _agent(tmp_path, "pretorius.snp")
-    decision = agent.engine.select_intrinsic_action()
+    before = agent.engine.life_state.to_dict()
+    proposal = agent.engine.select_intrinsic_action()
 
-    assert decision is not None
-    assert agent.engine.life_state.current_activity == decision["activity_description"]
-    assert agent.engine.life_state.current_intention == decision["intention"]
+    assert proposal is not None
+    assert agent.engine.life_state.to_dict() == before
     assert any(item.source.startswith("intrinsic:") for item in agent.engine.intentions.intentions)
-    assert decision["requires_renderer"] is (decision["action_type"] == "speak")
+
+    decision = agent.engine.resolve_intrinsic_proposal()
+    assert decision["source"] == f"intrinsic:{proposal['proposal_id']}"
+    assert agent.engine.life_state.current_activity == proposal["activity_description"]
+    assert agent.engine.life_state.current_intention == proposal["intention"]
 
 
 def test_neglected_wants_gain_priority_without_unbounded_growth():
@@ -85,18 +91,23 @@ def test_intrinsic_state_persists_per_character_session(tmp_path):
     first = CharacterAgent(
         cartridge_path=str(CARTRIDGES / "kiki.snp"), user_id="same-user", db_path=str(db),
     )
-    decision = first.engine.select_intrinsic_action()
+    proposal = first.engine.select_intrinsic_action()
+    decision = first.engine.resolve_intrinsic_proposal()
     restarted = CharacterAgent(
         cartridge_path=str(CARTRIDGES / "kiki.snp"), user_id="same-user", db_path=str(db),
     )
 
     assert restarted.engine.intrinsic_state.to_dict() == first.engine.intrinsic_state.to_dict()
+    assert restarted.engine._last_intrinsic_proposal.to_dict() == proposal
     assert restarted.engine._last_action_decision.to_dict() == decision
+    assert restarted.engine._last_performance_plan.decision_id == decision["decision_id"]
 
 
 def test_completed_intrinsic_action_uses_objective_and_first_person_memory_channels(tmp_path):
     agent = _agent(tmp_path, "pretorius.snp", "completion")
-    decision = agent.engine.select_intrinsic_action()
+    proposal = agent.engine.select_intrinsic_action()
+    decision = agent.engine.resolve_intrinsic_proposal()
+    before_level = agent.engine.intrinsic_state.want_levels[proposal["want_id"]]
     result = agent.engine.complete_intrinsic_action(
         observed_outcome="the apparatus remained unstable",
         objective_cause="a loose connection interrupted the circuit",
@@ -107,11 +118,12 @@ def test_completed_intrinsic_action_uses_objective_and_first_person_memory_chann
     )
 
     completion = result["completion"]
-    assert completion["intention_id"] == decision["intention"]
+    assert completion["intention_id"] == decision["intention_id"]
     assert agent.engine.world_events.fetch(completion["world_event_id"]) is not None
     assert completion["subjective_interpretation_reference"]
     assert all(memory.content.startswith("I ") for memory in agent.engine.memory.memories)
-    assert f"intrinsic:{decision['activity_id']}" in agent.engine.habits.habits
+    assert f"intrinsic:{proposal['activity_id']}" in agent.engine.habits.habits
+    assert agent.engine.intrinsic_state.want_levels[proposal["want_id"]] <= before_level
 
 
 def test_intrinsic_schema_rejects_unknown_action_type(tmp_path):

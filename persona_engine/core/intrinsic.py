@@ -19,7 +19,7 @@ ACTION_TYPES = frozenset({
     "continue_activity",
     "observe",
     "silence",
-    "world_action",
+    "world_action", "delay", "withdraw",
 })
 
 
@@ -66,7 +66,7 @@ class IntrinsicActivity:
     novelty_weight: float
     interruptible: bool
     visibility: str
-    performance_cue: str
+    performance_tendency_id: str | None
     pressure_affinities: tuple[tuple[str, float], ...] = ()
 
     @classmethod
@@ -85,7 +85,10 @@ class IntrinsicActivity:
             novelty_weight=_clamp(data.get("novelty_weight", 0.0)),
             interruptible=bool(data.get("interruptible", True)),
             visibility=str(data.get("visibility", "observable")),
-            performance_cue=str(data.get("performance_cue", "")),
+            performance_tendency_id=(
+                str(data["performance_tendency_id"])
+                if data.get("performance_tendency_id") else None
+            ),
             pressure_affinities=tuple(sorted((str(key), _bounded_signed(value)) for key, value in affinities.items())),
         )
 
@@ -115,12 +118,12 @@ class IntrinsicState:
 
 
 @dataclass(frozen=True)
-class ActionDecision:
-    decision_id: str
+class IntrinsicProposal:
+    proposal_id: str
     tick: int
     want_id: str
     activity_id: str
-    action_type: str
+    proposed_action_kind: str
     target: str
     intention: str
     activity_description: str
@@ -129,19 +132,13 @@ class ActionDecision:
     selection_reason: tuple[str, ...]
     visibility: str
     interruptible: bool
-    performance_cue: str
-
-    @property
-    def requires_renderer(self) -> bool:
-        return self.action_type == "speak"
+    performance_tendency_id: str | None
 
     def to_dict(self) -> dict[str, Any]:
-        raw = asdict(self)
-        raw["requires_renderer"] = self.requires_renderer
-        return raw
+        return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "ActionDecision":
+    def from_dict(cls, data: Mapping[str, Any]) -> "IntrinsicProposal":
         fields = {key: data[key] for key in cls.__dataclass_fields__ if key in data}
         fields["score_breakdown"] = tuple(tuple(item) for item in fields.get("score_breakdown", ()))
         fields["selection_reason"] = tuple(fields.get("selection_reason", ()))
@@ -181,7 +178,7 @@ class IntrinsicMotivationEngine:
         restlessness: float,
         pressures: Mapping[str, float],
         force: bool = False,
-    ) -> ActionDecision | None:
+    ) -> IntrinsicProposal | None:
         self.initialize_state(state)
         if not self.activities:
             return None
@@ -212,18 +209,15 @@ class IntrinsicMotivationEngine:
 
         score, selected, parts = sorted(candidates, key=lambda item: (-item[0], item[1].activity_id))[0]
         for want in self.wants:
-            if want.want_id == selected.want_id:
-                state.want_levels[want.want_id] = _clamp(state.want_levels[want.want_id] - want.satisfaction)
-                state.neglect_ticks[want.want_id] = 0
-            else:
+            if want.want_id != selected.want_id:
                 state.want_levels[want.want_id] = _clamp(state.want_levels[want.want_id] + want.neglect_gain)
                 state.neglect_ticks[want.want_id] += 1
         state.last_selection_tick = int(tick)
         state.selected_want_id = selected.want_id
         state.selected_activity_id = selected.activity_id
 
-        decision_key = f"{companion_id}:{tick}:{selected.want_id}:{selected.activity_id}"
-        decision_id = "decision_" + hashlib.blake2b(decision_key.encode("utf-8"), digest_size=8).hexdigest()
+        proposal_key = f"{companion_id}:{tick}:{selected.want_id}:{selected.activity_id}"
+        proposal_id = "intrinsic_" + hashlib.blake2b(proposal_key.encode("utf-8"), digest_size=8).hexdigest()
         reason = ["highest bounded intrinsic utility"]
         if dict(parts)["neglect"] > 0:
             reason.append("neglected want gained priority")
@@ -231,12 +225,12 @@ class IntrinsicMotivationEngine:
             reason.append("current pressure supported this activity")
         if dict(parts)["energy_penalty"] < 0:
             reason.append("low energy reduced an effortful activity")
-        return ActionDecision(
-            decision_id=decision_id,
+        return IntrinsicProposal(
+            proposal_id=proposal_id,
             tick=int(tick),
             want_id=selected.want_id,
             activity_id=selected.activity_id,
-            action_type=selected.action_type,
+            proposed_action_kind=selected.action_type,
             target=selected.target,
             intention=selected.intention,
             activity_description=selected.description,
@@ -245,5 +239,26 @@ class IntrinsicMotivationEngine:
             selection_reason=tuple(reason),
             visibility=selected.visibility,
             interruptible=selected.interruptible,
-            performance_cue=selected.performance_cue,
+            performance_tendency_id=selected.performance_tendency_id,
         )
+
+    def apply_completion(
+        self,
+        state: IntrinsicState,
+        proposal: IntrinsicProposal,
+        *,
+        succeeded: bool,
+        execution_quality: float,
+    ) -> float:
+        """Satisfy a want only after an objective action completion."""
+
+        want = next((item for item in self.wants if item.want_id == proposal.want_id), None)
+        if want is None:
+            return 0.0
+        quality = _clamp(execution_quality)
+        outcome_factor = (0.35 + quality * 0.65) if succeeded else quality * 0.20
+        applied = want.satisfaction * outcome_factor
+        state.want_levels[want.want_id] = _clamp(state.want_levels.get(want.want_id, want.baseline) - applied)
+        if succeeded:
+            state.neglect_ticks[want.want_id] = 0
+        return round(applied, 6)

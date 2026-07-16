@@ -73,6 +73,10 @@ class SynthesisResult:
     considered_influences: tuple[SynthesisInfluence, ...]
     selected_intention_id: str | None
     selected_habit_id: str | None
+    selected_intrinsic_proposal_id: str | None
+    selected_regulation_candidate_id: str | None
+    selected_social_hypothesis_ids: tuple[str, ...]
+    selected_skill_id: str | None
     inhibited_influences: tuple[SynthesisInfluence, ...]
     unresolved_conflicts: tuple[str, ...]
     reality_support: float
@@ -128,6 +132,10 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
     inhibited = tuple(ranked[width:])
     intentions = [item for item in considered if item.kind == "intention"]
     habits = [item for item in considered if item.kind == "habit"]
+    intrinsic = [item for item in considered if item.kind == "intrinsic_proposal"]
+    regulation = [item for item in considered if item.kind == "regulation"]
+    social = [item for item in considered if item.kind == "social_model"]
+    skills = [item for item in considered if item.kind == "skill"]
     conflicts = tuple(
         item.influence_id for item in bounded
         if item.kind in {"open_loop", "relationship_conflict"} or item.contradictory
@@ -157,6 +165,16 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
         considered_influences=considered,
         selected_intention_id=intentions[0].influence_id.removeprefix("intention:") if intentions else None,
         selected_habit_id=habits[0].influence_id.removeprefix("habit:") if habits else None,
+        selected_intrinsic_proposal_id=(
+            intrinsic[0].influence_id.removeprefix("intrinsic:") if intrinsic else None
+        ),
+        selected_regulation_candidate_id=(
+            regulation[0].influence_id.removeprefix("regulation:") if regulation else None
+        ),
+        selected_social_hypothesis_ids=tuple(
+            item.influence_id.removeprefix("social:") for item in social
+        ),
+        selected_skill_id=skills[0].influence_id.removeprefix("skill:") if skills else None,
         inhibited_influences=inhibited,
         unresolved_conflicts=conflicts,
         reality_support=reality_support,

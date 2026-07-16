@@ -165,11 +165,11 @@ class BehavioralEvaluationHarness:
             performance = dict(result.get("performance_plan") or {})
             source = "observed_speech"
             if not reply:
-                visible_action = (
-                    performance.get("gesture") or performance.get("reaction")
-                    or performance.get("animation_directive") or performance.get("action_type")
-                    or "remains silent"
-                )
+                acts = list(performance.get("acts") or [])
+                act = acts[0] if acts else {}
+                function = str(act.get("function", "continues"))
+                target = str(act.get("target", "")).strip()
+                visible_action = "withheld response" if function == "none" else f"{function}{' ' + target if target else ''}"
                 reply = f"*{visible_action}*"
                 source = "observed_performance"
             blind.append(BlindTranscriptItem(turn, speaker_id, listener_id, reply, source=source))

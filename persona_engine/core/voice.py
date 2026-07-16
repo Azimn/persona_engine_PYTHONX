@@ -8,7 +8,10 @@ organism state.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .performance import PerformancePlan
 
 
 @dataclass(frozen=True)
@@ -34,6 +37,7 @@ class VoicePlan:
     pause_after_ms: int
     hesitation: bool
     interruptible: bool
+    performance_plan_id: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -43,9 +47,14 @@ class VoicePlanner:
     def __init__(self, profile: VoiceProfile | None = None):
         self.profile = profile or VoiceProfile()
 
-    def plan(self, text: str, envelope) -> VoicePlan:
+    def plan(self, text: str, performance_plan: "PerformancePlan | None", envelope=None) -> VoicePlan:
+        # Backward compatibility for hosts that still pass (text, envelope).
+        if envelope is None and performance_plan is not None and not hasattr(performance_plan, "acts"):
+            envelope = performance_plan
+            performance_plan = None
         guarded = float(getattr(envelope, "guardedness", 0.0))
         warmth = float(getattr(envelope, "warmth", 0.5))
+        directness = float(getattr(performance_plan, "directness", 0.5)) if performance_plan else 0.5
         rate = self.profile.default_rate
         if guarded > 0.70:
             rate = "slow"
@@ -54,10 +63,17 @@ class VoicePlanner:
         volume = self.profile.default_volume
         if guarded > 0.65:
             volume = "low"
-        pause_before = int(150 + guarded * 700)
+        pause_before = int(150 + guarded * 700 + max(0.0, 0.5 - directness) * 180)
         pause_after = int(100 + max(0.0, 1.0 - warmth) * 450)
         hesitation = guarded + self.profile.hesitation_bias > 0.85
-        return VoicePlan(str(text), rate, volume, pause_before, pause_after, hesitation, bool(self.profile.interruptible))
+        interruptible = self.profile.interruptible
+        if performance_plan and performance_plan.acts:
+            interruptible = all(act.suppressible for act in performance_plan.acts)
+        return VoicePlan(
+            str(text), rate, volume, pause_before, pause_after, hesitation,
+            bool(interruptible),
+            getattr(performance_plan, "plan_id", None),
+        )
 
 
 class TTSAdapter:

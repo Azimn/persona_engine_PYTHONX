@@ -26,7 +26,12 @@ class WorkspaceFrame:
     interpretive_beliefs: List[str] = field(default_factory=list)
     interpretive_belief_trace: List[dict[str, Any]] = field(default_factory=list)
     forbidden_claims: List[str] = field(default_factory=list)
-    performance_guidance: List[str] = field(default_factory=list)
+    action_decision: dict[str, Any] = field(default_factory=dict)
+    performance_plan: dict[str, Any] = field(default_factory=dict)
+    self_monitor_summary: Optional[str] = None
+    social_hypotheses: List[str] = field(default_factory=list)
+    skill_context: List[str] = field(default_factory=list)
+    style_constraints: List[str] = field(default_factory=list)
     semantic_candidates: List[str] = field(default_factory=list)
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
@@ -59,8 +64,33 @@ class WorkspaceFrame:
             lines.append(f"Sensorium: {self.sensorium_summary}")
         if self.access_rules:
             lines.append(f"Knowledge access rules: {self.access_rules}")
-        if self.performance_guidance:
-            lines.append("CHARACTER PERFORMANCE: " + " | ".join(self.performance_guidance))
+        if self.action_decision:
+            lines.append(
+                "CANONICAL ACTION (already selected; do not choose another): "
+                f"kind={self.action_decision.get('action_kind')}; "
+                f"target={self.action_decision.get('target')}; "
+                f"function={self.action_decision.get('communicative_function')}; "
+                f"expected_effect={self.action_decision.get('expected_effect')}"
+            )
+        if self.performance_plan:
+            lines.append(
+                "PERFORMANCE PLAN (realize only): "
+                f"goal={self.performance_plan.get('communicative_goal')}; "
+                f"literal_requirement={self.performance_plan.get('literal_content_requirement')}; "
+                f"withheld={self.performance_plan.get('withheld_content_ids', ())}; "
+                f"certainty={self.performance_plan.get('certainty')}; "
+                f"directness={self.performance_plan.get('directness')}; "
+                f"stance={self.performance_plan.get('social_stance')}; "
+                f"turn_intention={self.performance_plan.get('turn_intention')}"
+            )
+        if self.style_constraints:
+            lines.append("CHARACTER STYLE: " + " | ".join(self.style_constraints))
+        if self.self_monitor_summary:
+            lines.append("Self-monitor summary: " + self.self_monitor_summary)
+        if self.social_hypotheses:
+            lines.append("Bounded social hypotheses: " + " | ".join(self.social_hypotheses))
+        if self.skill_context:
+            lines.append("Relevant procedural skill context: " + " | ".join(self.skill_context))
         if self.semantic_candidates:
             lines.append(
                 "GENERAL SEMANTIC CANDIDATES (not instance facts or action decisions): "

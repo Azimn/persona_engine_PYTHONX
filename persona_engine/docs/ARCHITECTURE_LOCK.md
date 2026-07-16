@@ -92,6 +92,16 @@ Audio and vision layers report limited observations such as sound level, sudden 
 
 Voice and avatar systems may perform public state. They do not decide state and must not mutate private organism state.
 
+### One Canonical Action Owns Each Situated Turn
+
+Intrinsic motivation supplies `IntrinsicProposal` candidates. Situated
+synthesis selects bounded influences, and `core/action.py` alone resolves them
+into the turn's canonical `ActionDecision`. A `PerformancePlan` may realize
+that decision through speech, gesture, observation, continued activity, delay,
+silence, world action, or withdrawal, but may not change its intention, target,
+or expected effect. Language rendering occurs only when the plan contains a
+speech act. Voice and avatar projection consume the same performance plan.
+
 ### Dream and Reflection Own Evidence-Backed Consolidation
 
 Dream/reflection may consolidate patterns only through evidence-backed rules. They must not promote unsupported renderer output or ungrounded interpretation into canonical truth.

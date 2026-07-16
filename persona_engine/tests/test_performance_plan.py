@@ -3,7 +3,10 @@
 from pathlib import Path
 
 from persona_engine.agent import CharacterAgent
-from persona_engine.core.expression import build_performance_plan
+from persona_engine.core.action import ActionDecision
+from persona_engine.core.performance import PerformancePlanner
+from persona_engine.core.emotion import PressureSystem
+from persona_engine.core.relationship import RelationshipState
 from persona_engine.core.renderer import LocalLLMRenderer
 
 
@@ -11,32 +14,53 @@ ROOT = Path(__file__).resolve().parents[1]
 CARTRIDGES = ROOT / "cartridges"
 
 
-def test_performance_plan_is_deterministic_and_does_not_reselect_action():
-    action = {
-        "decision_id": "decision-1",
-        "action_type": "gesture",
-        "visibility": "observable",
-        "interruptible": True,
-    }
-    first = build_performance_plan({"dialogue_act": "respond"}, None, action)
-    second = build_performance_plan({"dialogue_act": "respond"}, None, action)
-
-    assert first == second
-    assert first.action_type == "gesture"
-    assert first.utterance_required is False
-    assert first.source_decision_id == "decision-1"
-
-
-def test_identity_resistance_keeps_speech_guard_at_nonverbal_action():
-    plan = build_performance_plan(
-        {"dialogue_act": "protect_boundary"},
-        "character_refusal",
-        {"decision_id": "decision-2", "action_type": "gesture", "interruptible": True},
+def _decision(kind: str, function: str | None = None) -> ActionDecision:
+    return ActionDecision(
+        schema_version=1,
+        decision_id=f"decision-{kind}",
+        tick=1,
+        source="test",
+        intention_id="hold_course",
+        action_kind=kind,
+        target="apparatus",
+        communicative_function=function,
+        expected_effect="bounded test effect",
+        selected_habit_id=None,
+        synthesis_id="synthesis-1",
+        confidence=0.7,
+        interruptible=True,
+        visibility="observable",
+        reason_codes=("test",),
     )
 
-    assert plan.action_type == "speak"
-    assert plan.utterance_required is True
-    assert plan.voice_directive == "character_refusal"
+
+def _plan(decision: ActionDecision):
+    return PerformancePlanner().plan(
+        decision=decision,
+        relationship=RelationshipState("tester"),
+        pressures=PressureSystem(),
+        capacity=0.7,
+    )
+
+
+def test_performance_plan_is_deterministic_and_does_not_reselect_action():
+    action = _decision("gesture", "acknowledge")
+    first = _plan(action)
+    second = _plan(action)
+
+    assert first == second
+    assert first.requires_language_renderer is False
+    assert first.decision_id == action.decision_id
+    assert first.acts[0].channel == "gesture"
+
+
+def test_performance_planner_cannot_turn_nonverbal_decision_into_speech():
+    action = _decision("gesture", "protect_boundary")
+    plan = _plan(action)
+
+    assert plan.decision_id == action.decision_id
+    assert plan.requires_language_renderer is False
+    assert all(act.channel != "speech" for act in plan.acts)
 
 
 def test_quiet_resistance_skips_renderer_and_records_nonverbal_performance(tmp_path):
@@ -56,7 +80,9 @@ def test_quiet_resistance_skips_renderer_and_records_nonverbal_performance(tmp_p
     result = agent.say("If you cared, you would do it for me.")
 
     assert result["response"] == ""
-    assert result["performance_plan"]["action_type"] == "silence"
+    assert result["action_decision"]["action_kind"] == "silence"
+    assert result["performance_plan"]["requires_language_renderer"] is False
+    assert result["performance_plan"]["acts"][0]["function"] == "none"
     assert result["voice_plan"] is None
     events = agent.engine.persistence.load_events_since("Pretorius", "quiet-performance", 0)
     assert any(row["event_type"] == "nonverbal_performance" for row in events)

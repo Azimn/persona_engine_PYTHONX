@@ -24,7 +24,8 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Append-only objective world events, per-character subjective experience traces, bounded memory lifecycle, and explained hybrid retrieval.
 - Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
 - Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
-- Immutable performance plans that permit speech, gesture, silence, reaction, delay, or continued activity without forcing an LLM call.
+- One canonical typed action per situated turn, selected from synthesis rather than by intrinsic motivation or the renderer.
+- Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an LLM call.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
 - Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
@@ -79,7 +80,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-236 passed, 1 skipped
+239 passed, 1 skipped
 ```
 
 ## Run Simulators

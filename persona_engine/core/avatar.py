@@ -7,7 +7,10 @@ never reads private raw pressures and never authors memory, belief, or emotion.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .performance import PerformancePlan
 
 
 @dataclass(frozen=True)
@@ -33,6 +36,7 @@ class AvatarState:
     posture_state: str
     attention_state: str
     motion_state: str
+    performance_plan_id: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -42,7 +46,11 @@ class AvatarProjector:
     def __init__(self, profile: AvatarProfile | None = None):
         self.profile = profile or AvatarProfile()
 
-    def project(self, public_status: dict[str, str]) -> AvatarState:
+    def project(
+        self,
+        public_status: dict[str, str],
+        performance_plan: "PerformancePlan | None" = None,
+    ) -> AvatarState:
         avatar = public_status.get("avatar_state", self.profile.default_face)
         if avatar == "tired":
             face = self.profile.tired_face
@@ -55,7 +63,21 @@ class AvatarProjector:
         attention = public_status.get("attention", "none")
         gaze = "toward_user" if attention == "user" else "averted" if avatar in {"guarded", "tense"} else "soft_focus"
         motion = self.profile.restless_motion if public_status.get("movement_need") == "high" else "still"
-        return AvatarState(face, gaze, public_status.get("posture", "settled"), attention, motion)
+        if performance_plan and performance_plan.acts:
+            act = performance_plan.acts[0]
+            if act.channel == "gesture":
+                motion = "gesture"
+            elif act.channel == "activity":
+                motion = "continue_activity"
+            elif act.channel == "movement" and act.function == "withdraw":
+                gaze = "averted"
+                motion = "withdraw"
+            elif act.channel == "gaze":
+                gaze = "toward_target"
+        return AvatarState(
+            face, gaze, public_status.get("posture", "settled"), attention, motion,
+            getattr(performance_plan, "plan_id", None),
+        )
 
 
 class AvatarEngineAdapter:
