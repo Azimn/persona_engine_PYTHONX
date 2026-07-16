@@ -73,8 +73,9 @@ _ALLOWED_SECTION_FIELDS.update({
         "return_to_topic",
         "ask_clarification",
         "continuity_moves",
-        "probe", "compare", "speculate", "express_curiosity",
+        "probe", "compare", "challenge", "reminisce", "speculate", "express_curiosity",
         "activity_update",
+        "obligation_answer", "obligation_acknowledge", "obligation_follow_up",
     },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")

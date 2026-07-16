@@ -16,6 +16,7 @@ def autobiographical_fixture(engine, experience_id: str) -> dict[str, Any]:
         "actors": engine.actor_registry.to_list(),
         "actor_relationships": engine.actor_relationships.to_list(),
         "active_actor_id": engine.active_actor_id,
+        "conversation_continuity": engine.conversation_continuity.to_list(),
         "world_event": event.to_dict() if event else None,
         "subjective_experience": experience.to_dict(),
         "autobiographical_interpretations": [
@@ -45,6 +46,7 @@ def developmental_fixture(engine) -> dict[str, Any]:
         "actors": engine.actor_registry.to_list(),
         "actor_relationships": engine.actor_relationships.to_list(),
         "active_actor_id": engine.active_actor_id,
+        "conversation_continuity": engine.conversation_continuity.to_list(),
         "world_events": engine.world_events.to_list(),
         "subjective_experiences": engine.experiences.to_list(),
         "autobiographical_interpretations": engine.autobiographical_interpretations.to_list(),

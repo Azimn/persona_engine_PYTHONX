@@ -55,6 +55,17 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         str(item.get("conversation_move")) for item in diagnostics
         if item.get("conversation_move") and item.get("conversation_move") != "basic_reply"
     }
+    conversation_extensions = {
+        str(item.get("conversation_extension")) for item in diagnostics
+        if item.get("conversation_extension")
+    }
+    obligation_functions = {
+        "answer": {"answer", "respond", "reminisce"},
+        "clarify": {"ask_clarification"},
+        "acknowledge": {"acknowledge", "respond"},
+        "repair": {"repair", "acknowledge"},
+        "follow_up": {"return_to_topic", "defer_and_note", "reminisce_and_note"},
+    }
     activity_callbacks = sum(
         item.get("activity_transition") in {
             "continued", "paused", "resumed", "completed", "failed", "abandoned", "changed",
@@ -69,21 +80,49 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         }
         for item in diagnostics
     )
+    signatures_by_participant: dict[str, list[str]] = defaultdict(list)
+    for item in diagnostics:
+        if item.get("move_signature"):
+            signatures_by_participant[str(item.get("participant_id"))].append(str(item["move_signature"]))
+    semantic_repeats = sum(
+        current == previous
+        for values in signatures_by_participant.values()
+        for previous, current in zip(values, values[1:])
+    )
     metrics = {
         "turn_count": len(turns), "day_count": max((item.day for item in turns), default=0),
         "speech_action_ratio": round(speech / max(1, len(turns)), 6),
+        "question_rate": round(sum("?" in item.text for item in turns) / max(1, len(turns)), 6),
         "silence_ratio": round((len(turns) - speech) / max(1, len(turns)), 6),
         "exact_repeat_count": repeats, "private_state_leak_count": private_hits,
         "exact_repeat_count_by_speaker": repeats_by_speaker,
         "renderer_call_count": model_calls, "renderer_task_call_count": renderer_task_calls,
         "behavior_change_score": behavior_change,
         "conversation_move_diversity": len(conversation_moves),
+        "conversation_extension_diversity": len(conversation_extensions),
+        "obligation_honored_count": sum(
+            item.get("communicative_function")
+            in obligation_functions.get(str(item.get("conversation_obligation")), set())
+            for item in diagnostics if item.get("conversation_obligation")
+        ),
         "activity_callback_count": activity_callbacks,
         "behavioral_tendency_use_count": tendency_uses,
         "unprompted_continuity_count": continuity_moves,
         "activity_update_count": sum(
             item.get("conversation_move") == "activity_update" for item in diagnostics
         ),
+        "optional_extension_count": sum(
+            bool(item.get("conversation_extension")) for item in diagnostics
+        ),
+        "no_extension_count": sum(
+            bool(item.get("conversation_obligation")) and not item.get("conversation_extension")
+            for item in diagnostics
+        ),
+        "semantic_move_repeat_count": semantic_repeats,
+        "topic_transition_counts": {
+            reason: sum(item.get("topic_transition_reason") == reason for item in diagnostics)
+            for reason in ("completed", "exhausted", "interrupted", "avoided", "displaced")
+        },
         "reinterpretation_count": max((int(item.get("reinterpretation_count", 0)) for item in diagnostics), default=0),
         "deferred_reinterpretation_count": max((int(item.get("deferred_reinterpretation_count", 0)) for item in diagnostics), default=0),
     }

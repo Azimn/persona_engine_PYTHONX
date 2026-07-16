@@ -253,6 +253,23 @@ class BehavioralEvaluationHarness:
                     item.conversation_candidate.get("move") for item in causal
                     if item.conversation_candidate.get("move") not in {None, "basic_reply"}
                 }),
+                "conversation_extension_diversity": len({
+                    item.conversation_candidate.get("extension_move") for item in causal
+                    if item.conversation_candidate.get("extension_move")
+                }),
+                "obligation_honored_count": sum(
+                    (
+                        item.action_decision.get("communicative_function")
+                        in {
+                            "answer": {"answer", "respond", "reminisce"},
+                            "clarify": {"ask_clarification"},
+                            "acknowledge": {"acknowledge", "respond"},
+                            "repair": {"repair", "acknowledge"},
+                            "follow_up": {"return_to_topic", "defer_and_note", "reminisce_and_note"},
+                        }.get(item.conversation_candidate.get("obligation"), set())
+                    )
+                    for item in causal if item.conversation_candidate.get("obligation")
+                ),
                 "behavioral_tendency_use_count": sum(
                     bool(item.conversation_candidate.get("tendency_id")) for item in causal
                 ),
@@ -264,6 +281,30 @@ class BehavioralEvaluationHarness:
                 ),
                 "activity_update_count": sum(
                     item.conversation_candidate.get("move") == "activity_update" for item in causal
+                ),
+                "optional_extension_count": sum(
+                    bool(item.conversation_candidate.get("extension_move")) for item in causal
+                ),
+                "no_extension_count": sum(
+                    bool(item.conversation_candidate.get("obligation"))
+                    and not item.conversation_candidate.get("extension_move")
+                    for item in causal
+                ),
+                "semantic_move_repeat_count": sum(
+                    (
+                        prior.conversation_candidate.get("obligation"),
+                        prior.conversation_candidate.get("extension_move"),
+                        prior.action_decision.get("action_kind"),
+                    ) == (
+                        current.conversation_candidate.get("obligation"),
+                        current.conversation_candidate.get("extension_move"),
+                        current.action_decision.get("action_kind"),
+                    )
+                    for participant in {item.speaker_id for item in causal}
+                    for prior, current in zip(
+                        [item for item in causal if item.speaker_id == participant],
+                        [item for item in causal if item.speaker_id == participant][1:],
+                    )
                 ),
             },
         )

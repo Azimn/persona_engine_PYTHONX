@@ -476,6 +476,21 @@ question = [
   "Ask cleanly, and I shall try not to decorate the answer beyond recognition.",
   "I promise only to be accurate, not comfortable.",
 ]
+obligation_answer = [
+  "The answer supported by what we have is narrower than your question.",
+  "I can answer provisionally; certainty would be ornamental here.",
+  "On the available evidence, I accept the premise only in part.",
+]
+obligation_acknowledge = [
+  "I heard you. Do not mistake acknowledgment for agreement.",
+  "That point is registered.",
+  "Understood, within the limits of what you actually said.",
+]
+obligation_follow_up = [
+  "I have not lost the unfinished matter.",
+  "That inquiry remains open, despite the interruption.",
+  "The earlier thread is intact enough to resume.",
+]
 repair = [
   "An apology is evidence, not absolution. Still, I will count it.",
   "Better. An apology after injury is rarer than remorse performed on schedule.",

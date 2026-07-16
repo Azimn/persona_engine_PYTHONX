@@ -7,6 +7,8 @@ import hashlib
 import re
 from typing import Any, Mapping, Sequence
 
+from .conversation_continuity import OBLIGATIONS, OPTIONAL_MOVES, obligation_for_input
+
 
 INPUT_ACTS = frozenset({
     "greeting", "inform", "ask_fact", "ask_opinion", "ask_memory",
@@ -18,6 +20,7 @@ CONVERSATION_MOVES = frozenset({
     "reminisce_and_note", "acknowledge_nonverbal", "ask_clarification",
     "probe", "compare", "speculate", "express_curiosity", "continue_working",
     "activity_update",
+    "honor_obligation",
 })
 NOTE_REASONS = frozenset({
     "interrupted", "insufficient_context", "offline_knowledge_unavailable",
@@ -43,8 +46,8 @@ def topic_key(text: str) -> str:
 
 
 def classify_input(text: str) -> str:
-    lowered = " ".join(str(text).lower().split())
-    if lowered in {"", "...", ".", "okay", "ok", "fine", "hmm"}:
+    lowered = " ".join(str(text).lower().split()).strip(" .!?")
+    if lowered in {"", "...", ".", "okay", "ok", "hmm"}:
         return "low_information"
     if re.search(r"\b(bye|goodbye|gotta go|i am back|i'm back|returned)\b", lowered):
         return "leave_or_return"
@@ -86,6 +89,11 @@ class ConversationCandidate:
     performance_tendency_id: str | None = None
     activity_transition: str | None = None
     continuity_source_id: str | None = None
+    obligation: str = "acknowledge"
+    extension_move: str | None = None
+    no_extension_reason: str | None = None
+    active_topic_id: str | None = None
+    topic_transition_reason: str | None = None
 
     def __post_init__(self) -> None:
         if self.input_act not in INPUT_ACTS:
@@ -94,6 +102,10 @@ class ConversationCandidate:
             raise ValueError(f"unsupported conversation move: {self.move}")
         if self.required_capability not in CAPABILITIES:
             raise ValueError(f"unsupported capability: {self.required_capability}")
+        if self.obligation not in OBLIGATIONS:
+            raise ValueError(f"unsupported conversation obligation: {self.obligation}")
+        if self.extension_move is not None and self.extension_move not in OPTIONAL_MOVES:
+            raise ValueError(f"unsupported conversation extension: {self.extension_move}")
         if not 0.0 <= float(self.strength) <= 1.0 or not 0.0 <= float(self.response_value) <= 1.0:
             raise ValueError("conversation candidate values must be within [0, 1]")
 
@@ -108,6 +120,11 @@ class ConversationCandidate:
         raw.setdefault("performance_tendency_id", None)
         raw.setdefault("activity_transition", None)
         raw.setdefault("continuity_source_id", None)
+        raw.setdefault("obligation", obligation_for_input(raw.get("input_act", "inform")))
+        raw.setdefault("extension_move", None)
+        raw.setdefault("no_extension_reason", None)
+        raw.setdefault("active_topic_id", None)
+        raw.setdefault("topic_transition_reason", None)
         return cls(**raw)
 
 
@@ -130,7 +147,8 @@ class BehavioralTendency:
         if not self.trigger_acts or any(item not in INPUT_ACTS for item in self.trigger_acts):
             raise ValueError("behavioral tendency trigger_acts contain an unsupported input act")
         if self.preferred_move not in {
-            "probe", "compare", "speculate", "express_curiosity", "continue_working",
+            "probe", "compare", "challenge", "reminisce", "speculate",
+            "express_curiosity", "continue_working",
         }:
             raise ValueError("unsupported behavioral tendency move")
         if not -0.5 <= float(self.bias) <= 0.5:
@@ -218,6 +236,7 @@ def derive_conversation_candidate(
     dominant_pressure: float = 0.0,
     elapsed_since_contact: float = 0.0,
     life_callback_history: Sequence[str] = (),
+    continuity_state: Any | None = None,
 ) -> ConversationCandidate:
     act = classify_input(text)
     key = topic_key(text)
@@ -241,8 +260,14 @@ def derive_conversation_candidate(
         turn=turn,
         recent_history=tendency_history,
     )
+    if " ".join(str(text).lower().split()).strip(" .!?") == "fine":
+        selected_tendency = None
     returning = act in {"greeting", "leave_or_return"} and elapsed_since_contact >= 60.0
     activity_source = f"activity:{current_activity.casefold()}" if current_activity else None
+    obligation = (
+        str(getattr(continuity_state, "pending_obligation", None) or obligation_for_input(act))
+        if continuity_state is not None else obligation_for_input(act)
+    )
 
     if ready_open_loop is not None and (
         getattr(ready_open_loop, "required_capability", "none") == "none"
@@ -318,6 +343,49 @@ def derive_conversation_candidate(
         strength = 0.80
         reasons.append("relationship:high_value")
 
+    if move == "ask_clarification":
+        obligation = "clarify"
+    elif move in {"defer_and_note", "reminisce_and_note", "return_to_topic"}:
+        obligation = "follow_up"
+    if continuity_state is not None:
+        continuity_state.pending_obligation = obligation
+
+    extension_move = None
+    no_extension_reason = None
+    if selected_tendency is not None and move == selected_tendency.preferred_move:
+        allowed, no_extension_reason = (
+            continuity_state.extension_allowed(move)
+            if continuity_state is not None else (True, None)
+        )
+        extension_move = move if allowed else None
+        move = "honor_obligation"
+        strength = max(strength, 0.72)
+        response_value = max(response_value, 0.76)
+        reasons.append(
+            f"extension:selected:{extension_move}"
+            if extension_move else str(no_extension_reason or "extension:omitted")
+        )
+    elif move == "basic_reply":
+        move = "honor_obligation"
+        strength = max(strength, 0.68)
+        response_value = max(response_value, 0.70)
+        no_extension_reason = "extension:none_selected"
+        reasons.append(no_extension_reason)
+
+    if (
+        move == "honor_obligation"
+        and obligation == "acknowledge"
+        and extension_move is None
+        and continuity_state is not None
+        and continuity_state.last_action_kind in {None, "speak"}
+    ):
+        repeated_shape = continuity_state.recent_move_signatures[-4:].count("acknowledge|none")
+        if repeated_shape >= 1:
+            move = "acknowledge_nonverbal"
+            strength = max(strength, 0.74)
+            response_value = 0.18
+            reasons.append(f"shape:semantic_repeat:{repeated_shape}")
+
     return ConversationCandidate(
         schema_version=1,
         candidate_id=_stable_id(actor_id, turn, act, move, key, memory_id, loop_key),
@@ -330,19 +398,32 @@ def derive_conversation_candidate(
         source_open_loop_key=loop_key,
         required_capability=required,
         reason_codes=tuple(reasons),
-        tendency_id=selected_tendency.tendency_id if selected_tendency and move == selected_tendency.preferred_move else None,
+        tendency_id=(
+            selected_tendency.tendency_id
+            if selected_tendency and extension_move == selected_tendency.preferred_move else None
+        ),
         performance_tendency_id=(
             selected_tendency.performance_tendency_id
-            if selected_tendency and move == selected_tendency.preferred_move else None
+            if selected_tendency and extension_move == selected_tendency.preferred_move else None
         ),
         activity_transition=(
-            "continued" if move in {"continue_working", "activity_update"}
+            "continued" if move in {"continue_working", "activity_update"} or extension_move == "continue_working"
             else activity_status if activity_status in {"continued", "paused", "resumed", "completed", "failed", "abandoned", "changed"}
             else None
         ),
         continuity_source_id=(
             activity_source if move == "activity_update"
             else None
+        ),
+        obligation=obligation,
+        extension_move=extension_move,
+        no_extension_reason=no_extension_reason,
+        active_topic_id=(
+            continuity_state.active_topic.topic_id
+            if continuity_state is not None and continuity_state.active_topic else None
+        ),
+        topic_transition_reason=(
+            continuity_state.last_transition_reason if continuity_state is not None else None
         ),
     )
 

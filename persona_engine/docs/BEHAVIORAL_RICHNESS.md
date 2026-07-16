@@ -36,6 +36,13 @@ that an actual activity was continued, paused, resumed, completed, failed,
 abandoned, or changed. The renderer can phrase that transition but cannot
 invent it.
 
+Conversation continuity establishes an answer, clarification,
+acknowledgment, repair, or follow-up obligation before a tendency is considered.
+A selected tendency becomes at most one optional extension. Low initiative,
+recent semantic repetition, or topic exhaustion may remove the extension while
+preserving the obligation. Offline realization no longer automatically appends
+a question to every default response.
+
 ## Life Callbacks
 
 Elapsed-time returns may propose one grounded callback from existing state:

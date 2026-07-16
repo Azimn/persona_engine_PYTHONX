@@ -201,6 +201,14 @@ class DevelopmentalPlaytestHost:
             "selected_regulation": action.get("selected_regulation_id"),
             "selected_skill": action.get("selected_skill_id"),
             "conversation_move": conversation.get("move"),
+            "conversation_obligation": conversation.get("obligation"),
+            "conversation_extension": conversation.get("extension_move"),
+            "active_topic_id": conversation.get("active_topic_id"),
+            "topic_transition_reason": conversation.get("topic_transition_reason"),
+            "move_signature": (
+                f"{conversation.get('obligation')}|{conversation.get('extension_move') or 'none'}|{action.get('action_kind')}"
+                if conversation else None
+            ),
             "behavioral_tendency_id": conversation.get("tendency_id"),
             "activity_transition": performance.get("activity_transition"),
             "activity_label": performance.get("activity_label"),

@@ -106,8 +106,12 @@ def test_same_observation_produces_character_specific_move_and_performance(tmp_p
     pretorius_result = pretorius.say(observation)
     kiki_result = kiki.say(observation)
 
-    assert pretorius_result["conversation_candidate"]["move"] == "probe"
-    assert kiki_result["conversation_candidate"]["move"] == "express_curiosity"
+    assert pretorius_result["conversation_candidate"]["move"] == "honor_obligation"
+    assert kiki_result["conversation_candidate"]["move"] == "honor_obligation"
+    assert pretorius_result["conversation_candidate"]["obligation"] == "acknowledge"
+    assert kiki_result["conversation_candidate"]["obligation"] == "acknowledge"
+    assert pretorius_result["conversation_candidate"]["extension_move"] == "probe"
+    assert kiki_result["conversation_candidate"]["extension_move"] == "express_curiosity"
     assert pretorius_result["conversation_candidate"]["tendency_id"] == "precision_probe"
     assert kiki_result["conversation_candidate"]["tendency_id"] == "bright_curiosity"
     assert pretorius_result["performance_plan"]["social_stance"] != kiki_result["performance_plan"]["social_stance"]

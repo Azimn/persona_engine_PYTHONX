@@ -87,8 +87,9 @@ from .journal import PersonalJournal
 from .actors import ActorRegistry, ActorRelationshipStore
 from .offline_conversation import (
     ConversationCandidate, derive_conversation_candidate, renderer_is_model_backed,
-    parse_behavioral_tendencies,
+    parse_behavioral_tendencies, classify_input, topic_key,
 )
+from .conversation_continuity import ConversationContinuityStore
 
 
 def bucket_risk(risk: float) -> str:
@@ -151,6 +152,7 @@ class InteriorEngine:
             tick=0, actor_kind="human", source="session", recognition_confidence=1.0,
         )
         self.actor_relationships = ActorRelationshipStore()
+        self.conversation_continuity = ConversationContinuityStore()
         self.active_actor_id = self.default_actor.actor_id
         self.relationship = self.actor_relationships.for_actor(self.active_actor_id)
         self.memory = MemoryStore(embedding_provider=NoEmbeddingProvider())
@@ -355,6 +357,9 @@ class InteriorEngine:
         )
         relationship_state = self.persistence.load(cid, uid, "actor_relationships", [])
         self.actor_relationships = ActorRelationshipStore.from_list(relationship_state)
+        self.conversation_continuity = ConversationContinuityStore.from_list(
+            self.persistence.load(cid, uid, "conversation_continuity", [])
+        )
         self.active_actor_id = int(meta.get("active_actor_id", self.default_actor.actor_id))
         if self.actor_registry.fetch(self.active_actor_id) is None:
             self.active_actor_id = self.default_actor.actor_id
@@ -565,6 +570,7 @@ class InteriorEngine:
             "relationship": vars(self.relationship),
             "actor_registry": self.actor_registry.to_list(),
             "actor_relationships": self.actor_relationships.to_list(),
+            "conversation_continuity": self.conversation_continuity.to_list(),
             "memories": memories,
             "pressures": pressures,
             "intentions": intentions,
@@ -1923,6 +1929,19 @@ class InteriorEngine:
         risk = self.compute_leak_risk(user_text)
         bucket = bucket_risk(risk)
         top_for_match = self.pressures.top()
+        input_act = classify_input(user_text)
+        continuity_state = self.conversation_continuity.for_actor(self.active_actor_id)
+        continuity_state.observe_input(
+            text=user_text,
+            input_act=input_act,
+            topic_id=topic_key(user_text),
+            turn=self.timestep,
+            emotional_importance=max(
+                appraisal.accusation, appraisal.intimacy_bid, appraisal.repair_attempt,
+                appraisal.disrespect, appraisal.manipulation,
+                top_for_match.magnitude if top_for_match else 0.0,
+            ),
+        )
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
         active_meaning_ids = tuple(
             item.interpretation_id for item in self.autobiographical_interpretations.interpretations
@@ -2017,15 +2036,24 @@ class InteriorEngine:
             and not item.memory.content.casefold().startswith("i heard you say")
             and not ({"sensorium", "ambient_event"} & item.memory.tags)
         ]
+        contextual_prior_memory_retrievals = [
+            item for item in prior_memory_retrievals
+            if continuity_state.memory_context_score(item.memory.content) >= 0.12
+            or float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
+        ]
+        candidate_memory_retrievals = (
+            prior_memory_retrievals
+            if input_act == "ask_memory" else contextual_prior_memory_retrievals
+        )
         raw_direct_memory_cue = any(
             float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
-            for item in prior_memory_retrievals
+            for item in candidate_memory_retrievals
         )
         conversation_candidate = derive_conversation_candidate(
             text=user_text,
             actor_id=self.active_actor_id,
             renderer_available=renderer_is_model_backed(self.renderer),
-            retrieved=prior_memory_retrievals,
+            retrieved=candidate_memory_retrievals,
             direct_memory_cue=raw_direct_memory_cue,
             ready_open_loop=open_loop,
             familiarity=self.relationship.familiarity,
@@ -2042,6 +2070,7 @@ class InteriorEngine:
             dominant_pressure=top_for_match.magnitude if top_for_match else 0.0,
             elapsed_since_contact=float(self.last_catch_up_summary.get("elapsed_seconds", 0.0)),
             life_callback_history=self._life_callback_history,
+            continuity_state=continuity_state,
         )
         self._last_conversation_candidate = conversation_candidate
         if conversation_candidate.move != "basic_reply":
@@ -2147,6 +2176,12 @@ class InteriorEngine:
         ]
         for trace in retrieved_memory_trace:
             trace["considered_in_synthesis"] = f"memory:{trace['memory_id']}" in considered_ids
+            memory_item = next(
+                (item.memory for item in retrievals if item.memory.id == trace["memory_id"]), None
+            )
+            trace["active_topic_score"] = (
+                continuity_state.memory_context_score(memory_item.content) if memory_item else 0.0
+            )
         synthesis_payload = synthesis.to_dict()
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "synthesis", {
             **synthesis_payload,
@@ -2164,13 +2199,19 @@ class InteriorEngine:
             (item for item in self.dyadic_rituals.rituals if item.ritual_id == synthesis.selected_dyadic_ritual_id),
             None,
         )
+        conversation_grounding_pool = (
+            prior_memory_retrievals
+            if conversation_candidate.move in {"reminisce", "reminisce_and_note"}
+            else candidate_memory_retrievals
+        )
         grounded_conversation_memory_id = next((
-            item.memory.id for item in prior_memory_retrievals
+            item.memory.id for item in conversation_grounding_pool
             if f"memory:{item.memory.id}" in considered_ids
         ), None)
-        conversation_memory_required = conversation_candidate.move in {
-            "reminisce", "reminisce_and_note", "compare"
-        }
+        conversation_memory_required = (
+            conversation_candidate.move in {"reminisce", "reminisce_and_note"}
+            or conversation_candidate.extension_move in {"compare", "reminisce"}
+        )
         selected_conversation = (
             replace(conversation_candidate, source_memory_id=grounded_conversation_memory_id)
             if synthesis.selected_conversation_candidate_id == conversation_candidate.candidate_id
@@ -2204,6 +2245,22 @@ class InteriorEngine:
             selected_regulation=selected_regulation,
             selected_ritual=selected_ritual,
             selected_conversation=selected_conversation,
+        )
+        transition_reason = None
+        if input_act == "leave_or_return" and "back" not in user_text.lower() and "return" not in user_text.lower():
+            transition_reason = "interrupted"
+        elif resistance:
+            transition_reason = "avoided"
+        elif (
+            continuity_state.active_topic
+            and continuity_state.active_topic.depth >= 8
+            and not (selected_conversation and selected_conversation.extension_move)
+        ):
+            transition_reason = "exhausted"
+        continuity_state.complete_turn(
+            extension_move=(selected_conversation.extension_move if selected_conversation else None),
+            action_kind=action_decision.action_kind,
+            transition_reason=transition_reason,
         )
         if selected_conversation and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}:
             self.intentions.add_open_loop(OpenLoop(
@@ -2448,6 +2505,13 @@ class InteriorEngine:
                     if selected_conversation and selected_conversation.move == "activity_update"
                     else None
                 ),
+                conversation_continuity=continuity_state.summary(),
+                conversational_obligation=(
+                    selected_conversation.obligation if selected_conversation else None
+                ),
+                optional_extension=(
+                    selected_conversation.extension_move if selected_conversation else None
+                ),
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
@@ -2478,6 +2542,7 @@ class InteriorEngine:
                     "action_decision": action_decision.to_dict(),
                     "performance_plan": performance_payload,
                     "conversation_candidate": selected_conversation.to_dict() if selected_conversation else None,
+                    "conversation_continuity": continuity_state.to_dict(),
                     "active_actor_id": self.active_actor_id,
                 },
                 deception_obligations=[],
@@ -2564,6 +2629,7 @@ class InteriorEngine:
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
             "conversation_candidate": effective_conversation_candidate.to_dict(),
+            "conversation_continuity": continuity_state.to_dict(),
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
@@ -2604,6 +2670,7 @@ class InteriorEngine:
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
             "conversation_candidate": effective_conversation_candidate.to_dict(),
+            "conversation_continuity": continuity_state.to_dict(),
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),

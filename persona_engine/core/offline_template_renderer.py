@@ -90,12 +90,42 @@ class OfflineTemplateRenderer:
         seed: int | None = None,
         realization: Mapping[str, Sequence[str]] | None = None,
         conversation_move: str | None = None,
+        obligation: str | None = None,
+        extension_move: str | None = None,
         actor_id: int | str | None = None,
     ) -> str:
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
         group = conversation_move or self._classify(user_text, system_text)
+        if group == "honor_obligation":
+            surface_group = self._classify(user_text, system_text)
+            if surface_group == "knowledge":
+                text = self._render_knowledge(system_text)
+            elif surface_group == "activity":
+                text = self._render_activity(system_text)
+            elif surface_group == "grounded_memory":
+                text = self._render_grounded_memory(user_text, system_text)
+            elif surface_group not in {"default", "question"}:
+                template = self._choose(
+                    surface_group, user_text, system_text, seed, realization, actor_id,
+                )
+                text = self._apply_tone(template.text, system_text, seed)
+            else:
+                text = self._render_obligation(
+                    obligation or "acknowledge", user_text, system_text,
+                    realization, seed, actor_id,
+                )
+            if extension_move and extension_move != "continue_working":
+                extension = (
+                    self._render_reminiscence(system_text, realization, seed, actor_id)
+                    if extension_move == "reminisce"
+                    else self._render_behavior_move(
+                        extension_move, system_text, realization, seed, actor_id,
+                    )
+                )
+                text = f"{text} {extension}"
+            return self._clean_truncate(text, max_chars)
         if group in {"reminisce", "reminisce_and_note"}:
             if group == "reminisce_and_note":
                 detail = self._memory_detail(system_text)[:90].rstrip(" ,;:")
@@ -126,20 +156,47 @@ class OfflineTemplateRenderer:
             return self._clean_truncate(self._render_knowledge(system_text), max_chars)
         template = self._choose(group, user_text, system_text, seed, realization, actor_id)
         text = self._apply_tone(template.text, system_text, seed)
-        if group in {"default", "question"}:
-            continuity = self._choose_text(
-                "continuity_moves", realization,
-                (
-                    "Give me the consequence, not merely the premise.",
-                    "Tie that to what came before.",
-                    "There is still a thread to follow.",
-                    "Be specific about the next part.",
-                    "I am listening for what changes.",
-                ),
-                seed, actor_id,
-            )
-            text = f"{text} {continuity}"
         return self._clean_truncate(text, max_chars)
+
+    def _render_obligation(
+        self, obligation: str, user_text: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        groups = {
+            "answer": "obligation_answer",
+            "clarify": "ask_clarification",
+            "acknowledge": "obligation_acknowledge",
+            "repair": "repair",
+            "follow_up": "obligation_follow_up",
+        }
+        defaults = {
+            "answer": (
+                "I can answer the part that is actually established.",
+                "My answer is conditional; the evidence does not support certainty.",
+                "The useful answer is narrower than the question.",
+            ),
+            "clarify": (
+                "I need one concrete detail before I choose a meaning.",
+                "Clarify which part you mean.",
+            ),
+            "acknowledge": (
+                "I heard you.",
+                "That is understood.",
+                "I have the point.",
+            ),
+            "repair": (
+                "I recognize the attempt to repair this.",
+                "The apology is acknowledged; what follows will matter more.",
+            ),
+            "follow_up": (
+                "I have not lost the unfinished matter.",
+                "That thread remains open.",
+            ),
+        }
+        group = groups.get(obligation, "obligation_acknowledge")
+        text = self._choose_text(group, realization, defaults.get(obligation, defaults["acknowledge"]), seed, actor_id)
+        return self._apply_tone(text, system_text, seed)
 
     def _classify(self, user_text: str, system_text: str) -> str:
         lowered = user_text.lower().strip()
@@ -312,6 +369,10 @@ class OfflineTemplateRenderer:
             "compare": (
                 "That resembles {memory}. Where does the comparison fail?",
                 "I cannot separate {topic} from {memory}. Which distinction matters?",
+            ),
+            "challenge": (
+                "That conclusion outruns {topic}. Defend the missing step.",
+                "I do not grant {topic} merely because it was stated confidently.",
             ),
             "speculate": (
                 "One possibility is that {topic} changes the frame rather than the fact. I would not call that settled.",

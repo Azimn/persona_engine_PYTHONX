@@ -177,7 +177,7 @@ def resolve_action_decision(
         if selected_conversation.move == "acknowledge_nonverbal":
             repeated = next((
                 int(code.rsplit(":", 1)[1]) for code in selected_conversation.reason_codes
-                if code.startswith("input:repeated:")
+                if code.startswith("input:repeated:") or code.startswith("shape:semantic_repeat:")
             ), 0)
             if repeated:
                 action_kind = ("gesture", "continue_activity", "silence")[(repeated - 1) % 3]
@@ -210,6 +210,9 @@ def resolve_action_decision(
         elif selected_conversation.move == "activity_update":
             action_kind = "speak"
             communicative_function = selected_conversation.move
+        elif selected_conversation.move == "honor_obligation":
+            action_kind = "speak"
+            communicative_function = selected_conversation.obligation
         else:
             action_kind = "speak"
             communicative_function = dialogue_act

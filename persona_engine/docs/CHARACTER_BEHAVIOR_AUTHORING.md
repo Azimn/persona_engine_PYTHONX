@@ -59,6 +59,8 @@ deception rules.
 - Require memory for comparisons that claim precedent.
 - Require an actual current activity for `continue_working`.
 - Use cooldowns so a signature does not become a verbal tic.
+- Remember that tendencies are optional extensions. The engine will honor the
+  current conversational obligation first, and may omit the tendency entirely.
 - Let pressure and familiarity alter availability.
 - Put era, diction, analogy limits, and phrase form in cartridge templates.
 - Put motive, memory, relationship, and action ownership in their existing
@@ -87,6 +89,11 @@ repetition, and remains unlike a generic assistant. Then inspect the causal
 trace to confirm the visible difference came from a selected candidate,
 canonical action, and deterministic performance plan rather than renderer
 improvisation.
+
+Also inspect obligation and extension metrics. A healthy cartridge should
+produce many complete turns with no extension, should not append a question to
+every answer, and should not rely on one signature such as
+`acknowledge|probe|speak` for its identity.
 
 ## C99 Port Boundary
 

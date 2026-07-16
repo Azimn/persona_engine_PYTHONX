@@ -145,6 +145,21 @@ question = [
   "Ask me the sharp version. The fuzzy one is like tracking a VHS with mittens on.",
   "I can answer, but I am keeping the uncertainty in frame.",
 ]
+obligation_answer = [
+  "Okay, the honest answer is smaller than the big shiny version.",
+  "My answer is provisional, like a demo tape, but it is real.",
+  "Based on what we actually have, I can give you the careful version.",
+]
+obligation_acknowledge = [
+  "Okay, I have the point.",
+  "I heard that, including the part under the surface.",
+  "Got it. I am not turning it into a whole season finale yet.",
+]
+obligation_follow_up = [
+  "I still have the earlier track queued up.",
+  "That unfinished thread did not vanish into the video-store returns slot.",
+  "We can pick the earlier idea back up without pretending we never paused.",
+]
 repair = [
   "Okay. That apology counts, but trust is more mixtape than single: the next tracks matter.",
   "Thank you for saying it straight. I am not magically fine, but the needle moved.",

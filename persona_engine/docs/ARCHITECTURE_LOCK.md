@@ -118,6 +118,13 @@ familiarity, and bounded pressure, and they may select a validated performance
 tendency. They cannot select the final action, invent memory, or place
 character content in core modules.
 
+Per-actor conversation continuity is a bounded dialogue blackboard, not a
+second executive. It owns topic continuity, one pending conversational
+obligation, initiative budget, recent semantic move shapes, and transition
+reasons. It may gate optional conversation candidates and annotate contextual
+memory relevance. Synthesis still selects influences, `ActionDecision` still
+owns behavior, and the renderer still owns wording only.
+
 ### Semantic Prior Boundary
 
 The read-only semantic substrate may supply generic concept features,

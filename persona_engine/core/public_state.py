@@ -152,6 +152,8 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
                 engine._last_conversation_candidate.to_dict()
                 if getattr(engine, "_last_conversation_candidate", None) else None
             ),
+            "conversation_continuity": getattr(engine, "conversation_continuity", None).to_list()
+            if getattr(engine, "conversation_continuity", None) else [],
             "conversation_notes": [
                 asdict(item) for item in getattr(engine.intentions, "open_loops", ())
                 if getattr(item, "reason", "") in {

@@ -33,6 +33,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Portable offline conversation uses bounded input acts, memory-grounded reminiscence, capability-tagged pending topics, nonverbal acknowledgements, and persistent shuffle cooldowns without model calls.
 - Cartridge-authored Behavioral Richness tendencies expose probing, comparison, speculation, curiosity, and continued work through synthesis-selected actions and deterministic activity callbacks.
 - Grounded life callbacks can report actual elapsed activity and resume ordinary open loops. Every character possesses a journal artifact for private recall; cartridges govern its name and note voice, while conversation mentions require a relevant selected action.
+- A bounded per-actor conversation blackboard preserves topic depth, obligations, initiative, and semantic move variety so answers and acknowledgments precede at most one optional character move; turns may end without a follow-up question.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
@@ -88,7 +89,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-348 passed, 1 skipped
+359 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -217,6 +218,7 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 - `persona_engine/docs/AUTOMATED_PLAYTESTING.md`
 - `persona_engine/docs/CHARACTER_CROSSPLAY.md`
 - `persona_engine/docs/BEHAVIORAL_RICHNESS.md`
+- `persona_engine/docs/CONVERSATION_CONTINUITY.md`
 - `persona_engine/docs/CHARACTER_BEHAVIOR_AUTHORING.md`
 - `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`

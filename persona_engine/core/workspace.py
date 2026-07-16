@@ -39,6 +39,9 @@ class WorkspaceFrame:
     conversation_topic: Optional[str] = None
     activity_transition: Optional[str] = None
     activity_context: Optional[str] = None
+    conversation_continuity: Optional[str] = None
+    conversational_obligation: Optional[str] = None
+    optional_extension: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -64,6 +67,17 @@ class WorkspaceFrame:
             lines.append(f"Observable activity transition: {self.activity_transition}")
         if self.activity_context:
             lines.append(f"Observable activity context: {self.activity_context}")
+        if self.conversation_continuity:
+            lines.append(f"Conversation continuity: {self.conversation_continuity}")
+        if self.conversational_obligation:
+            lines.append(
+                "CONVERSATIONAL OBLIGATION (honor before any optional move): "
+                + self.conversational_obligation
+            )
+        if self.optional_extension:
+            lines.append("OPTIONAL CHARACTER MOVE (at most one, after obligation): " + self.optional_extension)
+        else:
+            lines.append("Do not append a follow-up question or optional conversational move.")
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:

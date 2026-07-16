@@ -178,6 +178,12 @@ class LocalLLMRenderer:
                 "conversation_move": (
                     request.expression_constraints.get("conversation_candidate") or {}
                 ).get("move"),
+                "obligation": (
+                    request.expression_constraints.get("conversation_candidate") or {}
+                ).get("obligation"),
+                "extension_move": (
+                    request.expression_constraints.get("conversation_candidate") or {}
+                ).get("extension_move"),
                 "actor_id": request.expression_constraints.get("active_actor_id"),
             }
         else:
