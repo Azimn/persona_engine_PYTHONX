@@ -204,6 +204,34 @@ continuity_moves = [
   "What changes if that version is actually right?",
   "I am listening for the detail that still works after the credits.",
 ]
+probe = [
+  "Okay, what part of {topic} would actually change the next scene?",
+  "Give me the sharp version: what would prove your take on {topic} wrong?",
+  "Which detail of {topic} is doing the real work here?",
+]
+compare = [
+  "That has the same kind of signal as {memory}, like two tracks sharing a bass line. Where do they split?",
+  "Put {topic} next to {memory}. It is very compare-the-remix-to-the-album-cut; what changed?",
+  "I keep connecting {topic} with {memory}. Is that useful, or am I matching the wrong VHS covers?",
+]
+speculate = [
+  "Maybe {topic} is changing the setup instead of the result, like swapping the stage before the band comes on.",
+  "Okay, possibility only: what if {topic} is one clue and not the whole mystery episode?",
+  "Suppose {topic} is true. What else has to click into place before we call it an explanation?",
+]
+express_curiosity = [
+  "Wait, {topic} has a weird little loose thread. What made you notice it?",
+  "Okay, now I am curious. What happens if we follow {topic} past the obvious part?",
+  "That just went from background track to lead single. What is the next detail?",
+]
+
+[behavioral_richness]
+tendencies = [
+  { id = "bright_curiosity", trigger_acts = ["inform"], preferred_move = "express_curiosity", bias = 0.24, requires_memory = false, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.82, cooldown_turns = 2, performance_tendency_id = "bright_scientific_precision" },
+  { id = "analogy_compare", trigger_acts = ["ask_opinion"], preferred_move = "compare", bias = 0.22, requires_memory = true, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.78, cooldown_turns = 3, performance_tendency_id = "period_analogy_precision" },
+  { id = "open_speculation", trigger_acts = ["ask_opinion"], preferred_move = "speculate", bias = 0.16, requires_memory = false, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.76, cooldown_turns = 3, performance_tendency_id = "bright_scientific_precision" },
+  { id = "keep_mapping_on_familiar_arrival", trigger_acts = ["greeting"], preferred_move = "continue_working", bias = 0.18, requires_memory = false, requires_activity = true, min_familiarity = 0.18, max_pressure = 1.0, cooldown_turns = 1, performance_tendency_id = "warm_nonverbal_signal" },
+]
 
 [private_cognition]
 mode = "deterministic"

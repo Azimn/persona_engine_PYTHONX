@@ -193,11 +193,20 @@ class DevelopmentalPlaytestHost:
     def _diagnostic(day, participant_id, result, renderer):
         action = result.get("action_decision") or {}
         development = result.get("development") or {}
+        conversation = result.get("conversation_candidate") or {}
+        performance = result.get("performance_plan") or {}
         return {
             "day": day, "participant_id": participant_id, "action_kind": action.get("action_kind"),
             "communicative_function": action.get("communicative_function"),
             "selected_regulation": action.get("selected_regulation_id"),
             "selected_skill": action.get("selected_skill_id"),
+            "conversation_move": conversation.get("move"),
+            "behavioral_tendency_id": conversation.get("tendency_id"),
+            "activity_transition": performance.get("activity_transition"),
+            "activity_label": performance.get("activity_label"),
+            "performance_channels": tuple(
+                item.get("channel") for item in performance.get("acts", ())
+            ),
             "self_monitor": dict(result.get("self_monitor") or {}),
             "model_calls": dict(result.get("model_calls") or {}),
             "external_model_calls": (

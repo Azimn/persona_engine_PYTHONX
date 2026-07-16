@@ -87,6 +87,7 @@ from .journal import PersonalJournal
 from .actors import ActorRegistry, ActorRelationshipStore
 from .offline_conversation import (
     ConversationCandidate, derive_conversation_candidate, renderer_is_model_backed,
+    parse_behavioral_tendencies,
 )
 
 
@@ -213,6 +214,10 @@ class InteriorEngine:
         self.self_monitor = SelfMonitor(self.self_monitor_profile)
         self._last_self_monitor: SelfMonitorResult | None = None
         self._last_conversation_candidate: ConversationCandidate | None = None
+        self.behavioral_tendencies = parse_behavioral_tendencies(
+            profile_source.get("behavioral_richness")
+        )
+        self._behavior_tendency_history: list[tuple[str, int]] = []
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -492,6 +497,11 @@ class InteriorEngine:
         self._last_conversation_candidate = (
             ConversationCandidate.from_dict(last_conversation) if last_conversation else None
         )
+        self._behavior_tendency_history = [
+            (str(item[0]), int(item[1])) for item in
+            self.persistence.load(cid, uid, "behavior_tendency_history", [])[-24:]
+            if isinstance(item, (list, tuple)) and len(item) == 2
+        ]
         offline_state = self.persistence.load(cid, uid, "offline_realization_state", {})
         offline = getattr(self.renderer, "_offline", None)
         if offline is not None and offline_state:
@@ -592,6 +602,7 @@ class InteriorEngine:
                 self._last_conversation_candidate.to_dict()
                 if self._last_conversation_candidate else None
             ),
+            "behavior_tendency_history": [list(item) for item in self._behavior_tendency_history[-24:]],
             "offline_realization_state": getattr(
                 getattr(self.renderer, "_offline", None), "to_state", lambda: {}
             )(),
@@ -2014,6 +2025,11 @@ class InteriorEngine:
                 if item.created_at < now - 0.001
                 and item.content.casefold() == f"I heard you say: {user_text[:120]}".casefold()
             ),
+            tendencies=self.behavioral_tendencies,
+            tendency_history=self._behavior_tendency_history,
+            current_activity=self.life_state.current_activity,
+            activity_status=self.life_state.activity_status,
+            dominant_pressure=top_for_match.magnitude if top_for_match else 0.0,
         )
         self._last_conversation_candidate = conversation_candidate
         if conversation_candidate.move != "basic_reply":
@@ -2141,7 +2157,7 @@ class InteriorEngine:
             if f"memory:{item.memory.id}" in considered_ids
         ), None)
         conversation_memory_required = conversation_candidate.move in {
-            "reminisce", "reminisce_and_note"
+            "reminisce", "reminisce_and_note", "compare"
         }
         selected_conversation = (
             replace(conversation_candidate, source_memory_id=grounded_conversation_memory_id)
@@ -2152,6 +2168,11 @@ class InteriorEngine:
         )
         effective_conversation_candidate = selected_conversation or conversation_candidate
         self._last_conversation_candidate = effective_conversation_candidate
+        if selected_conversation and selected_conversation.tendency_id:
+            self._behavior_tendency_history = [
+                *self._behavior_tendency_history,
+                (selected_conversation.tendency_id, self.timestep),
+            ][-24:]
         action_decision = resolve_action_decision(
             tick=self.timestep,
             synthesis=synthesis,
@@ -2284,6 +2305,16 @@ class InteriorEngine:
         ))
         if resistance:
             envelope.refusal_mode = resistance
+        activity_transition = (
+            selected_conversation.activity_transition
+            if selected_conversation and selected_conversation.activity_transition
+            else "continued" if action_decision.action_kind in {"continue_activity", "silence"}
+            else "paused" if action_decision.action_kind == "delay" or interruption.get("activity_interrupted")
+            else "continued" if interruption.get("previous_activity") == self.life_state.current_activity
+            else self.life_state.activity_status
+            if self.life_state.activity_status in {"resumed", "completed", "failed", "abandoned", "changed"}
+            else None
+        )
         performance_plan = self.performance_planner.plan(
             decision=action_decision,
             relationship=self.relationship,
@@ -2293,9 +2324,15 @@ class InteriorEngine:
             interruption=interruption,
             performance_profile=PerformanceProfile.from_cartridge_tendency(
                 (self.cartridge_data or {}).get("performance_tendencies", {}),
-                selected_proposal.performance_tendency_id if selected_proposal else None,
+                (
+                    selected_conversation.performance_tendency_id
+                    if selected_conversation and selected_conversation.performance_tendency_id
+                    else selected_proposal.performance_tendency_id if selected_proposal else None
+                ),
             ),
             self_monitor=self_monitor,
+            activity_transition=activity_transition,
+            activity_label=self.life_state.current_activity,
         )
         self._last_performance_plan = performance_plan
         performance_payload = performance_plan.to_dict()
@@ -2369,8 +2406,11 @@ class InteriorEngine:
                     and selected_conversation.move == "return_to_topic" and due_open_loop
                     else user_text[:160] if selected_conversation
                     and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}
+                    else user_text[:160] if selected_conversation
+                    and selected_conversation.move in {"probe", "compare", "speculate", "express_curiosity"}
                     else None
                 ),
+                activity_transition=performance_plan.activity_transition,
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)

@@ -25,3 +25,23 @@ def write_reports(output_dir: str | Path, result) -> None:
         writer.writeheader()
         writer.writerows(result.state_growth)
     (root / "actor_moves.json").write_text(json.dumps([item.to_dict() for item in result.actor_moves], indent=2), encoding="utf-8")
+    illusion_review = {
+        "instructions": "Review the blind transcript before opening causal_trace.json.",
+        "rating_scale": {"minimum": 1, "maximum": 5},
+        "questions": [
+            {"id": key, "prompt": prompt, "rating": None, "evidence_turns": [], "notes": ""}
+            for key, prompt in (
+                ("occupied", "Did the character seem occupied before or during contact?"),
+                ("interests", "Did the character seem to have interests independent of the player?"),
+                ("natural_memory", "Did remembered material enter the interaction naturally?"),
+                ("caused_surprise", "Were surprising behaviors understandable in retrospect?"),
+                ("repetition", "How free was the interaction from conspicuous repetition?"),
+                ("prior_life", "Did the character seem to exist before the player arrived?"),
+                ("non_assistant", "Did the character feel distinct from a generic helpful assistant?"),
+                ("return_interest", "Would you voluntarily continue this interaction?"),
+            )
+        ],
+    }
+    (root / "illusion_review.json").write_text(
+        json.dumps(illusion_review, indent=2, sort_keys=True), encoding="utf-8",
+    )

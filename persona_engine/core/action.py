@@ -199,6 +199,12 @@ def resolve_action_decision(
         elif selected_conversation.move == "ask_clarification":
             action_kind = "speak"
             communicative_function = "ask_clarification"
+        elif selected_conversation.move in {"probe", "compare", "speculate", "express_curiosity"}:
+            action_kind = "speak"
+            communicative_function = selected_conversation.move
+        elif selected_conversation.move == "continue_working":
+            action_kind = "continue_activity"
+            communicative_function = None
         else:
             action_kind = "speak"
             communicative_function = dialogue_act

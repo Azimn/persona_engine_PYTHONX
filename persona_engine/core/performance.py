@@ -56,6 +56,8 @@ class PerformancePlan:
     completion_conditions: tuple[str, ...]
     failure_conditions: tuple[str, ...]
     provenance_ids: tuple[str, ...]
+    activity_transition: str | None = None
+    activity_label: str | None = None
 
     @property
     def requires_language_renderer(self) -> bool:
@@ -82,6 +84,8 @@ class PerformancePlan:
         values["acts"] = tuple(PerformanceAct(**item) for item in values.get("acts", ()))
         for field in ("withheld_content_ids", "completion_conditions", "failure_conditions", "provenance_ids"):
             values[field] = tuple(values.get(field, ()))
+        values.setdefault("activity_transition", None)
+        values.setdefault("activity_label", None)
         return cls(**values)
 
 
@@ -161,6 +165,8 @@ class PerformancePlanner:
         concealment_mode: str = "none",
         interruption: Mapping[str, Any] | None = None,
         performance_profile: PerformanceProfile | None = None,
+        activity_transition: str | None = None,
+        activity_label: str | None = None,
     ) -> PerformancePlan:
         profile = performance_profile or PerformanceProfile()
         guardedness = max(0.0, min(1.0, float(getattr(relationship, "guardedness", 0.5))))
@@ -181,6 +187,13 @@ class PerformancePlanner:
             directness = min(1.0, directness + 0.06)
         intensity = max(0.1, min(1.0, profile.nonverbal_intensity + (1.0 - capacity) * 0.2))
         acts = self._acts_for(decision, intensity, profile)
+        if activity_transition in {"continued", "paused", "resumed", "completed", "failed", "abandoned", "changed"}:
+            if not any(item.channel == "activity" for item in acts):
+                acts = (*acts, PerformanceAct(
+                    channel="activity", function=activity_transition,
+                    target=str(activity_label or decision.target)[:120], intensity=round(intensity, 6),
+                    onset="immediate", duration="sustained", voluntary=True, suppressible=True,
+                ))
         acts = self._apply_self_monitor_acts(
             acts, decision, profile, perceived_confidence, noticed_conflicts,
             selected_regulation.kind if selected_regulation else None,
@@ -193,6 +206,8 @@ class PerformancePlanner:
             "acts": [(act.channel, act.function) for act in acts],
             "capacity": round(float(capacity), 6),
             "concealment": concealment_mode,
+            "activity_transition": activity_transition,
+            "activity_label": str(activity_label)[:120] if activity_label else None,
         }
         digest = hashlib.blake2b(
             json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8,
@@ -212,6 +227,8 @@ class PerformancePlanner:
             completion_conditions=(decision.expected_effect,),
             failure_conditions=("performance does not match canonical action",),
             provenance_ids=(decision.decision_id, decision.synthesis_id),
+            activity_transition=activity_transition,
+            activity_label=str(activity_label)[:120] if activity_label else None,
         )
 
     @staticmethod

@@ -10,6 +10,7 @@ from persona_engine.playtest.actors import (
     ScriptedHumanActor, assert_observable_only,
 )
 from persona_engine.playtest.host import DevelopmentalPlaytestHost
+from persona_engine.playtest.report import write_reports
 from persona_engine.playtest.scenario import load_scenario
 
 
@@ -88,6 +89,16 @@ def test_thirty_day_host_writes_observable_separate_from_diagnostics(tmp_path):
     assert len(result.actor_moves) == 30
     assert all("self_monitor" not in json.dumps(item.to_dict()) for item in result.transcript)
     assert result.diagnostics
+    assert "exact_repeat_count_by_speaker" in result.metrics
+    assert result.metrics["activity_callback_count"] > 0
+    assert result.metrics["conversation_move_diversity"] > 0
+
+    output = tmp_path / "reports"
+    write_reports(output, result)
+    review = json.loads((output / "illusion_review.json").read_text(encoding="utf-8"))
+    assert review["instructions"].startswith("Review the blind transcript")
+    assert len(review["questions"]) == 8
+    assert all(item["rating"] is None for item in review["questions"])
 
 
 def test_saved_moves_replay_without_actor_generation(tmp_path):

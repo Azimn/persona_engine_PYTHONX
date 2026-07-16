@@ -47,6 +47,8 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Developmental Life v1 includes explicit autobiographical evidence routing, bounded memory associations, procedural skills, outcome-sensitive habit adjustment, relationship expectations, dyadic rituals, and slow earned-trait evidence.
 - The automated playtest laboratory supports scripted humans, isolated character crossplay, optional Ollama actors, move replay, blind/causal report separation, deterministic judges, and bounded failure minimization.
 - Offline Conversation v1 adds bounded input-act classification, synthesis-owned conversational moves, grounded reminiscence, capability-tagged conversation notes, reconnect resurfacing, nonverbal low-information responses, and persistent per-actor shuffle history.
+- Behavioral Richness v1 adds bounded cartridge tendencies for probing, comparison, speculation, curiosity, and continued work; selected moves remain synthesis-owned and carry real activity transitions into deterministic performance.
+- Pretorius and Kiki use different tendency banks and functional realization pools, while playtest reports measure move diversity, activity callbacks, continuity, and blind human illusion criteria.
 
 ## Current Tests
 
@@ -59,7 +61,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-335 passed, 1 skipped
+341 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -83,9 +85,10 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
 - Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
 - Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
+- Thirty-day character crossplay still exhausts the small deterministic realization pools: the current Kiki/Pretorius run remains about 99% speech and reports 54 exact repeats across 120 turns. Behavioral Richness improves shorter and asymmetric runs but does not yet solve long closed-loop repetition.
 
 ## Recommended Next Work
 
-1. Reduce the exact repetition and all-speech behavior exposed by 30-day blind transcripts without weakening identity.
-2. Human-review early/late transcript pairs before adding bounded SocialMind.
+1. Run blind human illusion reviews against Pretorius and Kiki and turn visible failures into minimized regression scenarios.
+2. Tune only the cartridge tendencies and existing action/performance policies implicated by those failures.
 3. Extend C99 conformance fixtures into native cross-language replay comparisons.

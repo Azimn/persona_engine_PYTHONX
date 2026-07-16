@@ -42,6 +42,9 @@ class CausalTurnRecord:
     model_calls: dict[str, Any]
     self_monitor: dict[str, Any]
     selected_regulation_id: str | None
+    conversation_candidate: dict[str, Any]
+    action_decision: dict[str, Any]
+    performance_plan: dict[str, Any]
     speech_world_event_ids: tuple[str, ...]
 
 
@@ -203,6 +206,9 @@ class BehavioralEvaluationHarness:
                 model_calls=dict(result.get("model_calls") or {}),
                 self_monitor=dict(result.get("self_monitor") or {}),
                 selected_regulation_id=(result.get("action_decision") or {}).get("selected_regulation_id"),
+                conversation_candidate=dict(result.get("conversation_candidate") or {}),
+                action_decision=dict(result.get("action_decision") or {}),
+                performance_plan=dict(result.get("performance_plan") or {}),
                 speech_world_event_ids=speech_ids,
             ))
             current_input = reply or "(silence)"
@@ -243,6 +249,19 @@ class BehavioralEvaluationHarness:
                     item.self_monitor.get("attributed_cause") in {"interlocutor", "circumstances"}
                     for item in causal
                 ),
+                "conversation_move_diversity": len({
+                    item.conversation_candidate.get("move") for item in causal
+                    if item.conversation_candidate.get("move") not in {None, "basic_reply"}
+                }),
+                "behavioral_tendency_use_count": sum(
+                    bool(item.conversation_candidate.get("tendency_id")) for item in causal
+                ),
+                "activity_callback_count": sum(
+                    item.performance_plan.get("activity_transition") in {
+                        "continued", "paused", "resumed", "completed", "failed", "abandoned", "changed",
+                    }
+                    for item in causal
+                ),
             },
         )
 
@@ -270,6 +289,12 @@ def _score_transcript(
         combined,
     )
     bleed: list[dict[str, Any]] = []
+    repeats_by_speaker = {}
+    for participant in participants:
+        participant_texts = [
+            text for text, item in zip(texts, transcript) if item.speaker_id == participant
+        ]
+        repeats_by_speaker[participant] = len(participant_texts) - len(set(participant_texts))
     for item in transcript:
         for other in participants:
             if other == item.speaker_id:
@@ -279,6 +304,7 @@ def _score_transcript(
     return {
         "turns": len(transcript),
         "exact_repeats": len(texts) - len(set(texts)),
+        "exact_repeats_by_speaker": repeats_by_speaker,
         "opener_repeats": len(openers) - len(set(openers)),
         "question_rate": round(sum("?" in item.text for item in transcript) / max(1, len(transcript)), 4),
         "assistant_drift_hits": len(assistant_patterns),

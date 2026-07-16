@@ -104,6 +104,13 @@ acknowledgement. These are synthesis candidates, not final decisions.
 Reminiscence must be grounded in considered autobiographical memory. Pending
 topics reuse `OpenLoop`; renderer output may surface but never resolve them.
 
+Cartridge-authored behavioral tendencies may propose bounded probing,
+comparison, speculation, curiosity, or continued-work moves. They remain
+synthesis candidates. They may require actual activity, considered memory,
+familiarity, and bounded pressure, and they may select a validated performance
+tendency. They cannot select the final action, invent memory, or place
+character content in core modules.
+
 ### Semantic Prior Boundary
 
 The read-only semantic substrate may supply generic concept features,

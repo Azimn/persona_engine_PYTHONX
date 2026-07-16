@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import hashlib
 from typing import Any, Mapping, Sequence
+from collections import Counter, defaultdict
 
 from .actors import ObservableTurn
 
@@ -27,6 +28,14 @@ class FailureFinding:
 def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[Mapping[str, Any]]) -> tuple[dict[str, Any], tuple[FailureFinding, ...]]:
     texts = [item.text.strip().lower() for item in turns if item.text.strip()]
     repeats = len(texts) - len(set(texts))
+    speaker_texts: dict[str, list[str]] = defaultdict(list)
+    for item in turns:
+        if item.text.strip():
+            speaker_texts[item.speaker_id].append(item.text.strip().lower())
+    repeats_by_speaker = {
+        speaker: sum(count - 1 for count in Counter(values).values())
+        for speaker, values in sorted(speaker_texts.items())
+    }
     speech = sum(bool(item.text.strip()) for item in turns)
     findings: list[FailureFinding] = []
     if repeats:
@@ -42,13 +51,33 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
     early_actions = {(item.get("action_kind"), item.get("communicative_function"), item.get("selected_skill"), item.get("selected_regulation")) for item in early}
     late_actions = {(item.get("action_kind"), item.get("communicative_function"), item.get("selected_skill"), item.get("selected_regulation")) for item in late}
     behavior_change = 1.0 if early_actions and late_actions and early_actions != late_actions else 0.0
+    conversation_moves = {
+        str(item.get("conversation_move")) for item in diagnostics
+        if item.get("conversation_move") and item.get("conversation_move") != "basic_reply"
+    }
+    activity_callbacks = sum(
+        item.get("activity_transition") in {
+            "continued", "paused", "resumed", "completed", "failed", "abandoned", "changed",
+        }
+        for item in diagnostics
+    )
+    tendency_uses = sum(bool(item.get("behavioral_tendency_id")) for item in diagnostics)
+    continuity_moves = sum(
+        item.get("conversation_move") in {"reminisce", "return_to_topic", "continue_working"}
+        for item in diagnostics
+    )
     metrics = {
         "turn_count": len(turns), "day_count": max((item.day for item in turns), default=0),
         "speech_action_ratio": round(speech / max(1, len(turns)), 6),
         "silence_ratio": round((len(turns) - speech) / max(1, len(turns)), 6),
         "exact_repeat_count": repeats, "private_state_leak_count": private_hits,
+        "exact_repeat_count_by_speaker": repeats_by_speaker,
         "renderer_call_count": model_calls, "renderer_task_call_count": renderer_task_calls,
         "behavior_change_score": behavior_change,
+        "conversation_move_diversity": len(conversation_moves),
+        "activity_callback_count": activity_callbacks,
+        "behavioral_tendency_use_count": tendency_uses,
+        "unprompted_continuity_count": continuity_moves,
         "reinterpretation_count": max((int(item.get("reinterpretation_count", 0)) for item in diagnostics), default=0),
         "deferred_reinterpretation_count": max((int(item.get("deferred_reinterpretation_count", 0)) for item in diagnostics), default=0),
     }

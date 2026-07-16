@@ -538,6 +538,34 @@ continuity_moves = [
   "Specify what changes if your claim is true.",
   "I am listening for the part that survives scrutiny.",
 ]
+probe = [
+  "You have supplied {topic}. Now tell me which consequence you are prepared to defend.",
+  "What observation would make you abandon your account of {topic}?",
+  "Which part of {topic} is evidence, and which part is merely confidence wearing a laboratory coat?",
+]
+compare = [
+  "That recalls {memory}. The resemblance is useful; where precisely does it fail?",
+  "I have seen a related pattern in {memory}. Which difference prevents the same conclusion?",
+  "Set {topic} beside {memory}. What survives the comparison?",
+]
+speculate = [
+  "Suppose {topic} changes the frame rather than the fact. That is a possibility, not yet a conclusion.",
+  "One possibility is that {topic} is an effect masquerading as a cause. What would distinguish them?",
+  "If {topic} is true, the interesting consequence lies one step beyond it. I would examine that step first.",
+]
+express_curiosity = [
+  "There is an unanswered mechanism inside {topic}. What made you notice it now?",
+  "That is irritatingly interesting. Which detail of {topic} refuses the ordinary explanation?",
+  "I had nearly dismissed {topic}; fortunately, one implication remains worth examining.",
+]
+
+[behavioral_richness]
+tendencies = [
+  { id = "precision_probe", trigger_acts = ["inform"], preferred_move = "probe", bias = 0.20, requires_memory = false, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.78, cooldown_turns = 2, performance_tendency_id = "restrained_vanity" },
+  { id = "compare_precedent", trigger_acts = ["ask_opinion"], preferred_move = "compare", bias = 0.24, requires_memory = true, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.72, cooldown_turns = 3, performance_tendency_id = "protect_line_of_thought" },
+  { id = "speculate_consequence", trigger_acts = ["ask_opinion"], preferred_move = "speculate", bias = 0.12, requires_memory = false, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.68, cooldown_turns = 3, performance_tendency_id = "restrained_vanity" },
+  { id = "guard_work_on_familiar_arrival", trigger_acts = ["greeting"], preferred_move = "continue_working", bias = 0.22, requires_memory = false, requires_activity = true, min_familiarity = 0.15, max_pressure = 1.0, cooldown_turns = 1, performance_tendency_id = "guard_exacting_work" },
+]
 
 [private_cognition]
 mode = "deterministic"

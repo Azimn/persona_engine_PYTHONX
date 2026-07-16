@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal", "behavioral_richness"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -65,6 +65,7 @@ _ALLOWED_SECTION_FIELDS.update({
     },
     "genesis": {"version", "episodes"},
     "journal": {"object_name"},
+    "behavioral_richness": {"tendencies"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
@@ -72,6 +73,7 @@ _ALLOWED_SECTION_FIELDS.update({
         "return_to_topic",
         "ask_clarification",
         "continuity_moves",
+        "probe", "compare", "speculate", "express_curiosity",
     },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
@@ -358,6 +360,22 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
                 _require_string_list(data["offline_expression"], field, "[offline_expression]")
                 if not data["offline_expression"][field]:
                     raise CartridgeError(f"[offline_expression].{field} must not be empty")
+    if "behavioral_richness" in data:
+        from .offline_conversation import parse_behavioral_tendencies
+        try:
+            tendencies = parse_behavioral_tendencies(data["behavioral_richness"])
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid behavioral richness: {exc}") from exc
+        known_performance = set(data.get("performance_tendencies", {}))
+        for tendency in tendencies:
+            if (
+                tendency.performance_tendency_id
+                and tendency.performance_tendency_id not in known_performance
+            ):
+                raise CartridgeError(
+                    "behavioral tendency references unknown performance tendency: "
+                    f"{tendency.performance_tendency_id}"
+                )
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -422,6 +440,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "genesis": data.get("genesis", {}),
         "journal": data.get("journal", {}),
         "offline_expression": data.get("offline_expression", {}),
+        "behavioral_richness": data.get("behavioral_richness", {}),
         "path": str(Path(path)),
     }
     return core, ledger, raw

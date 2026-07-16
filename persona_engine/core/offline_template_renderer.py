@@ -110,6 +110,10 @@ class OfflineTemplateRenderer:
             return self._clean_truncate(
                 self._render_topic_move(group, system_text, realization, seed, actor_id), max_chars
             )
+        if group in {"probe", "compare", "speculate", "express_curiosity"}:
+            return self._clean_truncate(
+                self._render_behavior_move(group, system_text, realization, seed, actor_id), max_chars
+            )
         if group == "grounded_memory":
             return self._clean_truncate(self._render_grounded_memory(user_text, system_text), max_chars)
         if group == "activity":
@@ -285,6 +289,40 @@ class OfflineTemplateRenderer:
         selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
         return selected.replace("{topic}", topic)
 
+    def _render_behavior_move(
+        self, group: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        topic_match = re.search(r"Conversation topic:\s*([^\n]+)", system_text, re.IGNORECASE)
+        topic = re.sub(
+            r"[^A-Za-z0-9 '?,.\-]", "",
+            topic_match.group(1) if topic_match else "that point",
+        ).strip().rstrip(" ?!.,;:")[:100]
+        memory = self._memory_detail(system_text)[:100].rstrip(" ?!.,;:")
+        defaults = {
+            "probe": (
+                "What consequence of {topic} are you actually committed to?",
+                "Which part of {topic} would change your next action?",
+            ),
+            "compare": (
+                "That resembles {memory}. Where does the comparison fail?",
+                "I cannot separate {topic} from {memory}. Which distinction matters?",
+            ),
+            "speculate": (
+                "One possibility is that {topic} changes the frame rather than the fact. I would not call that settled.",
+                "Suppose {topic} is only part of the cause. What else would have to be true?",
+            ),
+            "express_curiosity": (
+                "There is something unfinished in {topic}. What made you notice it now?",
+                "That is more interesting than it first appears. What follows from {topic}?",
+            ),
+        }
+        selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
+        return selected.replace("{topic}", topic).replace(
+            "{memory}", memory or "an earlier experience"
+        )
+
     def _choose_text(
         self, group: str, realization: Mapping[str, Sequence[str]] | None,
         fallback: Sequence[str], seed: int | None, actor_id: int | str | None,
@@ -354,6 +392,8 @@ class OfflineTemplateRenderer:
         if "current intention: protect_identity" in lowered and "identity" not in text.lower():
             additions.append("The boundary remains.")
         if not additions:
+            return text
+        if self._stable_jitter(text, seed, "tone_gate") % 3 == 0:
             return text
         pick = self._stable_jitter(text, seed) % len(additions)
         if text.endswith("?"):

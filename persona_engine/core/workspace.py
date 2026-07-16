@@ -37,6 +37,7 @@ class WorkspaceFrame:
     memory_grounding: Optional[str] = None
     conversation_move: Optional[str] = None
     conversation_topic: Optional[str] = None
+    activity_transition: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -58,6 +59,8 @@ class WorkspaceFrame:
             lines.append(f"Selected conversation move: {self.conversation_move}")
         if self.conversation_topic:
             lines.append(f"Conversation topic: {self.conversation_topic}")
+        if self.activity_transition:
+            lines.append(f"Observable activity transition: {self.activity_transition}")
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:

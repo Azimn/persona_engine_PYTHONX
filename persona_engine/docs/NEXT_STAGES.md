@@ -108,3 +108,15 @@ Scripted users, isolated character crossplay, optional Ollama actors, saved
 move replay, deterministic metrics, blind reports, and bounded developmental
 stores now run over accelerated weeks. The first unresolved outward failure is
 high exact repetition in deterministic offline expression.
+
+## Stage 7: Behavioral Richness (Implemented, Human Review Pending)
+
+Small cartridge-owned tendency banks now expose existing cognition as probing,
+comparison, speculation, curiosity, and continued activity. They enter the
+existing synthesis field, preserve canonical action ownership, and coordinate
+with structured performance tendencies. Blind reports include a human illusion
+review rather than treating architectural correctness as product success.
+
+Future character work should follow `CHARACTER_BEHAVIOR_AUTHORING.md`. New
+cognitive subsystems remain deferred until a blind playtest identifies a
+specific visible failure that cannot be expressed through the current systems.
