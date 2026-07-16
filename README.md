@@ -28,6 +28,8 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Deterministic fallible self-monitoring that can miss conflict, overestimate capacity, conceal uncertainty, delay, clarify, correct, withdraw, or double down through synthesis-selected regulation.
 - Non-destructive autobiographical reconsolidation preserves original experience while versioning later evidence-backed meaning, including bounded deferral when contradiction is missed under strain.
 - Developmental Life v1 adds explicit evidence routing, bounded memory connections, procedural skills, relationship expectations, dyadic rituals, slow cartridge-authorized trait evidence, and observable-only automated playtesting.
+- Bounded `uint32` actor identities keep relationship histories and actor-tagged memories separate across users, NPCs, genesis figures, and duplicate names without pretending ambiguous aliases are certain identity.
+- Genesis years produce realistic historical age while sparse chapter summaries represent long periods without fabricating a lifetime of daily memories.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
@@ -83,7 +85,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-315 passed, 1 skipped
+322 passed, 1 skipped
 ```
 
 ## Run Simulators

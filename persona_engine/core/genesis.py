@@ -22,6 +22,7 @@ GENESIS_AUTHORITIES = frozenset({
 })
 MAX_GENESIS_EPISODES = 64
 MAX_GENESIS_ELAPSED_DAYS = 3650.0
+SECONDS_PER_YEAR = 365.2425 * 86400.0
 
 
 def _stable_digest(value: Any) -> str:
@@ -52,6 +53,7 @@ class GenesisEpisode:
     journal_text: str | None
     journal_kind: str
     perceived_summary: str | None
+    historical_span_years: float
 
     def __post_init__(self) -> None:
         if self.authority not in GENESIS_AUTHORITIES:
@@ -80,6 +82,8 @@ class GenesisEpisode:
             or not self.perceived_summary.lower().startswith(("i ", "i'", "my ", "we "))
         ):
             raise ValueError("genesis perceived summary must be bounded first-person text")
+        if not math.isfinite(self.historical_span_years) or not 0.0 <= self.historical_span_years <= 200.0:
+            raise ValueError("genesis historical_span_years must be within [0, 200]")
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> "GenesisEpisode":
@@ -106,6 +110,7 @@ class GenesisEpisode:
             journal_text=str(value["journal_text"]) if value.get("journal_text") is not None else None,
             journal_kind=str(value.get("journal_kind", "private_note")),
             perceived_summary=str(perception["summary"]) if perception.get("summary") is not None else None,
+            historical_span_years=float(value.get("historical_span_years", 0.0)),
         )
 
 
@@ -158,15 +163,32 @@ class GenesisReplayer:
             }
             return GenesisReplayResult(**values, already_applied=True)
 
-        total_seconds = sum(item.elapsed_days_before for item in episodes) * 86400.0
-        cursor = float(end_time) - total_seconds
+        positive_years = [item.historical_year for item in episodes if item.historical_year > 0]
+        end_year = max(positive_years, default=0)
+        year_counts = {
+            year: sum(item.historical_year == year for item in episodes)
+            for year in set(positive_years)
+        }
+        year_seen: dict[int, int] = {}
+        fallback_seconds = sum(item.elapsed_days_before for item in episodes) * 86400.0
+        cursor = float(end_time) - fallback_seconds
+        timestamps: list[float] = []
         before_events = len(engine.world_events.to_list())
         before_experiences = len(engine.experiences.experiences)
         before_memories = len(engine.memory.memories)
         missed = 0
 
         for episode in episodes:
-            cursor += episode.elapsed_days_before * 86400.0
+            if end_year and episode.historical_year > 0:
+                index = year_seen.get(episode.historical_year, 0) + 1
+                year_seen[episode.historical_year] = index
+                fraction = index / (year_counts[episode.historical_year] + 1.0)
+                cursor = float(end_time) - (
+                    (end_year - episode.historical_year) + (1.0 - fraction)
+                ) * SECONDS_PER_YEAR
+            else:
+                cursor += episode.elapsed_days_before * 86400.0
+            timestamps.append(cursor)
             engine.timestep += 1
             event = engine.record_world_event(
                 event_type=episode.event_type,
@@ -181,6 +203,7 @@ class GenesisReplayer:
                     "historical_year": episode.historical_year,
                     "authority": episode.authority,
                     "authored_history": True,
+                    "historical_span_years": episode.historical_span_years,
                 },
                 timestamp=cursor,
             )
@@ -205,6 +228,8 @@ class GenesisReplayer:
                 memory = next((item for item in engine.memory.memories if item.id == experience.memory_id), None)
                 if memory is not None:
                     memory.tags.update({"genesis", *episode.tags})
+                    if episode.historical_span_years >= 1.0:
+                        memory.tags.update({"chapter_summary", f"span_years:{int(episode.historical_span_years)}"})
             if episode.journal_text:
                 engine.write_journal_entry(
                     episode.journal_text,
@@ -231,7 +256,7 @@ class GenesisReplayer:
             events_missed=missed,
             memories_consolidated=len(engine.memory.memories) - before_memories,
             interpretation_count=len(engine.autobiographical_interpretations.interpretations),
-            start_time=float(end_time) - total_seconds,
+            start_time=min(timestamps, default=float(end_time)),
             end_time=float(end_time),
         )
         engine.genesis_replays = [*engine.genesis_replays, result.to_dict()][-8:]

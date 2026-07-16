@@ -33,6 +33,8 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Interruption records distinguish input arrival, attention capture, actual activity interruption, urgency, and prior interruptibility.
 - Pretorius and Kiki provide cartridge-authored dependency-free realization pools without placing character phrases in core modules.
 - Pretorius has a bounded 23-episode autobiographical genesis replay with one missed event, conflicting fictional continuities, first-person perceived summaries, and a persistent black laboratory notebook.
+- A bounded actor registry gives live users, NPCs, characters, and genesis figures stable `uint32` identities, actor-scoped relationship histories, and actor-tagged autobiographical memories. Duplicate names remain separate and ambiguous references can activate multiple candidates.
+- Genesis replay now maps authored years onto historical timestamps and supports sparse chapter summaries for long spans, so old memories incur realistic elapsed-time effects without fabricating daily experience.
 - Explicit remote-memory cues can overcome unrelated recency; only memories admitted to the considered synthesis field receive recall strengthening.
 - Model answers to explicit autobiographical questions are checked for retrieved-memory grounding and fall back safely when they improvise unsupported history.
 - A bounded read-only semantic substrate provides explicit generic features, inheritance, one-hop associations, unknowns, and candidate affordances from structured concept IDs.
@@ -56,7 +58,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-315 passed, 1 skipped
+322 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -78,6 +80,8 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Autonomous behavior is limited to local engine idle hooks, not a full background agent runtime.
 - The semantic pilot is intentionally tiny and is not a production commonsense ontology.
 - Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
+- Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
+- Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
 
 ## Recommended Next Work
 

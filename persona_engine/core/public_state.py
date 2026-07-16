@@ -143,6 +143,11 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
         "habits": [vars(h) for h in engine.habits.habits.values()],
         "memory_count": len(engine.memory.memories),
         "life_inspector": {
+            "actors": getattr(engine, "actor_registry", None).inspection_list()
+            if getattr(engine, "actor_registry", None) else [],
+            "actor_relationships": getattr(engine, "actor_relationships", None).to_list()
+            if getattr(engine, "actor_relationships", None) else [],
+            "active_actor_id": getattr(engine, "active_actor_id", None),
             "state": engine.life_state.to_dict() if hasattr(engine, "life_state") else {},
             "catch_up": dict(getattr(engine, "last_catch_up_summary", {})),
             "objective_events": [event.to_dict() for event in recent_events],

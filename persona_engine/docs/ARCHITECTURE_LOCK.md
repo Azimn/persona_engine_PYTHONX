@@ -80,6 +80,20 @@ A personal journal is a character-authored world artifact. Its text proves
 only what was written. Reading it creates a new observation; journal text does
 not overwrite memory or objective history.
 
+### Actor Identity Owns Social Reference
+
+The bounded actor registry owns stable social referents. Internal identity is
+a deterministic nonzero `uint32`; names and aliases are fallible recognition
+cues and must not be treated as unique keys. Duplicate names remain separate,
+and ambiguous references may activate multiple candidates without merging
+their memories or relationships.
+
+The existing `RelationshipState` remains the relationship model, stored once
+per actor. World events, subjective experiences, memories, relationship
+expectations, and dyadic rituals may carry actor references. Renderers and
+free text cannot create an identity merge or prove that two referents are the
+same person.
+
 ### Renderer Owns Surface Language Only
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.

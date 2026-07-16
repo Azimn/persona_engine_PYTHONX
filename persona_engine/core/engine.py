@@ -84,6 +84,7 @@ from .developmental_learning import (
 )
 from .genesis import GenesisReplayer
 from .journal import PersonalJournal
+from .actors import ActorRegistry, ActorRelationshipStore
 
 
 def bucket_risk(risk: float) -> str:
@@ -136,7 +137,18 @@ class InteriorEngine:
         self.identity = identity
         self.user_id = user_id
         self.ledger = loaded_ledger
-        self.relationship = RelationshipState(user_id=user_id)
+        self.actor_registry = ActorRegistry()
+        self.self_actor = self.actor_registry.resolve(
+            stable_key=f"character:{identity.name.casefold()}", display_name=identity.name,
+            tick=0, actor_kind="character", source="cartridge", recognition_confidence=1.0,
+        )
+        self.default_actor = self.actor_registry.resolve(
+            stable_key=f"session:{user_id}", display_name=user_id,
+            tick=0, actor_kind="human", source="session", recognition_confidence=1.0,
+        )
+        self.actor_relationships = ActorRelationshipStore()
+        self.active_actor_id = self.default_actor.actor_id
+        self.relationship = self.actor_relationships.for_actor(self.active_actor_id)
         self.memory = MemoryStore(embedding_provider=NoEmbeddingProvider())
         self.pressures = PressureSystem()
         self.intentions = IntentionQueue()
@@ -249,6 +261,56 @@ class InteriorEngine:
             return status()
         return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
 
+    def _activate_interlocutor(self, visible_context: dict[str, Any]) -> None:
+        supplied_id = visible_context.get("speaker_id")
+        if supplied_id is None:
+            record = self.default_actor
+        else:
+            speaker_id = str(supplied_id)
+            display_name = str(visible_context.get("speaker_name", speaker_id))
+            actor_kind = (
+                "character" if visible_context.get("interaction_type") == "character_to_character"
+                else str(visible_context.get("speaker_kind", "human"))
+            )
+            if actor_kind not in {"human", "npc", "character", "historical", "unknown"}:
+                actor_kind = "unknown"
+            record = self.actor_registry.resolve(
+                stable_key=f"external:{speaker_id}", display_name=display_name,
+                tick=self.timestep, actor_kind=actor_kind, source="interaction",
+                aliases=tuple(visible_context.get("speaker_aliases", ()))
+                if isinstance(visible_context.get("speaker_aliases", ()), (list, tuple)) else (),
+                recognition_confidence=float(visible_context.get("speaker_confidence", 1.0)),
+            )
+        self.active_actor_id = record.actor_id
+        self.relationship = self.actor_relationships.for_actor(record.actor_id)
+
+    def _actorize_event_payload(self, actors, source: str, payload: dict[str, Any]) -> dict[str, Any]:
+        actor_ids = []
+        for value in actors:
+            text = str(value)
+            if text.startswith("actor:"):
+                try:
+                    actor_ids.append(int(text.split(":", 1)[1], 16))
+                    continue
+                except ValueError:
+                    pass
+            if text == self.identity.name:
+                record = self.self_actor
+            elif source == "cartridge_genesis":
+                record = self.actor_registry.resolve(
+                    stable_key=f"genesis:{text.casefold()}", display_name=text,
+                    tick=self.timestep, actor_kind="historical", source="cartridge_genesis",
+                    recognition_confidence=0.9,
+                )
+            else:
+                record = self.actor_registry.resolve(
+                    stable_key=f"world:{text.casefold()}", display_name=text,
+                    tick=self.timestep, actor_kind="unknown", source=source,
+                    recognition_confidence=0.6,
+                )
+            actor_ids.append(record.actor_id)
+        return {**payload, "actor_ids": list(dict.fromkeys(actor_ids))}
+
     # ---------------- persistence ----------------
     def _load_state(self):
         cid, uid = self.identity.name, self.user_id
@@ -259,8 +321,27 @@ class InteriorEngine:
         self.last_wall_time = meta.get("last_wall_time", self.last_wall_time)
         self.last_reflection_time = meta.get("last_reflection_time", self.last_reflection_time)
 
+        actor_state = self.persistence.load(cid, uid, "actor_registry", [])
+        if actor_state:
+            self.actor_registry = ActorRegistry.from_list(actor_state)
+        self.self_actor = self.actor_registry.resolve(
+            stable_key=f"character:{self.identity.name.casefold()}", display_name=self.identity.name,
+            tick=self.timestep, actor_kind="character", source="cartridge", recognition_confidence=1.0,
+            observe=False,
+        )
+        self.default_actor = self.actor_registry.resolve(
+            stable_key=f"session:{self.user_id}", display_name=self.user_id,
+            tick=self.timestep, actor_kind="human", source="session", recognition_confidence=1.0,
+            observe=False,
+        )
+        relationship_state = self.persistence.load(cid, uid, "actor_relationships", [])
+        self.actor_relationships = ActorRelationshipStore.from_list(relationship_state)
+        self.active_actor_id = int(meta.get("active_actor_id", self.default_actor.actor_id))
+        if self.actor_registry.fetch(self.active_actor_id) is None:
+            self.active_actor_id = self.default_actor.actor_id
+        self.relationship = self.actor_relationships.for_actor(self.active_actor_id)
         rel = self.persistence.load(cid, uid, "relationship")
-        if rel:
+        if rel and not relationship_state:
             for k, v in rel.items():
                 if hasattr(self.relationship, k):
                     setattr(self.relationship, k, v)
@@ -441,8 +522,11 @@ class InteriorEngine:
                 "timestep": self.timestep,
                 "last_wall_time": self.last_wall_time,
                 "last_reflection_time": self.last_reflection_time,
+                "active_actor_id": self.active_actor_id,
             },
             "relationship": vars(self.relationship),
+            "actor_registry": self.actor_registry.to_list(),
+            "actor_relationships": self.actor_relationships.to_list(),
             "memories": memories,
             "pressures": pressures,
             "intentions": intentions,
@@ -840,6 +924,7 @@ class InteriorEngine:
 
     def record_world_event(self, *, event_type: str, actors=(), location="unknown", action="observed",
                            targets=(), outcome="", source="host", payload=None, timestamp: float | None = None) -> WorldEvent:
+        payload = self._actorize_event_payload(actors, source, dict(payload or {}))
         event = self.world_events.create(
             tick=self.timestep, timestamp=time.time() if timestamp is None else timestamp, event_type=event_type,
             actors=actors, location=location, action=action, targets=targets, outcome=outcome,
@@ -1559,6 +1644,7 @@ class InteriorEngine:
         prior_proposal = self._last_intrinsic_proposal
         prior_interruptible = prior_proposal.interruptible if prior_proposal else True
         submitted_interaction = visible_context if isinstance(visible_context, dict) else {}
+        self._activate_interlocutor(dict(submitted_interaction))
         interruption = self.vitality.interrupt(
             self.life_state,
             user_text,
@@ -1574,13 +1660,13 @@ class InteriorEngine:
         submitted_visible_context = dict(visible_context)
         input_world_event = self.record_world_event(
             event_type="player_interruption",
-            actors=(self.user_id,),
+            actors=(f"actor:{self.active_actor_id:08x}",),
             location=str(self.world.zone),
             action="interrupted",
             targets=(self.identity.name,),
             outcome="a player message arrived",
             source="user_input",
-            payload={"text": user_text[:500]},
+            payload={"text": user_text[:500], "active_actor_id": self.active_actor_id},
             timestamp=now,
         )
         server_truth.setdefault("user_text", user_text)
@@ -1667,11 +1753,12 @@ class InteriorEngine:
             self._pending_skill_id = None
         if self.development_episodes.episodes:
             prior_episode = self.development_episodes.episodes[-1].episode_id
+            expectation_key = f"actor:{self.active_actor_id:08x}:returns_to_open_loops"
             expectation = self.relationship_expectations.observe(
-                "returns_to_open_loops", prior_episode, day_index, supported=True,
+                expectation_key, prior_episode, day_index, supported=True,
             )
             if expectation and expectation.value in {"usually", "strongly_expected"}:
-                self.ledger.set_relationship_belief(self.user_id, expectation.key, expectation.value)
+                self.ledger.set_relationship_belief(f"actor:{self.active_actor_id:08x}", expectation.key, expectation.value)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "state_transition", {
             "appraisal": vars(appraisal),
             "relationship_before": relationship_before,
@@ -1797,7 +1884,14 @@ class InteriorEngine:
         association_boosts = self.memory_connections.boosts_for(active_meaning_ids)
         retrievals = self.memory.retrieve_explained(
             user_text, now, top_k=4, emotional_state_match=affect_match,
-            relationship_tags={"canonical_user_statement", "subjective_experience"},
+            relationship_tags={
+                "canonical_user_statement", "subjective_experience",
+                f"actor:{self.active_actor_id:08x}",
+                *{
+                    f"actor:{item.actor_id:08x}"
+                    for item in self.actor_registry.match_text(user_text)
+                },
+            },
             association_boosts=association_boosts,
         )
         retrieved = [item.memory for item in retrievals]
@@ -2009,7 +2103,7 @@ class InteriorEngine:
         self.development_episodes.add(development_episode)
         ritual_trigger = "work_interruption_acknowledgment" if interruption.get("input_arrived") else "ongoing_presence"
         self.dyadic_rituals.observe(
-            self.user_id, ritual_trigger, action_decision.action_kind,
+            f"actor:{self.active_actor_id:08x}", ritual_trigger, action_decision.action_kind,
             action_decision.communicative_function, self.timestep,
             development_episode.episode_id, success=True,
         )

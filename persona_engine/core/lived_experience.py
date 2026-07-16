@@ -475,7 +475,11 @@ class ExperienceStore:
             emotional_residue=str(emotional_residue), attention_weight=attention,
             confidence=_bounded(confidence), salience=_bounded(salience),
             encoding_strength=_bounded((attention + salience) / 2.0), source_tier=max(0, int(source_tier)),
-            provenance={"world_event_id": event.event_id, "source": event.source},
+            provenance={
+                "world_event_id": event.event_id,
+                "source": event.source,
+                "actor_ids": [int(item) for item in event.payload.get("actor_ids", ())],
+            },
             created_at=event.timestamp, distortion=dict(distortion or {}),
         )
         self.experiences.append(experience)
@@ -487,13 +491,20 @@ class ExperienceStore:
             return None
         if experience.memory_id:
             return next((item for item in memory.memories if item.id == experience.memory_id), None)
+        actor_tags = {
+            f"actor:{int(actor_id):08x}"
+            for actor_id in experience.provenance.get("actor_ids", ())
+        }
         unit = MemoryUnit(
             content=experience.perceived_summary,
             created_at=now,
             id=_stable_id("memory", experience.experience_id),
             emotional_intensity=experience.salience,
             source=KnowledgeSource.OBSERVED,
-            tags={"autobiographical", "subjective_experience", f"world_event:{experience.world_event_id}"},
+            tags={
+                "autobiographical", "subjective_experience",
+                f"world_event:{experience.world_event_id}", *actor_tags,
+            },
             confidence=experience.confidence,
             salience=experience.salience,
             provenance=dict(experience.provenance),

@@ -43,6 +43,9 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
     life = engine.life_state
     return {
         "relationship": dict(vars(engine.relationship)),
+        "actors": _normalized(engine.actor_registry.to_list()),
+        "actor_relationships": _normalized(engine.actor_relationships.to_list()),
+        "active_actor_id": engine.active_actor_id,
         "pressures": {name: round(p.magnitude, 6) for name, p in sorted(engine.pressures.pressures.items())},
         "beliefs": dict(engine.belief_ledger.values),
         "memory_count": len(engine.memory.memories),

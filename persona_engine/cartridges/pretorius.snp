@@ -190,6 +190,7 @@ perception = { attention = 1.0, confidence = 0.9, salience = 0.94, emotional_res
 [[genesis.episodes]]
 id = "tower_solitude"
 year = 1884
+historical_span_years = 29
 authority = "lived"
 event_type = "extended_solitude"
 actors = ["Septimus Pretorius", "homunculus collection"]
