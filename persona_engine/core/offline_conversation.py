@@ -17,6 +17,7 @@ CONVERSATION_MOVES = frozenset({
     "basic_reply", "reminisce", "defer_and_note", "return_to_topic",
     "reminisce_and_note", "acknowledge_nonverbal", "ask_clarification",
     "probe", "compare", "speculate", "express_curiosity", "continue_working",
+    "activity_update", "journal_allusion",
 })
 NOTE_REASONS = frozenset({
     "interrupted", "insufficient_context", "offline_knowledge_unavailable",
@@ -84,6 +85,8 @@ class ConversationCandidate:
     tendency_id: str | None = None
     performance_tendency_id: str | None = None
     activity_transition: str | None = None
+    source_journal_entry_id: str | None = None
+    continuity_source_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.input_act not in INPUT_ACTS:
@@ -105,6 +108,8 @@ class ConversationCandidate:
         raw.setdefault("tendency_id", None)
         raw.setdefault("performance_tendency_id", None)
         raw.setdefault("activity_transition", None)
+        raw.setdefault("source_journal_entry_id", None)
+        raw.setdefault("continuity_source_id", None)
         return cls(**raw)
 
 
@@ -213,6 +218,10 @@ def derive_conversation_candidate(
     current_activity: str = "",
     activity_status: str = "active",
     dominant_pressure: float = 0.0,
+    elapsed_since_contact: float = 0.0,
+    recent_journal_entry_id: str | None = None,
+    journal_disclosure_mode: str = "guarded",
+    life_callback_history: Sequence[str] = (),
 ) -> ConversationCandidate:
     act = classify_input(text)
     key = topic_key(text)
@@ -236,8 +245,17 @@ def derive_conversation_candidate(
         turn=turn,
         recent_history=tendency_history,
     )
+    returning = act in {"greeting", "leave_or_return"} and elapsed_since_contact >= 60.0
+    journal_source = f"journal:{recent_journal_entry_id}" if recent_journal_entry_id else None
+    activity_source = f"activity:{current_activity.casefold()}" if current_activity else None
 
-    if ready_open_loop is not None and renderer_available and getattr(ready_open_loop, "status", "pending") == "ready":
+    if ready_open_loop is not None and (
+        getattr(ready_open_loop, "required_capability", "none") == "none"
+        or (
+            renderer_available
+            and getattr(ready_open_loop, "status", "pending") == "ready"
+        )
+    ):
         move = "return_to_topic"
         strength = 0.88
         response_value = 0.90
@@ -267,6 +285,23 @@ def derive_conversation_candidate(
         strength = min(0.90, 0.70 + 0.05 * repeated_input_count)
         response_value = max(0.12, 0.34 - 0.08 * repeated_input_count)
         reasons.append(f"input:repeated:{repeated_input_count}")
+    elif (
+        returning and journal_source and journal_source not in life_callback_history
+        and journal_disclosure_mode in {"open", "guarded"}
+    ):
+        move = "journal_allusion"
+        strength = 0.78 if journal_disclosure_mode == "open" else 0.70
+        response_value = 0.74
+        reasons.extend(("continuity:journal_entry_exists", f"journal_disclosure:{journal_disclosure_mode}"))
+    elif (
+        returning and elapsed_since_contact >= 300.0
+        and activity_source and activity_source not in life_callback_history
+        and current_activity != "quiet observation"
+    ):
+        move = "activity_update"
+        strength = 0.72
+        response_value = 0.70
+        reasons.append("continuity:activity_continued_since_contact")
     elif selected_tendency is not None:
         move = selected_tendency.preferred_move
         strength = max(0.0, min(1.0, 0.64 + selected_tendency.bias))
@@ -314,8 +349,14 @@ def derive_conversation_candidate(
             if selected_tendency and move == selected_tendency.preferred_move else None
         ),
         activity_transition=(
-            "continued" if move == "continue_working"
+            "continued" if move in {"continue_working", "activity_update"}
             else activity_status if activity_status in {"continued", "paused", "resumed", "completed", "failed", "abandoned", "changed"}
+            else None
+        ),
+        source_journal_entry_id=(recent_journal_entry_id if move == "journal_allusion" else None),
+        continuity_source_id=(
+            journal_source if move == "journal_allusion"
+            else activity_source if move == "activity_update"
             else None
         ),
     )

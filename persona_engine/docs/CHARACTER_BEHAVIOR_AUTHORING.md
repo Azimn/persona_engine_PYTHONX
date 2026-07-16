@@ -35,6 +35,22 @@ Every `performance_tendency_id` must name a validated
 `[offline_expression]`; they may realize a move in the character's voice, but
 they must not contain canonical facts or bypass memory grounding.
 
+Every character has a bounded journal artifact even when its cartridge omits a
+`[journal]` section. A cartridge may name and govern it:
+
+```toml
+[journal]
+object_name = "private field notebook"
+disclosure_mode = "guarded"
+pending_note_template = "I retained this unfinished question: {topic}"
+```
+
+`disclosure_mode` is `open`, `guarded`, `private`, or `deniable`. `private` and
+`deniable` suppress unsolicited allusions; they do not themselves force a lie.
+The pending-note template creates subjective artifact text only after the
+selected action passes World Authority. Keep it first-person, bounded, and free
+of claims that the character could not know.
+
 ## Authoring Rules
 
 - Keep the bank small. Four strong tendencies are better than forty weak ones.
@@ -61,6 +77,8 @@ at least one contrasting cartridge:
 - a correction under low and high pressure;
 - repeated low-information input;
 - a pending topic after offline capability loss and restoration.
+- a return after two minutes with a newly written journal entry;
+- a return after ten minutes while a real activity continues.
 
 Review the blind transcript first. Confirm that the character seems occupied,
 has recognizable interests, uses memory naturally, avoids conspicuous
@@ -76,4 +94,3 @@ input-act and move enums, bounded signed bias, requirement flags, thresholds,
 cooldown, and a performance-tendency ID. Runtime selection is a bounded scan of
 at most 12 records plus a 24-entry cooldown history. No dynamic graph, model,
 embedding, or prose parser is required.
-

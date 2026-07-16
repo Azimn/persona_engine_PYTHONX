@@ -63,7 +63,10 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
     )
     tendency_uses = sum(bool(item.get("behavioral_tendency_id")) for item in diagnostics)
     continuity_moves = sum(
-        item.get("conversation_move") in {"reminisce", "return_to_topic", "continue_working"}
+        item.get("conversation_move") in {
+            "reminisce", "return_to_topic", "continue_working",
+            "activity_update", "journal_allusion",
+        }
         for item in diagnostics
     )
     metrics = {
@@ -78,6 +81,12 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         "activity_callback_count": activity_callbacks,
         "behavioral_tendency_use_count": tendency_uses,
         "unprompted_continuity_count": continuity_moves,
+        "activity_update_count": sum(
+            item.get("conversation_move") == "activity_update" for item in diagnostics
+        ),
+        "journal_allusion_count": sum(
+            item.get("conversation_move") == "journal_allusion" for item in diagnostics
+        ),
         "reinterpretation_count": max((int(item.get("reinterpretation_count", 0)) for item in diagnostics), default=0),
         "deferred_reinterpretation_count": max((int(item.get("deferred_reinterpretation_count", 0)) for item in diagnostics), default=0),
     }

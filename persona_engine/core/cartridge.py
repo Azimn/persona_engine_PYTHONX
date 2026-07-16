@@ -64,7 +64,7 @@ _ALLOWED_SECTION_FIELDS.update({
         "identity_commit_delta", "growth_rules",
     },
     "genesis": {"version", "episodes"},
-    "journal": {"object_name"},
+    "journal": {"object_name", "disclosure_mode", "pending_note_template"},
     "behavioral_richness": {"tendencies"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
@@ -74,6 +74,7 @@ _ALLOWED_SECTION_FIELDS.update({
         "ask_clarification",
         "continuity_moves",
         "probe", "compare", "speculate", "express_curiosity",
+        "activity_update", "journal_allusion",
     },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
@@ -354,6 +355,17 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
         object_name = data["journal"].get("object_name")
         if not isinstance(object_name, str) or not object_name.strip() or len(object_name) > 120:
             raise CartridgeError("[journal].object_name must contain 1..120 characters")
+        disclosure = str(data["journal"].get("disclosure_mode", "guarded"))
+        if disclosure not in {"open", "guarded", "private", "deniable"}:
+            raise CartridgeError("[journal].disclosure_mode is unsupported")
+        note_template = data["journal"].get("pending_note_template")
+        if note_template is not None and (
+            not isinstance(note_template, str) or not note_template.strip()
+            or len(note_template) > 500 or "{topic}" not in note_template
+        ):
+            raise CartridgeError(
+                "[journal].pending_note_template must contain {topic} and 1..500 characters"
+            )
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:

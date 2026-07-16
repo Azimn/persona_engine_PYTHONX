@@ -218,6 +218,7 @@ class InteriorEngine:
             profile_source.get("behavioral_richness")
         )
         self._behavior_tendency_history: list[tuple[str, int]] = []
+        self._life_callback_history: list[str] = []
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -502,6 +503,10 @@ class InteriorEngine:
             self.persistence.load(cid, uid, "behavior_tendency_history", [])[-24:]
             if isinstance(item, (list, tuple)) and len(item) == 2
         ]
+        self._life_callback_history = [
+            str(item)[:160] for item in
+            self.persistence.load(cid, uid, "life_callback_history", [])[-16:]
+        ]
         offline_state = self.persistence.load(cid, uid, "offline_realization_state", {})
         offline = getattr(self.renderer, "_offline", None)
         if offline is not None and offline_state:
@@ -603,6 +608,7 @@ class InteriorEngine:
                 if self._last_conversation_candidate else None
             ),
             "behavior_tendency_history": [list(item) for item in self._behavior_tendency_history[-24:]],
+            "life_callback_history": self._life_callback_history[-16:],
             "offline_realization_state": getattr(
                 getattr(self.renderer, "_offline", None), "to_state", lambda: {}
             )(),
@@ -2030,6 +2036,15 @@ class InteriorEngine:
             current_activity=self.life_state.current_activity,
             activity_status=self.life_state.activity_status,
             dominant_pressure=top_for_match.magnitude if top_for_match else 0.0,
+            elapsed_since_contact=float(self.last_catch_up_summary.get("elapsed_seconds", 0.0)),
+            recent_journal_entry_id=next((
+                item.entry_id for item in reversed(self.journal.entries)
+                if item.source == "character_world_action"
+            ), None),
+            journal_disclosure_mode=str(
+                (self.cartridge_data or {}).get("journal", {}).get("disclosure_mode", "guarded")
+            ),
+            life_callback_history=self._life_callback_history,
         )
         self._last_conversation_candidate = conversation_candidate
         if conversation_candidate.move != "basic_reply":
@@ -2173,6 +2188,11 @@ class InteriorEngine:
                 *self._behavior_tendency_history,
                 (selected_conversation.tendency_id, self.timestep),
             ][-24:]
+        if selected_conversation and selected_conversation.continuity_source_id:
+            self._life_callback_history = [
+                *self._life_callback_history,
+                selected_conversation.continuity_source_id,
+            ][-16:]
         action_decision = resolve_action_decision(
             tick=self.timestep,
             synthesis=synthesis,
@@ -2203,6 +2223,21 @@ class InteriorEngine:
                 required_capability=selected_conversation.required_capability,
                 status="pending",
             ))
+            journal_config = dict((self.cartridge_data or {}).get("journal", {}))
+            note_template = str(journal_config.get(
+                "pending_note_template",
+                "I retained this unfinished question for later examination: {topic}",
+            ))
+            note_text = note_template.replace("{topic}", user_text[:160]).strip()[:500]
+            if (
+                action_decision.action_kind == "world_action"
+                and not any(item.text == note_text for item in self.journal.entries[-16:])
+            ):
+                self.propose_world_action(
+                    "write_journal",
+                    {"text": note_text, "entry_kind": "field_note"},
+                    event_time=now,
+                )
         elif (
             selected_conversation and selected_conversation.move == "return_to_topic"
             and due_open_loop and action_decision.communicative_function == "return_to_topic"
@@ -2411,6 +2446,16 @@ class InteriorEngine:
                     else None
                 ),
                 activity_transition=performance_plan.activity_transition,
+                activity_context=(
+                    self.life_state.current_activity
+                    if selected_conversation and selected_conversation.move == "activity_update"
+                    else None
+                ),
+                journal_context=(
+                    self.journal.object_name
+                    if selected_conversation and selected_conversation.move == "journal_allusion"
+                    else None
+                ),
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)

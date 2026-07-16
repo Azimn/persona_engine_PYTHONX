@@ -114,6 +114,10 @@ class OfflineTemplateRenderer:
             return self._clean_truncate(
                 self._render_behavior_move(group, system_text, realization, seed, actor_id), max_chars
             )
+        if group in {"activity_update", "journal_allusion"}:
+            return self._clean_truncate(
+                self._render_life_callback(group, system_text, realization, seed, actor_id), max_chars
+            )
         if group == "grounded_memory":
             return self._clean_truncate(self._render_grounded_memory(user_text, system_text), max_chars)
         if group == "activity":
@@ -322,6 +326,36 @@ class OfflineTemplateRenderer:
         return selected.replace("{topic}", topic).replace(
             "{memory}", memory or "an earlier experience"
         )
+
+    def _render_life_callback(
+        self, group: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        activity_match = re.search(
+            r"Observable activity context:\s*([^\n]+)", system_text, re.IGNORECASE,
+        )
+        journal_match = re.search(
+            r"Journal disclosure boundary:\s*([^|\n]+)", system_text, re.IGNORECASE,
+        )
+        activity = re.sub(
+            r"[^A-Za-z0-9 '\-]", "", activity_match.group(1) if activity_match else "my work",
+        ).strip()[:100]
+        journal = re.sub(
+            r"[^A-Za-z0-9 '\-]", "", journal_match.group(1) if journal_match else "my notebook",
+        ).strip()[:100]
+        defaults = {
+            "activity_update": (
+                "I was already occupied with {activity}. It continued after we last spoke.",
+                "While you were away, I continued {activity}. I have not abandoned it for this interruption.",
+            ),
+            "journal_allusion": (
+                "I made a note in {journal} after our last exchange. The note exists; its contents remain mine.",
+                "Something from our unfinished exchange reached {journal}. I am acknowledging the entry, not surrendering it.",
+            ),
+        }
+        selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
+        return selected.replace("{activity}", activity).replace("{journal}", journal)
 
     def _choose_text(
         self, group: str, realization: Mapping[str, Sequence[str]] | None,

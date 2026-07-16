@@ -185,13 +185,15 @@ def resolve_action_decision(
                 action_kind = "gesture" if capture >= 0.25 else "continue_activity"
             communicative_function = "acknowledge" if action_kind == "gesture" else None
         elif selected_conversation.move == "defer_and_note":
-            action_kind = "speak"
+            action_kind = "world_action"
+            target = "personal journal"
             communicative_function = "defer_and_note"
         elif selected_conversation.move == "reminisce":
             action_kind = "speak"
             communicative_function = "reminisce"
         elif selected_conversation.move == "reminisce_and_note":
-            action_kind = "speak"
+            action_kind = "world_action"
+            target = "personal journal"
             communicative_function = "reminisce_and_note"
         elif selected_conversation.move == "return_to_topic":
             action_kind = "speak"
@@ -205,6 +207,9 @@ def resolve_action_decision(
         elif selected_conversation.move == "continue_working":
             action_kind = "continue_activity"
             communicative_function = None
+        elif selected_conversation.move in {"activity_update", "journal_allusion"}:
+            action_kind = "speak"
+            communicative_function = selected_conversation.move
         else:
             action_kind = "speak"
             communicative_function = dialogue_act

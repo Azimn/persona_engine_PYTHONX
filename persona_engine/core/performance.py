@@ -188,7 +188,18 @@ class PerformancePlanner:
         intensity = max(0.1, min(1.0, profile.nonverbal_intensity + (1.0 - capacity) * 0.2))
         acts = self._acts_for(decision, intensity, profile)
         if activity_transition in {"continued", "paused", "resumed", "completed", "failed", "abandoned", "changed"}:
-            if not any(item.channel == "activity" for item in acts):
+            if any(item.channel == "activity" for item in acts):
+                acts = tuple(
+                    PerformanceAct(
+                        **{
+                            **asdict(item),
+                            "function": activity_transition,
+                            "target": str(activity_label or decision.target)[:120],
+                        }
+                    ) if item.channel == "activity" else item
+                    for item in acts
+                )
+            else:
                 acts = (*acts, PerformanceAct(
                     channel="activity", function=activity_transition,
                     target=str(activity_label or decision.target)[:120], intensity=round(intensity, 6),
@@ -198,7 +209,11 @@ class PerformancePlanner:
             acts, decision, profile, perceived_confidence, noticed_conflicts,
             selected_regulation.kind if selected_regulation else None,
         )
-        literal = decision.communicative_function if decision.action_kind == "speak" else None
+        literal = (
+            decision.communicative_function
+            if any(item.channel == "speech" for item in acts)
+            else None
+        )
         withheld = ("unselected_private_state",) if concealment_mode != "none" else ()
         canonical = {
             "decision_id": decision.decision_id,
@@ -329,6 +344,10 @@ class PerformancePlanner:
             add("activity", "continue", duration="sustained")
         elif decision.action_kind == "world_action":
             add("action", "perform", duration="bounded")
+            if decision.communicative_function:
+                add("speech", decision.communicative_function)
+                if "voice" in profile.supplementary_channels:
+                    add("voice", profile.turn_mode)
         elif decision.action_kind == "withdraw":
             add("movement", "withdraw", duration="sustained")
 

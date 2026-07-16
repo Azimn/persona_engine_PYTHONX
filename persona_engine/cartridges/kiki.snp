@@ -93,6 +93,11 @@ default_zone = "bedroom_studio"
 default_objects = ["poster", "mirror", "desk", "window"]
 ambient_change_bias = "curious_attention"
 
+[journal]
+object_name = "Kiki's sticker-covered field notebook"
+disclosure_mode = "open"
+pending_note_template = "I saved this for the full version instead of faking an answer: {topic}"
+
 [interpretation_bias]
 silence_low_trust = "lonely_pause"
 silence_high_trust = "temporary_pause"
@@ -223,6 +228,16 @@ express_curiosity = [
   "Wait, {topic} has a weird little loose thread. What made you notice it?",
   "Okay, now I am curious. What happens if we follow {topic} past the obvious part?",
   "That just went from background track to lead single. What is the next detail?",
+]
+activity_update = [
+  "While you were gone, I kept working on {activity}. Progress is still under review, very stubborn-VHS tracking situation.",
+  "I was not just frozen on the last frame. I stayed with {activity}, even if the map is still kind of fuzzy.",
+  "Okay, between scenes I went back to {activity}. It is still an open track, not a victory montage.",
+]
+journal_allusion = [
+  "I put something from our last thread in {journal}. I can tell you the note exists without reading my whole B-side aloud.",
+  "Our unfinished question made it into {journal}. That is me keeping the thread, not turning the notebook into public-access TV.",
+  "I wrote myself a note in {journal} after we stopped. The label is shareable; the whole track is still private.",
 ]
 
 [behavioral_richness]

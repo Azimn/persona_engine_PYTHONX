@@ -49,6 +49,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Offline Conversation v1 adds bounded input-act classification, synthesis-owned conversational moves, grounded reminiscence, capability-tagged conversation notes, reconnect resurfacing, nonverbal low-information responses, and persistent per-actor shuffle history.
 - Behavioral Richness v1 adds bounded cartridge tendencies for probing, comparison, speculation, curiosity, and continued work; selected moves remain synthesis-owned and carry real activity transitions into deterministic performance.
 - Pretorius and Kiki use different tendency banks and functional realization pools, while playtest reports measure move diversity, activity callbacks, continuity, and blind human illusion criteria.
+- Grounded life callbacks expose actual elapsed activity, ordinary open-loop returns, and real journal-entry existence without disclosing private text. Offline claims that a question was noted now create an auditable World Authority journal action.
 
 ## Current Tests
 
@@ -61,7 +62,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-341 passed, 1 skipped
+348 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
