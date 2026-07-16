@@ -5,7 +5,9 @@ turns:
       user_absent_minutes: 47
     visible_context:
       room_sound: "quiet"
-    expect_response_pattern: "mock|quiet|silence|distance|waiting|back|gone"
+    expect_state:
+      action_decision.action_kind: "gesture"
+      model_calls.expression_renderer_called: false
   - user_input: "What was that?"
     server_truth:
       ambient_event: "sound in hallway"

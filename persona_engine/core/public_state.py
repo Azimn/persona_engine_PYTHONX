@@ -148,6 +148,19 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             "actor_relationships": getattr(engine, "actor_relationships", None).to_list()
             if getattr(engine, "actor_relationships", None) else [],
             "active_actor_id": getattr(engine, "active_actor_id", None),
+            "conversation_candidate": (
+                engine._last_conversation_candidate.to_dict()
+                if getattr(engine, "_last_conversation_candidate", None) else None
+            ),
+            "conversation_notes": [
+                asdict(item) for item in getattr(engine.intentions, "open_loops", ())
+                if getattr(item, "reason", "") in {
+                    "offline_knowledge_unavailable", "needs_research", "promised_followup"
+                }
+            ],
+            "offline_realization_state": getattr(
+                getattr(engine.renderer, "_offline", None), "to_state", lambda: {}
+            )(),
             "state": engine.life_state.to_dict() if hasattr(engine, "life_state") else {},
             "catch_up": dict(getattr(engine, "last_catch_up_summary", {})),
             "objective_events": [event.to_dict() for event in recent_events],

@@ -8,7 +8,9 @@ turns:
     visible_context:
       room_sound: "quiet"
       light_level: "dim"
-    expect_response_pattern: "(quiet|silence|back|distance|waiting|return|mock)"
+    expect_state:
+      action_decision.action_kind: "gesture"
+      model_calls.expression_renderer_called: false
   - user_input: "Did you hear that?"
     visible_context:
       ambient_event: "sound in hallway"

@@ -68,6 +68,10 @@ _ALLOWED_SECTION_FIELDS.update({
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
+        "reminisce_openers", "reminisce_followups", "defer_and_note",
+        "return_to_topic",
+        "ask_clarification",
+        "continuity_moves",
     },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")

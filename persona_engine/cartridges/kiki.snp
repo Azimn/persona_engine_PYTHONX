@@ -170,6 +170,40 @@ sound = [
   "I heard it, but I am not casting a mystery villain before we have evidence.",
   "Something made a sound. Cause currently unknown, which is less dramatic but more accurate.",
 ]
+reminisce_openers = [
+  "Oh, wow, that memory still has serious B-side energy.",
+  "Yeah, that one stuck, like a song taped off the radio at exactly the right second.",
+  "I do not have perfect playback, but I totally remember the shape of it.",
+  "That moment is still in the mental photo album, weird lighting and all.",
+]
+reminisce_followups = [
+  "Which part are you thinking about now?",
+  "Do you want what happened, or the part that stayed with me?",
+  "The feeling is clearer than the timestamp, very lost-ticket-stub situation.",
+  "There is more on that track if you want to keep listening.",
+]
+defer_and_note = [
+  "{topic} needs more than a fuzzy off-air answer. I put it on my follow-up list.",
+  "I cannot do {topic} justice in this mode, so I am saving the question like the good blank tape.",
+  "That deserves the full version, not a trailer cut. I made a note to come back to {topic}.",
+]
+return_to_topic = [
+  "Okay, remember {topic}? I can finally give it the full-album treatment.",
+  "I saved our thread about {topic}, and the missing equipment is back online. Want to resume?",
+  "That question about {topic} did not vanish into the couch cushions. I can take it up properly now.",
+]
+ask_clarification = [
+  "Which unfinished thread? Give me one detail, like labeling the mixtape before we hit play.",
+  "I have more than one open track here. Which person or moment do you mean?",
+  "Give me the concrete version. 'Where we left off' is kind of a whole video-store shelf.",
+]
+continuity_moves = [
+  "Okay, now give me the part that changes the next scene.",
+  "Connect it to the earlier track so I know we are on the same tape.",
+  "There is a real thread there; do not bury it under the commercial break.",
+  "What changes if that version is actually right?",
+  "I am listening for the detail that still works after the credits.",
+]
 
 [private_cognition]
 mode = "deterministic"

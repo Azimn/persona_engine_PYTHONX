@@ -52,3 +52,12 @@ def test_offline_renderer_surfaces_engine_owned_interrupted_activity():
     ], seed=1)
     assert "rehearsing a plan" in response.lower()
     assert "before you interrupted" in response.lower()
+
+
+def test_offline_renderer_answers_current_work_question_from_activity():
+    renderer = OfflineTemplateRenderer()
+    response = renderer.render([
+        {"role": "system", "content": "World: study | before interruption: repairing the regulator | attention: user"},
+        {"role": "user", "content": "What are you working on?"},
+    ], seed=1)
+    assert "repairing the regulator" in response.lower()

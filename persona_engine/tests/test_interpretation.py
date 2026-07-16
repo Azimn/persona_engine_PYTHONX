@@ -80,7 +80,7 @@ def test_interpretive_belief_logged_as_event():
     assert events[0]["payload"].get("canonical") is False
 
 
-def test_workspace_contains_beliefs_not_raw_hidden_truth():
+def test_nonverbal_turn_preserves_beliefs_without_building_a_renderer_workspace():
     db = tempfile.NamedTemporaryFile(delete=False).name
     cart = Path(__file__).resolve().parents[1] / "cartridges" / "pretorius.snp"
     agent = CharacterAgent(cartridge_path=str(cart), user_id="workspace", db_path=db)
@@ -89,6 +89,8 @@ def test_workspace_contains_beliefs_not_raw_hidden_truth():
         server_truth={"user_absent_minutes": 47, "hidden_location": {"value": "secret basement", "visible_to_character": False}},
         visible_context={"room_sound": "quiet"},
     )
-    prompt = result["system_prompt"]
-    assert "Current character beliefs" in prompt
-    assert "secret basement" not in prompt
+    assert result["system_prompt"] == ""
+    assert result["interpretive_belief_trace"]
+    assert result["action_decision"]["action_kind"] in {"gesture", "continue_activity"}
+    assert result["model_calls"]["expression_renderer_called"] is False
+    assert "secret basement" not in str(result["interpretive_belief_trace"])

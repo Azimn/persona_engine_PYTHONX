@@ -35,6 +35,8 @@ class WorkspaceFrame:
     semantic_candidates: List[str] = field(default_factory=list)
     autobiographical_context: tuple[str, ...] = ()
     memory_grounding: Optional[str] = None
+    conversation_move: Optional[str] = None
+    conversation_topic: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -52,6 +54,10 @@ class WorkspaceFrame:
             lines.append("MEMORY GROUNDING: " + self.memory_grounding)
         if self.autobiographical_context:
             lines.append("Current autobiographical meaning, use only if disclosure permits: " + " | ".join(self.autobiographical_context[:2]))
+        if self.conversation_move:
+            lines.append(f"Selected conversation move: {self.conversation_move}")
+        if self.conversation_topic:
+            lines.append(f"Conversation topic: {self.conversation_topic}")
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:

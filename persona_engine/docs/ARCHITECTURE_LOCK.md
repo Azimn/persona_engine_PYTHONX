@@ -98,6 +98,12 @@ same person.
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.
 
+Offline conversation may classify bounded discourse acts and propose basic
+reply, reminiscence, deferral, topic return, clarification, or nonverbal
+acknowledgement. These are synthesis candidates, not final decisions.
+Reminiscence must be grounded in considered autobiographical memory. Pending
+topics reuse `OpenLoop`; renderer output may surface but never resolve them.
+
 ### Semantic Prior Boundary
 
 The read-only semantic substrate may supply generic concept features,

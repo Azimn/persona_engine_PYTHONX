@@ -60,6 +60,14 @@ def developmental_fixture(engine) -> dict[str, Any]:
         "genesis_replays": list(getattr(engine, "genesis_replays", ())),
         "journal": getattr(engine, "journal", None).to_dict()
         if getattr(engine, "journal", None) else None,
+        "conversation_notes": [vars(item) for item in engine.intentions.open_loops],
+        "last_conversation_candidate": (
+            engine._last_conversation_candidate.to_dict()
+            if engine._last_conversation_candidate else None
+        ),
+        "offline_realization_state": getattr(
+            getattr(engine.renderer, "_offline", None), "to_state", lambda: {}
+        )(),
         "earned_traits": [vars(item) for item in engine.ledger.earned_traits.values()],
     }
 

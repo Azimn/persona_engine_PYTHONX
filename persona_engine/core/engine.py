@@ -85,6 +85,9 @@ from .developmental_learning import (
 from .genesis import GenesisReplayer
 from .journal import PersonalJournal
 from .actors import ActorRegistry, ActorRelationshipStore
+from .offline_conversation import (
+    ConversationCandidate, derive_conversation_candidate, renderer_is_model_backed,
+)
 
 
 def bucket_risk(risk: float) -> str:
@@ -209,6 +212,7 @@ class InteriorEngine:
         self.self_monitor_profile = SelfMonitorProfile.from_dict(profile_source.get("self_monitor"))
         self.self_monitor = SelfMonitor(self.self_monitor_profile)
         self._last_self_monitor: SelfMonitorResult | None = None
+        self._last_conversation_candidate: ConversationCandidate | None = None
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -241,7 +245,14 @@ class InteriorEngine:
     def set_renderer(self, renderer) -> None:
         """Replace only the surface renderer through an approved host channel."""
 
+        previous_state = getattr(getattr(self.renderer, "_offline", None), "to_state", lambda: {})()
         self.renderer = renderer
+        offline = getattr(self.renderer, "_offline", None)
+        if offline is not None and previous_state:
+            offline.load_state(previous_state)
+        if renderer_is_model_backed(renderer):
+            self.intentions.mark_capability_ready("language_model")
+        self._persist()
 
     def set_private_cognition_mode(self, mode: str, optional_threshold: float | None = None) -> None:
         """Configure this session's bounded private-cognition capability."""
@@ -477,6 +488,14 @@ class InteriorEngine:
         )
         last_monitor = self.persistence.load(cid, uid, "last_self_monitor")
         self._last_self_monitor = SelfMonitorResult.from_dict(last_monitor) if last_monitor else None
+        last_conversation = self.persistence.load(cid, uid, "last_conversation_candidate")
+        self._last_conversation_candidate = (
+            ConversationCandidate.from_dict(last_conversation) if last_conversation else None
+        )
+        offline_state = self.persistence.load(cid, uid, "offline_realization_state", {})
+        offline = getattr(self.renderer, "_offline", None)
+        if offline is not None and offline_state:
+            offline.load_state(offline_state)
         action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
         self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
@@ -569,6 +588,13 @@ class InteriorEngine:
             "last_performance_plan": self._last_performance_plan.to_dict() if self._last_performance_plan else None,
             "last_model_call_metrics": dict(self._last_model_call_metrics),
             "last_self_monitor": self._last_self_monitor.to_dict() if self._last_self_monitor else None,
+            "last_conversation_candidate": (
+                self._last_conversation_candidate.to_dict()
+                if self._last_conversation_candidate else None
+            ),
+            "offline_realization_state": getattr(
+                getattr(self.renderer, "_offline", None), "to_state", lambda: {}
+            )(),
             "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
@@ -1952,7 +1978,8 @@ class InteriorEngine:
             triggers.append("emotional_overload")
 
         selected_intention = self.intentions.select_top(now)
-        open_loop = self.intentions.due_open_loop(now)
+        open_loop = self.intentions.due_open_loop(now, actor_id=self.active_actor_id)
+        due_open_loop = open_loop
         symbol = self.symbols.most_relevant(now)
         resistance = select_resistance(triggers)
         habit_trigger = triggers[0] if triggers else "default"
@@ -1962,6 +1989,42 @@ class InteriorEngine:
             user_text, retrievals, habit, available_artifacts, now, semantic_frame,
             self._last_intrinsic_proposal,
         )
+        prior_memory_retrievals = [
+            item for item in retrievals
+            if item.memory.created_at < now - 0.001
+            and "autobiographical" in item.memory.tags
+            and not item.memory.content.casefold().startswith("i heard you say")
+            and not ({"sensorium", "ambient_event"} & item.memory.tags)
+        ]
+        raw_direct_memory_cue = any(
+            float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
+            for item in prior_memory_retrievals
+        )
+        conversation_candidate = derive_conversation_candidate(
+            text=user_text,
+            actor_id=self.active_actor_id,
+            renderer_available=renderer_is_model_backed(self.renderer),
+            retrieved=prior_memory_retrievals,
+            direct_memory_cue=raw_direct_memory_cue,
+            ready_open_loop=open_loop,
+            familiarity=self.relationship.familiarity,
+            turn=self.timestep,
+            repeated_input_count=sum(
+                1 for item in self.memory.memories[-32:]
+                if item.created_at < now - 0.001
+                and item.content.casefold() == f"I heard you say: {user_text[:120]}".casefold()
+            ),
+        )
+        self._last_conversation_candidate = conversation_candidate
+        if conversation_candidate.move != "basic_reply":
+            base_influences.append(SynthesisInfluence(
+                influence_id=f"conversation:{conversation_candidate.candidate_id}",
+                kind="conversation_candidate",
+                label=conversation_candidate.move,
+                strength=conversation_candidate.strength,
+                immediate=conversation_candidate.response_value >= 0.80,
+                reality_support=0.8 if conversation_candidate.source_memory_id else 0.0,
+            ))
         actual_capacity = self.integration_capacity()
         for activation in autobiographical_activations:
             interpretation = self.autobiographical_interpretations.fetch(activation.interpretation_id)
@@ -2023,19 +2086,33 @@ class InteriorEngine:
         if open_loop is not None and f"open_loop:{open_loop.topic}" not in considered_ids:
             open_loop = None
         retrieved = [item.memory for item in retrievals if f"memory:{item.memory.id}" in considered_ids]
-        self.memory.record_recall(retrieved, now)
         memory_request = any(
             phrase in user_text.lower()
-            for phrase in ("remember", "what happened", "your memories", "what do you recall")
+            for phrase in (
+                "remember", "what happened", "your memories", "what do you recall",
+                "where did we leave",
+            )
         )
+        groundable_retrievals = [
+            item for item in retrievals
+            if "autobiographical" in item.memory.tags
+            and not item.memory.content.casefold().startswith("i heard you say")
+            and not ({"sensorium", "ambient_event"} & item.memory.tags)
+        ]
         direct_grounding = any(
             f"memory:{item.memory.id}" in considered_ids
             and float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
-            for item in retrievals
+            for item in groundable_retrievals
         )
         memory_grounding_mode = (
             "required" if direct_grounding else "unavailable" if memory_request else "optional"
         )
+        if memory_request:
+            retrieved = [
+                item.memory for item in groundable_retrievals
+                if f"memory:{item.memory.id}" in considered_ids
+            ]
+        self.memory.record_recall(retrieved, now)
         available_artifacts = [
             item for item in available_artifacts
             if f"artifact:{item.artifact_id}" in considered_ids
@@ -2059,6 +2136,22 @@ class InteriorEngine:
             (item for item in self.dyadic_rituals.rituals if item.ritual_id == synthesis.selected_dyadic_ritual_id),
             None,
         )
+        grounded_conversation_memory_id = next((
+            item.memory.id for item in prior_memory_retrievals
+            if f"memory:{item.memory.id}" in considered_ids
+        ), None)
+        conversation_memory_required = conversation_candidate.move in {
+            "reminisce", "reminisce_and_note"
+        }
+        selected_conversation = (
+            replace(conversation_candidate, source_memory_id=grounded_conversation_memory_id)
+            if synthesis.selected_conversation_candidate_id == conversation_candidate.candidate_id
+            and conversation_candidate.move != "basic_reply"
+            and (not conversation_memory_required or grounded_conversation_memory_id is not None)
+            else None
+        )
+        effective_conversation_candidate = selected_conversation or conversation_candidate
+        self._last_conversation_candidate = effective_conversation_candidate
         action_decision = resolve_action_decision(
             tick=self.timestep,
             synthesis=synthesis,
@@ -2072,7 +2165,28 @@ class InteriorEngine:
             current_pressure=top_after_appraisal.magnitude if top_after_appraisal else 0.0,
             selected_regulation=selected_regulation,
             selected_ritual=selected_ritual,
+            selected_conversation=selected_conversation,
         )
+        if selected_conversation and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}:
+            self.intentions.add_open_loop(OpenLoop(
+                topic=user_text[:160],
+                emotional_charge=max(0.2, min(1.0, appraisal.novelty + 0.2)),
+                created_at=now,
+                last_touched=now,
+                urgency=0.62,
+                preferred_resolution="revisit when language capability is available",
+                topic_key=selected_conversation.topic_key,
+                actor_id=self.active_actor_id,
+                source_event_id=input_world_event.event_id,
+                reason="offline_knowledge_unavailable",
+                required_capability=selected_conversation.required_capability,
+                status="pending",
+            ))
+        elif (
+            selected_conversation and selected_conversation.move == "return_to_topic"
+            and due_open_loop and action_decision.communicative_function == "return_to_topic"
+        ):
+            due_open_loop.status = "surfaced"
         self._accept_action_decision(action_decision, selected_proposal)
         active_autobiographical_ids = tuple(
             item.influence_id.removeprefix("autobiographical:")
@@ -2249,6 +2363,14 @@ class InteriorEngine:
                     "No directly relevant memory is accessible. Do not invent an event; state bounded uncertainty."
                     if memory_grounding_mode == "unavailable" else None
                 ),
+                conversation_move=selected_conversation.move if selected_conversation else None,
+                conversation_topic=(
+                    due_open_loop.topic if selected_conversation
+                    and selected_conversation.move == "return_to_topic" and due_open_loop
+                    else user_text[:160] if selected_conversation
+                    and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}
+                    else None
+                ),
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
@@ -2278,6 +2400,8 @@ class InteriorEngine:
                     "memory_grounding_mode": memory_grounding_mode,
                     "action_decision": action_decision.to_dict(),
                     "performance_plan": performance_payload,
+                    "conversation_candidate": selected_conversation.to_dict() if selected_conversation else None,
+                    "active_actor_id": self.active_actor_id,
                 },
                 deception_obligations=[],
                 seed=seed,
@@ -2362,6 +2486,7 @@ class InteriorEngine:
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
+            "conversation_candidate": effective_conversation_candidate.to_dict(),
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
@@ -2401,6 +2526,7 @@ class InteriorEngine:
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
+            "conversation_candidate": effective_conversation_candidate.to_dict(),
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),

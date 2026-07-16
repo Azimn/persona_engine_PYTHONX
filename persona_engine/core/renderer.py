@@ -139,6 +139,7 @@ class LocalLLMRenderer:
         retrieved_memories: Optional[List[MemoryUnit]] = None,
         seed: int | None = None,
         offline_realization: dict | None = None,
+        offline_context: dict | None = None,
     ) -> str:
         if self.provider == "ollama":
             try:
@@ -153,7 +154,10 @@ class LocalLLMRenderer:
         else:
             self._fallback_reason = None
         self._actual_backend = "offline"
-        return self._mock(messages, max_chars, seed=seed, offline_realization=offline_realization)
+        return self._mock(
+            messages, max_chars, seed=seed, offline_realization=offline_realization,
+            offline_context=offline_context,
+        )
 
     def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
         proposal = PrivateCognitionProposal(
@@ -170,9 +174,16 @@ class LocalLLMRenderer:
         if isinstance(request.expression_constraints, dict):
             max_chars = request.expression_constraints.get("max_chars", 200)
             offline_realization = request.expression_constraints.get("offline_realization")
+            offline_context = {
+                "conversation_move": (
+                    request.expression_constraints.get("conversation_candidate") or {}
+                ).get("move"),
+                "actor_id": request.expression_constraints.get("active_actor_id"),
+            }
         else:
             max_chars = getattr(request.expression_constraints, "max_chars", 200)
             offline_realization = getattr(request.expression_constraints, "offline_realization", None)
+            offline_context = {}
         if isinstance(request.resolved_state, dict):
             user_text = str(request.resolved_state.get("user_text", ""))
             system_content = str(request.resolved_state.get("system_prompt") or request.resolved_state)
@@ -189,6 +200,7 @@ class LocalLLMRenderer:
             self._fallback_reason = "No directly relevant memory was available for a memory-grounded answer."
             return self._offline.render(
                 messages, max_chars=max_chars, seed=request.seed, realization=offline_realization,
+                **offline_context,
             )
         rendered = self.generate(
             messages,
@@ -196,6 +208,7 @@ class LocalLLMRenderer:
             retrieved_memories=request.retrieved_memories,
             seed=request.seed,
             offline_realization=offline_realization,
+            offline_context=offline_context,
         )
         if grounding_mode == "required" and self._actual_backend != "offline" and not self._memory_grounded(
             rendered, user_text, request.retrieved_memories,
@@ -204,6 +217,7 @@ class LocalLLMRenderer:
             self._fallback_reason = "Model output failed the explicit autobiographical grounding check."
             return self._offline.render(
                 messages, max_chars=max_chars, seed=request.seed, realization=offline_realization,
+                **offline_context,
             )
         return rendered
 
@@ -279,12 +293,14 @@ class LocalLLMRenderer:
         error: Optional[str] = None,
         seed: int | None = None,
         offline_realization: dict | None = None,
+        offline_context: dict | None = None,
     ) -> str:
         return self._offline.render(
             messages,
             max_chars=max_chars,
             seed=seed,
             realization=offline_realization,
+            **dict(offline_context or {}),
         )
 
 

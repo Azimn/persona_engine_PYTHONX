@@ -504,6 +504,40 @@ sound = [
   "I heard it. A sound is evidence of disturbance, not permission to invent an intruder.",
   "Something changed nearby. Its cause remains irritatingly undecided.",
 ]
+reminisce_openers = [
+  "That recollection remains inconveniently vivid.",
+  "Memory has preserved the offense better than the chronology.",
+  "I do not possess a transcript, but the impression survived.",
+  "Yes. That episode still objects to being filed away.",
+]
+reminisce_followups = [
+  "Which part of it do you imagine matters now?",
+  "Do you want the fact, or what I made of it afterward?",
+  "The residue is clearer than the sequence; proceed accordingly.",
+  "There is more there, though not all of it deserves disclosure.",
+]
+defer_and_note = [
+  "{topic} deserves more than an improvised answer. I have entered it in my pending notes.",
+  "I lack the present apparatus to examine {topic} properly. The question has been retained, not dismissed.",
+  "No. I will not counterfeit expertise on {topic}. I have marked it for our return.",
+]
+return_to_topic = [
+  "We left {topic} unfinished. I now have the means to examine it without bluffing.",
+  "The question of {topic} survived our interruption. Shall we conduct the inquiry properly?",
+  "I made a note of {topic}. The necessary apparatus is available now, so let us resume.",
+]
+ask_clarification = [
+  "Which unfinished matter do you mean? I have several, and I will not merge them for convenience.",
+  "Name the thread more precisely. I remember impressions, not your private index.",
+  "Give me one concrete detail from the matter, and I may be able to recover the correct sequence.",
+]
+continuity_moves = [
+  "Now give me the consequence rather than another preface.",
+  "Tie it to the earlier evidence, if you can.",
+  "There is a usable thread there; do not smother it with reassurance.",
+  "Specify what changes if your claim is true.",
+  "I am listening for the part that survives scrutiny.",
+]
 
 [private_cognition]
 mode = "deterministic"

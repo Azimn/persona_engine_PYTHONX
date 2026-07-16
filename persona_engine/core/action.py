@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .synthesis import SynthesisResult
     from .self_monitor import RegulationCandidate
     from .dyadic_ritual import DyadicRitual
+    from .offline_conversation import ConversationCandidate
 
 
 ACTION_KINDS = frozenset({
@@ -93,6 +94,7 @@ def resolve_action_decision(
     current_pressure: float = 0.0,
     selected_regulation: "RegulationCandidate | None" = None,
     selected_ritual: "DyadicRitual | None" = None,
+    selected_conversation: "ConversationCandidate | None" = None,
 ) -> ActionDecision:
     """Resolve selected structured evidence into exactly one action."""
 
@@ -170,6 +172,36 @@ def resolve_action_decision(
         elif kind == "continue_habitually":
             action_kind = "continue_activity"
             communicative_function = None
+    elif selected_conversation is not None:
+        reasons.append(f"conversation:{selected_conversation.move}")
+        if selected_conversation.move == "acknowledge_nonverbal":
+            repeated = next((
+                int(code.rsplit(":", 1)[1]) for code in selected_conversation.reason_codes
+                if code.startswith("input:repeated:")
+            ), 0)
+            if repeated:
+                action_kind = ("gesture", "continue_activity", "silence")[(repeated - 1) % 3]
+            else:
+                action_kind = "gesture" if capture >= 0.25 else "continue_activity"
+            communicative_function = "acknowledge" if action_kind == "gesture" else None
+        elif selected_conversation.move == "defer_and_note":
+            action_kind = "speak"
+            communicative_function = "defer_and_note"
+        elif selected_conversation.move == "reminisce":
+            action_kind = "speak"
+            communicative_function = "reminisce"
+        elif selected_conversation.move == "reminisce_and_note":
+            action_kind = "speak"
+            communicative_function = "reminisce_and_note"
+        elif selected_conversation.move == "return_to_topic":
+            action_kind = "speak"
+            communicative_function = "return_to_topic"
+        elif selected_conversation.move == "ask_clarification":
+            action_kind = "speak"
+            communicative_function = "ask_clarification"
+        else:
+            action_kind = "speak"
+            communicative_function = dialogue_act
     elif selected_ritual is not None:
         action_kind = selected_ritual.response_action_kind
         communicative_function = selected_ritual.communicative_function

@@ -78,6 +78,7 @@ class SynthesisResult:
     selected_social_hypothesis_ids: tuple[str, ...]
     selected_skill_id: str | None
     selected_dyadic_ritual_id: str | None
+    selected_conversation_candidate_id: str | None
     inhibited_influences: tuple[SynthesisInfluence, ...]
     unresolved_conflicts: tuple[str, ...]
     reality_support: float
@@ -137,6 +138,11 @@ def _rank(influence: SynthesisInfluence, capacity: float) -> float:
                 score += 0.05 * capacity
             else:
                 score -= 0.10 * (1.0 - capacity)
+    if influence.kind == "conversation_candidate":
+        if influence.immediate:
+            score += 0.08
+        if capacity < 0.35:
+            score -= 0.08 * (1.0 - capacity)
     return round(score, 6)
 
 
@@ -167,6 +173,7 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
     social = [item for item in considered if item.kind == "social_model"]
     skills = [item for item in considered if item.kind == "skill"]
     rituals = [item for item in considered if item.kind == "dyadic_ritual"]
+    conversation = [item for item in considered if item.kind == "conversation_candidate"]
     conflicts = tuple(
         item.influence_id for item in bounded
         if item.kind in {"open_loop", "relationship_conflict"} or item.contradictory
@@ -191,6 +198,7 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
         "considered": [item.influence_id for item in considered],
         "inhibited": [item.influence_id for item in inhibited],
         "selected_regulation": regulation[0].influence_id.removeprefix("regulation:") if regulation else None,
+        "selected_conversation": conversation[0].influence_id.removeprefix("conversation:") if conversation else None,
     }
     digest = hashlib.blake2b(json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8).hexdigest()
     return SynthesisResult(
@@ -211,6 +219,9 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
         ),
         selected_skill_id=skills[0].influence_id.removeprefix("skill:") if skills else None,
         selected_dyadic_ritual_id=(rituals[0].influence_id.removeprefix("dyadic_ritual:") if rituals else None),
+        selected_conversation_candidate_id=(
+            conversation[0].influence_id.removeprefix("conversation:") if conversation else None
+        ),
         inhibited_influences=inhibited,
         unresolved_conflicts=conflicts,
         reality_support=reality_support,

@@ -49,7 +49,14 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
         "pressures": {name: round(p.magnitude, 6) for name, p in sorted(engine.pressures.pressures.items())},
         "beliefs": dict(engine.belief_ledger.values),
         "memory_count": len(engine.memory.memories),
-        "open_loop_count": len(engine.intentions.open_loops),
+        "open_loops": _normalized([vars(item) for item in engine.intentions.open_loops]),
+        "conversation_candidate": _normalized(
+            engine._last_conversation_candidate.to_dict()
+            if engine._last_conversation_candidate else None
+        ),
+        "offline_realization_state": _normalized(getattr(
+            getattr(engine.renderer, "_offline", None), "to_state", lambda: {}
+        )()),
         "symbol_count": len(engine.symbols.symbols),
         "habit_count": len(engine.habits.habits),
         "timestep": engine.timestep,
