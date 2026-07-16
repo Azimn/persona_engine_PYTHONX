@@ -42,6 +42,7 @@ class WorkspaceFrame:
     conversation_continuity: Optional[str] = None
     conversational_obligation: Optional[str] = None
     optional_extension: Optional[str] = None
+    conversation_choreography: dict[str, Any] = field(default_factory=dict)
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -78,6 +79,21 @@ class WorkspaceFrame:
             lines.append("OPTIONAL CHARACTER MOVE (at most one, after obligation): " + self.optional_extension)
         else:
             lines.append("Do not append a follow-up question or optional conversational move.")
+        if self.conversation_choreography:
+            plan = self.conversation_choreography
+            lines.append(
+                "CONVERSATION CHOREOGRAPHY (realize; do not change the selected action): "
+                f"strategy={plan.get('rhetorical_strategy')}; "
+                f"phase={plan.get('trajectory_phase')}; "
+                f"energy={plan.get('energy_band')}; "
+                f"span={plan.get('response_span')}; "
+                f"answer_shape={plan.get('answer_shape')}; "
+                f"pacing={plan.get('pacing')}; "
+                f"disclosure={plan.get('disclosure_depth')}; "
+                f"activity={plan.get('activity_relation')}; "
+                f"resolution={plan.get('resolution_policy')}; "
+                f"memory_role={plan.get('memory_role')}"
+            )
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:

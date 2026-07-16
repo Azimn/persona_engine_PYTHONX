@@ -58,6 +58,7 @@ class PerformancePlan:
     provenance_ids: tuple[str, ...]
     activity_transition: str | None = None
     activity_label: str | None = None
+    conversation_choreography_id: str | None = None
 
     @property
     def requires_language_renderer(self) -> bool:
@@ -86,6 +87,7 @@ class PerformancePlan:
             values[field] = tuple(values.get(field, ()))
         values.setdefault("activity_transition", None)
         values.setdefault("activity_label", None)
+        values.setdefault("conversation_choreography_id", None)
         return cls(**values)
 
 
@@ -167,6 +169,7 @@ class PerformancePlanner:
         performance_profile: PerformanceProfile | None = None,
         activity_transition: str | None = None,
         activity_label: str | None = None,
+        conversation_choreography=None,
     ) -> PerformancePlan:
         profile = performance_profile or PerformanceProfile()
         guardedness = max(0.0, min(1.0, float(getattr(relationship, "guardedness", 0.5))))
@@ -185,7 +188,23 @@ class PerformancePlanner:
             certainty = min(1.0, certainty + 0.08)
         elif selected_regulation and selected_regulation.kind == "conceal_uncertainty":
             directness = min(1.0, directness + 0.06)
-        intensity = max(0.1, min(1.0, profile.nonverbal_intensity + (1.0 - capacity) * 0.2))
+        choreography_energy = float(
+            getattr(conversation_choreography, "conversational_energy", 0.5)
+        )
+        if conversation_choreography is not None:
+            if getattr(conversation_choreography, "answer_shape", "none") == "direct":
+                directness = min(1.0, directness + 0.08)
+            elif getattr(conversation_choreography, "answer_shape", "none") == "qualified":
+                directness = max(0.0, directness - 0.05)
+        intensity = max(
+            0.1,
+            min(
+                1.0,
+                profile.nonverbal_intensity
+                + (1.0 - capacity) * 0.2
+                + (choreography_energy - 0.5) * 0.18,
+            ),
+        )
         acts = self._acts_for(decision, intensity, profile)
         if activity_transition in {"continued", "paused", "resumed", "completed", "failed", "abandoned", "changed"}:
             if any(item.channel == "activity" for item in acts):
@@ -205,6 +224,13 @@ class PerformancePlanner:
                     target=str(activity_label or decision.target)[:120], intensity=round(intensity, 6),
                     onset="immediate", duration="sustained", voluntary=True, suppressible=True,
                 ))
+        if conversation_choreography is not None:
+            pacing = str(getattr(conversation_choreography, "pacing", "measured"))
+            acts = tuple(
+                PerformanceAct(**{**asdict(item), "function": pacing})
+                if item.channel == "timing" else item
+                for item in acts
+            )
         acts = self._apply_self_monitor_acts(
             acts, decision, profile, perceived_confidence, noticed_conflicts,
             selected_regulation.kind if selected_regulation else None,
@@ -223,6 +249,9 @@ class PerformancePlanner:
             "concealment": concealment_mode,
             "activity_transition": activity_transition,
             "activity_label": str(activity_label)[:120] if activity_label else None,
+            "conversation_choreography_id": getattr(
+                conversation_choreography, "choreography_id", None,
+            ),
         }
         digest = hashlib.blake2b(
             json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8,
@@ -241,9 +270,16 @@ class PerformancePlanner:
             acts=acts,
             completion_conditions=(decision.expected_effect,),
             failure_conditions=("performance does not match canonical action",),
-            provenance_ids=(decision.decision_id, decision.synthesis_id),
+            provenance_ids=tuple(filter(None, (
+                decision.decision_id,
+                decision.synthesis_id,
+                getattr(conversation_choreography, "choreography_id", None),
+            ))),
             activity_transition=activity_transition,
             activity_label=str(activity_label)[:120] if activity_label else None,
+            conversation_choreography_id=getattr(
+                conversation_choreography, "choreography_id", None,
+            ),
         )
 
     @staticmethod

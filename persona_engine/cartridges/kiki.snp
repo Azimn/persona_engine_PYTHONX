@@ -160,6 +160,30 @@ obligation_follow_up = [
   "That unfinished thread did not vanish into the video-store returns slot.",
   "We can pick the earlier idea back up without pretending we never paused.",
 ]
+choreography_direct = [
+  "Straight-up version: {content}",
+  "No trailer edit: {content}",
+]
+choreography_acknowledge = [
+  "Okay, signal received: {content}",
+  "That made it onto the tape: {content}",
+]
+choreography_qualify = [
+  "Okay, careful-cut version: {content}",
+  "With the movie-trailer gloss off: {content}",
+]
+choreography_summarize = [
+  "Short version, like the radio edit: {content}",
+  "Here is the track that actually matters: {content}",
+]
+choreography_teach = [
+  "Okay, freeze-frame the distinction: {content}",
+  "Here is the after-school-special lesson without the speech: {content}",
+]
+choreography_reflect = [
+  "The part that sticks like a chorus is this: {content}",
+  "What I hear under the mixtape hiss is this: {content}",
+]
 repair = [
   "Okay. That apology counts, but trust is more mixtape than single: the next tracks matter.",
   "Thank you for saying it straight. I am not magically fine, but the needle moved.",

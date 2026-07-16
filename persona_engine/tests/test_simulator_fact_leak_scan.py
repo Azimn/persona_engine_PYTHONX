@@ -11,6 +11,11 @@ def test_fact_leak_scan_does_not_treat_sentence_initial_capitalization_as_a_name
     assert warnings == []
 
 
+def test_fact_leak_scan_allows_capitalized_interpretive_terms_after_a_frame():
+    warnings = _fact_leak_warnings("Registered. Better.", {"user_input": "I am sorry."}, {"system_prompt": ""})
+    assert warnings == []
+
+
 def test_fact_leak_scan_still_flags_unknown_concrete_objects():
     warnings = _fact_leak_warnings("I heard footsteps.", {"user_input": "What was that?"}, {"system_prompt": ""})
     assert any("footsteps" in warning for warning in warnings)

@@ -194,6 +194,7 @@ class DevelopmentalPlaytestHost:
         action = result.get("action_decision") or {}
         development = result.get("development") or {}
         conversation = result.get("conversation_candidate") or {}
+        choreography = result.get("conversation_choreography") or {}
         performance = result.get("performance_plan") or {}
         return {
             "day": day, "participant_id": participant_id, "action_kind": action.get("action_kind"),
@@ -209,6 +210,14 @@ class DevelopmentalPlaytestHost:
                 f"{conversation.get('obligation')}|{conversation.get('extension_move') or 'none'}|{action.get('action_kind')}"
                 if conversation else None
             ),
+            "trajectory_signature": choreography.get("trajectory_signature"),
+            "rhetorical_strategy": choreography.get("rhetorical_strategy"),
+            "trajectory_phase": choreography.get("trajectory_phase"),
+            "conversation_energy_band": choreography.get("energy_band"),
+            "response_span": choreography.get("response_span"),
+            "answer_shape": choreography.get("answer_shape"),
+            "memory_role": choreography.get("memory_role"),
+            "resolution_policy": choreography.get("resolution_policy"),
             "behavioral_tendency_id": conversation.get("tendency_id"),
             "activity_transition": performance.get("activity_transition"),
             "activity_label": performance.get("activity_label"),

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import hashlib
+import math
 from typing import Any, Mapping, Sequence
 from collections import Counter, defaultdict
 
@@ -89,6 +90,27 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         for values in signatures_by_participant.values()
         for previous, current in zip(values, values[1:])
     )
+    trajectory_by_participant: dict[str, list[str]] = defaultdict(list)
+    for item in diagnostics:
+        if item.get("trajectory_signature"):
+            trajectory_by_participant[str(item.get("participant_id"))].append(
+                str(item["trajectory_signature"])
+            )
+    trajectory_repeats = sum(
+        current == previous
+        for values in trajectory_by_participant.values()
+        for previous, current in zip(values, values[1:])
+    )
+    strategies = [str(item["rhetorical_strategy"]) for item in diagnostics if item.get("rhetorical_strategy")]
+    strategy_counts = Counter(strategies)
+    strategy_total = sum(strategy_counts.values())
+    strategy_entropy = -sum(
+        (count / strategy_total) * math.log2(count / strategy_total)
+        for count in strategy_counts.values()
+    ) if strategy_total else 0.0
+    dominant_strategy_share = (
+        max(strategy_counts.values()) / strategy_total if strategy_total else 0.0
+    )
     metrics = {
         "turn_count": len(turns), "day_count": max((item.day for item in turns), default=0),
         "speech_action_ratio": round(speech / max(1, len(turns)), 6),
@@ -119,6 +141,29 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
             for item in diagnostics
         ),
         "semantic_move_repeat_count": semantic_repeats,
+        "trajectory_repeat_count": trajectory_repeats,
+        "behavioral_strategy_repeat_count": sum(
+            current == previous
+            for values in (
+                [str(item.get("rhetorical_strategy")) for item in diagnostics
+                 if str(item.get("participant_id")) == participant and item.get("rhetorical_strategy")]
+                for participant in {str(item.get("participant_id")) for item in diagnostics}
+            )
+            for previous, current in zip(values, values[1:])
+        ),
+        "rhetorical_strategy_diversity": len(strategy_counts),
+        "rhetorical_strategy_entropy": round(strategy_entropy, 6),
+        "dominant_strategy_share": round(dominant_strategy_share, 6),
+        "conversation_energy_distribution": dict(sorted(Counter(
+            str(item.get("conversation_energy_band")) for item in diagnostics
+            if item.get("conversation_energy_band")
+        ).items())),
+        "response_span_distribution": dict(sorted(Counter(
+            str(item.get("response_span")) for item in diagnostics if item.get("response_span")
+        ).items())),
+        "memory_role_distribution": dict(sorted(Counter(
+            str(item.get("memory_role")) for item in diagnostics if item.get("memory_role")
+        ).items())),
         "topic_transition_counts": {
             reason: sum(item.get("topic_transition_reason") == reason for item in diagnostics)
             for reason in ("completed", "exhausted", "interrupted", "avoided", "displaced")
@@ -145,4 +190,13 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         "earned_trait_signal_count": sum(int(item.get("development_signal_count", 0)) for item in latest_by_character.values()),
         "earned_trait_commit_count": len(earned_traits),
     })
+    if strategy_total >= 10 and dominant_strategy_share > 0.72:
+        digest = hashlib.blake2b(
+            f"{strategy_counts.most_common(1)[0]}".encode(), digest_size=6,
+        ).hexdigest()
+        findings.append(FailureFinding(
+            f"failure_{digest}", "behavioral_repetition",
+            min(1.0, dominant_strategy_share), None, None, None, (),
+            f"one rhetorical strategy occupied {dominant_strategy_share:.0%} of planned turns",
+        ))
     return metrics, tuple(findings)

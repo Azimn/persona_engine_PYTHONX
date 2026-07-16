@@ -125,6 +125,14 @@ reasons. It may gate optional conversation candidates and annotate contextual
 memory relevance. Synthesis still selects influences, `ActionDecision` still
 owns behavior, and the renderer still owns wording only.
 
+`ConversationChoreographyPlan` is a deterministic realization record between
+`ActionDecision` and `PerformancePlan`. It may vary rhetorical strategy,
+trajectory phase, conversational energy, response span, pacing, disclosure,
+activity relation, and memory role. It may not change the selected action,
+obligation, extension, target, intention, withheld content, or memory access.
+It is replay-authoritative for realization but is neither canonical cognition
+nor a canonical world record.
+
 ### Semantic Prior Boundary
 
 The read-only semantic substrate may supply generic concept features,

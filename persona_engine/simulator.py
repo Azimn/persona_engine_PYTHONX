@@ -28,7 +28,7 @@ _CONCRETE_OBJECTS = {"door", "car", "phone", "window", "person", "someone", "out
 _SAFE_INTERPRETIVE_TERMS = {
     "a", "an", "and", "as", "be", "can", "character", "cause", "certainty", "challenge",
     "caution", "closeness", "continuity", "distance", "evidence", "for", "integrity",
-    "is", "long", "may", "not", "or", "phrase", "possible", "precision", "pressure",
+    "better", "is", "long", "may", "not", "or", "phrase", "possible", "precision", "pressure",
     "proof", "read", "safer", "settle", "sincere", "some", "support", "tension", "than",
     "the", "to", "trust", "uncertainty", "unproven", "user", "visible", "watchfulness",
     "while", "without",

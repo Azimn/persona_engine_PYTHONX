@@ -17,6 +17,7 @@ Each known actor may have:
   follow up;
 - an initiative budget in `[0, 1]`;
 - eight recent semantic move signatures;
+- eight recent conversation-trajectory signatures;
 - the latest transition reason: completed, exhausted, interrupted, avoided, or
   displaced;
 - the last action kind.
@@ -34,6 +35,7 @@ observable input
 -> propose at most one optional character move
 -> situated synthesis
 -> ActionDecision
+-> deterministic ConversationChoreographyPlan
 -> obligation-first PerformancePlan and rendering
 -> record semantic move signature
 -> clear fulfilled obligation
@@ -58,8 +60,7 @@ changes memory confidence, content, or canonicality.
 ## Portability
 
 The C99 representation is fixed-size: three topic records, one obligation enum,
-one initiative scalar, eight move signatures, one transition enum, and one
-action-kind enum per actor. Selection is a bounded scan with token overlap. No
+one initiative scalar, eight move signatures, eight trajectory signatures, one
+transition enum, and one action-kind enum per actor. Selection is a bounded scan with token overlap. No
 dynamic graph, recursive dialogue tree, model call, or unbounded transcript is
 required.
-

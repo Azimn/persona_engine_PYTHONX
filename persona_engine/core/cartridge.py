@@ -76,6 +76,9 @@ _ALLOWED_SECTION_FIELDS.update({
         "probe", "compare", "challenge", "reminisce", "speculate", "express_curiosity",
         "activity_update",
         "obligation_answer", "obligation_acknowledge", "obligation_follow_up",
+        "choreography_direct", "choreography_acknowledge",
+        "choreography_qualify", "choreography_summarize",
+        "choreography_teach", "choreography_reflect",
     },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
@@ -370,6 +373,12 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
                 _require_string_list(data["offline_expression"], field, "[offline_expression]")
                 if not data["offline_expression"][field]:
                     raise CartridgeError(f"[offline_expression].{field} must not be empty")
+                if field.startswith("choreography_") and any(
+                    "{content}" not in item for item in data["offline_expression"][field]
+                ):
+                    raise CartridgeError(
+                        f"[offline_expression].{field} entries must contain {{content}}"
+                    )
     if "behavioral_richness" in data:
         from .offline_conversation import parse_behavioral_tendencies
         try:

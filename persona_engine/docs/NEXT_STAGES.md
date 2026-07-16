@@ -120,3 +120,12 @@ review rather than treating architectural correctness as product success.
 Future character work should follow `CHARACTER_BEHAVIOR_AUTHORING.md`. New
 cognitive subsystems remain deferred until a blind playtest identifies a
 specific visible failure that cannot be expressed through the current systems.
+
+## Stage 8: Conversational Plasticity (Implemented, Long Crossplay Review Pending)
+
+A deterministic choreography record now sits between `ActionDecision` and
+`PerformancePlan`. It varies rhetorical strategy, trajectory phase, energy,
+response span, pacing, disclosure, activity relation, resolution, and memory
+role while preserving the selected action and optional move. Per-actor recent
+trajectory signatures suppress repeated interaction shapes, and playtests now
+separate textual, semantic, behavioral, and full-trajectory repetition.

@@ -55,6 +55,16 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
             engine._last_conversation_candidate.to_dict()
             if engine._last_conversation_candidate else None
         ),
+        "conversation_choreography": _normalized({
+            key: getattr(engine._last_conversation_choreography, key)
+            for key in (
+                "actor_id", "rhetorical_strategy", "trajectory_phase",
+                "conversational_energy", "energy_band", "response_span",
+                "answer_shape", "pacing", "disclosure_depth", "initiative_level",
+                "activity_relation", "resolution_policy", "memory_role",
+                "selected_extension", "trajectory_signature", "reason_codes",
+            )
+        }) if getattr(engine, "_last_conversation_choreography", None) else None,
         "offline_realization_state": _normalized(getattr(
             getattr(engine.renderer, "_offline", None), "to_state", lambda: {}
         )()),

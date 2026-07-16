@@ -43,6 +43,7 @@ class CausalTurnRecord:
     self_monitor: dict[str, Any]
     selected_regulation_id: str | None
     conversation_candidate: dict[str, Any]
+    conversation_choreography: dict[str, Any]
     action_decision: dict[str, Any]
     performance_plan: dict[str, Any]
     speech_world_event_ids: tuple[str, ...]
@@ -207,6 +208,7 @@ class BehavioralEvaluationHarness:
                 self_monitor=dict(result.get("self_monitor") or {}),
                 selected_regulation_id=(result.get("action_decision") or {}).get("selected_regulation_id"),
                 conversation_candidate=dict(result.get("conversation_candidate") or {}),
+                conversation_choreography=dict(result.get("conversation_choreography") or {}),
                 action_decision=dict(result.get("action_decision") or {}),
                 performance_plan=dict(result.get("performance_plan") or {}),
                 speech_world_event_ids=speech_ids,
@@ -306,6 +308,21 @@ class BehavioralEvaluationHarness:
                         [item for item in causal if item.speaker_id == participant][1:],
                     )
                 ),
+                "trajectory_repeat_count": sum(
+                    prior.conversation_choreography.get("trajectory_signature")
+                    == current.conversation_choreography.get("trajectory_signature")
+                    for participant in {item.speaker_id for item in causal}
+                    for prior, current in zip(
+                        [item for item in causal if item.speaker_id == participant],
+                        [item for item in causal if item.speaker_id == participant][1:],
+                    )
+                    if prior.conversation_choreography.get("trajectory_signature")
+                ),
+                "rhetorical_strategy_diversity": len({
+                    item.conversation_choreography.get("rhetorical_strategy")
+                    for item in causal
+                    if item.conversation_choreography.get("rhetorical_strategy")
+                }),
             },
         )
 

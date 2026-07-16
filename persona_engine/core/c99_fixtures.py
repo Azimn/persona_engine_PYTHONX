@@ -29,6 +29,10 @@ def autobiographical_fixture(engine, experience_id: str) -> dict[str, Any]:
         "self_monitor": engine._last_self_monitor.to_dict() if engine._last_self_monitor else None,
         "synthesis": engine._last_synthesis.to_dict() if engine._last_synthesis else None,
         "action_decision": engine._last_action_decision.to_dict() if engine._last_action_decision else None,
+        "conversation_choreography": (
+            engine._last_conversation_choreography.to_dict()
+            if engine._last_conversation_choreography else None
+        ),
         "performance_plan": engine._last_performance_plan.to_dict() if engine._last_performance_plan else None,
     }
 
@@ -66,6 +70,10 @@ def developmental_fixture(engine) -> dict[str, Any]:
         "last_conversation_candidate": (
             engine._last_conversation_candidate.to_dict()
             if engine._last_conversation_candidate else None
+        ),
+        "last_conversation_choreography": (
+            engine._last_conversation_choreography.to_dict()
+            if engine._last_conversation_choreography else None
         ),
         "offline_realization_state": getattr(
             getattr(engine.renderer, "_offline", None), "to_state", lambda: {}

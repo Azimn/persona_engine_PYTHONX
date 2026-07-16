@@ -90,6 +90,9 @@ from .offline_conversation import (
     parse_behavioral_tendencies, classify_input, topic_key,
 )
 from .conversation_continuity import ConversationContinuityStore
+from .conversation_choreography import (
+    ConversationChoreographyPlan, ConversationChoreographyPlanner,
+)
 
 
 def bucket_risk(risk: float) -> str:
@@ -206,6 +209,8 @@ class InteriorEngine:
         self._last_action_decision: ActionDecision | None = None
         self.performance_planner = PerformancePlanner()
         self._last_performance_plan: PerformancePlan | None = None
+        self.conversation_choreography_planner = ConversationChoreographyPlanner()
+        self._last_conversation_choreography: ConversationChoreographyPlan | None = None
         self._last_model_call_metrics: dict[str, Any] = {
             "private_cognition_renderer_called": False,
             "expression_renderer_called": False,
@@ -498,6 +503,11 @@ class InteriorEngine:
         )
         last_performance = self.persistence.load(cid, uid, "last_performance_plan")
         self._last_performance_plan = PerformancePlan.from_dict(last_performance) if last_performance else None
+        last_choreography = self.persistence.load(cid, uid, "last_conversation_choreography")
+        self._last_conversation_choreography = (
+            ConversationChoreographyPlan.from_dict(last_choreography)
+            if last_choreography else None
+        )
         self._last_model_call_metrics = self.persistence.load(
             cid, uid, "last_model_call_metrics", self._last_model_call_metrics,
         )
@@ -611,6 +621,10 @@ class InteriorEngine:
             "last_intrinsic_proposal": self._last_intrinsic_proposal.to_dict() if self._last_intrinsic_proposal else None,
             "last_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
             "last_performance_plan": self._last_performance_plan.to_dict() if self._last_performance_plan else None,
+            "last_conversation_choreography": (
+                self._last_conversation_choreography.to_dict()
+                if self._last_conversation_choreography else None
+            ),
             "last_model_call_metrics": dict(self._last_model_call_metrics),
             "last_self_monitor": self._last_self_monitor.to_dict() if self._last_self_monitor else None,
             "last_conversation_candidate": (
@@ -2413,6 +2427,36 @@ class InteriorEngine:
             if self.life_state.activity_status in {"resumed", "completed", "failed", "abandoned", "changed"}
             else None
         )
+        realized_conversation = (
+            selected_conversation
+            if selected_conversation is not None
+            else replace(effective_conversation_candidate, extension_move=None)
+        )
+        conversation_choreography = self.conversation_choreography_planner.plan(
+            decision=action_decision,
+            candidate=realized_conversation,
+            continuity=continuity_state,
+            body=self.body,
+            relationship=self.relationship,
+            dominant_pressure=top_pressure.magnitude if top_pressure else 0.0,
+            self_monitor=self_monitor,
+            activity_transition=activity_transition,
+            stable_seed=turn_seed(self.user_id, self.timestep, "conversation_choreography"),
+        )
+        self._last_conversation_choreography = conversation_choreography
+        continuity_state.record_trajectory(conversation_choreography.trajectory_signature)
+        choreography_payload = conversation_choreography.to_dict()
+        decision_payload["conversation_choreography"] = choreography_payload
+        self.persistence.log_event(
+            self.identity.name,
+            self.user_id,
+            self.timestep,
+            "conversation_choreography",
+            {
+                **choreography_payload,
+                "memory_types": ["conversation_choreography"],
+            },
+        )
         performance_plan = self.performance_planner.plan(
             decision=action_decision,
             relationship=self.relationship,
@@ -2431,6 +2475,7 @@ class InteriorEngine:
             self_monitor=self_monitor,
             activity_transition=activity_transition,
             activity_label=self.life_state.current_activity,
+            conversation_choreography=conversation_choreography,
         )
         self._last_performance_plan = performance_plan
         performance_payload = performance_plan.to_dict()
@@ -2521,6 +2566,7 @@ class InteriorEngine:
                 optional_extension=(
                     selected_conversation.extension_move if selected_conversation else None
                 ),
+                conversation_choreography=choreography_payload,
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
@@ -2552,6 +2598,7 @@ class InteriorEngine:
                     "performance_plan": performance_payload,
                     "conversation_candidate": selected_conversation.to_dict() if selected_conversation else None,
                     "conversation_continuity": continuity_state.to_dict(),
+                    "conversation_choreography": choreography_payload,
                     "active_actor_id": self.active_actor_id,
                 },
                 deception_obligations=[],
@@ -2639,6 +2686,7 @@ class InteriorEngine:
             "model_calls": model_call_metrics,
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
+            "conversation_choreography": choreography_payload,
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
@@ -2680,6 +2728,7 @@ class InteriorEngine:
             "model_calls": model_call_metrics,
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
+            "conversation_choreography": choreography_payload,
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),

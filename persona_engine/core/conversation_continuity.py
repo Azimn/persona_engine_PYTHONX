@@ -16,6 +16,7 @@ OPTIONAL_MOVES = frozenset({
 MAX_CONTINUITY_ACTORS = 256
 MAX_BACKGROUND_TOPICS = 2
 MAX_RECENT_SIGNATURES = 8
+MAX_RECENT_TRAJECTORIES = 8
 
 _STOP_WORDS = frozenset({
     "about", "after", "again", "could", "from", "have", "hello", "into",
@@ -83,6 +84,7 @@ class ConversationContinuityState:
     pending_obligation: str | None = None
     initiative_budget: float = 0.45
     recent_move_signatures: list[str] = field(default_factory=list)
+    recent_trajectory_signatures: list[str] = field(default_factory=list)
     last_transition_reason: str | None = None
     last_action_kind: str | None = None
 
@@ -97,6 +99,8 @@ class ConversationContinuityState:
             raise ValueError("background topic bound exceeded")
         if len(self.recent_move_signatures) > MAX_RECENT_SIGNATURES:
             raise ValueError("move signature bound exceeded")
+        if len(self.recent_trajectory_signatures) > MAX_RECENT_TRAJECTORIES:
+            raise ValueError("trajectory signature bound exceeded")
         if self.last_transition_reason is not None and self.last_transition_reason not in TRANSITION_REASONS:
             raise ValueError("unsupported topic transition reason")
 
@@ -190,6 +194,14 @@ class ConversationContinuityState:
         self.last_action_kind = str(action_kind)[:32] if action_kind else None
         self.pending_obligation = None
 
+    def record_trajectory(self, signature: str) -> None:
+        signature = str(signature)[:160]
+        if not signature:
+            return
+        self.recent_trajectory_signatures = [
+            *self.recent_trajectory_signatures, signature,
+        ][-MAX_RECENT_TRAJECTORIES:]
+
     def memory_context_score(self, content: str) -> float:
         if not self.active_topic:
             return 0.0
@@ -216,6 +228,7 @@ class ConversationContinuityState:
             "pending_obligation": self.pending_obligation,
             "initiative_budget": round(self.initiative_budget, 6),
             "recent_move_signatures": self.recent_move_signatures[-MAX_RECENT_SIGNATURES:],
+            "recent_trajectory_signatures": self.recent_trajectory_signatures[-MAX_RECENT_TRAJECTORIES:],
             "last_transition_reason": self.last_transition_reason,
             "last_action_kind": self.last_action_kind,
         }
@@ -236,6 +249,9 @@ class ConversationContinuityState:
             recent_move_signatures=[
                 str(item)[:80] for item in value.get("recent_move_signatures", ())
             ][-MAX_RECENT_SIGNATURES:],
+            recent_trajectory_signatures=[
+                str(item)[:160] for item in value.get("recent_trajectory_signatures", ())
+            ][-MAX_RECENT_TRAJECTORIES:],
             last_transition_reason=value.get("last_transition_reason"),
             last_action_kind=value.get("last_action_kind"),
         )

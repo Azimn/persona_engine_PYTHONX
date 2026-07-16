@@ -95,10 +95,20 @@ produce many complete turns with no extension, should not append a question to
 every answer, and should not rely on one signature such as
 `acknowledge|probe|speak` for its identity.
 
+Inspect choreography metrics separately. A character may repeat meaning
+without repeating conduct, and may repeat conduct while changing every word.
+Compare rhetorical-strategy diversity, trajectory repetition, dominant
+strategy share, energy bands, response spans, activity relations, and memory
+roles. Do not maximize entropy: author strong preferences, then confirm fatigue,
+interest, pressure, relationship, memory, and current activity produce visible
+variation around those preferences.
+
 ## C99 Port Boundary
 
 The portable representation is a fixed array of small records: numeric IDs,
 input-act and move enums, bounded signed bias, requirement flags, thresholds,
-cooldown, and a performance-tendency ID. Runtime selection is a bounded scan of
-at most 12 records plus a 24-entry cooldown history. No dynamic graph, model,
-embedding, or prose parser is required.
+cooldown, and a performance-tendency ID. Choreography adds one fixed enum record
+and eight recent trajectory signatures per actor. Runtime selection is a
+bounded scan of at most 12 tendency records plus a small fixed product of valid
+realization shapes. No dynamic graph, model, embedding, or prose parser is
+required.

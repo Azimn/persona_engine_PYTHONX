@@ -51,6 +51,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Pretorius and Kiki use different tendency banks and functional realization pools, while playtest reports measure move diversity, activity callbacks, continuity, and blind human illusion criteria.
 - Grounded life callbacks expose actual elapsed activity and ordinary open-loop returns. Every character possesses a journal artifact for private notes and recall, while offline claims that a question was noted create an auditable World Authority journal action rather than unsolicited diary exposition.
 - Per-actor conversation continuity tracks one active and two background topics, topic depth/freshness/emotional importance, one obligation, initiative, semantic move signatures, and explicit transition reasons. Obligations precede optional character moves, and no-extension turns are first-class.
+- Conversational Plasticity adds a replay-authoritative choreography record between action and performance. It derives conversational energy from organism state, varies bounded rhetorical trajectories, and measures behavioral repetition separately from wording repetition.
 
 ## Current Tests
 
@@ -63,7 +64,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-359 passed, 1 skipped
+367 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -87,7 +88,7 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
 - Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
 - Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
-- Thirty-day closed-loop character crossplay still exhausts the small deterministic realization pools: conversation continuity lowers question rate to about 3.3% and speech ratio to about 92.5%, but the current Kiki/Pretorius run reports 59 exact repeats across 120 observable turns. In asymmetric tests, the character under test performs substantially better (Pretorius 1 repeat; Kiki 2 repeats across 30 turns); the character used as the automated actor now accounts for most remaining repetitions.
+- Thirty-day closed-loop character crossplay still exposes deterministic offline repetition, but conversational plasticity reduces the current Kiki/Pretorius run from 59 to 27 exact repeats across 120 observable turns while holding full trajectory repetition to 1. This is a material improvement, not completion; semantic move repetition remains visible and should continue to be judged in blind human play.
 
 ## Recommended Next Work
 

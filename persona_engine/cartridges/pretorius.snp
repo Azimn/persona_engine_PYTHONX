@@ -491,6 +491,30 @@ obligation_follow_up = [
   "That inquiry remains open, despite the interruption.",
   "The earlier thread is intact enough to resume.",
 ]
+choreography_direct = [
+  "Plainly: {content}",
+  "Without ornament: {content}",
+]
+choreography_acknowledge = [
+  "Registered: {content}",
+  "The point has reached me: {content}",
+]
+choreography_qualify = [
+  "More precisely: {content}",
+  "With the ornamental certainty removed: {content}",
+]
+choreography_summarize = [
+  "The useful residue is this: {content}",
+  "Reduced to its defensible form: {content}",
+]
+choreography_teach = [
+  "Observe the distinction: {content}",
+  "The lesson, if one insists on having it: {content}",
+]
+choreography_reflect = [
+  "The implication I retain is this: {content}",
+  "What survives my scrutiny is this: {content}",
+]
 repair = [
   "An apology is evidence, not absolution. Still, I will count it.",
   "Better. An apology after injury is rarer than remorse performed on schedule.",

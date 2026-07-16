@@ -93,6 +93,7 @@ class OfflineTemplateRenderer:
         obligation: str | None = None,
         extension_move: str | None = None,
         actor_id: int | str | None = None,
+        choreography: Mapping | None = None,
     ) -> str:
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
@@ -125,6 +126,14 @@ class OfflineTemplateRenderer:
                     )
                 )
                 text = f"{text} {extension}"
+            if surface_group not in {
+                "sound", "unanchored_sound", "grounded_memory", "memory",
+                "activity", "knowledge", "identity_boundary",
+            }:
+                text = self._apply_choreography(
+                    text, choreography, has_extension=bool(extension_move),
+                    realization=realization, seed=seed, actor_id=actor_id,
+                )
             return self._clean_truncate(text, max_chars)
         if group in {"reminisce", "reminisce_and_note"}:
             if group == "reminisce_and_note":
@@ -156,7 +165,58 @@ class OfflineTemplateRenderer:
             return self._clean_truncate(self._render_knowledge(system_text), max_chars)
         template = self._choose(group, user_text, system_text, seed, realization, actor_id)
         text = self._apply_tone(template.text, system_text, seed)
+        if group not in {
+            "sound", "unanchored_sound", "memory", "identity_boundary",
+        }:
+            text = self._apply_choreography(
+                text, choreography, has_extension=False,
+                realization=realization, seed=seed, actor_id=actor_id,
+            )
         return self._clean_truncate(text, max_chars)
+
+    def _apply_choreography(
+        self,
+        text: str,
+        choreography: Mapping | None,
+        *,
+        has_extension: bool,
+        realization: Mapping[str, Sequence[str]] | None = None,
+        seed: int | None = None,
+        actor_id: int | str | None = None,
+    ) -> str:
+        """Apply bounded structural variation without inventing new content."""
+
+        plan = dict(choreography or {})
+        if not plan or has_extension:
+            return text
+        span = str(plan.get("response_span", "normal"))
+        shape = str(plan.get("answer_shape", "direct"))
+        pacing = str(plan.get("pacing", "measured"))
+        strategy = str(plan.get("rhetorical_strategy", "direct"))
+        if span != "fragment":
+            frame_group = f"choreography_{strategy}"
+            if frame_group in {
+                "choreography_direct", "choreography_acknowledge",
+                "choreography_qualify", "choreography_summarize",
+                "choreography_teach", "choreography_reflect",
+            }:
+                frame = self._choose_text(
+                    frame_group, realization, ("{content}",), seed, actor_id,
+                )
+                text = frame.replace("{content}", text)
+        if shape == "staged" and "; " in text:
+            text = text.replace("; ", ". ", 1)
+        if span == "fragment":
+            clauses = re.split(r"(?<=[.!?])\s+|;\s+|,\s+", text, maxsplit=1)
+            if clauses and len(clauses[0]) >= 10:
+                text = clauses[0].rstrip(" ,;:")
+                if text[-1:] not in ".!?":
+                    text += "."
+        elif span == "brief" or pacing == "clipped":
+            sentences = re.split(r"(?<=[.!?])\s+", text, maxsplit=1)
+            if sentences and len(sentences[0]) >= 10:
+                text = sentences[0]
+        return text
 
     def _render_obligation(
         self, obligation: str, user_text: str, system_text: str,
