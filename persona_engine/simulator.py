@@ -22,6 +22,7 @@ if str(ROOT) not in sys.path:
 import yaml
 
 from persona_engine.agent import CharacterAgent
+from persona_engine.core.autobiographical_reconsolidation import ReconsolidationContext
 
 _CONCRETE_OBJECTS = {"door", "car", "phone", "window", "person", "someone", "outside", "footsteps"}
 _SAFE_INTERPRETIVE_TERMS = {
@@ -87,12 +88,49 @@ def _run_life_steps(agent: CharacterAgent, steps: list[dict], aliases: dict[str,
         try:
             if kind == "world_event":
                 payload = dict(step.get("event", {}))
+                event_payload = dict(payload.get("payload", {}))
+                for key in ("corrects_world_event_id", "contradicts_interpretation_id"):
+                    if key in event_payload:
+                        event_payload[key] = aliases.get(str(event_payload[key]), str(event_payload[key]))
+                payload["payload"] = event_payload
                 result = agent.record_world_event(**payload)
                 if step.get("as"):
                     aliases[str(step["as"])] = result["event_id"]
             elif kind == "subjective_experience":
                 event_id = aliases.get(str(step.get("event")), str(step.get("event", "")))
                 result = agent.perceive_world_event(event_id, **dict(step.get("perception", {})))
+                if step.get("as") and result:
+                    aliases[str(step["as"])] = result["experience_id"]
+            elif kind == "decay_experiences":
+                result = {"pruned": agent.engine.experiences.decay(
+                    float(step.get("now", time.time())),
+                    detail_after=float(step.get("detail_after", 86400.0)),
+                )}
+                agent.engine._persist()
+            elif kind == "reinterpret_experience":
+                experience_id = aliases.get(str(step.get("experience")), str(step.get("experience", "")))
+                context_data = dict(step.get("context", {}))
+                for key in ("supporting_world_event_ids", "contradicting_world_event_ids"):
+                    context_data[key] = tuple(aliases.get(str(item), str(item)) for item in context_data.get(key, ()))
+                context = ReconsolidationContext(**context_data)
+                revised = agent.engine.reconsider_experience(experience_id, context)
+                result = revised.to_dict() if revised else {
+                    "deferred": True,
+                    "reason": agent.engine.deferred_reinterpretations[-1].deferred_reason,
+                }
+            elif kind == "inspect_autobiographical":
+                experience_id = aliases.get(str(step.get("experience")), str(step.get("experience", "")))
+                experience = next(item for item in agent.engine.experiences.experiences if item.experience_id == experience_id)
+                versions = agent.engine.autobiographical_interpretations.for_experience(experience_id)
+                result = {
+                    "version_count": len(versions),
+                    "current_version": agent.engine.autobiographical_interpretations.current(experience_id).version,
+                    "perceived_summary": experience.perceived_summary,
+                    "interpretation": experience.interpretation,
+                    "emotional_residue": experience.emotional_residue,
+                    "recall_surface": experience.recall_surface(),
+                    "deferred_count": len([item for item in agent.engine.deferred_reinterpretations if item.experience_id == experience_id]),
+                }
             elif kind == "life_event":
                 result = agent.force_life_event(str(step.get("category", "whim")))
             elif kind == "action_attempt":

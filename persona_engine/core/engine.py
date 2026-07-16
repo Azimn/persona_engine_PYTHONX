@@ -7,9 +7,10 @@ workspace frame -> renderer -> validator -> canonical writeback -> event-log per
 """
 
 import json
+import hashlib
 import time
 import threading
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from .emotion import EmotionalPressure, PressureSystem
@@ -39,7 +40,15 @@ from .public_state import public_status_from_engine, debug_snapshot_from_engine
 from .proactive import ProactiveQueue
 from .second_thought import derive_second_thoughts
 from .world_authority import WorldAuthority, WorldActionProposal
-from .lived_experience import ExperienceStore, WorldEvent, WorldEventLedger
+from .lived_experience import (
+    AutobiographicalActivation, AutobiographicalInterpretation,
+    AutobiographicalInterpretationStore, DeferredReinterpretation,
+    ExperienceStore, InterpretationUseOutcome, ReinterpretationCandidate,
+    SubjectiveExperience, WorldEvent, WorldEventLedger,
+)
+from .autobiographical_reconsolidation import (
+    AutobiographicalReconsolidator, ReconsolidationContext,
+)
 from .embedding import NoEmbeddingProvider
 from .capability_artifacts import CapabilityArtifactStore
 from .imperfect_action import ImperfectActionEngine
@@ -79,6 +88,11 @@ def _enum_value(value: Any) -> Any:
 
 def _suppression_trace(gate: str, action: str, reason: str, severity: str = "info") -> SuppressionTrace:
     return SuppressionTrace(gate=gate, action=action, reason=reason, severity=severity)
+
+
+def _stable_record_id(prefix: str, *parts: object) -> str:
+    payload = json.dumps([str(item) for item in parts], separators=(",", ":")).encode("utf-8")
+    return f"{prefix}_{hashlib.blake2b(payload, digest_size=8).hexdigest()}"
 
 
 @dataclass
@@ -127,6 +141,13 @@ class InteriorEngine:
         self.world_authority = WorldAuthority()
         self.world_events = WorldEventLedger()
         self.experiences = ExperienceStore()
+        self.autobiographical_interpretations = AutobiographicalInterpretationStore()
+        self.autobiographical_reconsolidator = AutobiographicalReconsolidator()
+        self.deferred_reinterpretations: list[DeferredReinterpretation] = []
+        self.interpretation_use_outcomes: list[InterpretationUseOutcome] = []
+        self._last_reinterpretation_candidate: ReinterpretationCandidate | None = None
+        self._last_autobiographical_interpretation: AutobiographicalInterpretation | None = None
+        self._last_autobiographical_activations: tuple[AutobiographicalActivation, ...] = ()
         self.capability_artifacts = CapabilityArtifactStore()
         life_seed = turn_seed(f"{identity.name}:{user_id}", 0, "vitality")
         self.life_state = LifeState()
@@ -276,6 +297,23 @@ class InteriorEngine:
         self.world_authority = WorldAuthority.from_list(self.persistence.load(cid, uid, "world_authority", []))
         self.world_events = WorldEventLedger.from_list(self.persistence.load(cid, uid, "world_events", []))
         self.experiences = ExperienceStore.from_list(self.persistence.load(cid, uid, "subjective_experiences", []))
+        self.autobiographical_interpretations = AutobiographicalInterpretationStore.from_list(
+            self.persistence.load(cid, uid, "autobiographical_interpretations", [])
+        )
+        self.deferred_reinterpretations = [
+            DeferredReinterpretation.from_dict(item) for item in
+            self.persistence.load(cid, uid, "deferred_reinterpretations", [])
+        ][-64:]
+        self.interpretation_use_outcomes = [
+            InterpretationUseOutcome.from_dict(item) for item in
+            self.persistence.load(cid, uid, "interpretation_use_outcomes", [])
+        ][-512:]
+        last_candidate = self.persistence.load(cid, uid, "last_reinterpretation_candidate")
+        self._last_reinterpretation_candidate = ReinterpretationCandidate.from_dict(last_candidate) if last_candidate else None
+        last_interpretation = self.persistence.load(cid, uid, "last_autobiographical_interpretation")
+        self._last_autobiographical_interpretation = (
+            AutobiographicalInterpretation.from_dict(last_interpretation) if last_interpretation else None
+        )
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
         self.intrinsic_state = IntrinsicState.from_dict(self.persistence.load(cid, uid, "intrinsic_state"))
@@ -367,6 +405,13 @@ class InteriorEngine:
             "world_authority": self.world_authority.to_list(),
             "world_events": self.world_events.to_list(),
             "subjective_experiences": self.experiences.to_list(),
+            "autobiographical_interpretations": self.autobiographical_interpretations.to_list(),
+            "deferred_reinterpretations": [item.to_dict() for item in self.deferred_reinterpretations],
+            "interpretation_use_outcomes": [item.to_dict() for item in self.interpretation_use_outcomes],
+            "last_reinterpretation_candidate": self._last_reinterpretation_candidate.to_dict()
+            if self._last_reinterpretation_candidate else None,
+            "last_autobiographical_interpretation": self._last_autobiographical_interpretation.to_dict()
+            if self._last_autobiographical_interpretation else None,
             "capability_artifacts": self.capability_artifacts.to_list(),
             "life_state": self.life_state.to_dict(),
             "intrinsic_state": self.intrinsic_state.to_dict(),
@@ -679,6 +724,123 @@ class InteriorEngine:
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "objective_world_event", event.to_dict())
         return event
 
+    def _register_autobiographical_experience(
+        self, experience: SubjectiveExperience | None,
+    ) -> AutobiographicalInterpretation | None:
+        if experience is None:
+            return None
+        meaning_kind = (
+            "mistaken_attribution"
+            if experience.distortion.get("attributed_intent") or experience.distortion.get("missing_cause")
+            else "ordinary"
+        )
+        interpretation = self.autobiographical_interpretations.create_initial(
+            experience=experience, tick=self.timestep, meaning_kind=meaning_kind,
+        )
+        self._last_autobiographical_interpretation = interpretation
+        return interpretation
+
+    def reconsider_experience(
+        self, experience_id: str, context: ReconsolidationContext,
+    ) -> AutobiographicalInterpretation | None:
+        """Validate and append later meaning without rewriting original records."""
+
+        experience = next(
+            (item for item in self.experiences.experiences if item.experience_id == experience_id), None,
+        )
+        if experience is None:
+            raise KeyError(experience_id)
+        current = self.autobiographical_interpretations.current(experience_id)
+        if current is None:
+            current = self._register_autobiographical_experience(experience)
+        linked_corrections = tuple(
+            event_id for event_id in context.contradicting_world_event_ids
+            if (event := self.world_events.fetch(event_id)) is not None
+            and (
+                event.payload.get("corrects_world_event_id") == experience.world_event_id
+                or event.payload.get("contradicts_interpretation_id") == current.interpretation_id
+            )
+        )
+        if context.trigger_type == "contradictory_evidence" and not linked_corrections:
+            context = replace(context, contradicting_world_event_ids=())
+        candidate = self.autobiographical_reconsolidator.propose(
+            experience=experience, current=current, context=context,
+        )
+        if candidate is None:
+            reason = self.autobiographical_reconsolidator.deferral_reason(context, current)
+            evidence_ids = tuple(dict.fromkeys((
+                *context.supporting_memory_ids, *context.contradicting_memory_ids,
+                *context.supporting_world_event_ids, *context.contradicting_world_event_ids,
+            )))
+            deferred = DeferredReinterpretation(
+                1, _stable_record_id("deferred_reinterpretation", experience_id, current.interpretation_id,
+                                     context.tick, context.trigger_type, evidence_ids),
+                experience_id, current.interpretation_id, context.trigger_type, evidence_ids,
+                max(0.0, min(1.0, context.conflict_strength)), reason, int(context.tick),
+                int(context.tick) + self.autobiographical_reconsolidator.MIN_REINTERPRETATION_INTERVAL,
+            )
+            if not any(item.deferred_id == deferred.deferred_id for item in self.deferred_reinterpretations):
+                self.deferred_reinterpretations = [*self.deferred_reinterpretations, deferred][-64:]
+            self.persistence.log_event(
+                self.identity.name, self.user_id, self.timestep,
+                "autobiographical_reinterpretation_deferred", deferred.to_dict(),
+            )
+            self._persist()
+            return None
+        self._last_reinterpretation_candidate = candidate
+        try:
+            revised = self.autobiographical_interpretations.append_revision(
+                experience=experience, prior=current, candidate=candidate, tick=context.tick,
+            )
+        except ValueError as exc:
+            if "maximum" not in str(exc):
+                raise
+            deferred = DeferredReinterpretation(
+                1, _stable_record_id("deferred_reinterpretation", candidate.candidate_id, "version_bound"),
+                experience_id, current.interpretation_id, context.trigger_type,
+                candidate.provenance_ids, candidate.conflict_strength, "version_bound",
+                int(context.tick), int(context.tick) + 1,
+            )
+            self.deferred_reinterpretations = [*self.deferred_reinterpretations, deferred][-64:]
+            self._persist()
+            return None
+        self._last_autobiographical_interpretation = revised
+        self.deferred_reinterpretations = [
+            item for item in self.deferred_reinterpretations if item.experience_id != experience_id
+        ]
+        self.persistence.log_event(
+            self.identity.name, self.user_id, self.timestep,
+            "autobiographical_reinterpretation", revised.to_dict(),
+        )
+        self._persist()
+        return revised
+
+    def reconsider_with_current_self_monitor(
+        self, experience_id: str, correction_event_id: str, *,
+        proposed_meaning_kind: str, proposed_meaning: str,
+    ) -> AutobiographicalInterpretation | None:
+        """Build a correction context from the organism's own perceived diagnostics."""
+
+        if self._last_self_monitor is None:
+            raise RuntimeError("self-monitor result required before reconsideration")
+        top = self.pressures.top()
+        context = ReconsolidationContext(
+            tick=self.timestep,
+            trigger_type="contradictory_evidence",
+            integration_capacity=self.integration_capacity(),
+            perceived_capacity=self._last_self_monitor.perceived_capacity,
+            conflict_noticed=bool(self._last_self_monitor.noticed_conflict_ids),
+            conflict_strength=max(
+                (item.strength for item in self._last_synthesis.inhibited_influences if item.contradictory),
+                default=0.0,
+            ) if self._last_synthesis else 0.0,
+            dominant_pressure=top.magnitude if top else 0.0,
+            contradicting_world_event_ids=(correction_event_id,),
+            proposed_meaning_kind=proposed_meaning_kind,
+            proposed_meaning_code=proposed_meaning,
+        )
+        return self.reconsider_experience(experience_id, context)
+
     def _record_resolved_experience(self, *, event_type: str, action: str, outcome: str, source: str,
                                     targets=(), timestamp: float | None = None, confidence: float = 0.8,
                                     salience: float = 0.45) -> tuple[WorldEvent, Any]:
@@ -698,6 +860,7 @@ class InteriorEngine:
         )
         if experience:
             self.experiences.consolidate(experience, self.memory, event.timestamp)
+            self._register_autobiographical_experience(experience)
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
         return event, experience
 
@@ -716,6 +879,7 @@ class InteriorEngine:
         if experience and consolidate:
             self.experiences.consolidate(experience, self.memory, event.timestamp)
         if experience:
+            self._register_autobiographical_experience(experience)
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
         self._persist()
         return experience
@@ -760,6 +924,7 @@ class InteriorEngine:
         )
         if experience:
             self.experiences.consolidate(experience, self.memory, world_event.timestamp, force=True)
+            self._register_autobiographical_experience(experience)
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
         burden = (float(kwargs.get("distraction", 0.0)) + float(kwargs.get("fatigue", 0.0))) / 2.0
         execution_quality = max(0.0, min(1.0, float(kwargs.get("skill", 0.0)) * (1.0 - max(0.0, min(1.0, burden)) * 0.65)))
@@ -1247,6 +1412,7 @@ class InteriorEngine:
         )
         if experience:
             self.experiences.consolidate(experience, self.memory, now)
+            self._register_autobiographical_experience(experience)
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "subjective_experience", experience.to_dict())
 
         state_packet = {
@@ -1316,6 +1482,17 @@ class InteriorEngine:
             relationship_tags={"canonical_user_statement", "subjective_experience"},
         )
         retrieved = [item.memory for item in retrievals]
+        memory_links = {
+            item.experience_id: item.memory_id for item in self.experiences.experiences if item.memory_id
+        }
+        autobiographical_activations = self.autobiographical_interpretations.activate_for_memories(
+            [item.memory.id for item in retrievals],
+            relationship_relevance=max(self.relationship.familiarity, self.relationship.tension),
+            identity_relevance=max(appraisal.accusation, appraisal.boundary_violation),
+            emotional_match=top_for_match.magnitude if top_for_match else 0.0,
+            memory_links=memory_links,
+        )
+        self._last_autobiographical_activations = autobiographical_activations
         retrieved_memory_trace = [
             {
                 "memory_id": item.memory.id,
@@ -1364,6 +1541,25 @@ class InteriorEngine:
             self._last_intrinsic_proposal,
         )
         actual_capacity = self.integration_capacity()
+        for activation in autobiographical_activations:
+            interpretation = self.autobiographical_interpretations.fetch(activation.interpretation_id)
+            if interpretation is None:
+                continue
+            if activation.status == "historical":
+                if actual_capacity >= 0.35 or abs(interpretation.emotional_charge) < 0.55:
+                    continue
+                strength = min(0.25, activation.activation)
+                label = f"historical_meaning_intrusion:{interpretation.current_meaning}"
+            else:
+                strength = activation.activation
+                label = interpretation.current_meaning
+            base_influences.append(SynthesisInfluence(
+                f"autobiographical:{interpretation.interpretation_id}",
+                "autobiographical_meaning", label[:160], strength,
+                emotional_congruence=abs(interpretation.emotional_charge),
+                contradictory=interpretation.status in {"challenged", "unresolved"},
+                reality_support=interpretation.confidence if interpretation.supporting_world_event_ids else 0.0,
+            ))
         self_monitor = self.self_monitor.evaluate(
             tick=self.timestep,
             actual_capacity=actual_capacity,
@@ -1437,6 +1633,24 @@ class InteriorEngine:
             selected_regulation=selected_regulation,
         )
         self._accept_action_decision(action_decision, selected_proposal)
+        for influence in [
+            item for item in (*synthesis.considered_influences, *synthesis.inhibited_influences)
+            if item.kind == "autobiographical_meaning"
+        ]:
+            interpretation_id = influence.influence_id.removeprefix("autobiographical:")
+            considered = influence in synthesis.considered_influences
+            use = InterpretationUseOutcome(
+                1, _stable_record_id("interpretation_use", interpretation_id, synthesis.synthesis_id),
+                interpretation_id, synthesis.synthesis_id, action_decision.decision_id, None,
+                "emotionally_influential" if considered and influence.emotional_congruence > 0.4
+                else "neutral" if considered else "not_integrated",
+                influence.strength if considered else 0.0,
+                influence.emotional_congruence if considered else 0.0,
+                "subjective", self.timestep,
+                (interpretation_id, synthesis.synthesis_id, action_decision.decision_id),
+            )
+            if not any(item.use_outcome_id == use.use_outcome_id for item in self.interpretation_use_outcomes):
+                self.interpretation_use_outcomes = [*self.interpretation_use_outcomes, use][-512:]
         decision_payload = {
             **communicative.to_dict(),
             "challenge_threshold": 0.60,
@@ -1532,6 +1746,14 @@ class InteriorEngine:
                     f"affordance_candidate:{item.action}:{item.target_name}"
                     for item in semantic_frame.affordances[:3]
                 ],
+                autobiographical_context=tuple(
+                    item.current_meaning for influence in synthesis.considered_influences
+                    if influence.kind == "autobiographical_meaning"
+                    for item in [self.autobiographical_interpretations.fetch(
+                        influence.influence_id.removeprefix("autobiographical:")
+                    )]
+                    if item is not None and self.autobiographical_interpretations.current(item.experience_id) == item
+                )[:2],
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)

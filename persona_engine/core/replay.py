@@ -62,6 +62,23 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
         },
         "world_events": _normalized(engine.world_events.to_list()),
         "subjective_experiences": _normalized(engine.experiences.to_list()),
+        "autobiographical_interpretations": _normalized(
+            engine.autobiographical_interpretations.to_list()
+        ),
+        "deferred_reinterpretations": _normalized([
+            item.to_dict() for item in engine.deferred_reinterpretations
+        ]),
+        # Synthesis/action IDs may contain session-local memory IDs. Replay
+        # compares the portable causal contract, while the complete records
+        # remain available in persistence and the private inspector.
+        "interpretation_use_outcomes": _normalized([{
+            "interpretation_id": item.interpretation_id,
+            "contribution": item.contribution,
+            "usefulness": item.usefulness,
+            "interference": item.interference,
+            "evidence_tier": item.evidence_tier,
+            "created_tick": item.created_tick,
+        } for item in engine.interpretation_use_outcomes]),
         "capability_artifacts": _normalized(engine.capability_artifacts.to_list()),
         "self_monitor": _normalized(engine._last_self_monitor.to_dict())
         if getattr(engine, "_last_self_monitor", None) else None,

@@ -169,6 +169,20 @@ concealment_bias = 0.82
 externalization_bias = 0.58
 correction_bias = 0.66
 
+[autobiographical_reconsolidation]
+minimum_interval_ticks = 5
+maximum_versions_per_experience = 8
+calm_capacity_threshold = 0.45
+conflict_threshold = 0.45
+
+[autobiographical_reconsolidation.meaning_templates]
+corrected_accident = "I now understand the failure as incomplete information rather than deliberate abandonment."
+reconciled_intent = "I retain the injury, but I no longer mistake it for deliberate cruelty."
+uncertain_intent = "I remain uncertain whether the act was careless, unavoidable, or intentional."
+relationship_repair = "I now regard the incident as evidence that repair remains possible."
+continued_resentment = "The explanation corrects the facts; it does not erase what the experience did to me."
+procedural_lesson = "I learned to verify the cause before treating silence as rejection."
+
 [performance_tendencies.guard_exacting_work]
 social_stance = "guarded"
 directness_delta = 0.14

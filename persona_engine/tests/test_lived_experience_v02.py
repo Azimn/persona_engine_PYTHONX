@@ -46,9 +46,12 @@ def test_character_can_miss_event_entirely():
 def test_emotion_survives_after_factual_detail_decays():
     store = ExperienceStore()
     experience = store.perceive(_event(), "observer", attention=0.8, emotional_residue="hurt")
+    original_summary = experience.perceived_summary
     store.decay(100.0 + 90000.0, detail_after=10.0)
-    assert "hurt" in experience.perceived_summary
-    assert "factual detail has faded" in experience.perceived_summary
+    assert experience.perceived_summary == original_summary
+    assert experience.emotional_residue == "hurt"
+    assert "hurt" in experience.recall_surface()
+    assert "little factual detail remains" in experience.recall_surface()
 
 
 def test_memory_retrieval_explains_selection():

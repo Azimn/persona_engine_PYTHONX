@@ -184,6 +184,20 @@ concealment_bias = 0.34
 externalization_bias = 0.20
 correction_bias = 0.82
 
+[autobiographical_reconsolidation]
+minimum_interval_ticks = 5
+maximum_versions_per_experience = 8
+calm_capacity_threshold = 0.45
+conflict_threshold = 0.45
+
+[autobiographical_reconsolidation.meaning_templates]
+corrected_accident = "I get now that missing information caused the failure, not some deliberate rejection thing."
+reconciled_intent = "The hurt was real, but I do not think the act was deliberately cruel anymore."
+uncertain_intent = "I am still not sure whether it was careless, unavoidable, or intentional."
+relationship_repair = "I can see the incident as proof that repair between us is actually possible."
+continued_resentment = "The explanation fixes the facts, but it does not magically erase how it felt."
+procedural_lesson = "I learned to check the cause before treating silence like rejection."
+
 [performance_tendencies.bright_scientific_precision]
 social_stance = "animated"
 directness_delta = 0.08

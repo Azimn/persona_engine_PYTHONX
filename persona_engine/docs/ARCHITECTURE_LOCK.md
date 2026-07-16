@@ -65,6 +65,12 @@ Only `DreamEngine` or explicitly governed consolidation rules may alter slow `Be
 
 Session history and memories must flow through memory, persistence, event-log, and canonicality/firewall rules. Generated renderer text is speech evidence, not objective fact.
 
+Objective events, original subjective experience, consolidated memory, and
+later autobiographical meaning are separate records. Decay must not rewrite
+original perception or encoding-time interpretation. Later meaning is
+append-only, evidence-linked, bounded, and governed by self-monitor awareness
+and reconsolidation validation. Renderer prose cannot create or revise it.
+
 ### Renderer Owns Surface Language Only
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.

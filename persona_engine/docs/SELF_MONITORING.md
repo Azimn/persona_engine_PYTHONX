@@ -54,6 +54,10 @@ conflict IDs, raw confidence values, or unreportable regulation candidates.
 The renderer realizes wording only. It does not choose what the character
 noticed or how regulation affected the action.
 
+Noticed contradiction may make an evidence-linked autobiographical revision
+eligible. Missed contradiction creates no revision; evidence may remain in a
+bounded deferred record for later calm reconsideration.
+
 ## Portability
 
 The implementation uses bounded floats, stable IDs, tuples, sorted influences,

@@ -38,6 +38,11 @@ intentions. `SynthesisResult.selected_regulation_candidate_id` records the
 highest considered regulation candidate; `ActionDecision` records it only if
 the canonical resolver actually applies it.
 
+Current autobiographical meaning may enter as structured evidence after its
+linked memory is retrieved. It is neither an action nor a second executive.
+Superseded meaning remains outside ordinary synthesis; low-capacity emotional
+intrusion is capped at `0.25`.
+
 Under strain, immediate cues, pressure, established habits, and emotionally congruent memories receive bounded boosts. Distant intentions and contradictory evidence receive bounded penalties. Identity and authority gates remain outside this selection and are always active.
 
 ## Records And Persistence

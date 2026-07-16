@@ -88,6 +88,11 @@ automatic permission to interrupt or speak.
 
 ## Stage 5: Long Duration And Port Fixtures
 
+The first long-duration proof is implemented. Original subjective experience
+survives fourteen-day decay, missed corrective evidence is deferred, calm
+reconsideration appends a new meaning, and C99-oriented JSON preserves the
+two-version chain.
+
 - Run month-scale summarized simulation without per-second ticks.
 - Measure event, memory, and knowledge growth.
 - Verify bounded forgetting and supersession.

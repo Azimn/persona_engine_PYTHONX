@@ -42,6 +42,11 @@ Read-only debug workspace summaries include retrieved-memory IDs, source type, t
 
 With debug mode enabled, the life inspector also shows current activity, intention, attention, objective world events, linked subjective experiences, retrieval reasons, bounded vitality events, and capability artifacts. It is a projection of engine state and has no mutation controls.
 
+The private inspector also groups append-only autobiographical meaning by
+experience, including current and historical versions, evidence links,
+deferred reconsiderations, activation reasons, and conservative use outcomes.
+Normal public status exposes none of this private history.
+
 The report workspace can export the current transcript and report draft with canonical replay events and diagnostic turn records. Import validates the bundle and cartridge checksums, creates a separate replay database, and replays only approved engine/world/session inputs. The original session database is not overwritten. Replay verifies deterministic state, not exact generated prose. Bundles may include private debug or submitted context and should be handled as sensitive local test artifacts.
 
 API endpoints:

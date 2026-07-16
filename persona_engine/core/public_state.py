@@ -122,6 +122,15 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
     experiences_by_event: dict[str, list[dict[str, Any]]] = {}
     for experience in recent_experiences:
         experiences_by_event.setdefault(experience.world_event_id, []).append(experience.to_dict())
+    autobiographical_histories = {}
+    if hasattr(engine, "autobiographical_interpretations"):
+        for experience in recent_experiences:
+            versions = engine.autobiographical_interpretations.for_experience(experience.experience_id)
+            if versions:
+                autobiographical_histories[experience.experience_id] = {
+                    "current": engine.autobiographical_interpretations.current(experience.experience_id).to_dict(),
+                    "versions": [item.to_dict() for item in versions],
+                }
     return {
         "timestep": engine.timestep,
         "relationship": dict(vars(engine.relationship)),
@@ -138,6 +147,16 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             "catch_up": dict(getattr(engine, "last_catch_up_summary", {})),
             "objective_events": [event.to_dict() for event in recent_events],
             "subjective_experiences": [experience.to_dict() for experience in recent_experiences],
+            "autobiographical_histories": autobiographical_histories,
+            "deferred_reinterpretations": [
+                item.to_dict() for item in getattr(engine, "deferred_reinterpretations", [])
+            ],
+            "autobiographical_activations": [
+                item.to_dict() for item in getattr(engine, "_last_autobiographical_activations", ())
+            ],
+            "interpretation_use_outcomes": [
+                item.to_dict() for item in getattr(engine, "interpretation_use_outcomes", [])[-20:]
+            ],
             "discrepancies": [
                 {
                     "world_event_id": event.event_id,

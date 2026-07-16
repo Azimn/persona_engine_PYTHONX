@@ -1,0 +1,99 @@
+life_steps:
+  - type: world_event
+    as: original_failure
+    event:
+      event_type: ambiguous_failure
+      actors: [character, collaborator]
+      location: workshop
+      action: attempted_shared_task
+      targets: [experiment]
+      outcome: the shared task failed after required information was unavailable
+      source: simulator
+      timestamp: 100.0
+      payload:
+        objective_cause: missing_information
+  - type: subjective_experience
+    as: original_experience
+    event: original_failure
+    perception:
+      attention: 1.0
+      confidence: 0.85
+      salience: 0.9
+      emotional_residue: hurt
+      interpretation: I believed the work was abandoned because it did not matter.
+      distortion:
+        missing_cause: true
+        attributed_intent: dismissal
+  - type: decay_experiences
+    now: 1209700.0
+    detail_after: 86400.0
+  - type: inspect_autobiographical
+    experience: original_experience
+    expect:
+      version_count: 1
+      current_version: 1
+      emotional_residue: hurt
+      interpretation: I believed the work was abandoned because it did not matter.
+  - type: world_event
+    as: corrective_event
+    event:
+      event_type: corrective_evidence
+      actors: [collaborator]
+      location: workshop
+      action: supplied_missing_information
+      targets: [experiment]
+      outcome: the missing information caused the earlier failure
+      source: simulator
+      timestamp: 1209700.0
+      payload:
+        cause: missing_information
+        corrects_world_event_id: original_failure
+  - type: reinterpret_experience
+    experience: original_experience
+    context:
+      tick: 10
+      trigger_type: contradictory_evidence
+      integration_capacity: 0.25
+      perceived_capacity: 0.2
+      conflict_noticed: false
+      conflict_strength: 0.9
+      dominant_pressure: 0.9
+      contradicting_world_event_ids: [corrective_event]
+      proposed_meaning_kind: reconciled_meaning
+      proposed_meaning_code: I now understand the failure as incomplete information rather than deliberate abandonment.
+    expect:
+      deferred: true
+      reason: conflict_not_noticed
+  - type: inspect_autobiographical
+    experience: original_experience
+    expect:
+      version_count: 1
+      deferred_count: 1
+  - type: reinterpret_experience
+    experience: original_experience
+    context:
+      tick: 20
+      trigger_type: contradictory_evidence
+      integration_capacity: 0.8
+      perceived_capacity: 0.7
+      conflict_noticed: true
+      conflict_strength: 0.9
+      dominant_pressure: 0.1
+      contradicting_world_event_ids: [corrective_event]
+      proposed_meaning_kind: reconciled_meaning
+      proposed_meaning_code: I now understand the failure as incomplete information rather than deliberate abandonment.
+    expect:
+      version: 2
+      emotional_residue: hurt
+  - type: inspect_autobiographical
+    experience: original_experience
+    expect:
+      version_count: 2
+      current_version: 2
+      deferred_count: 0
+      emotional_residue: hurt
+
+turns:
+  - user_input: "Before deciding what this means, should the cause be checked?"
+    visible_context:
+      related_event: corrective_event

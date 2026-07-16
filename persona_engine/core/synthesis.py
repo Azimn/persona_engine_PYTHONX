@@ -129,6 +129,13 @@ def _rank(influence: SynthesisInfluence, capacity: float) -> float:
             score += 0.06
         elif capacity >= 0.65 and label in {"self_correct", "defer_judgment"}:
             score += 0.04
+    if influence.kind == "autobiographical_meaning":
+        score += 0.10 * _clamp(influence.emotional_congruence)
+        if influence.contradictory:
+            if capacity >= 0.60:
+                score += 0.05 * capacity
+            else:
+                score -= 0.10 * (1.0 - capacity)
     return round(score, 6)
 
 
@@ -173,6 +180,9 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
         reasons.append("pressure:dominant")
     if any(item.contradictory for item in inhibited):
         reasons.append("contradiction:inhibited")
+    autobiographical = [item for item in considered if item.kind == "autobiographical_meaning"]
+    if autobiographical:
+        reasons.extend(f"autobiographical:{item.influence_id.removeprefix('autobiographical:')}" for item in autobiographical)
     canonical = {
         "capacity": round(capacity, 6),
         "width": width,

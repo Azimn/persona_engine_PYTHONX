@@ -26,6 +26,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
 - One canonical typed action per situated turn, selected from synthesis rather than by intrinsic motivation or the renderer.
 - Deterministic fallible self-monitoring that can miss conflict, overestimate capacity, conceal uncertainty, delay, clarify, correct, withdraw, or double down through synthesis-selected regulation.
+- Non-destructive autobiographical reconsolidation preserves original experience while versioning later evidence-backed meaning, including bounded deferral when contradiction is missed under strain.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
@@ -81,7 +82,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-274 passed, 1 skipped
+290 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -94,6 +95,7 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/int
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/synthesis_strain_recovery.yaml --cartridge persona_engine/cartridges/neutral.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/self_monitor_strain.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/self_monitor_correction.yaml --cartridge persona_engine/cartridges/kiki.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/autobiographical_reconsolidation_weeks.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
 ```
 
@@ -192,6 +194,8 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 - `persona_engine/docs/V02_LIFE_SIMULATION.md`
 - `persona_engine/docs/SEMANTIC_SUBSTRATE.md`
 - `persona_engine/docs/INTRINSIC_MOTIVATION.md`
+- `persona_engine/docs/AUTOBIOGRAPHICAL_RECONSOLIDATION.md`
+- `persona_engine/docs/LONG_DURATION_MEMORY_PROOF.md`
 - `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`

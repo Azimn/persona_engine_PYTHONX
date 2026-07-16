@@ -36,6 +36,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Deterministic fallible self-monitoring distinguishes actual engine condition from character-perceived capacity, memory reliability, bias, conflict awareness, and attributed cause.
 - Self-monitoring emits bounded regulation candidates into situated synthesis; selected delay, clarification, correction, concealment, withdrawal, habitual continuation, or doubling down changes action and multimodal performance without bypassing the executive.
 - Self-monitor records persist and replay as canonical cognitive records while public status and renderer workspaces remain protected from actual diagnostics and missed conflicts.
+- Original subjective experience survives decay unchanged; faded recall is a derived accessibility surface.
+- Append-only autobiographical interpretations preserve historical meaning, defer missed corrections, and activate current meaning during retrieval and synthesis.
+- Histories, use outcomes, replay state, private inspector chains, and C99 JSON fixtures persist without granting the renderer memory authority.
 
 ## Current Tests
 
@@ -48,7 +51,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-274 passed, 1 skipped
+290 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -73,6 +76,6 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 
 ## Recommended Next Work
 
-1. Add bounded social attribution now that hypotheses have observable destinations in clarification, concealment, anticipation, delay, repair, withdrawal, and multimodal performance.
-2. Blind-review the improved offline Pretorius/Kiki transcript and compare the same causal setup through Ollama without sharing private state.
-3. Begin C99 fixtures for stable action, interruption, performance, self-monitor, event, experience, and semantic-activation records.
+1. Human-review the simulated-weeks causal trace and offline behavior before adding adaptive memory connectivity.
+2. Add bounded social attribution using versioned relationship meanings only after the behavioral proof is accepted.
+3. Extend C99 conformance fixtures from autobiographical history to complete replay comparisons.

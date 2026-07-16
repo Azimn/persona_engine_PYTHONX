@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -53,6 +53,10 @@ _ALLOWED_SECTION_FIELDS.update({
         "introspective_accuracy", "bias_awareness", "uncertainty_tolerance",
         "admission_threshold", "concealment_bias", "externalization_bias",
         "correction_bias",
+    },
+    "autobiographical_reconsolidation": {
+        "minimum_interval_ticks", "maximum_versions_per_experience",
+        "calm_capacity_threshold", "conflict_threshold", "meaning_templates",
     },
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
@@ -292,6 +296,23 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
             SelfMonitorProfile.from_dict(data["self_monitor"])
         except ValueError as exc:
             raise CartridgeError(f"invalid self-monitor profile: {exc}") from exc
+    if "autobiographical_reconsolidation" in data:
+        section = data["autobiographical_reconsolidation"]
+        if int(section.get("minimum_interval_ticks", 5)) < 1:
+            raise CartridgeError("autobiographical minimum_interval_ticks must be positive")
+        versions = int(section.get("maximum_versions_per_experience", 8))
+        if not 1 <= versions <= 8:
+            raise CartridgeError("autobiographical maximum_versions_per_experience must be within [1, 8]")
+        for field in ("calm_capacity_threshold", "conflict_threshold"):
+            value = float(section.get(field, 0.45))
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise CartridgeError(f"autobiographical {field} must be within [0, 1]")
+        templates = section.get("meaning_templates", {})
+        if not isinstance(templates, dict) or not all(
+            isinstance(key, str) and isinstance(value, str) and value.strip()
+            for key, value in templates.items()
+        ):
+            raise CartridgeError("autobiographical meaning_templates must be non-empty strings")
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:
@@ -357,6 +378,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "private_cognition": data.get("private_cognition", {}),
         "performance_tendencies": data.get("performance_tendencies", {}),
         "self_monitor": data.get("self_monitor", {}),
+        "autobiographical_reconsolidation": data.get("autobiographical_reconsolidation", {}),
         "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }

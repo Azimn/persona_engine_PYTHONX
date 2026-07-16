@@ -33,6 +33,7 @@ class WorkspaceFrame:
     skill_context: List[str] = field(default_factory=list)
     style_constraints: List[str] = field(default_factory=list)
     semantic_candidates: List[str] = field(default_factory=list)
+    autobiographical_context: tuple[str, ...] = ()
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -46,6 +47,8 @@ class WorkspaceFrame:
             lines.append("Current character beliefs, grounded but subjective: " + " | ".join(self.interpretive_beliefs))
         if self.retrieved_memories:
             lines.append("Relevant memories, use only as background and do not recite verbatim: " + " | ".join(self.retrieved_memories))
+        if self.autobiographical_context:
+            lines.append("Current autobiographical meaning, use only if disclosure permits: " + " | ".join(self.autobiographical_context[:2]))
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:
