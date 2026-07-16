@@ -117,7 +117,18 @@ def _rank(influence: SynthesisInfluence, capacity: float) -> float:
     if influence.kind in {"intention", "goal"} and not influence.immediate:
         score -= 0.14 * strain
     if influence.contradictory:
-        score -= 0.38 * strain
+        if capacity < 0.50:
+            score -= 0.38 * strain
+        else:
+            score += 0.06 * capacity
+    if influence.kind == "regulation":
+        label = influence.label
+        if capacity < 0.35 and label in {"continue_habitually", "withdraw", "double_down"}:
+            score += 0.12 * strain
+        elif capacity < 0.50 and label in {"delay", "pause", "ask_clarification"}:
+            score += 0.06
+        elif capacity >= 0.65 and label in {"self_correct", "defer_judgment"}:
+            score += 0.04
     return round(score, 6)
 
 
@@ -128,8 +139,19 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
     width = field_width_for_capacity(capacity)
     bounded = tuple(influences)[:32]
     ranked = sorted(bounded, key=lambda item: (-_rank(item, capacity), item.kind, item.influence_id))
-    considered = tuple(ranked[:width])
-    inhibited = tuple(ranked[width:])
+    considered_items: list[SynthesisInfluence] = []
+    regulation_selected = False
+    for item in ranked:
+        if len(considered_items) >= width:
+            break
+        if item.kind == "regulation":
+            if regulation_selected:
+                continue
+            regulation_selected = True
+        considered_items.append(item)
+    considered = tuple(considered_items)
+    considered_ids = {item.influence_id for item in considered}
+    inhibited = tuple(item for item in ranked if item.influence_id not in considered_ids)
     intentions = [item for item in considered if item.kind == "intention"]
     habits = [item for item in considered if item.kind == "habit"]
     intrinsic = [item for item in considered if item.kind == "intrinsic_proposal"]
@@ -156,6 +178,7 @@ def synthesize(influences: Iterable[SynthesisInfluence], integration_capacity: f
         "width": width,
         "considered": [item.influence_id for item in considered],
         "inhibited": [item.influence_id for item in inhibited],
+        "selected_regulation": regulation[0].influence_id.removeprefix("regulation:") if regulation else None,
     }
     digest = hashlib.blake2b(json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8).hexdigest()
     return SynthesisResult(

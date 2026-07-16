@@ -13,6 +13,7 @@ This pass extends the existing organism with a compact game-oriented life layer.
 - `LifeState` stores current activity, intention, attention, interruption state, entropy, and a bounded recent event list.
 - `CapabilityArtifactStore` validates durable tier-produced knowledge. Artifacts belong to the organism and remain available to lower tiers.
 - `ImperfectActionEngine` separates decision quality, execution result, objective cause, and learned subjective inference.
+- `SelfMonitor` reads actual diagnostics but produces fallible perceived state and bounded regulation candidates; it never executes them directly.
 - The debug UI remains read-only and projects world/experience discrepancies, recall reasons, life events, and learning artifacts.
 
 ## Migration Notes
@@ -26,6 +27,7 @@ Existing SQLite databases load with empty ledgers and default life state when th
 - `capability_artifacts`
 - `life_state`
 - `imperfect_action`
+- `last_self_monitor`
 
 No SQL schema migration is needed because these use the existing `(character_id, user_id, key)` state table.
 

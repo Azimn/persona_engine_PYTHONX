@@ -166,8 +166,25 @@ class PerformancePlanner:
         guardedness = max(0.0, min(1.0, float(getattr(relationship, "guardedness", 0.5))))
         directness = max(0.0, min(1.0, 0.85 - guardedness * 0.35 + profile.directness_delta))
         certainty = max(0.0, min(1.0, decision.confidence + profile.certainty_delta))
+        perceived_confidence = float(getattr(self_monitor, "perceived_confidence", certainty))
+        noticed_conflicts = tuple(getattr(self_monitor, "noticed_conflict_ids", ()))
+        selected_regulation = (
+            self_monitor.candidate(decision.selected_regulation_id)
+            if self_monitor is not None and decision.selected_regulation_id else None
+        )
+        if perceived_confidence < 0.45:
+            certainty = max(0.0, certainty - (0.45 - perceived_confidence) * 0.45)
+        if selected_regulation and selected_regulation.kind == "double_down":
+            directness = min(1.0, directness + 0.18)
+            certainty = min(1.0, certainty + 0.08)
+        elif selected_regulation and selected_regulation.kind == "conceal_uncertainty":
+            directness = min(1.0, directness + 0.06)
         intensity = max(0.1, min(1.0, profile.nonverbal_intensity + (1.0 - capacity) * 0.2))
         acts = self._acts_for(decision, intensity, profile)
+        acts = self._apply_self_monitor_acts(
+            acts, decision, profile, perceived_confidence, noticed_conflicts,
+            selected_regulation.kind if selected_regulation else None,
+        )
         literal = decision.communicative_function if decision.action_kind == "speak" else None
         withheld = ("unselected_private_state",) if concealment_mode != "none" else ()
         canonical = {
@@ -196,6 +213,68 @@ class PerformancePlanner:
             failure_conditions=("performance does not match canonical action",),
             provenance_ids=(decision.decision_id, decision.synthesis_id),
         )
+
+    @staticmethod
+    def _apply_self_monitor_acts(
+        acts: tuple[PerformanceAct, ...],
+        decision: ActionDecision,
+        profile: PerformanceProfile,
+        perceived_confidence: float,
+        noticed_conflicts: tuple[str, ...],
+        regulation_kind: str | None,
+    ) -> tuple[PerformanceAct, ...]:
+        updated = list(acts)
+        existing = {item.channel for item in updated}
+
+        def add(channel: str, function: str, intensity: float = 0.45) -> None:
+            if channel in existing:
+                return
+            updated.append(PerformanceAct(
+                channel=channel, function=function, target=decision.target,
+                intensity=max(0.0, min(1.0, intensity)), onset="immediate",
+                duration="brief", voluntary=True, suppressible=True,
+            ))
+            existing.add(channel)
+
+        def replace(channel: str, function: str, intensity: float) -> None:
+            nonlocal updated
+            updated = [
+                PerformanceAct(
+                    **{
+                        **asdict(item),
+                        "function": function,
+                        "intensity": max(float(item.intensity), intensity),
+                    }
+                ) if item.channel == channel else item
+                for item in updated
+            ]
+            if channel not in existing:
+                add(channel, function, intensity)
+
+        if decision.action_kind == "speak":
+            if perceived_confidence < 0.45:
+                replace("timing", "hesitate", 0.40 + (0.45 - perceived_confidence))
+            elif noticed_conflicts:
+                replace("timing", "brief_pause", 0.45)
+            if regulation_kind == "self_correct":
+                updated = [
+                    PerformanceAct(
+                        **{**asdict(item), "function": "gaze_reset"}
+                    ) if item.channel == "gaze" else item
+                    for item in updated
+                ]
+                replace("timing", "brief_pause", 0.55)
+            elif regulation_kind == "conceal_uncertainty":
+                updated = [
+                    PerformanceAct(**{**asdict(item), "function": "controlled"})
+                    if item.channel == "face" else item for item in updated
+                ]
+            elif regulation_kind == "double_down":
+                updated = [
+                    PerformanceAct(**{**asdict(item), "function": "controlled"})
+                    if item.channel == "face" else item for item in updated
+                ]
+        return tuple(updated)
 
     @staticmethod
     def _acts_for(

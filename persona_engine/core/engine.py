@@ -62,6 +62,7 @@ from .voice import VoiceProfile, VoicePlanner
 from .avatar import AvatarProfile, AvatarProjector
 from .suppression import SuppressionTrace
 from .semantic_substrate import SemanticActivationFrame, load_default_substrate
+from .self_monitor import SelfMonitor, SelfMonitorProfile, SelfMonitorResult
 
 
 def bucket_risk(risk: float) -> str:
@@ -145,6 +146,9 @@ class InteriorEngine:
         cognition_config = dict(profile_source.get("private_cognition", {}))
         self.private_cognition_mode = str(cognition_config.get("mode", "deterministic"))
         self.private_cognition_optional_threshold = float(cognition_config.get("optional_threshold", 0.65))
+        self.self_monitor_profile = SelfMonitorProfile.from_dict(profile_source.get("self_monitor"))
+        self.self_monitor = SelfMonitor(self.self_monitor_profile)
+        self._last_self_monitor: SelfMonitorResult | None = None
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -298,6 +302,8 @@ class InteriorEngine:
         self._last_model_call_metrics = self.persistence.load(
             cid, uid, "last_model_call_metrics", self._last_model_call_metrics,
         )
+        last_monitor = self.persistence.load(cid, uid, "last_self_monitor")
+        self._last_self_monitor = SelfMonitorResult.from_dict(last_monitor) if last_monitor else None
         action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
         self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
@@ -368,6 +374,7 @@ class InteriorEngine:
             "last_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
             "last_performance_plan": self._last_performance_plan.to_dict() if self._last_performance_plan else None,
             "last_model_call_metrics": dict(self._last_model_call_metrics),
+            "last_self_monitor": self._last_self_monitor.to_dict() if self._last_self_monitor else None,
             "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
@@ -1352,14 +1359,41 @@ class InteriorEngine:
         habit_trigger = triggers[0] if triggers else "default"
         habit = self.habits.most_relevant(habit_trigger)
         available_artifacts = self.capability_artifacts.available(0)[:4]
-        synthesis = synthesize(
-            self._build_synthesis_influences(
-                user_text, retrievals, habit, available_artifacts, now, semantic_frame,
-                self._last_intrinsic_proposal,
-            ),
-            self.integration_capacity(),
+        base_influences = self._build_synthesis_influences(
+            user_text, retrievals, habit, available_artifacts, now, semantic_frame,
+            self._last_intrinsic_proposal,
         )
+        actual_capacity = self.integration_capacity()
+        self_monitor = self.self_monitor.evaluate(
+            tick=self.timestep,
+            actual_capacity=actual_capacity,
+            fatigue=self.body.fatigue,
+            dominant_pressure=top_for_match.magnitude if top_for_match else 0.0,
+            identity_threat=(
+                1.0 if forced_rewrite else max(appraisal.disrespect, appraisal.boundary_violation)
+            ),
+            recent_failure=bool(
+                self._last_action_completion
+                and self._last_action_completion.outcome_status == "failed"
+            ),
+            retrieval_confidences=[item.memory.confidence for item in retrievals],
+            influences=base_influences,
+            stable_seed=turn_seed(self.user_id, self.timestep, "self_monitor"),
+        )
+        self._last_self_monitor = self_monitor
+        regulation_influences = [SynthesisInfluence(
+            influence_id=f"regulation:{candidate.candidate_id}",
+            kind="regulation",
+            label=candidate.kind,
+            strength=candidate.strength,
+            immediate=candidate.kind in {"pause", "withdraw"},
+        ) for candidate in self_monitor.regulation_candidates]
+        synthesis = synthesize([*base_influences, *regulation_influences], actual_capacity)
         self._last_synthesis = synthesis
+        self.persistence.log_event(
+            self.identity.name, self.user_id, self.timestep, "self_monitor",
+            {**self_monitor.to_dict(), "memory_types": ["self_monitor"]},
+        )
         considered_ids = {item.influence_id for item in synthesis.considered_influences}
         selected_intention = next(
             (item for item in self.intentions.intentions if item.name == synthesis.selected_intention_id),
@@ -1388,6 +1422,7 @@ class InteriorEngine:
             else None
         )
         communicative = self._resolve_communicative_candidate(triggers, risk, resistance)
+        selected_regulation = self_monitor.candidate(synthesis.selected_regulation_candidate_id)
         action_decision = resolve_action_decision(
             tick=self.timestep,
             synthesis=synthesis,
@@ -1399,6 +1434,7 @@ class InteriorEngine:
             current_activity=self.life_state.current_activity,
             interruption=interruption,
             current_pressure=top_after_appraisal.magnitude if top_after_appraisal else 0.0,
+            selected_regulation=selected_regulation,
         )
         self._accept_action_decision(action_decision, selected_proposal)
         decision_payload = {
@@ -1410,6 +1446,7 @@ class InteriorEngine:
             "selected_intention_id": synthesis.selected_intention_id,
             "selected_habit_id": synthesis.selected_habit_id,
             "selected_intrinsic_proposal_id": synthesis.selected_intrinsic_proposal_id,
+            "selected_regulation_candidate_id": synthesis.selected_regulation_candidate_id,
             "action_decision": action_decision.to_dict(),
         }
         if resistance:
@@ -1442,6 +1479,7 @@ class InteriorEngine:
                 (self.cartridge_data or {}).get("performance_tendencies", {}),
                 selected_proposal.performance_tendency_id if selected_proposal else None,
             ),
+            self_monitor=self_monitor,
         )
         self._last_performance_plan = performance_plan
         performance_payload = performance_plan.to_dict()
@@ -1481,6 +1519,9 @@ class InteriorEngine:
                 forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
                 action_decision=action_decision.to_dict(),
                 performance_plan=performance_payload,
+                self_monitor_summary=self_monitor.renderer_summary(
+                    action_decision.selected_regulation_id
+                ),
                 style_constraints=(
                     list(self.identity.speech_constraints)
                     + [str((self.cartridge_data or {}).get("voice", {}).get("speaking_style", ""))]
@@ -1595,10 +1636,15 @@ class InteriorEngine:
             "visible_context": visible_context,
             "suppression_trace": suppression_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
-            "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "turn_seeds": {
+                "private_cognition": cognition_seed,
+                "self_monitor": turn_seed(self.user_id, self.timestep, "self_monitor"),
+                "expression": seed,
+            },
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
+            "self_monitor": self_monitor.to_dict(),
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
@@ -1628,10 +1674,15 @@ class InteriorEngine:
             "action_decision": action_decision.to_dict(),
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
-            "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
+            "turn_seeds": {
+                "private_cognition": cognition_seed,
+                "self_monitor": turn_seed(self.user_id, self.timestep, "self_monitor"),
+                "expression": seed,
+            },
             "synthesis": synthesis_payload,
             "performance_plan": performance_payload,
             "model_calls": model_call_metrics,
+            "self_monitor": self_monitor.to_dict(),
             "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},

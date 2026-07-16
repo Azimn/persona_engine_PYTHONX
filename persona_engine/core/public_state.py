@@ -158,6 +158,8 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             "performance_plan": engine._last_performance_plan.to_dict()
             if getattr(engine, "_last_performance_plan", None) else None,
             "model_calls": dict(getattr(engine, "_last_model_call_metrics", {})),
+            "self_monitor": engine._last_self_monitor.to_dict()
+            if getattr(engine, "_last_self_monitor", None) else None,
             "synthesis": engine._last_synthesis.to_dict() if getattr(engine, "_last_synthesis", None) else None,
             "action_completion": engine._last_action_completion.to_dict() if getattr(engine, "_last_action_completion", None) else None,
             "semantic_activation": engine._last_semantic_activation.to_dict()

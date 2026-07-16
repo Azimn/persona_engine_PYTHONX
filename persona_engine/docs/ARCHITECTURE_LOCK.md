@@ -138,6 +138,15 @@ The v0.2 simulated-life extension explicitly authorizes `VitalityEventEngine` as
 
 Integration capacity is derived from existing organism load and may narrow the structured influences considered during a turn. The resulting `SynthesisResult` is immutable diagnostic evidence, not a second decision engine. Minimum capacity never disables identity, safety, canonicality, World Authority, action validation, or memory-firewall rules. Recovery widens access to evidence; it does not automatically rewrite beliefs or memories.
 
+### Self-Monitoring Is Fallible And Subordinate
+
+`SelfMonitor` may read actual engine diagnostics, but the character receives
+only a bounded, fallible perceived estimate. It emits regulation candidates;
+synthesis selects among candidates and other influences; `ActionDecision`
+owns action; `PerformancePlan` owns coordinated realization; the renderer owns
+wording only. Actual capacity, missed conflicts, and unreportable candidates
+must never enter renderer context or public status.
+
 ### Mask Suppression Is Traceable
 
 Mask Suppression is distributed across existing gates:

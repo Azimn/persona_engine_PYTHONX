@@ -174,6 +174,26 @@ def main(argv=None) -> int:
             if actual != expected:
                 ok = False
                 reasons.append(f"state {key} expected {expected!r}, got {actual!r}")
+        monitor = result.get("self_monitor") or {}
+        regulation_text = " | ".join(
+            str(item.get("kind", "")) for item in monitor.get("regulation_candidates", ())
+        )
+        if turn.get("expect_regulation_pattern") and not re.search(
+            turn["expect_regulation_pattern"], regulation_text, re.IGNORECASE,
+        ):
+            ok = False
+            reasons.append(
+                f"regulation candidates did not match /{turn['expect_regulation_pattern']}/: {regulation_text!r}"
+            )
+        if turn.get("expect_attributed_cause") and monitor.get("attributed_cause") != turn["expect_attributed_cause"]:
+            ok = False
+            reasons.append(
+                f"attributed cause expected {turn['expect_attributed_cause']!r}, got {monitor.get('attributed_cause')!r}"
+            )
+        reject_response_pattern = turn.get("reject_response_pattern")
+        if reject_response_pattern and re.search(reject_response_pattern, response, re.IGNORECASE):
+            ok = False
+            reasons.append(f"response matched rejected /{reject_response_pattern}/: {response!r}")
         beliefs = result.get("interpretive_belief_trace", []) or []
         min_beliefs = turn.get("expect_min_beliefs")
         if min_beliefs is not None and len(beliefs) < int(min_beliefs):

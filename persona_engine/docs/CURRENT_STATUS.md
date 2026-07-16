@@ -33,6 +33,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Interruption records distinguish input arrival, attention capture, actual activity interruption, urgency, and prior interruptibility.
 - Pretorius and Kiki provide cartridge-authored dependency-free realization pools without placing character phrases in core modules.
 - A bounded read-only semantic substrate provides explicit generic features, inheritance, one-hop associations, unknowns, and candidate affordances from structured concept IDs.
+- Deterministic fallible self-monitoring distinguishes actual engine condition from character-perceived capacity, memory reliability, bias, conflict awareness, and attributed cause.
+- Self-monitoring emits bounded regulation candidates into situated synthesis; selected delay, clarification, correction, concealment, withdrawal, habitual continuation, or doubling down changes action and multimodal performance without bypassing the executive.
+- Self-monitor records persist and replay as canonical cognitive records while public status and renderer workspaces remain protected from actual diagnostics and missed conflicts.
 
 ## Current Tests
 
@@ -45,7 +48,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-255 passed, 1 skipped
+274 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -70,7 +73,6 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 
 ## Recommended Next Work
 
-1. Add fallible self-monitoring from existing capacity, conflict, fatigue, failure, memory-confidence, pressure, and identity-threat inputs; make it visibly affect delay, clarification, confidence, concealment, and recovery.
-2. Add bounded social attribution only after self-monitoring can make those hypotheses affect observable action or performance.
-3. Blind-review the improved offline Pretorius/Kiki transcript and compare the same causal setup through Ollama without sharing private state.
-4. Begin C99 fixtures for stable action, interruption, performance, event, experience, and semantic-activation records.
+1. Add bounded social attribution now that hypotheses have observable destinations in clarification, concealment, anticipation, delay, repair, withdrawal, and multimodal performance.
+2. Blind-review the improved offline Pretorius/Kiki transcript and compare the same causal setup through Ollama without sharing private state.
+3. Begin C99 fixtures for stable action, interruption, performance, self-monitor, event, experience, and semantic-activation records.

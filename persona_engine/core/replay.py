@@ -63,6 +63,15 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
         "world_events": _normalized(engine.world_events.to_list()),
         "subjective_experiences": _normalized(engine.experiences.to_list()),
         "capability_artifacts": _normalized(engine.capability_artifacts.to_list()),
+        "self_monitor": _normalized(engine._last_self_monitor.to_dict())
+        if getattr(engine, "_last_self_monitor", None) else None,
+        "action_decision": {
+            "action_kind": engine._last_action_decision.action_kind,
+            "intention_id": engine._last_action_decision.intention_id,
+            "target": engine._last_action_decision.target,
+            "communicative_function": engine._last_action_decision.communicative_function,
+            "selected_regulation_id": engine._last_action_decision.selected_regulation_id,
+        } if getattr(engine, "_last_action_decision", None) else None,
     }
 
 

@@ -86,6 +86,8 @@ def _turn_record(event: dict[str, Any]) -> dict[str, Any] | None:
         "retrieved_memory_trace": payload.get("retrieved_memory_trace", []),
         "validator_findings": payload.get("violations", []),
         "turn_seeds": payload.get("turn_seeds", {}),
+        "self_monitor": payload.get("self_monitor"),
+        "selected_regulation_id": (payload.get("action_decision") or {}).get("selected_regulation_id"),
     }
 
 

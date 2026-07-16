@@ -74,6 +74,13 @@ semantic authority.
 
 ## Stage 4: Curiosity From Uncertainty
 
+Fallible self-monitoring is now implemented before this stage. Actual engine
+diagnostics produce character-shaped perceived diagnostics and regulation
+candidates that compete in situated synthesis. The next cognitive slice is
+bounded social attribution, but only where its hypotheses can visibly affect
+clarification, concealment, anticipation, delay, repair, withdrawal, or
+performance.
+
 Unknown high-value distinctions may create a bounded question proposal. That
 proposal enters the existing intention and synthesis systems and competes with
 current activity, pressure, habits, and relationship context. It does not gain

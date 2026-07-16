@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .intention import Intention
     from .intrinsic import IntrinsicProposal
     from .synthesis import SynthesisResult
+    from .self_monitor import RegulationCandidate
 
 
 ACTION_KINDS = frozenset({
@@ -54,6 +55,7 @@ class ActionDecision:
     interruptible: bool
     visibility: str
     reason_codes: tuple[str, ...]
+    selected_regulation_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.action_kind not in ACTION_KINDS:
@@ -68,6 +70,7 @@ class ActionDecision:
     def from_dict(cls, data: Mapping[str, Any]) -> "ActionDecision":
         values = {key: data[key] for key in cls.__dataclass_fields__ if key in data}
         values["reason_codes"] = tuple(values.get("reason_codes", ()))
+        values.setdefault("selected_regulation_id", None)
         return cls(**values)
 
 
@@ -83,6 +86,7 @@ def resolve_action_decision(
     current_activity: str,
     interruption: Mapping[str, Any],
     current_pressure: float = 0.0,
+    selected_regulation: "RegulationCandidate | None" = None,
 ) -> ActionDecision:
     """Resolve selected structured evidence into exactly one action."""
 
@@ -104,6 +108,19 @@ def resolve_action_decision(
     activity_interrupted = bool(interruption.get("activity_interrupted", False))
     pressure = max(0.0, min(1.0, float(current_pressure)))
 
+    applied_regulation_id: str | None = None
+    regulation_allowed = bool(
+        selected_regulation is not None
+        and not (
+            selected_intention is not None
+            and float(getattr(selected_intention, "priority", 0.0)) >= 0.85
+        )
+    )
+    regulation_kind = selected_regulation.kind if regulation_allowed and selected_regulation else None
+    if resistance is None and regulation_kind in {"conceal_uncertainty", "double_down"}:
+        applied_regulation_id = selected_regulation.candidate_id
+        reasons.append(f"self_monitor:{regulation_kind}")
+
     if resistance == "go_quiet":
         action_kind = "silence"
         communicative_function = "withhold_response"
@@ -121,6 +138,32 @@ def resolve_action_decision(
         reasons.append("resistance:high_exposure_withdrawal")
     elif resistance:
         reasons.append(f"resistance:{resistance}")
+    elif regulation_allowed and regulation_kind not in {"conceal_uncertainty", "double_down"}:
+        kind = regulation_kind
+        applied_regulation_id = selected_regulation.candidate_id
+        reasons.append(f"self_monitor:{kind}")
+        if kind in {"pause", "delay"}:
+            action_kind = "delay"
+            communicative_function = "defer_response"
+        elif kind == "ask_clarification":
+            action_kind = "speak"
+            communicative_function = "ask_clarification"
+        elif kind == "defer_judgment":
+            if urgency < 0.55:
+                action_kind = "delay"
+                communicative_function = "defer_judgment"
+            else:
+                action_kind = "speak"
+                communicative_function = "defer_judgment"
+        elif kind == "self_correct":
+            action_kind = "speak"
+            communicative_function = "self_correct"
+        elif kind == "withdraw":
+            action_kind = "withdraw"
+            communicative_function = None
+        elif kind == "continue_habitually":
+            action_kind = "continue_activity"
+            communicative_function = None
     elif proposal_selected and intrinsic_proposal is not None:
         source = f"intrinsic:{intrinsic_proposal.proposal_id}"
         target = intrinsic_proposal.target
@@ -187,7 +230,7 @@ def resolve_action_decision(
         json.dumps(canonical, sort_keys=True).encode("utf-8"), digest_size=8,
     ).hexdigest()
     return ActionDecision(
-        schema_version=1,
+        schema_version=2,
         decision_id=f"action_{digest}",
         tick=int(tick),
         source=source,
@@ -202,4 +245,5 @@ def resolve_action_decision(
         interruptible=bool(interruptible),
         visibility=str(visibility),
         reason_codes=tuple(reasons),
+        selected_regulation_id=applied_regulation_id,
     )

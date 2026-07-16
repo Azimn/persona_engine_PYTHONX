@@ -2,6 +2,7 @@
 
 from persona_engine.core.action import resolve_action_decision
 from persona_engine.core.intrinsic import IntrinsicProposal
+from persona_engine.core.self_monitor import RegulationCandidate
 from persona_engine.core.synthesis import SynthesisInfluence, synthesize
 
 
@@ -24,6 +25,7 @@ def _resolve(
     activity_interrupted: bool,
     resistance: str | None = None,
     pressure: float = 0.2,
+    regulation_kind: str | None = None,
 ):
     proposal = _proposal(kind, interruptible)
     synthesis = synthesize((SynthesisInfluence(
@@ -42,6 +44,11 @@ def _resolve(
             "previous_activity_interruptible": interruptible,
         },
         current_pressure=pressure,
+        selected_regulation=(
+            RegulationCandidate(
+                "regulation-test", regulation_kind, 0.8, "current task", ("test",), False,
+            ) if regulation_kind else None
+        ),
     )
 
 
@@ -85,3 +92,13 @@ def test_high_boundary_pressure_can_select_withdrawal():
     )
     assert result.action_kind == "withdraw"
     assert result.communicative_function == "protect_boundary"
+
+
+def test_concealment_regulation_preserves_non_speech_action():
+    result = _resolve(
+        capture=0.35, urgency=0.15, activity_interrupted=False,
+        regulation_kind="conceal_uncertainty",
+    )
+    assert result.action_kind == "continue_activity"
+    assert result.selected_regulation_id == "regulation-test"
+    assert "self_monitor:conceal_uncertainty" in result.reason_codes

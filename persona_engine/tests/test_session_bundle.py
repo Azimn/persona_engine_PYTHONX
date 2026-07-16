@@ -8,6 +8,8 @@ from persona_engine.agent import CharacterAgent
 from persona_engine.core.renderer_control import RendererConfig
 from persona_engine.core.session_bundle import (
     SessionBundleError,
+    SessionBundle,
+    bundle_checksum,
     build_session_bundle,
     load_session_bundle,
     validate_bundle_cartridge,
@@ -41,6 +43,8 @@ def test_bundle_round_trip_preserves_human_and_trace_data(tmp_path):
     assert loaded.turn_records
     assert loaded.turn_records[-1]["turn_seeds"]["expression"]
     assert loaded.turn_records[-1]["turn_seeds"]["private_cognition"]
+    assert loaded.turn_records[-1]["turn_seeds"]["self_monitor"]
+    assert loaded.turn_records[-1]["self_monitor"]["record_authority"] == "canonical_cognitive_record"
     assert {event["event_type"] for event in loaded.canonical_events} == {"input", "sensor_observation"}
     assert all(event["event_type"] != "speech" for event in loaded.canonical_events)
 
@@ -100,6 +104,23 @@ def test_ui_export_and_replay_use_isolated_database(tmp_path):
     second = client.post("/api/session/replay", json=payload)
     assert second.status_code == 200
     assert second.json()["final_digest"] == first_data["final_digest"]
+    assert first_data["final_digest"]["self_monitor"] == payload["final_digest"]["self_monitor"]
+    assert first_data["final_digest"]["action_decision"] == payload["final_digest"]["action_decision"]
+
+
+def test_older_bundle_without_self_monitor_fields_loads(tmp_path):
+    payload = _bundle(tmp_path).to_dict()
+    for turn in payload["turn_records"]:
+        turn.pop("self_monitor", None)
+        turn.pop("selected_regulation_id", None)
+        turn.get("turn_seeds", {}).pop("self_monitor", None)
+    payload["final_digest"].pop("self_monitor", None)
+    payload["final_digest"].pop("action_decision", None)
+    payload["checksum"] = ""
+    bundle = SessionBundle(**payload)
+    payload["checksum"] = bundle_checksum(bundle)
+    loaded = load_session_bundle(payload)
+    assert all(turn.get("self_monitor") is None for turn in loaded.turn_records)
 
 
 def test_ui_replay_rejects_tampered_bundle(tmp_path):

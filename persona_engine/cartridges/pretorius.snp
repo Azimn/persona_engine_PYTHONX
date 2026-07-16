@@ -160,6 +160,15 @@ sound = [
 mode = "deterministic"
 optional_threshold = 0.70
 
+[self_monitor]
+introspective_accuracy = 0.64
+bias_awareness = 0.46
+uncertainty_tolerance = 0.38
+admission_threshold = 0.78
+concealment_bias = 0.82
+externalization_bias = 0.58
+correction_bias = 0.66
+
 [performance_tendencies.guard_exacting_work]
 social_stance = "guarded"
 directness_delta = 0.14

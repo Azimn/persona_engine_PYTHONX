@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -49,6 +49,11 @@ _ALLOWED_SECTION_FIELDS.update({
     "arc": {"earned_changes"},
     "intrinsic": {"selection_interval_ticks", "wants", "activities"},
     "private_cognition": {"mode", "optional_threshold"},
+    "self_monitor": {
+        "introspective_accuracy", "bias_awareness", "uncertainty_tolerance",
+        "admission_threshold", "concealment_bias", "externalization_bias",
+        "correction_bias",
+    },
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
@@ -281,6 +286,12 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
         threshold = float(data["private_cognition"].get("optional_threshold", 0.65))
         if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
             raise CartridgeError("[private_cognition].optional_threshold must be within [0, 1]")
+    if "self_monitor" in data:
+        from .self_monitor import SelfMonitorProfile
+        try:
+            SelfMonitorProfile.from_dict(data["self_monitor"])
+        except ValueError as exc:
+            raise CartridgeError(f"invalid self-monitor profile: {exc}") from exc
     if "offline_expression" in data:
         for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
             if field in data["offline_expression"]:
@@ -345,6 +356,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "intrinsic": data.get("intrinsic", {}),
         "private_cognition": data.get("private_cognition", {}),
         "performance_tendencies": data.get("performance_tendencies", {}),
+        "self_monitor": data.get("self_monitor", {}),
         "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }

@@ -31,11 +31,18 @@ Engine energy is the mean of legacy engine energy and body energy. Every input a
 
 Candidates come from present evidence, pressures, explained memory retrieval, validated capability artifacts, intentions, open loops, habits, relationship concern, current activity, and immediate body needs. Candidate work is bounded before deterministic sorting.
 
+Fallible self-monitoring evaluates the base influence field once, then adds at
+most three `regulation` influences. Synthesis still runs exactly once.
+Regulation does not automatically outrank evidence, identity, safety, or urgent
+intentions. `SynthesisResult.selected_regulation_candidate_id` records the
+highest considered regulation candidate; `ActionDecision` records it only if
+the canonical resolver actually applies it.
+
 Under strain, immediate cues, pressure, established habits, and emotionally congruent memories receive bounded boosts. Distant intentions and contradictory evidence receive bounded penalties. Identity and authority gates remain outside this selection and are always active.
 
 ## Records And Persistence
 
-`SynthesisResult` records considered and inhibited influences, unresolved conflicts, selected intention or habit, reality support, and concise structured reasons. `ActionCompletion` links the synthesis to the existing world event, subjective experience, expected outcome, and actual outcome.
+`SynthesisResult` records considered and inhibited influences, unresolved conflicts, selected intention, habit, or regulation, reality support, and concise structured reasons. `ActionCompletion` links the synthesis to the existing world event, subjective experience, expected outcome, and actual outcome.
 
 Both records use the existing event log. No new mutable persistence field or parallel event system is required. The read-only inspector exposes the latest records.
 

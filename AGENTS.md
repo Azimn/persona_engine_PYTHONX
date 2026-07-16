@@ -71,6 +71,6 @@ The expected full test command is:
 python -m pytest persona_engine/tests -q
 ```
 
-The current documented baseline is `255 passed, 1 skipped`.
+The current documented baseline is `274 passed, 1 skipped`.
 
 If the local `python` command is unavailable on Windows because of the Microsoft Store alias, use an available Python interpreter and report the exact command used.

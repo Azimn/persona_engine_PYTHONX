@@ -175,6 +175,15 @@ sound = [
 mode = "deterministic"
 optional_threshold = 0.70
 
+[self_monitor]
+introspective_accuracy = 0.70
+bias_awareness = 0.62
+uncertainty_tolerance = 0.70
+admission_threshold = 0.48
+concealment_bias = 0.34
+externalization_bias = 0.20
+correction_bias = 0.82
+
 [performance_tendencies.bright_scientific_precision]
 social_stance = "animated"
 directness_delta = 0.08

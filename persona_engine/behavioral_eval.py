@@ -40,6 +40,8 @@ class CausalTurnRecord:
     retrieved_memories: tuple[dict[str, Any], ...]
     life_context: dict[str, Any]
     model_calls: dict[str, Any]
+    self_monitor: dict[str, Any]
+    selected_regulation_id: str | None
     speech_world_event_ids: tuple[str, ...]
 
 
@@ -199,6 +201,8 @@ class BehavioralEvaluationHarness:
                 retrieved_memories=tuple(result.get("retrieved_memory_trace") or ()),
                 life_context=dict(result.get("life_context") or {}),
                 model_calls=dict(result.get("model_calls") or {}),
+                self_monitor=dict(result.get("self_monitor") or {}),
+                selected_regulation_id=(result.get("action_decision") or {}).get("selected_regulation_id"),
                 speech_world_event_ids=speech_ids,
             ))
             current_input = reply or "(silence)"
@@ -219,8 +223,40 @@ class BehavioralEvaluationHarness:
                     int(item.model_calls.get("expression_renderer_called", False)) for item in causal
                 ),
                 "total_model_calls": sum(int(item.model_calls.get("total_model_calls", 0)) for item in causal),
+                "self_monitor_detected_conflict_count": sum(
+                    len(item.self_monitor.get("noticed_conflict_ids", ())) for item in causal
+                ),
+                "self_monitor_missed_conflict_count": sum(
+                    len(item.self_monitor.get("missed_conflict_ids", ())) for item in causal
+                ),
+                "clarification_count": sum(
+                    item.selected_regulation_id is not None
+                    and any(candidate.get("candidate_id") == item.selected_regulation_id and candidate.get("kind") == "ask_clarification"
+                            for candidate in item.self_monitor.get("regulation_candidates", ()))
+                    for item in causal
+                ),
+                "self_correction_count": _regulation_count(causal, "self_correct"),
+                "delay_count": _regulation_count(causal, "delay") + _regulation_count(causal, "pause"),
+                "double_down_count": _regulation_count(causal, "double_down"),
+                "concealed_uncertainty_count": _regulation_count(causal, "conceal_uncertainty"),
+                "externalized_cause_count": sum(
+                    item.self_monitor.get("attributed_cause") in {"interlocutor", "circumstances"}
+                    for item in causal
+                ),
             },
         )
+
+
+def _regulation_count(records: list[CausalTurnRecord], kind: str) -> int:
+    return sum(
+        record.selected_regulation_id is not None
+        and any(
+            candidate.get("candidate_id") == record.selected_regulation_id
+            and candidate.get("kind") == kind
+            for candidate in record.self_monitor.get("regulation_candidates", ())
+        )
+        for record in records
+    )
 
 
 def _score_transcript(

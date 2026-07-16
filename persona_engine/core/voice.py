@@ -88,6 +88,8 @@ class VoicePlanner:
                     "delayed": 900,
                     "variable": 500,
                     "delay": 1000,
+                    "hesitate": 650,
+                    "brief_pause": 450,
                 }.get(timing_act.function, pause_before))
         return VoicePlan(
             str(text), rate, volume, pause_before, pause_after, hesitation,
