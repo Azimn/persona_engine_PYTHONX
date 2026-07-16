@@ -26,6 +26,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Lean v0.2 simulated life: objective world-event ledger, subjective experience lifecycle, explained retrieval, optional embedding adapter, persisted activity/interruption state, bounded seeded vitality events, imperfect execution/learning, and cross-tier capability artifacts.
 - Read-only life inspector showing objective/subjective discrepancies, recall reasons, vitality provenance, and learning artifacts.
 - Situated synthesis derives integration capacity from existing organism load, narrows structured influences under strain, and links action outcomes to objective and subjective records.
+- Bounded intrinsic motivation selects cartridge-authored wants and activities into inspectable speech or nonverbal action decisions; Pretorius and Kiki carry distinct profiles.
 
 ## Current Tests
 
@@ -38,7 +39,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-206 passed, 1 skipped
+216 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -62,7 +63,7 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 ## Recommended Next Work
 
 1. Run a structured human-testing pass focused on whether pre-existing activity and interruption are perceptible in expression.
-2. Add conservative cartridge vitality weights only where human tests show a visible benefit.
-3. Compare offline and Ollama behavior using exported session bundles and paired cartridge scripts.
+2. Compare Pretorius and Kiki offline and through Ollama, including a paired-character host scenario, without sharing private state.
+3. Add conservative cartridge vitality weights only where human tests show a visible benefit.
 4. Add cartridge tooling: lint, compare, and authoring helpers.
 5. Begin C99 port fixtures for the stable event, experience, life-state, and artifact records.

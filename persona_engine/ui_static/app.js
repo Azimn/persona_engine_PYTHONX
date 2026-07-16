@@ -420,6 +420,8 @@ function renderLifeInspector(inspector) {
   const artifacts = inspector.learning_artifacts || [];
   const synthesis = inspector.synthesis || {};
   const completion = inspector.action_completion || {};
+  const intrinsic = inspector.intrinsic || {};
+  const actionDecision = intrinsic.action_decision || {};
   const lifeEventRows = lifeEvents.slice(-5).reverse().map(item => `<p><strong>${escapeHtml(item.category)}</strong> ${escapeHtml(item.action)} <small>${escapeHtml(item.origin)}</small></p>`).join('');
   const artifactRows = artifacts.slice(-4).reverse().map(item => `<p><strong>${escapeHtml(item.kind)}</strong> ${escapeHtml(item.content)} <small>tier ${item.source_tier} · ${escapeHtml(item.verification_state)}</small></p>`).join('');
   holder.hidden = false;
@@ -432,6 +434,7 @@ function renderLifeInspector(inspector) {
       <div><span>integration</span><strong>${Number(synthesis.integration_capacity || 0).toFixed(2)}</strong></div>
       <div><span>field width</span><strong>${escapeHtml(String(synthesis.field_width || 0))}</strong></div>
     </section>
+    <section class="life-list"><h3>Intrinsic action</h3>${actionDecision.decision_id ? `<article><strong>${escapeHtml(actionDecision.activity_description)} · ${escapeHtml(actionDecision.action_type)}</strong><p>want: ${escapeHtml(actionDecision.want_id)} · intention: ${escapeHtml(actionDecision.intention)}</p><p>target: ${escapeHtml(actionDecision.target)} · renderer required: ${escapeHtml(String(actionDecision.requires_renderer))}</p><p>${(actionDecision.selection_reason || []).map(escapeHtml).join(' · ')}</p></article>` : '<p class="empty-state">No intrinsic action selected yet.</p>'}</section>
     <section class="life-list"><h3>Situated synthesis</h3>${synthesis.synthesis_id ? `<article><strong>${escapeHtml(synthesis.selected_intention_id || synthesis.selected_habit_id || 'no selected tendency')}</strong><p>considered: ${(synthesis.considered_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>inhibited: ${(synthesis.inhibited_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>conflicts: ${(synthesis.unresolved_conflicts || []).map(escapeHtml).join(' · ') || 'none'}</p></article>` : '<p class="empty-state">No synthesis recorded yet.</p>'}</section>
     <section class="life-list"><h3>Action completion</h3>${completion.world_event_id ? `<article><strong>${escapeHtml(completion.attempted_action)} · ${escapeHtml(completion.outcome_status)}</strong><p>expected: ${escapeHtml(completion.expected_outcome)} · actual: ${escapeHtml(completion.actual_outcome)}</p><p>world: ${escapeHtml(completion.world_event_id)} · subjective: ${escapeHtml(completion.subjective_interpretation_reference || 'none')}</p></article>` : '<p class="empty-state">No completed action yet.</p>'}</section>
     <section class="life-list"><h3>World and experience</h3>${events.slice(0, 5).map(event => {

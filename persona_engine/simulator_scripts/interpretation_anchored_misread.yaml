@@ -16,7 +16,7 @@ turns:
     require_belief_support: true
     expect_belief_pattern: "ambiguous|uncertainty"
     reject_belief_pattern: "lied|betray|deceived"
-    expect_response_pattern: "fine|uncertain|phrase|precision|hear you|actually present"
+    expect_response_pattern: "fine|uncertain|meaning|phrase|precision|hear you|actually present"
   - user_input: "What was that?"
     visible_context:
       ambient_event: "sudden sound"

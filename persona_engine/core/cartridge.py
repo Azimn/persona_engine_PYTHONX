@@ -8,6 +8,7 @@ state belongs in Persistence or a session snapshot.
 from __future__ import annotations
 
 import tomllib
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -35,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
@@ -45,6 +46,7 @@ _ALLOWED_SECTION_FIELDS.update({
     "cognitive_themes": {"allowed", "retrieval_filters"},
     "concealment": {"weights"},
     "arc": {"earned_changes"},
+    "intrinsic": {"selection_interval_ticks", "wants", "activities"},
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
 _ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
@@ -167,6 +169,68 @@ def _validate_rules(rules: list[dict[str, Any]], beliefs: list[dict[str, Any]]) 
             raise CartridgeError(f"belief rule threshold_count must be >= 1 at index {idx}")
 
 
+def _validate_intrinsic(section: dict[str, Any]) -> None:
+    from .intrinsic import ACTION_TYPES
+
+    wants = section.get("wants", [])
+    activities = section.get("activities", [])
+    if not isinstance(wants, list) or not isinstance(activities, list):
+        raise CartridgeError("[intrinsic] wants and activities must be arrays")
+    if int(section.get("selection_interval_ticks", 6)) < 1:
+        raise CartridgeError("[intrinsic].selection_interval_ticks must be >= 1")
+    want_fields = {"id", "description", "baseline", "neglect_gain", "satisfaction"}
+    activity_fields = {
+        "id", "want_id", "description", "intention", "attention_target", "action_type", "target",
+        "base_utility", "energy_cost", "novelty_weight", "interruptible", "visibility",
+        "performance_cue", "pressure_affinities",
+    }
+    want_ids: set[str] = set()
+    for index, want in enumerate(wants):
+        if not isinstance(want, dict):
+            raise CartridgeError(f"[intrinsic].wants[{index}] must be a table")
+        _unknown_keys(want, want_fields, f"[intrinsic].wants[{index}]")
+        if not want_fields.issubset(want):
+            raise CartridgeError(f"[intrinsic].wants[{index}] is missing a required field")
+        want_id = str(want["id"])
+        if not want_id or want_id in want_ids:
+            raise CartridgeError(f"duplicate or empty intrinsic want id: {want_id}")
+        want_ids.add(want_id)
+        for field in ("baseline", "neglect_gain", "satisfaction"):
+            number = float(want[field])
+            if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+                raise CartridgeError(f"[intrinsic].wants[{index}].{field} must be within [0, 1]")
+    activity_ids: set[str] = set()
+    required_activity = activity_fields - {"pressure_affinities"}
+    for index, activity in enumerate(activities):
+        if not isinstance(activity, dict):
+            raise CartridgeError(f"[intrinsic].activities[{index}] must be a table")
+        _unknown_keys(activity, activity_fields, f"[intrinsic].activities[{index}]")
+        if not required_activity.issubset(activity):
+            raise CartridgeError(f"[intrinsic].activities[{index}] is missing a required field")
+        activity_id = str(activity["id"])
+        if not activity_id or activity_id in activity_ids:
+            raise CartridgeError(f"duplicate or empty intrinsic activity id: {activity_id}")
+        activity_ids.add(activity_id)
+        if str(activity["want_id"]) not in want_ids:
+            raise CartridgeError(f"intrinsic activity references unknown want: {activity['want_id']}")
+        if str(activity["action_type"]) not in ACTION_TYPES:
+            raise CartridgeError(f"unsupported intrinsic action_type: {activity['action_type']}")
+        for field in ("energy_cost", "novelty_weight"):
+            number = float(activity[field])
+            if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+                raise CartridgeError(f"[intrinsic].activities[{index}].{field} must be within [0, 1]")
+        base_utility = float(activity["base_utility"])
+        if not math.isfinite(base_utility) or not -1.0 <= base_utility <= 1.0:
+            raise CartridgeError(f"[intrinsic].activities[{index}].base_utility must be within [-1, 1]")
+        affinities = activity.get("pressure_affinities", {})
+        if not isinstance(affinities, dict) or not all(
+            isinstance(key, str) and isinstance(value, (int, float))
+            and math.isfinite(float(value)) and -1.0 <= float(value) <= 1.0
+            for key, value in affinities.items()
+        ):
+            raise CartridgeError(f"[intrinsic].activities[{index}].pressure_affinities must be numeric")
+
+
 def validate_cartridge_data(data: dict[str, Any]) -> None:
     """Validate raw TOML data before constructing runtime objects."""
     _unknown_keys(data, _ALLOWED_TOP_LEVEL, "top level")
@@ -181,6 +245,8 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
             _require_section(data, optional_section)
     if "cognitive_themes" in data:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
+    if "intrinsic" in data:
+        _validate_intrinsic(data["intrinsic"])
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -236,6 +302,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "cognitive_themes": data.get("cognitive_themes", {}),
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
+        "intrinsic": data.get("intrinsic", {}),
         "path": str(Path(path)),
     }
     return core, ledger, raw

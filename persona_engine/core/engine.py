@@ -43,6 +43,7 @@ from .lived_experience import ExperienceStore, WorldEvent, WorldEventLedger
 from .embedding import NoEmbeddingProvider
 from .capability_artifacts import CapabilityArtifactStore
 from .imperfect_action import ImperfectActionEngine
+from .intrinsic import ActionDecision, IntrinsicMotivationEngine, IntrinsicState
 from .vitality import LifeState, VitalityEventEngine
 from .synthesis import (
     ActionCompletion,
@@ -127,6 +128,9 @@ class InteriorEngine:
         self.life_state = LifeState()
         self.vitality = VitalityEventEngine(life_seed)
         self.imperfect_actions = ImperfectActionEngine(turn_seed(f"{identity.name}:{user_id}", 0, "action"))
+        self.intrinsic = IntrinsicMotivationEngine.from_cartridge(profile_source.get("intrinsic"))
+        self.intrinsic_state = IntrinsicState()
+        self._last_action_decision: ActionDecision | None = None
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
@@ -242,6 +246,9 @@ class InteriorEngine:
         self.experiences = ExperienceStore.from_list(self.persistence.load(cid, uid, "subjective_experiences", []))
         self.capability_artifacts = CapabilityArtifactStore.from_list(self.persistence.load(cid, uid, "capability_artifacts", []))
         self.life_state = LifeState.from_dict(self.persistence.load(cid, uid, "life_state"))
+        self.intrinsic_state = IntrinsicState.from_dict(self.persistence.load(cid, uid, "intrinsic_state"))
+        last_decision = self.persistence.load(cid, uid, "last_action_decision")
+        self._last_action_decision = ActionDecision.from_dict(last_decision) if last_decision else None
         action_meta = self.persistence.load(cid, uid, "imperfect_action", {})
         self.imperfect_actions.counter = int(action_meta.get("counter", 0))
 
@@ -307,6 +314,8 @@ class InteriorEngine:
             "subjective_experiences": self.experiences.to_list(),
             "capability_artifacts": self.capability_artifacts.to_list(),
             "life_state": self.life_state.to_dict(),
+            "intrinsic_state": self.intrinsic_state.to_dict(),
+            "last_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
             "imperfect_action": {"counter": self.imperfect_actions.counter},
             "deception_ledger": self.deception_ledger.to_state(),
         }
@@ -364,6 +373,7 @@ class InteriorEngine:
         self.habits.decay_all()
         self.symbols.lifecycle_tick(now)
         self.memory.compress_old(now)
+        self._advance_intrinsic_motivation()
         if include_vitality:
             self.experiences.decay(now)
             life_events = self.vitality.tick(self.life_state, self.timestep, elapsed_seconds, self._whim_weights())
@@ -424,6 +434,89 @@ class InteriorEngine:
         vitality = (self.cartridge_data or {}).get("vitality", {})
         weights = vitality.get("whim_weights", {}) if isinstance(vitality, dict) else {}
         return {str(key): float(value) for key, value in weights.items()} if isinstance(weights, dict) else {}
+
+    def _advance_intrinsic_motivation(self, force: bool = False) -> ActionDecision | None:
+        decision = self.intrinsic.select(
+            self.intrinsic_state,
+            companion_id=str((self.cartridge_data or {}).get("metadata", {}).get("entity_id", self.identity.name)),
+            tick=self.timestep,
+            energy=self.energy,
+            restlessness=self.restlessness,
+            pressures={name: pressure.magnitude for name, pressure in self.pressures.pressures.items()},
+            force=force,
+        )
+        if decision is None:
+            return None
+        self._last_action_decision = decision
+        self.life_state.current_activity = decision.activity_description[:120]
+        self.life_state.current_intention = decision.intention[:120]
+        self.life_state.attention_target = decision.target[:120]
+        self.life_state.activity_status = "active"
+        self.intentions.add_intention(Intention(
+            name=decision.intention,
+            priority=max(0.0, min(1.0, decision.utility / 2.0)),
+            source=f"intrinsic:{decision.want_id}",
+            created_at=time.time(),
+            expires_at=None,
+            requires_user_context=False,
+        ))
+        self.persistence.log_event(
+            self.identity.name,
+            self.user_id,
+            self.timestep,
+            "intrinsic_action_decision",
+            {**decision.to_dict(), "memory_types": ["action_decision"]},
+        )
+        return decision
+
+    def select_intrinsic_action(self, force: bool = True) -> dict[str, Any] | None:
+        """Select and persist one cartridge-authored action through the engine."""
+
+        decision = self._advance_intrinsic_motivation(force=force)
+        self._persist()
+        return decision.to_dict() if decision else None
+
+    def complete_intrinsic_action(
+        self,
+        *,
+        observed_outcome: str,
+        objective_cause: str,
+        expected_outcome: str = "success",
+        objectively_reasonable: bool = True,
+        skill: float = 0.65,
+        distraction: float = 0.0,
+        force_execution_failure: bool = False,
+        force_wrong_learning: bool = False,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        """Resolve the selected action through existing outcome and memory channels."""
+
+        decision = self._last_action_decision
+        if decision is None:
+            raise RuntimeError("no intrinsic action has been selected")
+        result = self.attempt_imperfect_action(
+            decision=decision.activity_description,
+            objectively_reasonable=objectively_reasonable,
+            skill=skill,
+            distraction=distraction,
+            fatigue=max(0.0, 1.0 - self.energy),
+            observed_outcome=observed_outcome,
+            objective_cause=objective_cause,
+            now=time.time() if now is None else float(now),
+            expected_outcome=expected_outcome,
+            intention_id=decision.intention,
+            supporting_event_ids=(),
+            force_execution_failure=force_execution_failure,
+            force_wrong_learning=force_wrong_learning,
+        )
+        self.habits.add_evidence(
+            name=f"intrinsic:{decision.activity_id}",
+            trigger=decision.want_id,
+            response_pattern=decision.activity_description,
+            source="expressed_action",
+        )
+        self._persist()
+        return result
 
     def force_life_event(self, category: str) -> list[dict[str, Any]]:
         events = self.vitality.tick(self.life_state, self.timestep, 5.0, self._whim_weights(), force_category=category)
@@ -1090,6 +1183,7 @@ class InteriorEngine:
             "field_width": synthesis.field_width,
             "selected_intention_id": synthesis.selected_intention_id,
             "selected_habit_id": synthesis.selected_habit_id,
+            "ongoing_action_decision": self._last_action_decision.to_dict() if self._last_action_decision else None,
         })
         if resistance:
             suppression_traces.append(_suppression_trace(
@@ -1134,6 +1228,11 @@ class InteriorEngine:
             interpretive_beliefs=[b.text for b in interpretive_beliefs],
             interpretive_belief_trace=[b.to_dict() for b in interpretive_beliefs],
             forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
+            performance_guidance=(
+                list(self.identity.speech_constraints)
+                + [str((self.cartridge_data or {}).get("voice", {}).get("speaking_style", ""))]
+                + ([self._last_action_decision.performance_cue] if self._last_action_decision and self._last_action_decision.performance_cue else [])
+            ),
         )
 
         second_thoughts = derive_second_thoughts(frame)

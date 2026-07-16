@@ -150,6 +150,10 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             "learning_artifacts": [item.to_dict() for item in getattr(engine, "capability_artifacts", []).artifacts]
             if hasattr(getattr(engine, "capability_artifacts", None), "artifacts") else [],
             "retrievals": list(getattr(engine, "_last_retrieved_memory_trace", [])),
+            "intrinsic": {
+                "state": engine.intrinsic_state.to_dict(),
+                "action_decision": engine._last_action_decision.to_dict() if getattr(engine, "_last_action_decision", None) else None,
+            } if hasattr(engine, "intrinsic_state") else {},
             "synthesis": engine._last_synthesis.to_dict() if getattr(engine, "_last_synthesis", None) else None,
             "action_completion": engine._last_action_completion.to_dict() if getattr(engine, "_last_action_completion", None) else None,
         },

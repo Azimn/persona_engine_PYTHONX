@@ -76,7 +76,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-206 passed, 1 skipped
+216 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -177,6 +177,7 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 
 - `AGENTS.md`
 - `persona_engine/docs/V02_LIFE_SIMULATION.md`
+- `persona_engine/docs/INTRINSIC_MOTIVATION.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`
 - `persona_engine/docs/CURRENT_STATUS.md`

@@ -99,6 +99,12 @@ class CharacterAgent:
     def begin_activity(self, activity: str, intention: str, attention_target: str):
         return self.engine.begin_activity(activity, intention, attention_target)
 
+    def select_intrinsic_action(self, force: bool = True):
+        return self.engine.select_intrinsic_action(force=force)
+
+    def complete_intrinsic_action(self, **kwargs):
+        return self.engine.complete_intrinsic_action(**kwargs)
+
     def reinforce_habit(self, name: str, trigger: str, response_pattern: str, repetitions: int = 1):
         return self.engine.reinforce_habit(name, trigger, response_pattern, repetitions)
 
