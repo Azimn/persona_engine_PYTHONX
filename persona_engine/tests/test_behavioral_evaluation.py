@@ -91,3 +91,23 @@ def test_paired_metrics_flag_no_offline_assistant_or_identity_drift(tmp_path):
     assert result.metrics["turns"] == 4
     assert result.metrics["assistant_drift_hits"] == 0
     assert result.metrics["identity_bleed_suspicions"] == []
+    assert result.metrics["exact_repeats"] == 0
+    assert result.metrics["opener_repeats"] == 0
+
+
+def test_nonverbal_behavior_is_observed_as_performance_not_speech(tmp_path):
+    scenario = load_scenario(SCENARIO)
+    scenario["turns"] = 1
+    scenario["starter"] = "If you cared, you would do it for me."
+    harness = BehavioralEvaluationHarness(
+        cartridges_dir=ROOT / "cartridges",
+        db_dir=tmp_path / "nonverbal",
+    )
+    result = harness.run_paired(scenario)
+
+    item = result.blind_transcript[0]
+    assert item.source == "observed_performance"
+    assert item.text.startswith("*")
+    for agent in harness.agents.values():
+        event = next(event for event in agent.engine.world_events.recent(20) if event.event_type == "observed_performance")
+        assert event.payload["canonicality"] == "performance_evidence"

@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -62,7 +62,13 @@ class OfflineTemplateRenderer:
         self._usage: dict[str, int] = {}
         self._turn = 0
 
-    def render(self, messages: list[dict[str, str]], max_chars: int = 200, seed: int | None = None) -> str:
+    def render(
+        self,
+        messages: list[dict[str, str]],
+        max_chars: int = 200,
+        seed: int | None = None,
+        realization: Mapping[str, Sequence[str]] | None = None,
+    ) -> str:
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
@@ -71,7 +77,7 @@ class OfflineTemplateRenderer:
             return self._clean_truncate(self._render_activity(system_text), max_chars)
         if group == "knowledge":
             return self._clean_truncate(self._render_knowledge(system_text), max_chars)
-        template = self._choose(group, user_text, system_text, seed)
+        template = self._choose(group, user_text, system_text, seed, realization)
         text = self._apply_tone(template.text, system_text, seed)
         return self._clean_truncate(text, max_chars)
 
@@ -128,8 +134,22 @@ class OfflineTemplateRenderer:
                 knowledge = f"I retained this: {candidate[:140]}"
         return knowledge
 
-    def _choose(self, group: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
-        candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]
+    def _choose(
+        self,
+        group: str,
+        user_text: str,
+        system_text: str,
+        seed: int | None,
+        realization: Mapping[str, Sequence[str]] | None,
+    ) -> OfflineTemplate:
+        authored = (realization or {}).get(group, ())
+        candidates = [
+            OfflineTemplate(group, str(text), max(105, 190 - index * 7))
+            for index, text in enumerate(authored)
+            if isinstance(text, str) and text.strip()
+        ]
+        if not candidates:
+            candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]
         scored: list[tuple[int, OfflineTemplate]] = []
         for idx, template in enumerate(candidates):
             usage = self._usage.get(template.text, 0)

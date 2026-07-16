@@ -24,6 +24,9 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Append-only objective world events, per-character subjective experience traces, bounded memory lifecycle, and explained hybrid retrieval.
 - Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
 - Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
+- Immutable performance plans that permit speech, gesture, silence, reaction, delay, or continued activity without forcing an LLM call.
+- Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
+- A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
 - Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
 - World Authority for objective facts.
 - Noncanonical, traceable interpretive belief objects.
@@ -76,7 +79,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-223 passed, 1 skipped
+236 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -118,7 +121,7 @@ persona-engine-ui
 
 Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, working local renderer controls, and checksum-verified session export/replay.
 
-When the server is started with `--debug`, the debug tab includes a read-only life inspector for current activity, intention, attention, recent objective events, subjective experience versions, recall reasons, vitality events, and learning artifacts.
+When the server is started with `--debug`, the debug tab includes a read-only life inspector for current activity, intention, attention, recent objective events, subjective experience versions, recall reasons, vitality events, learning artifacts, synthesis, performance, and semantic candidates.
 
 ## Human Testing
 
@@ -178,6 +181,7 @@ Importing a valid bundle creates an isolated replay database and replays only ap
 
 - `AGENTS.md`
 - `persona_engine/docs/V02_LIFE_SIMULATION.md`
+- `persona_engine/docs/SEMANTIC_SUBSTRATE.md`
 - `persona_engine/docs/INTRINSIC_MOTIVATION.md`
 - `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`

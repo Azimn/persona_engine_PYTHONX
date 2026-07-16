@@ -18,7 +18,7 @@ from .cognition_schemas import turn_seed
 from .cartridge import load_cartridge
 from .deception_ledger import DeceptionLedger
 from .dream_engine import DreamEngine
-from .expression import build_envelope, select_resistance
+from .expression import build_envelope, build_performance_plan, select_resistance
 from .habit import Habit, HabitTracker
 from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_identity_command
 from .intention import Intention, IntentionQueue, OpenLoop
@@ -59,6 +59,7 @@ from .vision_sensor import VisionObservation
 from .voice import VoiceProfile, VoicePlanner
 from .avatar import AvatarProfile, AvatarProjector
 from .suppression import SuppressionTrace
+from .semantic_substrate import SemanticActivationFrame, load_default_substrate
 
 
 def bucket_risk(risk: float) -> str:
@@ -134,6 +135,8 @@ class InteriorEngine:
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
         self._last_synthesis: SynthesisResult | None = None
         self._last_action_completion: ActionCompletion | None = None
+        self.semantic_substrate = load_default_substrate()
+        self._last_semantic_activation: SemanticActivationFrame | None = None
         self.event_classifier = EventClassifier()
         self.sensory_router = SensoryRouter()
         self.voice_profile = VoiceProfile.from_dict(profile_source.get("voice_profile"))
@@ -680,11 +683,21 @@ class InteriorEngine:
             recent_failure=recent_failure,
         )
 
-    def _build_synthesis_influences(self, user_text: str, retrievals, habit, artifacts, now: float) -> list[SynthesisInfluence]:
+    def _build_synthesis_influences(
+        self, user_text: str, retrievals, habit, artifacts, now: float,
+        semantic_frame: SemanticActivationFrame | None = None,
+    ) -> list[SynthesisInfluence]:
         influences = [SynthesisInfluence(
             "evidence:current_input", "evidence", str(user_text)[:120], 0.58,
             immediate=True, reality_support=1.0,
         )]
+        if semantic_frame is not None:
+            for concept in semantic_frame.concepts[:3]:
+                influences.append(SynthesisInfluence(
+                    f"semantic:{concept.concept_id}", "semantic_candidate", concept.name,
+                    min(0.52, 0.18 + concept.activation / 300.0),
+                    reality_support=0.0,
+                ))
         for pressure in sorted(self.pressures.pressures.values(), key=lambda item: (-item.magnitude, item.name))[:3]:
             if pressure.magnitude > 0.001:
                 influences.append(SynthesisInfluence(
@@ -963,6 +976,13 @@ class InteriorEngine:
         server_truth.update(organism_result.server_truth)
         for key, value in organism_result.visible_context.items():
             visible_context.setdefault(key, value)
+        raw_concepts = visible_context.get("concept_ids", ())
+        if isinstance(raw_concepts, (str, int)):
+            raw_concepts = (raw_concepts,)
+        elif not isinstance(raw_concepts, (list, tuple)):
+            raw_concepts = ()
+        semantic_frame = self.semantic_substrate.activate(raw_concepts)
+        self._last_semantic_activation = semantic_frame
         input_payload = {
             "user_text": user_text,
             "server_truth": server_truth,
@@ -1151,7 +1171,9 @@ class InteriorEngine:
         habit = self.habits.most_relevant(habit_trigger)
         available_artifacts = self.capability_artifacts.available(0)[:4]
         synthesis = synthesize(
-            self._build_synthesis_influences(user_text, retrievals, habit, available_artifacts, now),
+            self._build_synthesis_influences(
+                user_text, retrievals, habit, available_artifacts, now, semantic_frame,
+            ),
             self.integration_capacity(),
         )
         self._last_synthesis = synthesis
@@ -1204,6 +1226,18 @@ class InteriorEngine:
         ))
         if resistance:
             envelope.refusal_mode = resistance
+        performance_plan = build_performance_plan(
+            decision_payload,
+            resistance,
+            self._last_action_decision.to_dict() if self._last_action_decision else None,
+        )
+        performance_payload = performance_plan.to_dict()
+        decision_payload["performance_plan"] = performance_payload
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "performance_plan", {
+            **performance_payload,
+            "canonical": False,
+            "memory_types": ["performance_plan"],
+        })
 
         frame = WorkspaceFrame(
             core_identity_summary=self.ledger.summary() + (f" | beliefs: {self.belief_ledger.values}" if self.belief_ledger.values else ""),
@@ -1233,30 +1267,44 @@ class InteriorEngine:
                 + [str((self.cartridge_data or {}).get("voice", {}).get("speaking_style", ""))]
                 + ([self._last_action_decision.performance_cue] if self._last_action_decision and self._last_action_decision.performance_cue else [])
             ),
+            semantic_candidates=[
+                f"concept:{item.name}" for item in semantic_frame.concepts[:3]
+            ] + [
+                f"affordance_candidate:{item.action}:{item.target_name}"
+                for item in semantic_frame.affordances[:3]
+            ],
         )
 
         second_thoughts = derive_second_thoughts(frame)
+        if not performance_plan.utterance_required:
+            second_thoughts = []
         system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
         seed = turn_seed(self.user_id, self.timestep, "expression")
-        response = render_expression(
-            self.renderer,
-            ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-            resolved_state={"system_prompt": system_prompt, "user_text": user_text, "life_context": self.life_state.to_dict()},
-            arc_context={},
-            evidence=[
-                {"type": "input", "text": user_text},
-                {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]},
-                {"type": "capability_artifacts", "artifacts": [item.to_dict() for item in available_artifacts]},
-                {"type": "synthesis", "result": synthesis_payload},
-            ],
-            retrieved_memories=retrieved,
-            private_thought_context="",
-            decision_payload=decision_payload,
-            expression_constraints={"max_chars": envelope.max_chars},
-            deception_obligations=[],
-            seed=seed,
-        )
+        response = ""
+        violations: list[str] = []
+        if performance_plan.utterance_required:
+            response = render_expression(
+                self.renderer,
+                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                resolved_state={"system_prompt": system_prompt, "user_text": user_text, "life_context": self.life_state.to_dict()},
+                arc_context={},
+                evidence=[
+                    {"type": "input", "text": user_text},
+                    {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]},
+                    {"type": "capability_artifacts", "artifacts": [item.to_dict() for item in available_artifacts]},
+                    {"type": "synthesis", "result": synthesis_payload},
+                ],
+                retrieved_memories=retrieved,
+                private_thought_context="",
+                decision_payload=decision_payload,
+                expression_constraints={
+                    "max_chars": envelope.max_chars,
+                    "offline_realization": dict((self.cartridge_data or {}).get("offline_expression", {})),
+                },
+                deception_obligations=[],
+                seed=seed,
+            )
 
         violations = self.validator.check(response, retrieved, deception_ledger=self.deception_ledger, decision_payload=decision_payload)
         if violations:
@@ -1318,6 +1366,8 @@ class InteriorEngine:
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "synthesis": synthesis_payload,
+            "performance_plan": performance_payload,
+            "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
             "memory_types": memory_types or ["neutral_turn"],
@@ -1347,6 +1397,8 @@ class InteriorEngine:
             "retrieved_memory_trace": retrieved_memory_trace,
             "turn_seeds": {"private_cognition": cognition_seed, "expression": seed},
             "synthesis": synthesis_payload,
+            "performance_plan": performance_payload,
+            "semantic_activation": semantic_frame.to_dict(),
             "life_context": self.life_state.to_dict(),
             "interruption": {**interruption, "outcome": activity_outcome},
             "world_event_id": input_world_event.event_id,
@@ -1355,7 +1407,7 @@ class InteriorEngine:
             "public_status": self.public_status(bucket, dominant_name),
             "avatar_state": self.public_status(bucket, dominant_name)["avatar_state"],
             "avatar_projection": self.avatar_projection(bucket, dominant_name),
-            "voice_plan": self.plan_voice(response, envelope),
+            "voice_plan": self.plan_voice(response, envelope) if performance_plan.utterance_required else None,
             "second_thoughts": second_thoughts,
             "proactive_events": self.poll_proactive_events(),
             "stream_plan": {
@@ -1384,7 +1436,7 @@ class InteriorEngine:
             suppression_traces.append(_suppression_trace(
                 "memory_firewall",
                 "logged_only",
-                "renderer speech logged as noncanonical evidence",
+                "renderer speech logged as noncanonical evidence" if response else "nonverbal performance logged without invented speech",
             ))
         memory_tags = {"identity", "canonical_user_statement"} if identity_violation else {"canonical_user_statement"}
         if appraisal.contradiction > 0.4:
@@ -1401,7 +1453,7 @@ class InteriorEngine:
             tags=memory_tags,
         )
         self.memory.add(mem)
-        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "speech", {
+        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "speech" if response else "nonverbal_performance", {
             "response": response,
             "response_is_canonical_truth": False,
             "suppression_trace": [trace.to_dict() for trace in (suppression_traces or [])],

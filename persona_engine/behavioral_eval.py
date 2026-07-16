@@ -162,14 +162,27 @@ class BehavioralEvaluationHarness:
                 },
             )
             reply = str(result["response"])
-            blind.append(BlindTranscriptItem(turn, speaker_id, listener_id, reply))
+            performance = dict(result.get("performance_plan") or {})
+            source = "observed_speech"
+            if not reply:
+                visible_action = (
+                    performance.get("gesture") or performance.get("reaction")
+                    or performance.get("animation_directive") or performance.get("action_type")
+                    or "remains silent"
+                )
+                reply = f"*{visible_action}*"
+                source = "observed_performance"
+            blind.append(BlindTranscriptItem(turn, speaker_id, listener_id, reply, source=source))
             speech_ids = self._record_shared_event(
-                event_type="observed_speech",
+                event_type=source,
                 actors=(speaker_id,),
                 targets=(listener_id,),
-                action="spoke",
+                action="spoke" if source == "observed_speech" else "performed nonverbally",
                 outcome=reply,
-                payload={"canonicality": "speech_evidence", "turn": turn},
+                payload={
+                    "canonicality": "speech_evidence" if source == "observed_speech" else "performance_evidence",
+                    "turn": turn,
+                },
             )
             causal.append(CausalTurnRecord(
                 turn=turn,
@@ -249,7 +262,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{item.turn:02d} {item.speaker_id} -> {item.listener_id}: {item.text}")
     print("metrics:", json.dumps(result.metrics, ensure_ascii=False, sort_keys=True))
     if args.output:
-        Path(args.output).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"output: {args.output}")
     return 0
 

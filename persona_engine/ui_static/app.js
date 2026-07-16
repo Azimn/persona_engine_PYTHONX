@@ -379,6 +379,12 @@ async function sendChat(text, serverTruth = null, visibleContext = null, kind = 
         fullText += event.token;
         updateTranscriptNode(agentNode, fullText);
       }
+      if (event.type === 'performance') {
+        const performance = event.performance || {};
+        const visibleAction = performance.gesture || performance.reaction || performance.animation_directive || performance.action_type || 'remains silent';
+        fullText = `*${visibleAction}*`;
+        updateTranscriptNode(agentNode, fullText);
+      }
       if (event.type === 'second_thought') {
         const meta = document.createElement('div');
         meta.className = 'meta';
@@ -422,6 +428,7 @@ function renderLifeInspector(inspector) {
   const completion = inspector.action_completion || {};
   const intrinsic = inspector.intrinsic || {};
   const actionDecision = intrinsic.action_decision || {};
+  const semantic = inspector.semantic_activation || {};
   const lifeEventRows = lifeEvents.slice(-5).reverse().map(item => `<p><strong>${escapeHtml(item.category)}</strong> ${escapeHtml(item.action)} <small>${escapeHtml(item.origin)}</small></p>`).join('');
   const artifactRows = artifacts.slice(-4).reverse().map(item => `<p><strong>${escapeHtml(item.kind)}</strong> ${escapeHtml(item.content)} <small>tier ${item.source_tier} · ${escapeHtml(item.verification_state)}</small></p>`).join('');
   holder.hidden = false;
@@ -436,6 +443,7 @@ function renderLifeInspector(inspector) {
     </section>
     <section class="life-list"><h3>Intrinsic action</h3>${actionDecision.decision_id ? `<article><strong>${escapeHtml(actionDecision.activity_description)} · ${escapeHtml(actionDecision.action_type)}</strong><p>want: ${escapeHtml(actionDecision.want_id)} · intention: ${escapeHtml(actionDecision.intention)}</p><p>target: ${escapeHtml(actionDecision.target)} · renderer required: ${escapeHtml(String(actionDecision.requires_renderer))}</p><p>${(actionDecision.selection_reason || []).map(escapeHtml).join(' · ')}</p></article>` : '<p class="empty-state">No intrinsic action selected yet.</p>'}</section>
     <section class="life-list"><h3>Situated synthesis</h3>${synthesis.synthesis_id ? `<article><strong>${escapeHtml(synthesis.selected_intention_id || synthesis.selected_habit_id || 'no selected tendency')}</strong><p>considered: ${(synthesis.considered_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>inhibited: ${(synthesis.inhibited_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>conflicts: ${(synthesis.unresolved_conflicts || []).map(escapeHtml).join(' · ') || 'none'}</p></article>` : '<p class="empty-state">No synthesis recorded yet.</p>'}</section>
+    <section class="life-list"><h3>Semantic candidates</h3>${(semantic.concepts || []).length ? `<article><strong>${semantic.concepts.map(item => escapeHtml(item.name)).join(' · ')}</strong><p>features: ${(semantic.features || []).map(item => `${escapeHtml(item.feature_name)}=${escapeHtml(item.value)}`).join(' · ') || 'none'}</p><p>affordances: ${(semantic.affordances || []).map(item => `${escapeHtml(item.action)} ${escapeHtml(item.target_name)}`).join(' · ') || 'none'}</p><p>unknowns: ${(semantic.unresolved_questions || []).map(escapeHtml).join(' · ') || 'none'} · candidates only, never world facts</p></article>` : '<p class="empty-state">No structured concepts were observed.</p>'}</section>
     <section class="life-list"><h3>Action completion</h3>${completion.world_event_id ? `<article><strong>${escapeHtml(completion.attempted_action)} · ${escapeHtml(completion.outcome_status)}</strong><p>expected: ${escapeHtml(completion.expected_outcome)} · actual: ${escapeHtml(completion.actual_outcome)}</p><p>world: ${escapeHtml(completion.world_event_id)} · subjective: ${escapeHtml(completion.subjective_interpretation_reference || 'none')}</p></article>` : '<p class="empty-state">No completed action yet.</p>'}</section>
     <section class="life-list"><h3>World and experience</h3>${events.slice(0, 5).map(event => {
       const versions = experiences.filter(item => item.world_event_id === event.event_id);

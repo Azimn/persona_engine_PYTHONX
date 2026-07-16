@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
@@ -47,6 +47,10 @@ _ALLOWED_SECTION_FIELDS.update({
     "concealment": {"weights"},
     "arc": {"earned_changes"},
     "intrinsic": {"selection_interval_ticks", "wants", "activities"},
+    "offline_expression": {
+        "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
+        "memory", "greeting", "quiet", "question", "default",
+    },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
 _ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
@@ -247,6 +251,12 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
     if "intrinsic" in data:
         _validate_intrinsic(data["intrinsic"])
+    if "offline_expression" in data:
+        for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
+            if field in data["offline_expression"]:
+                _require_string_list(data["offline_expression"], field, "[offline_expression]")
+                if not data["offline_expression"][field]:
+                    raise CartridgeError(f"[offline_expression].{field} must not be empty")
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -303,6 +313,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
         "intrinsic": data.get("intrinsic", {}),
+        "offline_expression": data.get("offline_expression", {}),
         "path": str(Path(path)),
     }
     return core, ledger, raw

@@ -138,6 +138,7 @@ class LocalLLMRenderer:
         max_chars: int = 200,
         retrieved_memories: Optional[List[MemoryUnit]] = None,
         seed: int | None = None,
+        offline_realization: dict | None = None,
     ) -> str:
         if self.provider == "ollama":
             try:
@@ -152,7 +153,7 @@ class LocalLLMRenderer:
         else:
             self._fallback_reason = None
         self._actual_backend = "offline"
-        return self._mock(messages, max_chars, seed=seed)
+        return self._mock(messages, max_chars, seed=seed, offline_realization=offline_realization)
 
     def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
         proposal = PrivateCognitionProposal(
@@ -168,11 +169,19 @@ class LocalLLMRenderer:
     def generate_expression(self, request: ExpressionRequest) -> str:
         if isinstance(request.expression_constraints, dict):
             max_chars = request.expression_constraints.get("max_chars", 200)
+            offline_realization = request.expression_constraints.get("offline_realization")
         else:
             max_chars = getattr(request.expression_constraints, "max_chars", 200)
+            offline_realization = getattr(request.expression_constraints, "offline_realization", None)
         user_text = str(request.resolved_state.get("user_text", "")) if isinstance(request.resolved_state, dict) else ""
         messages = [{"role": "system", "content": str(request.resolved_state)}, {"role": "user", "content": user_text}]
-        return self.generate(messages, max_chars=max_chars, retrieved_memories=request.retrieved_memories, seed=request.seed)
+        return self.generate(
+            messages,
+            max_chars=max_chars,
+            retrieved_memories=request.retrieved_memories,
+            seed=request.seed,
+            offline_realization=offline_realization,
+        )
 
     def generate_stream(self, messages: List[Dict[str, str]], envelope=None, max_chars: int = 200, seed: int | None = None) -> Iterator[str]:
         """Synchronous token stream. UIs can render these chunks directly.
@@ -214,8 +223,20 @@ class LocalLLMRenderer:
             return cut[:last_space].rstrip(",;:") + "..."
         return cut.rstrip(",;:") + "..."
 
-    def _mock(self, messages, max_chars, error: Optional[str] = None, seed: int | None = None) -> str:
-        return self._offline.render(messages, max_chars=max_chars, seed=seed)
+    def _mock(
+        self,
+        messages,
+        max_chars,
+        error: Optional[str] = None,
+        seed: int | None = None,
+        offline_realization: dict | None = None,
+    ) -> str:
+        return self._offline.render(
+            messages,
+            max_chars=max_chars,
+            seed=seed,
+            realization=offline_realization,
+        )
 
 
 def render_expression(

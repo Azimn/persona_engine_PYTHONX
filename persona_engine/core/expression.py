@@ -1,7 +1,7 @@
-"""Layer 6 expression envelope and resistance policy."""
+"""Expression constraints and deterministic performance planning."""
 
-from dataclasses import dataclass
-from typing import Optional, List
+from dataclasses import asdict, dataclass
+from typing import Any, Mapping, Optional, List
 
 
 @dataclass
@@ -14,6 +14,30 @@ class ExpressionEnvelope:
     vulnerability_allowed: bool
     refusal_mode: Optional[str]
     tone_label: str
+
+
+@dataclass(frozen=True)
+class PerformancePlan:
+    """How an already-selected behavior is made externally observable.
+
+    This is performance evidence, not another action selector.  It contains no
+    prose reasoning and cannot mutate organism or world state.
+    """
+
+    action_type: str
+    utterance_required: bool
+    source_decision_id: str | None
+    reaction: str | None = None
+    gesture: str | None = None
+    facial_expression: str | None = None
+    animation_directive: str | None = None
+    delay_ms: int = 0
+    voice_directive: str | None = None
+    visibility: str = "observable"
+    reasons: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 RESISTANCE_POLICY = {
@@ -33,6 +57,72 @@ def select_resistance(triggers: List[str]) -> Optional[str]:
         if t in RESISTANCE_POLICY:
             return RESISTANCE_POLICY[t]
     return None
+
+
+def build_performance_plan(
+    decision_payload: Mapping[str, Any],
+    resistance: str | None,
+    ongoing_action: Mapping[str, Any] | None,
+) -> PerformancePlan:
+    """Realize the resolved decision without changing what was decided."""
+
+    action = dict(ongoing_action or {})
+    decision_id = str(action.get("decision_id")) if action.get("decision_id") else None
+    visibility = str(action.get("visibility", "observable"))
+    if resistance == "go_quiet":
+        return PerformancePlan(
+            action_type="silence",
+            utterance_required=False,
+            source_decision_id=decision_id,
+            reaction="withheld response",
+            delay_ms=900,
+            visibility=visibility,
+            reasons=("resolved resistance requires silence",),
+        )
+    if resistance:
+        return PerformancePlan(
+            action_type="speak",
+            utterance_required=True,
+            source_decision_id=decision_id,
+            voice_directive=str(resistance),
+            visibility=visibility,
+            reasons=(f"resolved resistance requires {resistance}",),
+        )
+
+    ongoing_type = str(action.get("action_type", ""))
+    interruptible = bool(action.get("interruptible", True))
+    if ongoing_type == "silence" or (ongoing_type == "continue_activity" and not interruptible):
+        return PerformancePlan(
+            action_type="continue_activity" if ongoing_type == "continue_activity" else "silence",
+            utterance_required=False,
+            source_decision_id=decision_id,
+            reaction="attention remains on the current activity",
+            animation_directive="continue current activity",
+            delay_ms=600,
+            visibility=visibility,
+            reasons=("ongoing intrinsic action is not interruptible",),
+        )
+    if ongoing_type == "gesture":
+        return PerformancePlan(
+            action_type="gesture",
+            utterance_required=False,
+            source_decision_id=decision_id,
+            reaction="brief acknowledgement",
+            gesture="acknowledge without speech",
+            delay_ms=250,
+            visibility=visibility,
+            reasons=("ongoing intrinsic action permits nonverbal acknowledgement",),
+        )
+
+    dialogue_act = str(decision_payload.get("dialogue_act", "respond"))
+    return PerformancePlan(
+        action_type="speak",
+        utterance_required=True,
+        source_decision_id=decision_id,
+        voice_directive=dialogue_act,
+        visibility=visibility,
+        reasons=(f"resolved dialogue act is {dialogue_act}",),
+    )
 
 
 def build_envelope(risk_bucket: str, relationship, dominant_pressure_name: str) -> ExpressionEnvelope:

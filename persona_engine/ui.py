@@ -411,6 +411,7 @@ def create_app(
             "avatar_state": result["avatar_state"],
             "avatar_projection": result.get("avatar_projection"),
             "voice_plan": result.get("voice_plan"),
+            "performance_plan": result.get("performance_plan"),
             "second_thoughts": result["second_thoughts"],
             "proactive_events": result["proactive_events"],
             "interpretive_beliefs": result.get("interpretive_beliefs", []),
@@ -426,11 +427,14 @@ def create_app(
         def events():
             yield f"data: {json.dumps({'type': 'status', 'status': result['public_status']})}\n\n"
             yield f"data: {json.dumps({'type': 'avatar', 'avatar': result.get('avatar_projection')})}\n\n"
-            for chunk in stream_payload_chunks(result["response"]):
-                yield chunk
+            if result["response"]:
+                for chunk in stream_payload_chunks(result["response"]):
+                    yield chunk
+            else:
+                yield f"data: {json.dumps({'type': 'performance', 'performance': result.get('performance_plan')})}\n\n"
             for thought in result.get("second_thoughts", []):
                 yield f"data: {json.dumps({'type': 'second_thought', 'text': thought})}\n\n"
-            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'beliefs': result.get('interpretive_beliefs', []), 'renderer': session.renderer_status()})}\n\n"
+            yield f"data: {json.dumps({'type': 'complete', 'response': result['response'], 'voice_plan': result.get('voice_plan'), 'performance_plan': result.get('performance_plan'), 'beliefs': result.get('interpretive_beliefs', []), 'renderer': session.renderer_status()})}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(events(), media_type="text/event-stream")

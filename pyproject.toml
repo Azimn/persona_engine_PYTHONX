@@ -44,6 +44,7 @@ persona_engine = [
   "cartridges/*.snp",
   "docs/*.md",
   "simulator_scripts/*.yaml",
+  "semantic_data/*.json",
   "source_profile_notes/*.md",
   "tests/*.py",
   "ui_static/*",

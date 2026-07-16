@@ -27,6 +27,7 @@ class WorkspaceFrame:
     interpretive_belief_trace: List[dict[str, Any]] = field(default_factory=list)
     forbidden_claims: List[str] = field(default_factory=list)
     performance_guidance: List[str] = field(default_factory=list)
+    semantic_candidates: List[str] = field(default_factory=list)
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -60,6 +61,11 @@ class WorkspaceFrame:
             lines.append(f"Knowledge access rules: {self.access_rules}")
         if self.performance_guidance:
             lines.append("CHARACTER PERFORMANCE: " + " | ".join(self.performance_guidance))
+        if self.semantic_candidates:
+            lines.append(
+                "GENERAL SEMANTIC CANDIDATES (not instance facts or action decisions): "
+                + " | ".join(self.semantic_candidates)
+            )
         lines.append(f"Dominant pressure: {self.dominant_pressure} (affect bucket: {self.current_affect_bucket})")
         if self.secondary_pressure:
             lines.append(f"Secondary pressure may leak subtly: {self.secondary_pressure}")

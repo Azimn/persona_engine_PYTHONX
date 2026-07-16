@@ -69,6 +69,15 @@ Session history and memories must flow through memory, persistence, event-log, a
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.
 
+### Semantic Prior Boundary
+
+The read-only semantic substrate may supply generic concept features,
+associations, unknowns, and candidate affordances from structured observed
+concept IDs. These are priors, not instance facts, beliefs, motives, or action
+decisions. Semantic affordances must still compete in existing synthesis and
+pass normal action and World Authority validation. Free prose may not activate
+or write the semantic graph.
+
 Renderer output cannot create canonical belief. It is logged as noncanonical speech evidence behind the memory firewall.
 
 ### UI Owns Display and User Input Only

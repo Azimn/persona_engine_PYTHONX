@@ -28,6 +28,9 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Situated synthesis derives integration capacity from existing organism load, narrows structured influences under strain, and links action outcomes to objective and subjective records.
 - Bounded intrinsic motivation selects cartridge-authored wants and activities into inspectable speech or nonverbal action decisions; Pretorius and Kiki carry distinct profiles.
 - Blind behavioral evaluation can run isolated paired characters and export visible transcript separately from causal synthesis, retrieval, interpretation, and world-event records.
+- Immutable performance plans separate selected behavior from speech, gesture, silence, reaction, delay, and continued activity; non-speech behavior skips rendering.
+- Pretorius and Kiki provide cartridge-authored dependency-free realization pools without placing character phrases in core modules.
+- A bounded read-only semantic substrate provides explicit generic features, inheritance, one-hop associations, unknowns, and candidate affordances from structured concept IDs.
 
 ## Current Tests
 
@@ -40,7 +43,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-223 passed, 1 skipped
+236 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -60,12 +63,12 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - The UI sensor controls are mock adapters.
 - Debug mode is read-only and intended for local developer inspection.
 - Autonomous behavior is limited to local engine idle hooks, not a full background agent runtime.
-- The first paired offline evaluation preserves isolation but exposes repetitive generic surface performance; behavior/performance separation is the next visible-quality target.
+- The semantic pilot is intentionally tiny and is not a production commonsense ontology.
+- Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
 
 ## Recommended Next Work
 
-1. Separate `ActionDecision` from portable performance planning so silence, gesture, delay, continued work, and speech are equally valid outcomes.
-2. Add cartridge-authored offline realization and rerun the blind Pretorius/Kiki evaluation against the current repetition baseline.
-3. Compare the same paired causal setup through Ollama without sharing private state.
-4. Prototype paper-inspired tri-state semantic affordances only after behavioral tests expose a relevance or knowledge failure.
-5. Begin C99 fixtures for stable action, performance, event, experience, and semantic-affordance records.
+1. Blind-review the improved offline Pretorius/Kiki transcript; the current eight-turn baseline has zero exact or opener repeats, assistant drift, or identity bleed.
+2. Compare the same paired causal setup through Ollama without sharing private state.
+3. Exercise the semantic pilot in a locked-object scenario and add concepts only where visible behavior demonstrates a gap.
+4. Begin C99 fixtures for stable action, performance, event, experience, and semantic-activation records.

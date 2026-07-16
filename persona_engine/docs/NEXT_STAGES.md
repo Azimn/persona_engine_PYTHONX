@@ -28,7 +28,7 @@ Ideas not justified for this project now:
 - A separate avatar mind or dialogue controller.
 - Avatar technology that can mutate organism state.
 
-## Stage 1: Behavioral Proof
+## Stage 1: Behavioral Proof (Implemented)
 
 Build a generic evaluation harness that:
 
@@ -43,7 +43,7 @@ The first paired scenario is Pretorius and Kiki because their motives and
 performance constraints stress different failure modes. The host may pass
 observable speech between them but may never share private state.
 
-## Stage 2: Performance Separation
+## Stage 2: Performance Separation (Implemented)
 
 Complete the existing seam:
 
@@ -55,22 +55,22 @@ intrinsic motivation -> intention -> ActionDecision -> PerformancePlan
 as speech, gesture, expression, delay, continued activity, or silence. A model
 is called only when language is required.
 
-## Stage 3: Compact Semantic Affordances
+## Stage 3: Compact Semantic Affordances (Pilot Implemented)
 
-Add a bounded semantic-knowledge adapter only after behavioral tests identify
-a visible knowledge or relevance failure. A minimal record should contain:
+The current bounded semantic adapter contains:
 
 - concept ID;
-- property or affordance ID;
-- value: true, false, or unknown;
+- explicit features, relations, and candidate affordances;
+- value: true, false, unknown, usually, or sometimes;
 - confidence;
 - provenance;
 - verification state;
 - source tier;
-- optional supersession reference.
+- direct-over-inherited resolution.
 
-Use sparse arrays or relational rows, deterministic lookup, and small weighted
-association lists. Do not build a general knowledge graph.
+It uses sparse explicit profiles, deterministic one-hop activation, and small
+top-k lists. It does not build a general knowledge graph or accept prose as
+semantic authority.
 
 ## Stage 4: Curiosity From Uncertainty
 

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "concepts": [
+    {"id": 1, "name": "entity", "parent_id": null},
+    {"id": 2, "name": "physical_object", "parent_id": 1, "features": [
+      {"id": 1, "name": "solid", "value": "usually", "confidence": 95, "source_id": "base:physical_object"}
+    ]},
+    {"id": 3, "name": "container", "parent_id": 2, "features": [
+      {"id": 4, "name": "openable", "value": "usually", "confidence": 90, "source_id": "base:container"},
+      {"id": 6, "name": "may_contain_object", "value": "usually", "confidence": 92, "source_id": "base:container"}
+    ]},
+    {"id": 4, "name": "wooden_box", "parent_id": 3, "features": [
+      {"id": 2, "name": "portable", "value": "usually", "confidence": 70, "source_id": "base:wooden_box"},
+      {"id": 3, "name": "opaque", "value": "true", "confidence": 96, "source_id": "base:wooden_box"},
+      {"id": 7, "name": "may_contain_value", "value": "sometimes", "confidence": 55, "source_id": "base:wooden_box"},
+      {"id": 8, "name": "may_contain_danger", "value": "sometimes", "confidence": 35, "source_id": "base:wooden_box"}
+    ], "relations": [
+      {"id": 1, "name": "made_of", "target_id": 17, "value": "true", "confidence": 100, "source_id": "base:wooden_box"},
+      {"id": 2, "name": "can_be_opened_with", "target_id": 6, "value": "usually", "confidence": 80, "source_id": "base:wooden_box"}
+    ], "affordances": [
+      {"action": "inspect", "target_id": 4, "relevance": 82, "source_id": "base:wooden_box"},
+      {"action": "search_for_key", "target_id": 5, "relevance": 61, "source_id": "base:wooden_box"},
+      {"action": "force_open", "target_id": 4, "relevance": 27, "source_id": "base:wooden_box"}
+    ]},
+    {"id": 5, "name": "lock", "parent_id": 2, "features": [
+      {"id": 11, "name": "prevents_opening", "value": "true", "confidence": 98, "source_id": "base:lock"}
+    ], "relations": [
+      {"id": 3, "name": "opened_by", "target_id": 6, "value": "usually", "confidence": 92, "source_id": "base:lock"}
+    ]},
+    {"id": 6, "name": "key", "parent_id": 7, "features": [
+      {"id": 2, "name": "portable", "value": "true", "confidence": 98, "source_id": "base:key"},
+      {"id": 9, "name": "metallic", "value": "usually", "confidence": 82, "source_id": "base:key"},
+      {"id": 10, "name": "opens_lock", "value": "sometimes", "confidence": 88, "source_id": "base:key"}
+    ]},
+    {"id": 7, "name": "tool", "parent_id": 2},
+    {"id": 8, "name": "access_state", "parent_id": 1},
+    {"id": 9, "name": "locked", "parent_id": 8, "features": [
+      {"id": 5, "name": "restricted_access", "value": "usually", "confidence": 95, "source_id": "base:locked"},
+      {"id": 12, "name": "implies_ownership", "value": "sometimes", "confidence": 50, "source_id": "base:locked"}
+    ], "relations": [
+      {"id": 4, "name": "resolved_by", "target_id": 6, "value": "usually", "confidence": 82, "source_id": "base:locked"}
+    ]},
+    {"id": 10, "name": "ownership", "parent_id": 1},
+    {"id": 11, "name": "sound", "parent_id": 1},
+    {"id": 12, "name": "hammer", "parent_id": 7, "affordances": [
+      {"action": "strike", "target_id": 2, "relevance": 70, "source_id": "base:hammer"}
+    ]},
+    {"id": 13, "name": "animal", "parent_id": 1},
+    {"id": 14, "name": "bird", "parent_id": 13, "features": [
+      {"id": 13, "name": "has_wings", "value": "usually", "confidence": 96, "source_id": "base:bird"},
+      {"id": 14, "name": "can_fly", "value": "usually", "confidence": 86, "source_id": "base:bird"}
+    ]},
+    {"id": 15, "name": "penguin", "parent_id": 14, "features": [
+      {"id": 14, "name": "can_fly", "value": "false", "confidence": 100, "source_id": "base:penguin"},
+      {"id": 15, "name": "can_swim", "value": "true", "confidence": 100, "source_id": "base:penguin"}
+    ]},
+    {"id": 16, "name": "material", "parent_id": 1},
+    {"id": 17, "name": "wood", "parent_id": 16}
+  ]
+}
