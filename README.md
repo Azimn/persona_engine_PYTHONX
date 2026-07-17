@@ -173,7 +173,6 @@ Included cartridges:
 
 - `neutral.snp`
 - `pretorius.snp`
-- `pretorius_v6.snp`
 - `friendly.snp`
 - `kiki.snp`
 - `mentor.snp`

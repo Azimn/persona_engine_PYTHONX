@@ -11,7 +11,7 @@ COMPAT = [
     "friendly.snp",
     "kiki.snp",
     "mentor.snp",
-    "pretorius_v6.snp",
+    "pretorius.snp",
     "quiet.snp",
     "rival.snp",
 ]
