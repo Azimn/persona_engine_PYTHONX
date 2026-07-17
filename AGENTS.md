@@ -63,6 +63,11 @@ No engine/core module may hardcode cartridge-specific character names, phrases, 
 
 For documentation-only changes, do not modify runtime code solely to satisfy style preferences.
 
+For offline dialogue experience work, fix demonstrated player-facing failures
+in this order: authored content, selection policy, existing organism state, a
+small local state addition, and only then a new subsystem. See
+`persona_engine/docs/OFFLINE_DIALOGUE_AUTHORING.md`.
+
 ## Current Verification Baseline
 
 The expected full test command is:
@@ -71,6 +76,6 @@ The expected full test command is:
 python -m pytest persona_engine/tests -q
 ```
 
-The current documented baseline is `315 passed, 1 skipped`.
+The current documented baseline is `397 passed, 1 skipped`.
 
 If the local `python` command is unavailable on Windows because of the Microsoft Store alias, use an available Python interpreter and report the exact command used.

@@ -50,7 +50,11 @@ def classify_input(text: str) -> str:
     lowered = " ".join(str(text).lower().split()).strip(" .!?")
     if lowered in {"", "...", ".", "okay", "ok", "hmm"}:
         return "low_information"
-    if re.search(r"\b(bye|goodbye|gotta go|i am back|i'm back|returned)\b", lowered):
+    if re.search(
+        r"\b(bye|goodbye|gotta go|i (?:am|will) leav(?:e|ing)|"
+        r"i'll leave|leave you to it|talk later|i am back|i'm back|returned)\b",
+        lowered,
+    ):
         return "leave_or_return"
     if re.search(r"\b(sorry|apologize|my fault|i was wrong)\b", lowered):
         return "apologize"
@@ -61,11 +65,16 @@ def classify_input(text: str) -> str:
         return "correct"
     if re.search(r"\b(you lied|prove it|you always|you never|why should i)\b", lowered):
         return "challenge"
-    if re.search(r"\b(hello|hi|hey|good morning|good evening)\b", lowered):
+    if re.search(r"\b(hello|hi|hey|good morning|good afternoon|good evening)\b", lowered):
         return "greeting"
     if re.search(r"\b(remember|recall|what happened|your past|your memories|where did we leave)\b", lowered):
         return "ask_memory"
-    if "?" in text and re.search(r"\b(why|analy[sz]e|compare|design|theory|implications?|philosoph)\b", lowered):
+    if re.search(r"^(give|show) me\b", lowered):
+        return "request_action"
+    if "?" in text and re.search(
+        r"\b(why|analy[sz]e|compare|resemble|analogy|design|theory|implications?|philosoph)\b",
+        lowered,
+    ):
         return "ask_analysis"
     if "?" in text and re.search(r"\b(think|feel|opinion|prefer|believe)\b", lowered):
         return "ask_opinion"

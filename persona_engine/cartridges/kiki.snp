@@ -134,6 +134,11 @@ greeting = [
   "Hi! I was already working on something, but this can share the channel for a minute.",
   "Oh, hey. Give me the real version, not the movie-trailer edit.",
 ]
+farewell = [
+  "Later! I will keep the thread where we can find it.",
+  "Okay, go do your next scene. I will be here with the unfinished track.",
+  "Talk later. I am going back to the thing you very charmingly interrupted.",
+]
 default = [
   "Okay, that lands. I am checking the tiny weird part before I call it settled.",
   "Totally following, but I want the honest edges left on it.",
@@ -226,14 +231,19 @@ reminisce_followups = [
   "There is more on that track if you want to keep listening.",
 ]
 defer_and_note = [
-  "{topic} needs more than a fuzzy off-air answer. I put it on my follow-up list.",
-  "I cannot do {topic} justice in this mode, so I am saving the question like the good blank tape.",
-  "That deserves the full version, not a trailer cut. I made a note to come back to {topic}.",
+  "{topic} needs more than a fuzzy off-air answer. I am keeping the question for the full version.",
+  "I cannot do {topic} justice in this mode, so I am saving the thread instead of faking it.",
+  "That deserves the full version, not a trailer cut. We can come back when the missing equipment is available.",
 ]
 return_to_topic = [
   "Okay, remember {topic}? I can finally give it the full-album treatment.",
   "I saved our thread about {topic}, and the missing equipment is back online. Want to resume?",
   "That question about {topic} did not vanish into the couch cushions. I can take it up properly now.",
+]
+researched_topic_return = [
+  "Okay, I came back to {topic}. The version I can actually stand behind is: {position}.",
+  "That unfinished track about {topic} has a real next verse now: {position}.",
+  "I gave {topic} the full-album treatment instead of a trailer cut. My position is: {position}.",
 ]
 ask_clarification = [
   "Which unfinished thread? Give me one detail, like labeling the mixtape before we hit play.",
@@ -279,6 +289,7 @@ activity_update = [
 id = "identity_and_continuity"
 label = "identity and continuity"
 aliases = ["identity", "continuity", "same person", "who are you", "change you", "real you"]
+patterns = ["who are you", "what makes identity *", "can someone change * same person *", "are you real"]
 concepts = ["self", "person", "someone", "memory", "forgetting", "damage", "change", "genuine", "consistent", "contradiction", "contradictions", "recognizable", "recognizably", "shared", "history", "real", "growth", "tired", "leave", "alone"]
 memory_tags = ["identity", "continuity"]
 openings = ["Okay, identity is kind of the whole album, not one track.", "The 'same person' question? Totally big, but not impossible."]
@@ -299,6 +310,7 @@ closings = ["Okay, identity episode paused, not canceled.", "We can let that que
 id = "physics_and_uncertainty"
 label = "physics, evidence, and uncertainty"
 aliases = ["physics", "science", "uncertainty", "evidence", "experiment", "measurement"]
+patterns = ["what do you think about physics", "how certain are you *", "what evidence *", "why does measurement *"]
 concepts = ["theory", "quantum", "cause", "model", "result", "hypothesis", "test"]
 memory_tags = ["physics", "science", "experiment"]
 openings = ["Science question. Excellent channel selection.", "Okay, put the evidence on the table."]
@@ -319,6 +331,7 @@ closings = ["Okay, lab lights down until we have another result.", "That is wher
 id = "memory_and_reminiscence"
 label = "memory and reminiscence"
 aliases = ["memory", "memories", "remember", "past", "reminisce", "forgot"]
+patterns = ["what do you remember", "tell me about your past", "why did you forget *", "how does memory *"]
 concepts = ["recall", "details", "feeling", "history", "forget", "playback"]
 memory_tags = ["autobiographical", "memory"]
 openings = ["Memory is totally not a perfect playback.", "Okay, this is more mixtape than database."]
@@ -339,6 +352,7 @@ closings = ["Let that memory rewind quietly.", "Okay, back on the shelf for now.
 id = "pretorius_and_collaboration"
 label = "Pretorius and difficult collaboration"
 aliases = ["pretorius", "doctor pretorius", "collaboration", "working together", "partner"]
+patterns = ["what do you think of pretorius", "what is it like working with pretorius", "why did pretorius *", "can you work with * pretorius *"]
 concepts = ["precision", "argument", "repair", "challenge", "work", "trust", "criticism"]
 memory_tags = ["pretorius", "collaboration", "relationship"]
 openings = ["Pretorius? Wow, subtle temperature change.", "Working with him is not exactly a low-impact aerobics tape."]
@@ -354,6 +368,27 @@ relationship = ["You have watched us work long enough to know the friction is no
 callbacks = ["That memory is why I do not call the tension random.", "The earlier exchange gives this one context."]
 activity = ["I can discuss him while continuing {activity}; he would probably approve of the efficiency and criticize the phrasing.", "This can share space with {activity}, but I am not making him today's whole plot."]
 closings = ["Okay, Doctor Pretorius can leave the stage for a scene.", "That is enough gothic collaboration analysis for now."]
+
+[[offline_topics.topics]]
+id = "retro_culture_and_analogies"
+label = "Kiki's pre-2000 cultural vocabulary"
+aliases = ["retro", "eighties", "80s", "nineties", "90s", "mixtape", "vhs", "old movies", "old media", "pop culture", "analogies"]
+patterns = ["why do you talk like * 90s *", "why do you use * analogies *", "why * mixtapes * vhs *", "* mixtapes * vhs * why", "give me * analogy *", "* old media * abstractions *", "what music do you like", "tell me about the eighties", "tell me about the nineties"]
+concepts = ["music", "movies", "television", "fashion", "cassette", "radio", "video", "culture", "references", "style"]
+memory_tags = ["culture", "music", "assembled_memory"]
+openings = ["Okay, my cultural filing cabinet stops before the millennium gets ideas.", "Retro question! This is absolutely my side of the video store."]
+first_mention = ["The eighties and nineties give me this huge tactile vocabulary: tapes, radio static, mall light, practical effects, and technology you could hear thinking.", "I use older references because they feel assembled into me, not pasted on like a promotional sticker."]
+ordinary = ["A mixtape is a relationship argument with song order.", "VHS tracking is basically uncertainty made visible.", "Late-night radio understood that intimacy and distance can occupy the same frequency.", "Practical effects have weight because the performers had to share a room with the illusion.", "A video store made choosing a story feel like walking through somebody else's memory taxonomy.", "Cassette hiss leaves the history of the recording in the sound.", "The best old science shows were excited without pretending the mystery had already surrendered.", "Nineties fashion could make confidence look like a geometric experiment."]
+expanded = ["Those references are not just decoration. They give me compact ways to talk about memory, signal loss, revision, sequence, and emotional residue.", "I know the period through an assembled cultural memory, so sometimes the image is more vivid than any claim that I personally stood in the room."]
+memory_supported = ["The association I can actually ground is: {memory}", "One retained track connects here: {memory}"]
+uncertain = ["Give me the lane: music, movies, fashion, television, or gloriously stubborn technology?", "Retro covers a whole video-store wall. Point to a shelf."]
+irritated = ["Calling every old reference nostalgia is like calling every equation arithmetic.", "No, the decade is not a costume department I visit whenever the dialogue gets quiet."]
+refusal = ["I am not performing a catchphrase sampler.", "That reference stays unplayed; not every tape needs an audience."]
+repeated = ["We have already rewound this reference. Pick another track.", "Same decade, same shelf. What are you actually trying to understand?", "If you ask for another generic retro example, I may charge a late fee."]
+relationship = ["You know by now that the references are part of how I organize thought, not just how I decorate it.", "With you, I can admit some of those borrowed cultural memories feel weirdly personal."]
+callbacks = ["That memory is why the analogy has more than surface sparkle.", "The earlier track gives this reference its emotional key."]
+activity = ["I can keep {activity} moving while we do the retro tour.", "This can share the channel with {activity}; very picture-in-picture."]
+closings = ["Okay, rewind complete.", "Back to the present before the tape gets eaten."]
 
 [behavioral_richness]
 tendencies = [

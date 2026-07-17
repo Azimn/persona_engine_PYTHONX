@@ -1016,10 +1016,9 @@ Fragment variety solves pool exhaustion. Per-listener topic state solves
 continuity and modality reset. Neither alone solves shared conversational
 meaning.
 
-Before adding a large proposition ontology, the next experiment should test a
-small claim ledger attached only to an active topic. It should track at most
-three current claims with bounded statuses such as asserted, questioned,
-supported, disputed, corrected, and unresolved. Its purpose would be to let
-existing synthesis distinguish a new argument from another differently worded
-question about the same topic. It must not become a second executive or a
-general logical reasoner.
+The bounded active-claim ledger remains a deferred hypothesis, not the next
+implementation step. It should be reconsidered only when a human visit
+demonstrates a shared-meaning failure that cannot be corrected through authored
+content, matching policy, listener history, or existing continuity state.
+Fragment variety and topic continuity have passed the engineering proof; the
+current work is a content-heavy experience proof.

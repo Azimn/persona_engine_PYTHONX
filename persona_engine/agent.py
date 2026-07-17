@@ -129,6 +129,9 @@ class CharacterAgent:
     def materialize_journal(self, path: str | None = None):
         return self.engine.materialize_journal(path)
 
+    def complete_offline_inquiry(self, **kwargs):
+        return self.engine.complete_offline_inquiry(**kwargs)
+
     def decay_pressures_for_elapsed_time(self, dt_steps: int):
         return self.engine.decay_pressures_for_elapsed_time(dt_steps)
 

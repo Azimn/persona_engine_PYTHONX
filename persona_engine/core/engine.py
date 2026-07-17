@@ -24,7 +24,7 @@ from .habit import Habit, HabitTracker
 from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_identity_command
 from .intention import Intention, IntentionQueue, OpenLoop
 from .interpretation import InterpretationEngine, sources_from_mapping
-from .memory import KnowledgeSource, MemoryStore, MemoryUnit
+from .memory import KnowledgeSource, MemoryRetrieval, MemoryStore, MemoryUnit
 from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
 from .private_cognition import execute_private_cognition, report_to_dict, validate_and_apply
@@ -1340,6 +1340,75 @@ class InteriorEngine:
         self._persist()
         return artifact
 
+    def complete_offline_inquiry(
+        self, *, topic_key: str, first_person_note: str, character_position: str,
+        confidence: float = 0.72, timestamp: float | None = None,
+    ) -> dict[str, Any]:
+        """Attach an approved online result to one character-owned offline inquiry."""
+
+        key = str(topic_key).strip()
+        note = str(first_person_note).strip()
+        position = str(character_position).strip()
+        if not key or not note or not position:
+            raise ValueError("topic_key, first_person_note, and character_position are required")
+        if len(note) > 2000 or len(position) > 1200:
+            raise ValueError("completed offline inquiry text exceeds its bound")
+        loop = next((
+            item for item in self.intentions.open_loops
+            if (item.topic_key or item.topic) == key
+            and item.required_capability in {"language_model", "external_knowledge"}
+            and item.status in {"pending", "ready", "surfaced"}
+        ), None)
+        if loop is None:
+            raise ValueError(f"no unresolved offline inquiry matches topic key: {key}")
+        when = time.time() if timestamp is None else float(timestamp)
+        artifact = self.capability_artifacts.add(
+            kind="research",
+            content=position,
+            source_tier=1,
+            provenance={
+                "source": "approved_online_inquiry",
+                "topic_key": key,
+                "original_question": loop.topic,
+                "actor_id": loop.actor_id,
+            },
+            confidence=max(0.0, min(1.0, float(confidence))),
+            verification_state="supported",
+            canonicality="subjective",
+            created_at=when,
+        )
+        journal_result = self.propose_world_action(
+            "write_journal",
+            {"text": note, "entry_kind": "research_note"},
+            event_time=when,
+        )
+        loop.resolution_artifact_id = artifact.artifact_id
+        loop.character_position = position
+        loop.required_capability = "none"
+        loop.status = "ready"
+        loop.last_touched = when
+        self.persistence.log_event(
+            self.identity.name, self.user_id, self.timestep,
+            "offline_inquiry_completed",
+            {
+                "topic_key": key,
+                "open_loop_topic": loop.topic,
+                "artifact_id": artifact.artifact_id,
+                "journal_entry_id": (
+                    (journal_result.get("journal_entry") or {}).get("entry_id")
+                ),
+                "record_authority": "character_authored_artifact",
+                "memory_types": ["capability_artifact", "journal", "open_loop"],
+            },
+        )
+        self._persist()
+        return {
+            "topic_key": key,
+            "status": loop.status,
+            "artifact": artifact.to_dict(),
+            "journal_entry": journal_result.get("journal_entry"),
+        }
+
     def begin_activity(self, activity: str, intention: str, attention_target: str) -> dict[str, Any]:
         self.life_state.current_activity = str(activity)[:120]
         self.life_state.current_intention = str(intention)[:120]
@@ -2009,9 +2078,27 @@ class InteriorEngine:
         bucket = bucket_risk(risk)
         top_for_match = self.pressures.top()
         input_act = classify_input(user_text)
-        offline_topic_match = self.offline_topics.match(user_text)
-        self._last_offline_topic_match = offline_topic_match
         continuity_state = self.conversation_continuity.for_actor(self.active_actor_id)
+        offline_topic_match = self.offline_topics.match(user_text)
+        if (
+            continuity_state.active_topic is not None
+            and offline_topic_match.confidence < 0.45
+            and any(
+                token in {
+                    "he", "her", "him", "his", "it", "its", "one", "she",
+                    "that", "their", "they", "this",
+                }
+                for token in user_text.casefold().replace("?", " ").split()
+            )
+        ):
+            offline_topic_match = self.offline_topics.contextual_match(
+                continuity_state.active_topic.topic_id,
+                offline_topic_match,
+            )
+        self._last_offline_topic_match = offline_topic_match
+        offline_topic_memory_tags = self.offline_topics.memory_tags_for_query(
+            offline_topic_match.topic_id, user_text,
+        )
         continuity_state.observe_input(
             text=user_text,
             input_act=input_act,
@@ -2041,6 +2128,45 @@ class InteriorEngine:
             },
             association_boosts=association_boosts,
         )
+        if input_act == "ask_memory" and offline_topic_memory_tags:
+            authored_candidates = sorted(
+                (
+                    item for item in self.memory.memories
+                    if "autobiographical" in item.tags
+                    and offline_topic_memory_tags & item.tags
+                    and not item.content.casefold().startswith("i heard you say")
+                ),
+                key=lambda item: (
+                    -len(offline_topic_memory_tags & item.tags),
+                    -item.salience,
+                    -item.created_at,
+                    item.id,
+                ),
+            )
+            if authored_candidates:
+                preferred = authored_candidates[0]
+                retrievals = [
+                    MemoryRetrieval(
+                        preferred,
+                        1.0,
+                        {
+                            "lexical_match": 0.0,
+                            "symbolic_similarity": 0.0,
+                            "direct_symbolic_cue": 1.0,
+                            "semantic_similarity": 0.0,
+                            "recency_boost": 0.0,
+                            "salience": preferred.salience,
+                            "emotional_relevance": preferred.emotional_intensity,
+                            "goal_relevance": 0.0,
+                            "relationship_relevance": preferred.relationship_relevance,
+                            "direct_link": 0.0,
+                            "learned_association": 0.0,
+                            "authored_topic_tag": 1.0,
+                            "embedding_provider": "topic_tag",
+                        },
+                    ),
+                    *[item for item in retrievals if item.memory.id != preferred.id],
+                ][:6]
         retrieved = [item.memory for item in retrievals]
         memory_links = {
             item.experience_id: item.memory_id for item in self.experiences.experiences if item.memory_id
@@ -2117,13 +2243,26 @@ class InteriorEngine:
             and not item.memory.content.casefold().startswith("i heard you say")
             and not ({"sensorium", "ambient_event"} & item.memory.tags)
         ]
+        topic_memory_retrievals = [
+            item for item in prior_memory_retrievals
+            if offline_topic_memory_tags & item.memory.tags
+        ]
+        if topic_memory_retrievals:
+            best_tag_overlap = max(
+                len(offline_topic_memory_tags & item.memory.tags)
+                for item in topic_memory_retrievals
+            )
+            topic_memory_retrievals = [
+                item for item in topic_memory_retrievals
+                if len(offline_topic_memory_tags & item.memory.tags) == best_tag_overlap
+            ]
         contextual_prior_memory_retrievals = [
             item for item in prior_memory_retrievals
             if continuity_state.memory_context_score(item.memory.content) >= 0.12
             or float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
         ]
         candidate_memory_retrievals = (
-            prior_memory_retrievals
+            topic_memory_retrievals or prior_memory_retrievals
             if input_act == "ask_memory" else contextual_prior_memory_retrievals
         )
         raw_direct_memory_cue = any(
@@ -2280,8 +2419,30 @@ class InteriorEngine:
             and not item.memory.content.casefold().startswith("i heard you say")
             and not ({"sensorium", "ambient_event"} & item.memory.tags)
         ]
+        topic_groundable_retrievals = [
+            item for item in groundable_retrievals
+            if offline_topic_memory_tags & item.memory.tags
+        ]
+        if topic_groundable_retrievals:
+            best_tag_overlap = max(
+                len(offline_topic_memory_tags & item.memory.tags)
+                for item in topic_groundable_retrievals
+            )
+            groundable_retrievals = topic_groundable_retrievals
+            groundable_retrievals = [
+                item for item in groundable_retrievals
+                if len(offline_topic_memory_tags & item.memory.tags) == best_tag_overlap
+            ]
         direct_grounding = any(
-            f"memory:{item.memory.id}" in considered_ids
+            (
+                f"memory:{item.memory.id}" in considered_ids
+                or (
+                    synthesis.selected_conversation_candidate_id
+                    == conversation_candidate.candidate_id
+                    and conversation_candidate.move == "reminisce"
+                    and float(item.reasons.get("authored_topic_tag", 0.0)) > 0.0
+                )
+            )
             and float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
             for item in groundable_retrievals
         )
@@ -2291,7 +2452,15 @@ class InteriorEngine:
         if memory_request:
             retrieved = [
                 item.memory for item in groundable_retrievals
-                if f"memory:{item.memory.id}" in considered_ids
+                if (
+                    f"memory:{item.memory.id}" in considered_ids
+                    or (
+                        synthesis.selected_conversation_candidate_id
+                        == conversation_candidate.candidate_id
+                        and conversation_candidate.move == "reminisce"
+                        and float(item.reasons.get("authored_topic_tag", 0.0)) > 0.0
+                    )
+                )
             ]
         self.memory.record_recall(retrieved, now)
         available_artifacts = [
@@ -2325,13 +2494,21 @@ class InteriorEngine:
         )
         conversation_grounding_pool = (
             prior_memory_retrievals
-            if conversation_candidate.move in {"reminisce", "reminisce_and_note"}
+            if conversation_candidate.move == "reminisce_and_note"
             else candidate_memory_retrievals
         )
         grounded_conversation_memory_id = next((
             item.memory.id for item in conversation_grounding_pool
             if f"memory:{item.memory.id}" in considered_ids
         ), None)
+        if (
+            grounded_conversation_memory_id is None
+            and conversation_candidate.move == "reminisce"
+        ):
+            grounded_conversation_memory_id = next((
+                item.memory.id for item in conversation_grounding_pool
+                if float(item.reasons.get("authored_topic_tag", 0.0)) > 0.0
+            ), None)
         conversation_memory_required = (
             conversation_candidate.move in {"reminisce", "reminisce_and_note"}
             or conversation_candidate.extension_move in {"compare", "reminisce"}
@@ -2441,10 +2618,7 @@ class InteriorEngine:
                 "I retained this unfinished question for later examination: {topic}",
             ))
             note_text = note_template.replace("{topic}", user_text[:160]).strip()[:500]
-            if (
-                action_decision.action_kind == "world_action"
-                and not any(item.text == note_text for item in self.journal.entries[-16:])
-            ):
+            if not any(item.text == note_text for item in self.journal.entries[-16:]):
                 self.propose_world_action(
                     "write_journal",
                     {"text": note_text, "entry_kind": "field_note"},
@@ -2566,7 +2740,10 @@ class InteriorEngine:
         offline_topic_thread = None
         if (
             offline_topic_match.topic_id
-            and input_act in {"ask_fact", "ask_opinion", "ask_memory", "ask_analysis", "inform"}
+            and input_act in {
+                "ask_fact", "ask_opinion", "ask_memory", "ask_analysis",
+                "inform", "request_action",
+            }
         ):
             offline_topic_thread = self.offline_topic_threads.for_topic(
                 self.active_actor_id, offline_topic_match.topic_id,
@@ -2577,6 +2754,16 @@ class InteriorEngine:
                     "autobiographical" in item.tags
                     and not item.content.casefold().startswith("i heard you say")
                     and not ({"sensorium", "ambient_event"} & item.tags)
+                    and (
+                        not offline_topic_memory_tags
+                        or (
+                            bool(offline_topic_memory_tags & item.tags)
+                            and (
+                                input_act == "ask_memory"
+                                or len(offline_topic_memory_tags & item.tags) >= 2
+                            )
+                        )
+                    )
                 )
             ), None)
             topic_activity = (
@@ -2668,7 +2855,24 @@ class InteriorEngine:
                 dominant_pressure=dominant_name,
                 secondary_pressure=secondary_name,
                 selected_intention=selected_intention.name if selected_intention else None,
-                retrieved_memories=[m.content for m in retrieved] + [f"Validated knowledge: {item.content}" for item in available_artifacts],
+                retrieved_memories=(
+                    [m.content for m in retrieved]
+                    + [f"Validated knowledge: {item.content}" for item in available_artifacts]
+                    + (
+                        [f"Validated knowledge: {due_open_loop.character_position}"]
+                        if (
+                            selected_conversation
+                            and selected_conversation.move == "return_to_topic"
+                            and due_open_loop
+                            and due_open_loop.character_position
+                            and not any(
+                                item.content == due_open_loop.character_position
+                                for item in available_artifacts
+                            )
+                        )
+                        else []
+                    )
+                ),
                 open_loop=open_loop.topic if open_loop else None,
                 shared_symbol=symbol.name if symbol else None,
                 active_habit=habit.response_pattern if habit else None,
@@ -2819,6 +3023,13 @@ class InteriorEngine:
             "private_cognition_renderer_called": cognition_execution.renderer_called,
             "expression_renderer_called": expression_renderer_called,
             "total_model_calls": int(cognition_execution.renderer_called) + int(expression_renderer_called),
+            "external_model_calls": (
+                int(cognition_execution.renderer_called)
+                + int(
+                    expression_renderer_called
+                    and str(getattr(self.renderer, "_actual_backend", "offline")) != "offline"
+                )
+            ),
             "private_cognition_mode": cognition_execution.mode,
             "private_cognition_reason": cognition_execution.reason,
             "private_cognition_fallback_used": cognition_execution.fallback_used,

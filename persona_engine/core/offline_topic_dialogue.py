@@ -29,9 +29,9 @@ MAX_TOPICS = 24
 MAX_FRAGMENTS_PER_GROUP = 16
 
 _STOP_WORDS = frozenset({
-    "about", "after", "again", "also", "could", "did", "does", "ever", "for",
+    "about", "after", "again", "also", "and", "are", "could", "did", "does", "ever", "for",
     "from", "have", "how", "into", "more", "much", "please", "should", "tell",
-    "that", "the", "their", "them", "then", "there", "these", "they", "this",
+    "now", "that", "the", "their", "them", "then", "there", "these", "they", "this",
     "those", "was", "were", "what", "when", "where", "which", "who", "why",
     "will", "with", "would", "you", "your",
 })
@@ -44,9 +44,26 @@ def _tokens(value: str) -> tuple[str, ...]:
     )
 
 
+def _contains_phrase(text: str, phrase: str) -> bool:
+    return re.search(rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])", text) is not None
+
+
 def _stable_index(size: int, *parts: object) -> int:
     payload = "|".join(str(item) for item in parts).encode("utf-8", errors="ignore")
     return int.from_bytes(hashlib.blake2b(payload, digest_size=4).digest(), "big") % max(1, size)
+
+
+def _memory_surface(value: str, limit: int = 110) -> str:
+    text = re.sub(
+        r"^I (?:remember(?: that)?|noticed|saw|heard(?: that| you say:)?|became aware that)\s+",
+        "",
+        str(value).strip(),
+        flags=re.IGNORECASE,
+    )
+    if len(text) <= limit:
+        return text.rstrip(" .")
+    shortened = text[:limit].rsplit(" ", 1)[0].rstrip(" ,;:.")
+    return shortened + "..."
 
 
 @dataclass(frozen=True)
@@ -54,19 +71,24 @@ class OfflineTopicDefinition:
     topic_id: str
     label: str
     aliases: tuple[str, ...]
+    patterns: tuple[str, ...]
     concepts: tuple[str, ...]
     memory_tags: tuple[str, ...]
     fragments: Mapping[str, tuple[str, ...]]
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> "OfflineTopicDefinition":
-        allowed = {"id", "label", "aliases", "concepts", "memory_tags", *TOPIC_FRAGMENT_GROUPS}
+        allowed = {
+            "id", "label", "aliases", "patterns", "concepts", "memory_tags",
+            *TOPIC_FRAGMENT_GROUPS,
+        }
         unknown = sorted(set(value) - allowed)
         if unknown:
             raise ValueError(f"unknown offline topic field: {unknown[0]}")
         topic_id = str(value.get("id", "")).strip()
         label = str(value.get("label", "")).strip()
         aliases = tuple(str(item).strip().casefold() for item in value.get("aliases", ()))
+        patterns = tuple(str(item).strip().casefold() for item in value.get("patterns", ()))
         concepts = tuple(str(item).strip().casefold() for item in value.get("concepts", ()))
         memory_tags = tuple(str(item).strip() for item in value.get("memory_tags", ()))
         if not topic_id or len(topic_id) > 64 or not re.fullmatch(r"[a-z0-9_]+", topic_id):
@@ -75,6 +97,8 @@ class OfflineTopicDefinition:
             raise ValueError("offline topic label must contain 1..100 characters")
         if not aliases or len(aliases) > 16 or any(not item or len(item) > 80 for item in aliases):
             raise ValueError("offline topic aliases must contain 1..16 bounded strings")
+        if len(patterns) > 24 or any(not item or len(item) > 160 for item in patterns):
+            raise ValueError("offline topic patterns must contain at most 24 bounded strings")
         if len(concepts) > 32 or len(memory_tags) > 16:
             raise ValueError("offline topic concepts or memory tags exceed their bounds")
         fragments: dict[str, tuple[str, ...]] = {}
@@ -88,7 +112,7 @@ class OfflineTopicDefinition:
             fragments[group] = items
         if not fragments["ordinary"] or not fragments["uncertain"]:
             raise ValueError("offline topics require ordinary and uncertain fragments")
-        return cls(topic_id, label, aliases, concepts, memory_tags, fragments)
+        return cls(topic_id, label, aliases, patterns, concepts, memory_tags, fragments)
 
 
 @dataclass(frozen=True)
@@ -216,20 +240,54 @@ class OfflineTopicLibrary:
 
     def match(self, text: str) -> OfflineTopicMatch:
         query = set(_tokens(text))
-        normalized = " ".join(str(text).casefold().split())
+        normalized = " ".join(re.findall(r"[a-z0-9']+", str(text).casefold()))
         candidates = []
         for topic in self.topics:
-            alias_hits = tuple(alias for alias in topic.aliases if alias in normalized)
+            pattern_matches = []
+            for pattern in topic.patterns:
+                normalized_pattern = " ".join(
+                    "*" if item == "*" else item
+                    for item in re.findall(r"\*|[a-z0-9']+", pattern.casefold())
+                )
+                expression = r"\s*.*\s*".join(
+                    re.escape(part.strip())
+                    for part in normalized_pattern.split("*")
+                )
+                matched_pattern = (
+                    re.fullmatch(expression, normalized) is not None
+                    if "*" in normalized_pattern
+                    else _contains_phrase(normalized, normalized_pattern)
+                )
+                if matched_pattern:
+                    fixed_words = len(_tokens(normalized_pattern.replace("*", " ")))
+                    pattern_matches.append((normalized_pattern, fixed_words))
+            alias_hits = tuple(
+                alias for alias in topic.aliases if _contains_phrase(normalized, alias)
+            )
             vocabulary = set(_tokens(" ".join((*topic.aliases, *topic.concepts))))
             matched = tuple(sorted(query & vocabulary))
-            if not alias_hits and not matched:
+            if not pattern_matches and not alias_hits and not matched:
                 continue
             coverage = len(matched) / max(1, len(query))
-            confidence = min(1.0, (0.48 if alias_hits else 0.18) + 0.52 * coverage)
-            candidates.append((confidence, len(alias_hits), topic.topic_id, topic, matched, vocabulary))
+            exact_pattern = any(
+                "*" not in item[0] and normalized == item[0]
+                for item in pattern_matches
+            )
+            pattern_score = (
+                1.0 if exact_pattern
+                else min(0.96, 0.72 + max((item[1] for item in pattern_matches), default=0) * 0.025)
+            )
+            confidence = max(
+                pattern_score if pattern_matches else 0.0,
+                min(1.0, (0.48 if alias_hits else 0.18) + 0.52 * coverage),
+            )
+            candidates.append((
+                confidence, max((item[1] for item in pattern_matches), default=0),
+                len(alias_hits), topic.topic_id, topic, matched, vocabulary,
+            ))
         if not candidates:
             return OfflineTopicMatch(None, None, "unknown", 0.0, (), tuple(sorted(query))[:12])
-        confidence, _, _, topic, matched, vocabulary = max(candidates)
+        confidence, pattern_specificity, _, _, topic, matched, vocabulary = max(candidates)
         unresolved = tuple(sorted(query - vocabulary))[:12]
         status = (
             "known"
@@ -237,11 +295,45 @@ class OfflineTopicLibrary:
                 confidence >= 0.62
                 or (confidence >= 0.52 and len(matched) >= 2)
             )
-            and len(unresolved) <= max(2, len(matched))
+            and (
+                pattern_specificity > 0
+                or len(unresolved) <= max(2, len(matched))
+            )
             else "partial"
         )
         return OfflineTopicMatch(
             topic.topic_id, topic.label, status, round(confidence, 6), matched, unresolved,
+        )
+
+    def memory_tags_for(self, topic_id: str | None) -> frozenset[str]:
+        topic = next((item for item in self.topics if item.topic_id == topic_id), None)
+        return frozenset(topic.memory_tags if topic else ())
+
+    def memory_tags_for_query(self, topic_id: str | None, text: str) -> frozenset[str]:
+        tags = self.memory_tags_for(topic_id)
+        query = _tokens(text)
+        specific = {
+            tag for tag in tags
+            if any(
+                len(token) >= 5 and len(tag) >= 5 and token[:5] == tag.casefold()[:5]
+                for token in query
+            )
+        }
+        return frozenset(specific or tags)
+
+    def contextual_match(
+        self, topic_id: str | None, prior: OfflineTopicMatch,
+    ) -> OfflineTopicMatch:
+        topic = next((item for item in self.topics if item.topic_id == topic_id), None)
+        if topic is None:
+            return prior
+        return OfflineTopicMatch(
+            topic.topic_id,
+            topic.label,
+            "known",
+            max(0.64, prior.confidence),
+            prior.matched_terms,
+            prior.unresolved_terms,
         )
 
     def plan(
@@ -270,6 +362,8 @@ class OfflineTopicLibrary:
             family = "irritated"
         elif input_act == "ask_memory" and memory_id and topic.fragments["memory_supported"]:
             family = "memory_supported"
+        elif input_act == "request_action" and topic.fragments["ordinary"]:
+            family = "ordinary"
         elif thread.discussion_count == 0 and topic.fragments["first_mention"]:
             family = "first_mention"
         elif repeated_query and thread.discussion_count >= 2 and topic.fragments["repeated"]:
@@ -306,7 +400,7 @@ class OfflineTopicLibrary:
             family=family,
             fragment_ids=tuple(item[0] for item in selected),
             fragments=tuple(
-                item[1].replace("{memory}", (memory_text or "the earlier episode")[:160])
+                item[1].replace("{memory}", _memory_surface(memory_text or "the earlier episode"))
                 .replace("{activity}", (activity or "my work")[:100])
                 for item in selected
             ),

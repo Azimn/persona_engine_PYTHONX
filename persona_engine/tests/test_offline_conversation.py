@@ -38,7 +38,9 @@ def test_offline_unknown_analysis_is_noted_without_inventing_an_answer(tmp_path)
     assert notes[0].required_capability == "language_model"
     assert notes[0].status == "pending"
     assert "quantum gravity" in notes[0].topic.lower()
-    assert "pending notes" in result["response"].lower() or "marked" in result["response"].lower()
+    assert "retained" in result["response"].lower()
+    assert len(agent.engine.journal.entries) == 1
+    assert agent.engine.journal.entries[0].entry_kind == "field_note"
 
 
 def test_offline_reminiscence_uses_a_considered_autobiographical_memory(tmp_path):

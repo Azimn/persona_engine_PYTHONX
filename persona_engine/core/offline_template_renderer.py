@@ -100,10 +100,17 @@ class OfflineTemplateRenderer:
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
         group = conversation_move or self._classify(user_text, system_text)
-        if topic_plan and group in {
+        surface_group = self._classify(user_text, system_text)
+        if (
+            topic_plan
+            and surface_group not in {
+                "identity_boundary", "greeting", "farewell", "repair",
+            }
+            and group in {
             "honor_obligation", "basic_reply",
             "probe", "compare", "speculate", "express_curiosity",
-        }:
+            }
+        ):
             fragments = [
                 str(item).strip() for item in topic_plan.get("fragments", ())
                 if str(item).strip()
@@ -111,7 +118,6 @@ class OfflineTemplateRenderer:
             if fragments:
                 return self._clean_truncate(" ".join(fragments), max_chars)
         if group == "honor_obligation":
-            surface_group = self._classify(user_text, system_text)
             if surface_group == "knowledge":
                 text = self._render_knowledge(system_text)
             elif surface_group == "activity":
@@ -139,7 +145,7 @@ class OfflineTemplateRenderer:
                 text = f"{text} {extension}"
             if surface_group not in {
                 "sound", "unanchored_sound", "grounded_memory", "memory",
-                "activity", "knowledge", "identity_boundary",
+                "activity", "knowledge", "identity_boundary", "farewell",
             }:
                 text = self._apply_choreography(
                     text, choreography, has_extension=bool(extension_move),
@@ -272,6 +278,12 @@ class OfflineTemplateRenderer:
     def _classify(self, user_text: str, system_text: str) -> str:
         lowered = user_text.lower().strip()
         system_lowered = system_text.lower()
+        if re.search(
+            r"\b(bye|goodbye|gotta go|i (?:am|will) leav(?:e|ing)|"
+            r"i'll leave|leave you to it|talk later)\b",
+            lowered,
+        ):
+            return "farewell"
         if any(phrase in lowered for phrase in (
             "what were you doing", "what are you doing", "what are you working on",
             "before i arrived", "before this", "what are you busy with",
@@ -408,6 +420,22 @@ class OfflineTemplateRenderer:
         match = re.search(r"Conversation topic:\s*([^\n]+)", system_text, re.IGNORECASE)
         topic = re.sub(r"[^A-Za-z0-9 '?,.\-]", "", match.group(1) if match else "that question").strip()[:100]
         topic = topic.rstrip(" ?!.,;:")
+        knowledge_match = re.search(
+            r"Validated knowledge:\s*([^|\n]+)", system_text, re.IGNORECASE,
+        )
+        if group == "return_to_topic" and knowledge_match:
+            position = knowledge_match.group(1).strip().rstrip(" .")[:600]
+            selected = self._choose_text(
+                "researched_topic_return",
+                realization,
+                (
+                    "I returned to {topic}. My present position is this: {position}.",
+                    "The unfinished question about {topic} now has a defensible answer: {position}.",
+                ),
+                seed,
+                actor_id,
+            )
+            return selected.replace("{topic}", topic).replace("{position}", position)
         defaults = {
             "defer_and_note": (
                 "I cannot examine {topic} properly with what is available. I have kept the question for later.",

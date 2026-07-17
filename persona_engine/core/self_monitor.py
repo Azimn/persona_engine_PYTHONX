@@ -297,7 +297,10 @@ class SelfMonitor:
                 ("ask_clarification", 0.48 + (0.52 - memory_reliability), ("memory_reliability:low",), True),
                 ("defer_judgment", 0.46 + p.uncertainty_tolerance * 0.25, ("memory_reliability:low",), True),
             ])
-        substantive_conflict = any(item != "relationship:current" for item in noticed)
+        substantive_conflict = any(
+            item != "relationship:current" and not item.startswith("open_loop:")
+            for item in noticed
+        )
         if noticed:
             raw.append(("pause", 0.46 + min(0.12, len(noticed) * 0.04), ("conflict:noticed",), True))
             if substantive_conflict and p.correction_bias >= 0.60:

@@ -69,9 +69,9 @@ _ALLOWED_SECTION_FIELDS.update({
     "offline_topics": {"topics"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
-        "memory", "greeting", "quiet", "question", "default",
+        "memory", "greeting", "farewell", "quiet", "question", "default",
         "reminisce_openers", "reminisce_followups", "defer_and_note",
-        "return_to_topic",
+        "return_to_topic", "researched_topic_return",
         "ask_clarification",
         "continuity_moves",
         "probe", "compare", "challenge", "reminisce", "speculate", "express_curiosity",

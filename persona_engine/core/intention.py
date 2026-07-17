@@ -30,6 +30,8 @@ class OpenLoop:
     reason: str = "unresolved_tension"
     required_capability: str = "none"
     status: str = "pending"
+    resolution_artifact_id: str | None = None
+    character_position: str | None = None
 
     def __post_init__(self):
         if not self.topic or len(self.topic) > 240:
@@ -40,6 +42,12 @@ class OpenLoop:
             raise ValueError("unsupported open-loop capability")
         if self.status not in {"pending", "ready", "surfaced", "resolved", "abandoned"}:
             raise ValueError("unsupported open-loop status")
+        if self.resolution_artifact_id is not None and len(self.resolution_artifact_id) > 120:
+            raise ValueError("open-loop resolution artifact id is too long")
+        if self.character_position is not None and (
+            not self.character_position.strip() or len(self.character_position) > 1200
+        ):
+            raise ValueError("open-loop character position must contain 1..1200 characters")
         for value in (self.emotional_charge, self.created_at, self.last_touched, self.urgency):
             if not math.isfinite(float(value)):
                 raise ValueError("open-loop values must be finite")
