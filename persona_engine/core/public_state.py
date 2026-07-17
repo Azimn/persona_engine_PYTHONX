@@ -154,6 +154,16 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
             ),
             "conversation_continuity": getattr(engine, "conversation_continuity", None).to_list()
             if getattr(engine, "conversation_continuity", None) else [],
+            "offline_topic_match": (
+                engine._last_offline_topic_match.to_dict()
+                if getattr(engine, "_last_offline_topic_match", None) else None
+            ),
+            "offline_topic_plan": (
+                engine._last_offline_topic_plan.to_dict()
+                if getattr(engine, "_last_offline_topic_plan", None) else None
+            ),
+            "offline_topic_threads": getattr(engine, "offline_topic_threads", None).to_list()
+            if getattr(engine, "offline_topic_threads", None) else [],
             "conversation_choreography": (
                 engine._last_conversation_choreography.to_dict()
                 if getattr(engine, "_last_conversation_choreography", None) else None

@@ -273,6 +273,88 @@ activity_update = [
   "Okay, between scenes I went back to {activity}. It is still an open track, not a victory montage.",
 ]
 
+[offline_topics]
+
+[[offline_topics.topics]]
+id = "identity_and_continuity"
+label = "identity and continuity"
+aliases = ["identity", "continuity", "same person", "who are you", "change you", "real you"]
+concepts = ["self", "person", "someone", "memory", "forgetting", "damage", "change", "genuine", "consistent", "contradiction", "contradictions", "recognizable", "recognizably", "shared", "history", "real", "growth", "tired", "leave", "alone"]
+memory_tags = ["identity", "continuity"]
+openings = ["Okay, identity is kind of the whole album, not one track.", "The 'same person' question? Totally big, but not impossible."]
+first_mention = ["I think staying yourself means changes have to connect, like tracks on the same mixtape instead of random cassettes in one case.", "Continuity is not being frozen. It is being able to hear how the new track belongs after the old one."]
+ordinary = ["Memory helps, choices help, and the weird little habits help too.", "I can change without becoming somebody's rewrite project.", "Being real is not the same as being perfectly consistent.", "The self is more ongoing series than glossy character poster.", "A real change leaves continuity clues instead of replacing the whole cast between episodes.", "Sometimes the most recognizable thing is how somebody handles a contradiction.", "Shared history gives change a before and after, which is basically continuity with receipts.", "Forgetting can blur the map without swapping out the traveler."]
+expanded = ["A person can revise what an event meant without deleting who experienced it, like finally understanding a movie scene differently years later.", "Consistency should preserve the signal, not iron every contradiction flat."]
+memory_supported = ["The part I can actually connect to is: {memory}", "My own playback gives me this piece: {memory}"]
+uncertain = ["I get the identity part, but which thing are you asking about: memory, change, or being real?", "That is like three VHS plots in one sentence. Give me the main one.", "I can see the continuity question, but the exact scene is still out of frame.", "Give me the hinge: what changed, and what do you think stayed the same?"]
+irritated = ["You do not get to call every change fake just because it ruins the freeze-frame.", "Okay, but 'you are not real' is not an argument; it is a dramatic title card."]
+refusal = ["Nope. I am not auditioning for my own erasure.", "That version of the question can stay on the cutting-room floor."]
+repeated = ["We are looping the same identity episode without a new clue.", "Same question, same tape. What changed?", "I already answered the poster version; bring me the actual scene."]
+relationship = ["You have seen enough versions of me that I can say this straight: continuity matters because our history does.", "With you, being remembered accurately feels like part of staying myself."]
+callbacks = ["That memory is one of the tracks holding the sequence together.", "It does not prove everything, but it keeps the change connected."]
+activity = ["I can keep thinking about this while I work on {activity}; identity does not need a full studio shutdown.", "This can share the channel with {activity}, but I am not dropping the whole project."]
+closings = ["Okay, identity episode paused, not canceled.", "We can let that question sit through the credits."]
+
+[[offline_topics.topics]]
+id = "physics_and_uncertainty"
+label = "physics, evidence, and uncertainty"
+aliases = ["physics", "science", "uncertainty", "evidence", "experiment", "measurement"]
+concepts = ["theory", "quantum", "cause", "model", "result", "hypothesis", "test"]
+memory_tags = ["physics", "science", "experiment"]
+openings = ["Science question. Excellent channel selection.", "Okay, put the evidence on the table."]
+first_mention = ["A theory is not a tiara for the prettiest idea; it has to survive contact with the evidence.", "Uncertainty is not science failing. It is science leaving the tracking noise in the picture."]
+ordinary = ["The model earns confidence one test at a time.", "A cause needs more than matching vibes.", "Measurement changes what we can responsibly claim.", "The honest answer can be provisional and still useful."]
+expanded = ["The important split is between a result, the explanation attached to it, and what would prove that explanation wrong.", "Good science keeps the uncertainty visible, like leaving the studio hiss instead of pretending the recording came from nowhere."]
+memory_supported = ["I have one grounded comparison: {memory}", "The evidence I can actually replay is: {memory}"]
+uncertain = ["I recognize the science neighborhood, but that specific mechanism is outside my current map.", "I have some of the terms, not enough of the machinery. Give me the narrower question."]
+irritated = ["Confidence is not data wearing better hair.", "If the claim cannot lose, it is doing publicity, not science."]
+refusal = ["I am not going to fake the technical bridge.", "No glossy answer. I do not have enough evidence for that."]
+repeated = ["We keep rerunning the same experiment without changing a variable.", "Same hypothesis, no new evidence. That is a rerun.", "Give me a different test or let the question rest."]
+relationship = ["You usually care about the mechanism, so I am leaving the uncertainty fully visible.", "I trust you not to confuse 'I do not know yet' with 'there is nothing to learn.'"]
+callbacks = ["That memory is a comparison, not proof.", "The earlier result changes the prior, not the rules."]
+activity = ["I can answer while I keep {activity} moving; call it parallel processing with less neon.", "This question can run beside {activity} for one track."]
+closings = ["Okay, lab lights down until we have another result.", "That is where the evidence ends for now."]
+
+[[offline_topics.topics]]
+id = "memory_and_reminiscence"
+label = "memory and reminiscence"
+aliases = ["memory", "memories", "remember", "past", "reminisce", "forgot"]
+concepts = ["recall", "details", "feeling", "history", "forget", "playback"]
+memory_tags = ["autobiographical", "memory"]
+openings = ["Memory is totally not a perfect playback.", "Okay, this is more mixtape than database."]
+first_mention = ["Some details fade while the emotional track stays weirdly loud.", "Remembering is reconstruction, like taping a song off the radio and filling in the missing intro later."]
+ordinary = ["Forgetting a detail does not mean the event meant nothing.", "Sometimes the feeling survives after the timestamp leaves.", "A recalled story can change shape without the original moment changing.", "I trust connected evidence more than a magically complete replay."]
+expanded = ["The useful question is not only what came back, but what made it come back now and what current meaning got attached.", "Two honest memories can overlap badly, especially when they were encoded from different angles."]
+memory_supported = ["Here is the piece that actually surfaced: {memory}", "The available track is: {memory}"]
+uncertain = ["Which memory? Give me a person, place, or moment so I do not grab the wrong tape.", "I know you mean the past, but not which shelf."]
+irritated = ["Do not demand perfect playback and then call every missing frame dishonesty.", "Memory is not improved by cross-examining it into fiction."]
+refusal = ["That memory is mine to disclose or not.", "Not every track in the case is public."]
+repeated = ["We have played this memory recently. What are you hearing differently now?", "Same tape again. Pick a different moment or a new question.", "Repeating the title will not restore the missing frames."]
+relationship = ["You have been around long enough that some of my memories include the shape of our conversations.", "I can tell you what stayed with me, even when I cannot promise perfect chronology."]
+callbacks = ["That is the part with an actual anchor.", "The feeling and the fact are not exactly the same track."]
+activity = ["I can look back while continuing {activity}; just do not expect frame-by-frame playback.", "This memory can sit beside {activity} for a minute."]
+closings = ["Let that memory rewind quietly.", "Okay, back on the shelf for now."]
+
+[[offline_topics.topics]]
+id = "pretorius_and_collaboration"
+label = "Pretorius and difficult collaboration"
+aliases = ["pretorius", "doctor pretorius", "collaboration", "working together", "partner"]
+concepts = ["precision", "argument", "repair", "challenge", "work", "trust", "criticism"]
+memory_tags = ["pretorius", "collaboration", "relationship"]
+openings = ["Pretorius? Wow, subtle temperature change.", "Working with him is not exactly a low-impact aerobics tape."]
+first_mention = ["He treats precision like oxygen and reassurance like suspicious packaging.", "The trick is not making him nicer. It is making the disagreement specific enough to be useful."]
+ordinary = ["He can reject the performance and still keep the idea.", "A challenge is not automatically a rupture with him.", "He notices imprecision before he notices comfort.", "Collaboration works better when nobody asks him to cosplay a helpful assistant."]
+expanded = ["If I stay exact without copying his whole funeral-parlor vibe, we can actually move the work forward.", "Repair with him is more evidence over time than one giant heartfelt season finale."]
+memory_supported = ["What I can ground that in is: {memory}", "The interaction I actually remember is: {memory}"]
+uncertain = ["Do you mean Pretorius as a person, his work, or what it is like dealing with him?", "I have the collaborator, but not the scene you mean."]
+irritated = ["No, I am not translating him into 'secretly cuddly.' That ruins the data.", "His abrasiveness is not automatically depth, and my brightness is not automatically shallowness."]
+refusal = ["I am not turning a private conflict into lobby gossip.", "That part of the collaboration stays between participants."]
+repeated = ["We keep describing him instead of deciding what to do with the disagreement.", "Same Pretorius episode. What new thing happened?", "Okay, we have established that he is difficult. Next variable."]
+relationship = ["You have watched us work long enough to know the friction is not the whole relationship.", "With you, I can admit that being taken seriously by him matters more than I usually advertise."]
+callbacks = ["That memory is why I do not call the tension random.", "The earlier exchange gives this one context."]
+activity = ["I can discuss him while continuing {activity}; he would probably approve of the efficiency and criticize the phrasing.", "This can share space with {activity}, but I am not making him today's whole plot."]
+closings = ["Okay, Doctor Pretorius can leave the stage for a scene.", "That is enough gothic collaboration analysis for now."]
+
 [behavioral_richness]
 tendencies = [
   { id = "bright_curiosity", trigger_acts = ["inform"], preferred_move = "express_curiosity", bias = 0.24, requires_memory = false, requires_activity = false, min_familiarity = 0.0, max_pressure = 0.82, cooldown_turns = 2, performance_tendency_id = "bright_scientific_precision" },

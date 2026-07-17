@@ -36,7 +36,7 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal", "behavioral_richness"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "offline_topics", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal", "behavioral_richness"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
@@ -66,6 +66,7 @@ _ALLOWED_SECTION_FIELDS.update({
     "genesis": {"version", "episodes"},
     "journal": {"object_name", "pending_note_template"},
     "behavioral_richness": {"tendencies"},
+    "offline_topics": {"topics"},
     "offline_expression": {
         "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
         "memory", "greeting", "quiet", "question", "default",
@@ -395,6 +396,12 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
                     "behavioral tendency references unknown performance tendency: "
                     f"{tendency.performance_tendency_id}"
                 )
+    if "offline_topics" in data:
+        from .offline_topic_dialogue import OfflineTopicLibrary
+        try:
+            OfflineTopicLibrary.from_cartridge(data["offline_topics"])
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid offline topics: {exc}") from exc
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -459,6 +466,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "genesis": data.get("genesis", {}),
         "journal": data.get("journal", {}),
         "offline_expression": data.get("offline_expression", {}),
+        "offline_topics": data.get("offline_topics", {}),
         "behavioral_richness": data.get("behavioral_richness", {}),
         "path": str(Path(path)),
     }

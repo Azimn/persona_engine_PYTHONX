@@ -54,7 +54,10 @@ def classify_input(text: str) -> str:
         return "leave_or_return"
     if re.search(r"\b(sorry|apologize|my fault|i was wrong)\b", lowered):
         return "apologize"
-    if re.search(r"\b(no,? you|that's wrong|that is wrong|didn't happen|correction)\b", lowered):
+    if (
+        re.search(r"\b(no,? you|that's wrong|that is wrong|didn't happen)\b", lowered)
+        or re.search(r"^(correction|a correction)\b", lowered)
+    ):
         return "correct"
     if re.search(r"\b(you lied|prove it|you always|you never|why should i)\b", lowered):
         return "challenge"
@@ -243,6 +246,8 @@ def derive_conversation_candidate(
     life_callback_history: Sequence[str] = (),
     continuity_state: Any | None = None,
     initiative_proposal: InitiativeProposal | None = None,
+    offline_topic_status: str | None = None,
+    offline_topic_confidence: float = 0.0,
 ) -> ConversationCandidate:
     act = classify_input(text)
     key = topic_key(text)
@@ -296,11 +301,24 @@ def derive_conversation_candidate(
         strength = 0.90
         response_value = 0.92
         reasons.append("memory:direct_grounded_reminiscence")
+    elif act == "ask_memory" and offline_topic_status in {"known", "partial"}:
+        move = "honor_obligation"
+        strength = 0.78
+        response_value = 0.80
+        reasons.append(f"offline_topic:{offline_topic_status}:authored_memory_context")
     elif act == "ask_memory":
         move = "ask_clarification"
         strength = 0.82
         response_value = 0.86
         reasons.append("memory:no_grounded_episode")
+    elif (
+        not renderer_available and act == "ask_analysis"
+        and offline_topic_status == "known" and offline_topic_confidence >= 0.62
+    ):
+        move = "honor_obligation"
+        strength = 0.80
+        response_value = 0.82
+        reasons.append("offline_topic:known:authored_analysis")
     elif not renderer_available and act == "ask_analysis":
         move = "reminisce_and_note" if direct_memory_cue and memory is not None else "defer_and_note"
         strength = 0.88

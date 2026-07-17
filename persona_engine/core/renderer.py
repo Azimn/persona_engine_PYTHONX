@@ -186,6 +186,7 @@ class LocalLLMRenderer:
                 ).get("extension_move"),
                 "actor_id": request.expression_constraints.get("active_actor_id"),
                 "choreography": request.expression_constraints.get("conversation_choreography"),
+                "topic_plan": request.expression_constraints.get("offline_topic_plan"),
             }
         else:
             max_chars = getattr(request.expression_constraints, "max_chars", 200)

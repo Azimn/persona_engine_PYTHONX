@@ -94,11 +94,22 @@ class OfflineTemplateRenderer:
         extension_move: str | None = None,
         actor_id: int | str | None = None,
         choreography: Mapping | None = None,
+        topic_plan: Mapping | None = None,
     ) -> str:
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
         group = conversation_move or self._classify(user_text, system_text)
+        if topic_plan and group in {
+            "honor_obligation", "basic_reply",
+            "probe", "compare", "speculate", "express_curiosity",
+        }:
+            fragments = [
+                str(item).strip() for item in topic_plan.get("fragments", ())
+                if str(item).strip()
+            ][:3]
+            if fragments:
+                return self._clean_truncate(" ".join(fragments), max_chars)
         if group == "honor_obligation":
             surface_group = self._classify(user_text, system_text)
             if surface_group == "knowledge":

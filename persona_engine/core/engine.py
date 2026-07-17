@@ -97,6 +97,10 @@ from .conversation_initiative import (
 from .conversation_choreography import (
     ConversationChoreographyPlan, ConversationChoreographyPlanner,
 )
+from .offline_topic_dialogue import (
+    OfflineTopicLibrary, OfflineTopicMatch, OfflineTopicPlan,
+    OfflineTopicThreadStore, record_topic_turn,
+)
 
 
 def bucket_risk(risk: float) -> str:
@@ -231,6 +235,12 @@ class InteriorEngine:
         self.behavioral_tendencies = parse_behavioral_tendencies(
             profile_source.get("behavioral_richness")
         )
+        self.offline_topics = OfflineTopicLibrary.from_cartridge(
+            profile_source.get("offline_topics")
+        )
+        self.offline_topic_threads = OfflineTopicThreadStore()
+        self._last_offline_topic_match: OfflineTopicMatch | None = None
+        self._last_offline_topic_plan: OfflineTopicPlan | None = None
         self._behavior_tendency_history: list[tuple[str, int]] = []
         self._life_callback_history: list[str] = []
         self.last_catch_up_summary: dict[str, Any] = {"elapsed_seconds": 0.0, "tide_steps": 0, "life_steps": 0, "life_events": []}
@@ -369,6 +379,9 @@ class InteriorEngine:
         self.actor_relationships = ActorRelationshipStore.from_list(relationship_state)
         self.conversation_continuity = ConversationContinuityStore.from_list(
             self.persistence.load(cid, uid, "conversation_continuity", [])
+        )
+        self.offline_topic_threads = OfflineTopicThreadStore.from_list(
+            self.persistence.load(cid, uid, "offline_topic_threads", [])
         )
         self.active_actor_id = int(meta.get("active_actor_id", self.default_actor.actor_id))
         if self.actor_registry.fetch(self.active_actor_id) is None:
@@ -586,6 +599,7 @@ class InteriorEngine:
             "actor_registry": self.actor_registry.to_list(),
             "actor_relationships": self.actor_relationships.to_list(),
             "conversation_continuity": self.conversation_continuity.to_list(),
+            "offline_topic_threads": self.offline_topic_threads.to_list(),
             "memories": memories,
             "pressures": pressures,
             "intentions": intentions,
@@ -1995,11 +2009,13 @@ class InteriorEngine:
         bucket = bucket_risk(risk)
         top_for_match = self.pressures.top()
         input_act = classify_input(user_text)
+        offline_topic_match = self.offline_topics.match(user_text)
+        self._last_offline_topic_match = offline_topic_match
         continuity_state = self.conversation_continuity.for_actor(self.active_actor_id)
         continuity_state.observe_input(
             text=user_text,
             input_act=input_act,
-            topic_id=topic_key(user_text),
+            topic_id=offline_topic_match.topic_id or topic_key(user_text),
             turn=self.timestep,
             emotional_importance=max(
                 appraisal.accusation, appraisal.intimacy_bid, appraisal.repair_attempt,
@@ -2177,6 +2193,8 @@ class InteriorEngine:
                 initiative_assessment.proposal
                 if initiative_assessment.outcome == "proposal_available" else None
             ),
+            offline_topic_status=offline_topic_match.status,
+            offline_topic_confidence=offline_topic_match.confidence,
         )
         self._last_conversation_candidate = conversation_candidate
         if conversation_candidate.move != "basic_reply":
@@ -2544,6 +2562,42 @@ class InteriorEngine:
             if self.life_state.activity_status in {"resumed", "completed", "failed", "abandoned", "changed"}
             else None
         )
+        offline_topic_plan = None
+        offline_topic_thread = None
+        if (
+            offline_topic_match.topic_id
+            and input_act in {"ask_fact", "ask_opinion", "ask_memory", "ask_analysis", "inform"}
+        ):
+            offline_topic_thread = self.offline_topic_threads.for_topic(
+                self.active_actor_id, offline_topic_match.topic_id,
+            )
+            grounding_memory = next((
+                item for item in retrieved
+                if (
+                    "autobiographical" in item.tags
+                    and not item.content.casefold().startswith("i heard you say")
+                    and not ({"sensorium", "ambient_event"} & item.tags)
+                )
+            ), None)
+            topic_activity = (
+                self.life_state.current_activity
+                if self.life_state.current_activity not in {
+                    "", "quiet observation", "responding to interruption",
+                }
+                else ""
+            )
+            offline_topic_plan = self.offline_topics.plan(
+                match=offline_topic_match,
+                thread=offline_topic_thread,
+                input_act=input_act,
+                turn=self.timestep,
+                pressure=top_pressure.magnitude if top_pressure else 0.0,
+                familiarity=self.relationship.familiarity,
+                memory_id=getattr(grounding_memory, "id", None),
+                memory_text=getattr(grounding_memory, "content", None),
+                activity=topic_activity,
+            )
+        self._last_offline_topic_plan = offline_topic_plan
         realized_conversation = (
             selected_conversation
             if selected_conversation is not None
@@ -2668,6 +2722,7 @@ class InteriorEngine:
                     and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}
                     else user_text[:160] if selected_conversation
                     and selected_conversation.move in {"probe", "compare", "speculate", "express_curiosity"}
+                    else offline_topic_match.label if offline_topic_match.topic_id
                     else None
                 ),
                 activity_transition=performance_plan.activity_transition,
@@ -2716,6 +2771,10 @@ class InteriorEngine:
                     "conversation_candidate": selected_conversation.to_dict() if selected_conversation else None,
                     "conversation_continuity": continuity_state.to_dict(),
                     "conversation_choreography": choreography_payload,
+                    "offline_topic_match": offline_topic_match.to_dict(),
+                    "offline_topic_plan": (
+                        offline_topic_plan.to_dict() if offline_topic_plan else None
+                    ),
                     "active_actor_id": self.active_actor_id,
                 },
                 deception_obligations=[],
@@ -2746,6 +2805,15 @@ class InteriorEngine:
                 "suppression_trace": [trace.to_dict() for trace in suppression_traces],
                 "memory_types": ["validation"],
             })
+
+        if offline_topic_thread is not None and action_decision.action_kind == "speak" and response:
+            record_topic_turn(
+                offline_topic_thread,
+                plan=offline_topic_plan,
+                input_act=input_act,
+                turn=self.timestep,
+                modality=str(getattr(self.renderer, "_actual_backend", "offline")),
+            )
 
         model_call_metrics = {
             "private_cognition_renderer_called": cognition_execution.renderer_called,
@@ -2804,6 +2872,8 @@ class InteriorEngine:
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
             "conversation_choreography": choreography_payload,
+            "offline_topic_match": offline_topic_match.to_dict(),
+            "offline_topic_plan": offline_topic_plan.to_dict() if offline_topic_plan else None,
             "conversation_initiative": initiative_assessment.to_dict(),
             "initiative_memory_eligibility": initiative_memory_eligibility,
             "self_monitor": self_monitor.to_dict(),
@@ -2848,6 +2918,8 @@ class InteriorEngine:
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
             "conversation_choreography": choreography_payload,
+            "offline_topic_match": offline_topic_match.to_dict(),
+            "offline_topic_plan": offline_topic_plan.to_dict() if offline_topic_plan else None,
             "conversation_initiative": initiative_assessment.to_dict(),
             "initiative_memory_eligibility": initiative_memory_eligibility,
             "self_monitor": self_monitor.to_dict(),
