@@ -1,6 +1,8 @@
 schema_version: 1
 scenario_id: kiki_pretorius_crossplay_30_days
 description: Alternating isolated Kiki and Pretorius developmental crossplay.
+# This empty-crossplay fixture deliberately seeds no genesis or autobiographical
+# episodes. Mirrored dialogue memories are ineligible initiative sources by design.
 total_days: 30
 max_turns_per_day: 2
 stable_seed: 1803

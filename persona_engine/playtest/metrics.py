@@ -91,30 +91,46 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         }
         for item in diagnostics
     )
-    signatures_by_participant: dict[str, list[str]] = defaultdict(list)
-    for item in diagnostics:
-        if item.get("move_signature"):
-            signatures_by_participant[str(item.get("participant_id"))].append(str(item["move_signature"]))
-    semantic_repeats = sum(
-        current == previous
-        for values in signatures_by_participant.values()
-        for previous, current in zip(values, values[1:])
-    )
-    semantic_comparisons = sum(max(0, len(values) - 1) for values in signatures_by_participant.values())
+    previous_move: dict[str, str] = {}
+    previous_trajectory: dict[str, str] = {}
+    semantic_repeat_indices: set[int] = set()
+    trajectory_repeat_indices: set[int] = set()
+    semantic_comparisons = 0
+    trajectory_comparisons = 0
+    for index, item in enumerate(diagnostics):
+        participant = str(item.get("participant_id"))
+        move_signature = str(item.get("move_signature") or "")
+        trajectory_signature = str(item.get("trajectory_signature") or "")
+        if move_signature:
+            if participant in previous_move:
+                semantic_comparisons += 1
+                if previous_move[participant] == move_signature:
+                    semantic_repeat_indices.add(index)
+            previous_move[participant] = move_signature
+        if trajectory_signature:
+            if participant in previous_trajectory:
+                trajectory_comparisons += 1
+                if previous_trajectory[participant] == trajectory_signature:
+                    trajectory_repeat_indices.add(index)
+            previous_trajectory[participant] = trajectory_signature
+    semantic_repeats = len(semantic_repeat_indices)
     semantic_repeat_rate = semantic_repeats / semantic_comparisons if semantic_comparisons else 0.0
-    trajectory_by_participant: dict[str, list[str]] = defaultdict(list)
-    for item in diagnostics:
-        if item.get("trajectory_signature"):
-            trajectory_by_participant[str(item.get("participant_id"))].append(
-                str(item["trajectory_signature"])
-            )
-    trajectory_repeats = sum(
-        current == previous
-        for values in trajectory_by_participant.values()
-        for previous, current in zip(values, values[1:])
-    )
-    trajectory_comparisons = sum(max(0, len(values) - 1) for values in trajectory_by_participant.values())
+    trajectory_repeats = len(trajectory_repeat_indices)
     trajectory_repeat_rate = trajectory_repeats / trajectory_comparisons if trajectory_comparisons else 0.0
+    repeat_union = semantic_repeat_indices | trajectory_repeat_indices
+    repeat_both = semantic_repeat_indices & trajectory_repeat_indices
+    for index, item in enumerate(diagnostics):
+        if isinstance(item, dict):
+            semantic_flag = index in semantic_repeat_indices
+            trajectory_flag = index in trajectory_repeat_indices
+            item["semantic_repeat_flag"] = semantic_flag
+            item["trajectory_repeat_flag"] = trajectory_flag
+            item["repeat_overlap_class"] = (
+                "both" if semantic_flag and trajectory_flag
+                else "semantic_only" if semantic_flag
+                else "trajectory_only" if trajectory_flag
+                else "neither"
+            )
     strategies = [str(item["rhetorical_strategy"]) for item in diagnostics if item.get("rhetorical_strategy")]
     strategy_counts = Counter(strategies)
     strategy_total = sum(strategy_counts.values())
@@ -125,6 +141,16 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
     dominant_strategy_share = (
         max(strategy_counts.values()) / strategy_total if strategy_total else 0.0
     )
+    initiative_source_outcomes: dict[str, Counter[str]] = defaultdict(Counter)
+    latest_memory_eligibility: dict[str, dict[str, Any]] = {}
+    for item in diagnostics:
+        source = str(item.get("initiative_deciding_source_kind") or "none")
+        outcome = item.get("initiative_outcome")
+        if outcome:
+            initiative_source_outcomes[source][str(outcome)] += 1
+        latest_memory_eligibility[str(item.get("participant_id"))] = dict(
+            item.get("initiative_memory_eligibility") or {}
+        )
     metrics = {
         "turn_count": len(turns), "day_count": max((item.day for item in turns), default=0),
         "speech_action_ratio": round(speech / max(1, len(turns)), 6),
@@ -161,6 +187,15 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         "semantic_move_repeat_rate": round(semantic_repeat_rate, 6),
         "trajectory_repeat_count": trajectory_repeats,
         "trajectory_repeat_rate": round(trajectory_repeat_rate, 6),
+        "semantic_trajectory_overlap_counts": {
+            "both": len(repeat_both),
+            "semantic_only": len(semantic_repeat_indices - trajectory_repeat_indices),
+            "trajectory_only": len(trajectory_repeat_indices - semantic_repeat_indices),
+            "neither": max(0, len(diagnostics) - len(repeat_union)),
+        },
+        "semantic_trajectory_overlap_rate": round(
+            len(repeat_both) / len(repeat_union) if repeat_union else 0.0, 6
+        ),
         "behavioral_strategy_repeat_count": sum(
             current == previous
             for values in (
@@ -182,6 +217,34 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         ).items())),
         "memory_role_distribution": dict(sorted(Counter(
             str(item.get("memory_role")) for item in diagnostics if item.get("memory_role")
+        ).items())),
+        "initiative_outcome_counts": dict(sorted(Counter(
+            str(item.get("initiative_outcome")) for item in diagnostics
+            if item.get("initiative_outcome")
+        ).items())),
+        "initiative_source_distribution": dict(sorted(Counter(
+            str(item.get("initiative_source_kind")) for item in diagnostics
+            if item.get("initiative_source_kind")
+        ).items())),
+        "initiative_eligible_source_distribution": dict(sorted(Counter(
+            source
+            for item in diagnostics
+            for source in item.get("initiative_eligible_sources", ())
+        ).items())),
+        "initiative_source_outcome_counts": {
+            source: dict(sorted(counts.items()))
+            for source, counts in sorted(initiative_source_outcomes.items())
+        },
+        "initiative_memory_eligibility_by_participant": dict(
+            sorted(latest_memory_eligibility.items())
+        ),
+        "silence_reason_counts": dict(sorted(Counter(
+            str(item.get("silence_reason")) for item in diagnostics
+            if item.get("silence_reason")
+        ).items())),
+        "interaction_outcome_counts": dict(sorted(Counter(
+            str(item.get("interaction_outcome")) for item in diagnostics
+            if item.get("interaction_outcome")
         ).items())),
         "topic_transition_counts": {
             reason: sum(item.get("topic_transition_reason") == reason for item in diagnostics)

@@ -74,6 +74,10 @@ class DevelopmentalPlaytestHost:
         replay_index = 0
         for day in range(1, self.scenario.total_days + 1):
             event_time += 86400.0
+            for agent in self.agents.values():
+                advance = getattr(agent, "advance_time", None)
+                if callable(advance):
+                    advance(86400.0, now=event_time)
             for event in [item for item in self.scenario.scheduled_events if item.day == day]:
                 for target in event.targets:
                     if target in self.agents:
@@ -246,9 +250,25 @@ class DevelopmentalPlaytestHost:
         continuity = result.get("conversation_continuity") or {}
         active_topic = continuity.get("active_topic") or {}
         choreography = result.get("conversation_choreography") or {}
+        initiative = result.get("conversation_initiative") or {}
+        initiative_sources = initiative.get("eligible_sources") or ()
+        deciding_source = (initiative.get("proposal") or {}).get("source_kind")
+        if not deciding_source and initiative_sources:
+            deciding_source = initiative_sources[0].get("source_kind")
         performance = result.get("performance_plan") or {}
+        initiative_outcome = initiative.get("outcome")
+        action_kind = action.get("action_kind")
+        silence_reason = None
+        if action_kind == "silence":
+            silence_reason = {
+                "no_source_eligible": "nothing_eligible",
+                "proposal_below_threshold": "proposal_below_threshold",
+                "proposal_inhibited": "proposal_inhibited",
+                "proposal_denied_by_synthesis": "proposal_denied",
+                "proposal_selected": "selected_silence",
+            }.get(str(initiative_outcome), "noninitiative_silence")
         return {
-            "day": day, "participant_id": participant_id, "action_kind": action.get("action_kind"),
+            "day": day, "participant_id": participant_id, "action_kind": action_kind,
             "communicative_function": action.get("communicative_function"),
             "selected_regulation": action.get("selected_regulation_id"),
             "selected_skill": action.get("selected_skill_id"),
@@ -273,6 +293,23 @@ class DevelopmentalPlaytestHost:
             "response_span": choreography.get("response_span"),
             "answer_shape": choreography.get("answer_shape"),
             "memory_role": choreography.get("memory_role"),
+            "initiative_outcome": initiative_outcome,
+            "initiative_source_kind": (initiative.get("proposal") or {}).get("source_kind"),
+            "initiative_deciding_source_kind": deciding_source or "none",
+            "initiative_eligible_source_count": len(initiative.get("eligible_sources") or ()),
+            "initiative_eligible_sources": tuple(
+                str(item.get("source_kind"))
+                for item in initiative.get("eligible_sources") or ()
+            ),
+            "initiative_memory_eligibility": dict(
+                result.get("initiative_memory_eligibility") or {}
+            ),
+            "silence_reason": silence_reason,
+            "interaction_outcome": (
+                "speech" if action_kind == "speak"
+                else "silence" if action_kind == "silence"
+                else "nonverbal_selected"
+            ),
             "resolution_policy": choreography.get("resolution_policy"),
             "behavioral_tendency_id": conversation.get("tendency_id"),
             "activity_transition": performance.get("activity_transition"),

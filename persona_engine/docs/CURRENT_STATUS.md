@@ -52,6 +52,7 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - Grounded life callbacks expose actual elapsed activity and ordinary open-loop returns. Every character possesses a journal artifact for private notes and recall, while offline claims that a question was noted create an auditable World Authority journal action rather than unsolicited diary exposition.
 - Per-actor conversation continuity tracks one active and two background topics, topic depth/freshness/emotional importance, one obligation, initiative, semantic move signatures, and explicit transition reasons. Obligations precede optional character moves, and no-extension turns are first-class.
 - Conversational Plasticity adds a replay-authoritative choreography record between action and performance. It derives conversational energy from organism state, varies bounded rhetorical trajectories, and measures behavioral repetition separately from wording repetition.
+- Accelerated playtests now advance bounded organism time rather than only changing calendar labels. Grounded conversational initiative assesses five existing state sources, applies per-actor source cooldowns, competes through situated synthesis, and reports why a proposal or silence occurred.
 
 ## Current Tests
 
@@ -64,7 +65,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-373 passed, 1 skipped
+382 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -88,10 +89,10 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
 - Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
 - Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
-- Corrected thirty-day crossplay executes and records each character response once, and nonverbal performance is no longer fed back as spoken markup. The resulting 61-event transcript has zero exact speech or nonverbal repeats, but remains a failed illusion test: silence reaches roughly 62%, semantic move shapes repeat on roughly 78% of comparable turns, full trajectories repeat on roughly 59%, and no conversational memory is selected. The earlier 59-to-27 exact-repeat comparison conflated duplicated host execution and serialized performance with dialogue, so it is retained only as debugging history rather than a product-quality claim.
+- Corrected thirty-day crossplay executes and records each response once. Before grounded initiative it showed roughly 62% silence, 78% semantic-move repetition, and 59% trajectory repetition. After bounded organism-time advancement and initiative, the current probe remains at zero exact repeats while semantic repetition and trajectory repetition both fall to roughly 47%. Silence remains roughly 62% and is now attributable by cause. No conversational memory is selected because this closed scenario contains no seeded autobiographical material relevant to the active exchange; the source is measured as unavailable rather than silently retuned.
 
 ## Recommended Next Work
 
 1. Run blind human illusion reviews against Pretorius and Kiki and turn visible failures into minimized regression scenarios.
-2. Add a bounded autonomous initiative path and world-grounded topic renewal before tuning more renderer variation; closed crossplay currently has no external novelty source and settles into reciprocal acknowledgment.
+2. Run blind reviews of grounded initiative traces, especially proposal denials and the remaining high silence share, before changing thresholds. Seed autobiographical material only in scenarios intended to test memory initiative.
 3. Extend C99 conformance fixtures into native cross-language replay comparisons.

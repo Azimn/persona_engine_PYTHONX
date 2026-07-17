@@ -133,6 +133,13 @@ obligation, extension, target, intention, withheld content, or memory access.
 It is replay-authoritative for realization but is neither canonical cognition
 nor a canonical world record.
 
+Conversational initiative is a bounded source assessor, not a second
+executive. It may propose one optional move from contextual autobiographical
+memory, a due open loop, current intrinsic activity, a supported relationship
+expectation, or a recent world/life change. The current obligation remains
+first, situated synthesis may reject the proposal, and silence remains valid.
+It may not invent a topic, fact, memory, goal, or action.
+
 ### Semantic Prior Boundary
 
 The read-only semantic substrate may supply generic concept features,

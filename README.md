@@ -35,6 +35,7 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Grounded life callbacks can report actual elapsed activity and resume ordinary open loops. Every character possesses a journal artifact for private recall; cartridges govern its name and note voice, while conversation mentions require a relevant selected action.
 - A bounded per-actor conversation blackboard preserves topic depth, obligations, initiative, and semantic move variety so answers and acknowledgments precede at most one optional character move; turns may end without a follow-up question.
 - Deterministic conversational choreography varies rhetorical strategy, trajectory, energy, response span, pacing, disclosure, activity relation, and memory role after action selection without becoming another executive.
+- Bounded conversational initiative lets contextual memory, open loops, intrinsic activity, relationship expectations, or recent world changes propose one optional move; synthesis may select it, inhibit it, or preserve silence with an explicit reason.
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
@@ -90,7 +91,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-373 passed, 1 skipped
+382 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -106,6 +107,7 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/sel
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/autobiographical_reconsolidation_weeks.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
 python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/steady_collaborator_30_days.yaml --actor-mode scripted --judge deterministic --output-dir playtest_output/steady
+python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/initiative_world_changes_7_days.yaml --actor-mode character --judge deterministic --output-dir playtest_output/initiative
 ```
 
 Compare a fresh Pretorius with the same organism after authored history has

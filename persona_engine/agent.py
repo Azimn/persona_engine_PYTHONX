@@ -81,6 +81,9 @@ class CharacterAgent:
     def idle(self):
         self.engine.run_idle_cycle()
 
+    def advance_time(self, elapsed_seconds: float, now: float | None = None):
+        return self.engine.advance_simulated_time(elapsed_seconds, now=now)
+
     def record_world_event(self, **kwargs):
         event = self.engine.record_world_event(**kwargs)
         self.engine._persist()

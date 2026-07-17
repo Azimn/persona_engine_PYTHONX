@@ -90,6 +90,10 @@ from .offline_conversation import (
     parse_behavioral_tendencies, classify_input, topic_key,
 )
 from .conversation_continuity import ConversationContinuityStore
+from .conversation_initiative import (
+    InitiativeAssessment, assess_conversation_initiative,
+    validate_initiative_realization,
+)
 from .conversation_choreography import (
     ConversationChoreographyPlan, ConversationChoreographyPlanner,
 )
@@ -223,6 +227,7 @@ class InteriorEngine:
         self.self_monitor = SelfMonitor(self.self_monitor_profile)
         self._last_self_monitor: SelfMonitorResult | None = None
         self._last_conversation_candidate: ConversationCandidate | None = None
+        self._last_initiative_assessment: InitiativeAssessment | None = None
         self.behavioral_tendencies = parse_behavioral_tendencies(
             profile_source.get("behavioral_richness")
         )
@@ -726,14 +731,49 @@ class InteriorEngine:
         }
         self.timestep += steps
 
+    def advance_simulated_time(self, elapsed_seconds: float, now: float | None = None) -> dict[str, Any]:
+        """Advance organism time through bounded summary steps for hosts and replay."""
+
+        elapsed = max(0.0, float(elapsed_seconds))
+        steps = min(12, max(1, int(elapsed / 21600.0))) if elapsed > 0.0 else 0
+        target_time = float(now) if now is not None else time.time()
+        for index in range(steps):
+            # Catch-up is intentionally summarized. Feeding a full day into a
+            # single body tick would model 24 hours of uninterrupted exertion.
+            cycle_time = target_time - float(steps - index - 1) * 5.0
+            self._run_single_idle_cycle(
+                elapsed_seconds=5.0, include_vitality=False, now=cycle_time,
+            )
+        life_events = self.vitality.catch_up(
+            self.life_state,
+            self.timestep,
+            elapsed,
+            max_steps=12,
+            whim_weights=self._whim_weights(),
+        )
+        self.experiences.decay(target_time)
+        self.timestep += steps
+        self.last_catch_up_summary = {
+            "elapsed_seconds": round(elapsed, 3),
+            "tide_steps": steps,
+            "life_steps": self.life_state.last_catch_up_steps,
+            "life_events": [event.to_dict() for event in life_events],
+            "clock_source": "simulated",
+        }
+        self._persist()
+        return dict(self.last_catch_up_summary)
+
     def run_idle_cycle(self):
         self._run_single_idle_cycle(elapsed_seconds=5.0)
         self.timestep += 1
         self.last_wall_time = time.time()
         self._persist()
 
-    def _run_single_idle_cycle(self, elapsed_seconds: float = 5.0, include_vitality: bool = True):
-        now = time.time()
+    def _run_single_idle_cycle(
+        self, elapsed_seconds: float = 5.0, include_vitality: bool = True,
+        now: float | None = None,
+    ):
+        now = float(now) if now is not None else time.time()
         total_pressure = sum(p.magnitude for p in self.pressures.pressures.values())
         self.energy = max(0.1, self.energy - total_pressure * 0.01)
         self.restlessness = min(1.0, self.restlessness + 0.02)
@@ -752,7 +792,7 @@ class InteriorEngine:
         self.habits.decay_all()
         self.symbols.lifecycle_tick(now)
         self.memory.compress_old(now)
-        proposal = self._advance_intrinsic_motivation()
+        proposal = self._advance_intrinsic_motivation(now=now)
         if proposal is not None:
             self._resolve_idle_intrinsic_proposal(proposal, now)
         if include_vitality:
@@ -816,7 +856,9 @@ class InteriorEngine:
         weights = vitality.get("whim_weights", {}) if isinstance(vitality, dict) else {}
         return {str(key): float(value) for key, value in weights.items()} if isinstance(weights, dict) else {}
 
-    def _advance_intrinsic_motivation(self, force: bool = False) -> IntrinsicProposal | None:
+    def _advance_intrinsic_motivation(
+        self, force: bool = False, now: float | None = None,
+    ) -> IntrinsicProposal | None:
         proposal = self.intrinsic.select(
             self.intrinsic_state,
             companion_id=str((self.cartridge_data or {}).get("metadata", {}).get("entity_id", self.identity.name)),
@@ -833,7 +875,7 @@ class InteriorEngine:
             name=proposal.intention,
             priority=max(0.0, min(1.0, proposal.utility / 2.0)),
             source=f"intrinsic:{proposal.proposal_id}",
-            created_at=time.time(),
+            created_at=float(now) if now is not None else time.time(),
             expires_at=None,
             requires_user_context=False,
         ))
@@ -2072,6 +2114,43 @@ class InteriorEngine:
             float(item.reasons.get("direct_symbolic_cue", 0.0)) >= 1.0
             for item in candidate_memory_retrievals
         )
+        initiative_assessment = assess_conversation_initiative(
+            actor_id=self.active_actor_id,
+            turn=self.timestep,
+            obligation=continuity_state.pending_obligation,
+            initiative_budget=continuity_state.initiative_budget,
+            contextual_memories=candidate_memory_retrievals,
+            open_loop=open_loop,
+            intrinsic_proposal=self._last_intrinsic_proposal,
+            relationship_expectations=tuple(self.relationship_expectations.items.values()),
+            world_changes=tuple([
+                *[
+                    item.to_dict() for item in self.world_events.recent(8)
+                    if item.source not in {"user_input", "renderer_output"}
+                    and item.event_type not in {"player_interruption", "shared_speech"}
+                ],
+                *[item.to_dict() for item in self.life_state.events[-2:]],
+            ]),
+            recent_source_ids=continuity_state.recent_initiative_source_ids,
+        )
+        initiative_memory_eligibility = {
+            "total_memories_in_store": len(self.memory.memories),
+            "retrieved_candidate_count": len(retrievals),
+            "pre_topic_autobiographical_count": len(prior_memory_retrievals),
+            "relevance_pass_count": len(contextual_prior_memory_retrievals),
+            "final_eligible_count": sum(
+                item.source_kind == "contextual_memory"
+                for item in initiative_assessment.eligible_sources
+            ),
+            "retrieved_candidate_ids": tuple(item.memory.id for item in retrievals),
+            "pre_topic_autobiographical_ids": tuple(
+                item.memory.id for item in prior_memory_retrievals
+            ),
+            "relevance_pass_ids": tuple(
+                item.memory.id for item in contextual_prior_memory_retrievals
+            ),
+        }
+        self._last_initiative_assessment = initiative_assessment
         conversation_candidate = derive_conversation_candidate(
             text=user_text,
             actor_id=self.active_actor_id,
@@ -2094,6 +2173,10 @@ class InteriorEngine:
             elapsed_since_contact=float(self.last_catch_up_summary.get("elapsed_seconds", 0.0)),
             life_callback_history=self._life_callback_history,
             continuity_state=continuity_state,
+            initiative_proposal=(
+                initiative_assessment.proposal
+                if initiative_assessment.outcome == "proposal_available" else None
+            ),
         )
         self._last_conversation_candidate = conversation_candidate
         if conversation_candidate.move != "basic_reply":
@@ -2243,6 +2326,27 @@ class InteriorEngine:
             else None
         )
         effective_conversation_candidate = selected_conversation or conversation_candidate
+        if initiative_assessment.proposal is not None:
+            if (
+                selected_conversation is not None
+                and selected_conversation.initiative_proposal_id
+                == initiative_assessment.proposal.proposal_id
+            ):
+                initiative_assessment = initiative_assessment.with_outcome(
+                    "proposal_selected", "initiative:selected_by_synthesis",
+                )
+                continuity_state.record_initiative_source(
+                    initiative_assessment.proposal.source_id
+                )
+            elif conversation_candidate.initiative_proposal_id is not None:
+                initiative_assessment = initiative_assessment.with_outcome(
+                    "proposal_denied_by_synthesis", "initiative:not_selected_by_synthesis",
+                )
+            elif initiative_assessment.outcome == "proposal_available":
+                initiative_assessment = initiative_assessment.with_outcome(
+                    "proposal_inhibited", "initiative:conversation_gate",
+                )
+        self._last_initiative_assessment = initiative_assessment
         self._last_conversation_candidate = effective_conversation_candidate
         if selected_conversation and selected_conversation.tendency_id:
             self._behavior_tendency_history = [
@@ -2269,6 +2373,16 @@ class InteriorEngine:
             selected_ritual=selected_ritual,
             selected_conversation=selected_conversation,
         )
+        if (
+            initiative_assessment.outcome == "proposal_selected"
+            and initiative_assessment.proposal is not None
+            and selected_conversation is not None
+        ):
+            validate_initiative_realization(
+                proposal=initiative_assessment.proposal,
+                conversation_candidate=selected_conversation,
+                action_decision=action_decision,
+            )
         transition_reason = None
         if input_act == "leave_or_return" and "back" not in user_text.lower() and "return" not in user_text.lower():
             transition_reason = "interrupted"
@@ -2690,6 +2804,8 @@ class InteriorEngine:
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
             "conversation_choreography": choreography_payload,
+            "conversation_initiative": initiative_assessment.to_dict(),
+            "initiative_memory_eligibility": initiative_memory_eligibility,
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),
@@ -2732,6 +2848,8 @@ class InteriorEngine:
             "conversation_candidate": effective_conversation_candidate.to_dict(),
             "conversation_continuity": continuity_state.to_dict(),
             "conversation_choreography": choreography_payload,
+            "conversation_initiative": initiative_assessment.to_dict(),
+            "initiative_memory_eligibility": initiative_memory_eligibility,
             "self_monitor": self_monitor.to_dict(),
             "development": self._development_summary(),
             "semantic_activation": semantic_frame.to_dict(),

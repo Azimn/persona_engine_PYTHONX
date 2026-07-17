@@ -68,6 +68,32 @@ def test_semantic_stagnation_fails_even_when_exact_text_does_not_repeat():
     assert any(item.code == "conversation_stagnation" for item in findings)
 
 
+def test_semantic_and_trajectory_repeat_overlap_is_reported_per_turn():
+    turns = tuple(
+        ObservableTurn(
+            index, 1, "kiki", "pretorius", f"Turn {index}",
+            "character", "speak", None, (), {},
+        )
+        for index in range(1, 5)
+    )
+    diagnostics = [
+        {"participant_id": "kiki", "move_signature": "a", "trajectory_signature": "x"},
+        {"participant_id": "kiki", "move_signature": "a", "trajectory_signature": "x"},
+        {"participant_id": "kiki", "move_signature": "b", "trajectory_signature": "x"},
+        {"participant_id": "kiki", "move_signature": "b", "trajectory_signature": "y"},
+    ]
+
+    metrics, _ = evaluate_transcript(turns, diagnostics)
+
+    assert metrics["semantic_trajectory_overlap_counts"] == {
+        "both": 1, "semantic_only": 1, "trajectory_only": 1, "neither": 1,
+    }
+    assert metrics["semantic_trajectory_overlap_rate"] == pytest.approx(1 / 3, abs=1e-6)
+    assert [item["repeat_overlap_class"] for item in diagnostics] == [
+        "neither", "both", "trajectory_only", "semantic_only",
+    ]
+
+
 def test_ollama_prompt_contains_observable_context_only():
     fallback = ScriptedHumanActor(actor_id="human", policy=HUMAN_POLICIES["steady_collaborator"])
     actor = OllamaHumanActor(actor_id="human", config=OllamaActorConfig(), fallback=fallback)

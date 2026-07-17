@@ -17,6 +17,7 @@ MAX_CONTINUITY_ACTORS = 256
 MAX_BACKGROUND_TOPICS = 2
 MAX_RECENT_SIGNATURES = 8
 MAX_RECENT_TRAJECTORIES = 8
+MAX_RECENT_INITIATIVE_SOURCES = 8
 
 _STOP_WORDS = frozenset({
     "about", "after", "again", "could", "from", "have", "hello", "into",
@@ -85,6 +86,7 @@ class ConversationContinuityState:
     initiative_budget: float = 0.45
     recent_move_signatures: list[str] = field(default_factory=list)
     recent_trajectory_signatures: list[str] = field(default_factory=list)
+    recent_initiative_source_ids: list[str] = field(default_factory=list)
     last_transition_reason: str | None = None
     last_action_kind: str | None = None
 
@@ -101,6 +103,8 @@ class ConversationContinuityState:
             raise ValueError("move signature bound exceeded")
         if len(self.recent_trajectory_signatures) > MAX_RECENT_TRAJECTORIES:
             raise ValueError("trajectory signature bound exceeded")
+        if len(self.recent_initiative_source_ids) > MAX_RECENT_INITIATIVE_SOURCES:
+            raise ValueError("initiative source history bound exceeded")
         if self.last_transition_reason is not None and self.last_transition_reason not in TRANSITION_REASONS:
             raise ValueError("unsupported topic transition reason")
 
@@ -216,6 +220,14 @@ class ConversationContinuityState:
             *self.recent_trajectory_signatures, signature,
         ][-MAX_RECENT_TRAJECTORIES:]
 
+    def record_initiative_source(self, source_id: str) -> None:
+        source_id = str(source_id)[:128]
+        if not source_id:
+            return
+        self.recent_initiative_source_ids = [
+            *self.recent_initiative_source_ids, source_id,
+        ][-MAX_RECENT_INITIATIVE_SOURCES:]
+
     def memory_context_score(self, content: str) -> float:
         if not self.active_topic:
             return 0.0
@@ -243,6 +255,7 @@ class ConversationContinuityState:
             "initiative_budget": round(self.initiative_budget, 6),
             "recent_move_signatures": self.recent_move_signatures[-MAX_RECENT_SIGNATURES:],
             "recent_trajectory_signatures": self.recent_trajectory_signatures[-MAX_RECENT_TRAJECTORIES:],
+            "recent_initiative_source_ids": self.recent_initiative_source_ids[-MAX_RECENT_INITIATIVE_SOURCES:],
             "last_transition_reason": self.last_transition_reason,
             "last_action_kind": self.last_action_kind,
         }
@@ -266,6 +279,9 @@ class ConversationContinuityState:
             recent_trajectory_signatures=[
                 str(item)[:160] for item in value.get("recent_trajectory_signatures", ())
             ][-MAX_RECENT_TRAJECTORIES:],
+            recent_initiative_source_ids=[
+                str(item)[:128] for item in value.get("recent_initiative_source_ids", ())
+            ][-MAX_RECENT_INITIATIVE_SOURCES:],
             last_transition_reason=value.get("last_transition_reason"),
             last_action_kind=value.get("last_action_kind"),
         )

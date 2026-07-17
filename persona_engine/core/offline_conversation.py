@@ -8,6 +8,7 @@ import re
 from typing import Any, Mapping, Sequence
 
 from .conversation_continuity import OBLIGATIONS, OPTIONAL_MOVES, obligation_for_input
+from .conversation_initiative import InitiativeProposal
 
 
 INPUT_ACTS = frozenset({
@@ -94,6 +95,8 @@ class ConversationCandidate:
     no_extension_reason: str | None = None
     active_topic_id: str | None = None
     topic_transition_reason: str | None = None
+    initiative_proposal_id: str | None = None
+    initiative_source_kind: str | None = None
 
     def __post_init__(self) -> None:
         if self.input_act not in INPUT_ACTS:
@@ -125,6 +128,8 @@ class ConversationCandidate:
         raw.setdefault("no_extension_reason", None)
         raw.setdefault("active_topic_id", None)
         raw.setdefault("topic_transition_reason", None)
+        raw.setdefault("initiative_proposal_id", None)
+        raw.setdefault("initiative_source_kind", None)
         return cls(**raw)
 
 
@@ -237,6 +242,7 @@ def derive_conversation_candidate(
     elapsed_since_contact: float = 0.0,
     life_callback_history: Sequence[str] = (),
     continuity_state: Any | None = None,
+    initiative_proposal: InitiativeProposal | None = None,
 ) -> ConversationCandidate:
     act = classify_input(text)
     key = topic_key(text)
@@ -259,6 +265,10 @@ def derive_conversation_candidate(
         pressure=dominant_pressure,
         turn=turn,
         recent_history=tendency_history,
+    )
+    initiative_allowed = bool(
+        initiative_proposal is not None
+        and obligation_for_input(act) in {"acknowledge", "follow_up"}
     )
     if " ".join(str(text).lower().split()).strip(" .!?") == "fine":
         selected_tendency = None
@@ -352,7 +362,32 @@ def derive_conversation_candidate(
 
     extension_move = None
     no_extension_reason = None
-    if selected_tendency is not None and move == selected_tendency.preferred_move:
+    initiative_wins = bool(
+        initiative_allowed
+        and move in {
+            "basic_reply", "acknowledge_nonverbal",
+            selected_tendency.preferred_move if selected_tendency else "",
+        }
+        and (
+            selected_tendency is None
+            or initiative_proposal.strength >= max(0.0, min(1.0, 0.64 + selected_tendency.bias))
+        )
+    )
+    if initiative_wins and initiative_proposal is not None:
+        allowed, no_extension_reason = (
+            continuity_state.extension_allowed(initiative_proposal.proposed_move)
+            if continuity_state is not None else (True, None)
+        )
+        extension_move = initiative_proposal.proposed_move if allowed else None
+        move = "honor_obligation"
+        strength = max(strength, initiative_proposal.strength)
+        response_value = max(response_value, 0.72)
+        selected_tendency = None
+        reasons.append(
+            f"initiative:selected:{initiative_proposal.source_kind}"
+            if extension_move else str(no_extension_reason or "initiative:inhibited")
+        )
+    elif selected_tendency is not None and move == selected_tendency.preferred_move:
         allowed, no_extension_reason = (
             continuity_state.extension_allowed(move)
             if continuity_state is not None else (True, None)
@@ -424,6 +459,12 @@ def derive_conversation_candidate(
         ),
         topic_transition_reason=(
             continuity_state.last_transition_reason if continuity_state is not None else None
+        ),
+        initiative_proposal_id=(
+            initiative_proposal.proposal_id if initiative_wins and extension_move else None
+        ),
+        initiative_source_kind=(
+            initiative_proposal.source_kind if initiative_wins and extension_move else None
         ),
     )
 
