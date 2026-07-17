@@ -140,7 +140,11 @@ class ConversationContinuityState:
             or anaphoric_continuation
         ):
             self.active_topic.depth = min(12, self.active_topic.depth + 1)
-            self.active_topic.freshness = 1.0
+            novelty = max(0.0, min(1.0, 1.0 - similarity))
+            self.active_topic.freshness = min(
+                1.0,
+                self.active_topic.freshness * 0.72 + max(0.12, novelty * 0.28),
+            )
             self.active_topic.emotional_importance = max(
                 self.active_topic.emotional_importance,
                 max(0.0, min(1.0, float(emotional_importance))),
@@ -191,6 +195,16 @@ class ConversationContinuityState:
             self.last_transition_reason = transition_reason
             if transition_reason in {"completed", "exhausted", "avoided"} and self.active_topic:
                 self.active_topic.freshness = max(0.0, self.active_topic.freshness - 0.35)
+            if transition_reason == "exhausted" and self.active_topic:
+                exhausted = self.active_topic
+                self.background_topics = [
+                    exhausted,
+                    *[
+                        item for item in self.background_topics
+                        if item.topic_id != exhausted.topic_id
+                    ],
+                ][:MAX_BACKGROUND_TOPICS]
+                self.active_topic = None
         self.last_action_kind = str(action_kind)[:32] if action_kind else None
         self.pending_obligation = None
 

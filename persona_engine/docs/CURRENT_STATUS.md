@@ -64,7 +64,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-367 passed, 1 skipped
+373 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -88,10 +88,10 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Semantic activation currently requires host-supplied structured concept IDs; it does not extract concepts from prose.
 - Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
 - Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
-- Thirty-day closed-loop character crossplay still exposes deterministic offline repetition, but conversational plasticity reduces the current Kiki/Pretorius run from 59 to 27 exact repeats across 120 observable turns while holding full trajectory repetition to 1. This is a material improvement, not completion; semantic move repetition remains visible and should continue to be judged in blind human play.
+- Corrected thirty-day crossplay executes and records each character response once, and nonverbal performance is no longer fed back as spoken markup. The resulting 61-event transcript has zero exact speech or nonverbal repeats, but remains a failed illusion test: silence reaches roughly 62%, semantic move shapes repeat on roughly 78% of comparable turns, full trajectories repeat on roughly 59%, and no conversational memory is selected. The earlier 59-to-27 exact-repeat comparison conflated duplicated host execution and serialized performance with dialogue, so it is retained only as debugging history rather than a product-quality claim.
 
 ## Recommended Next Work
 
 1. Run blind human illusion reviews against Pretorius and Kiki and turn visible failures into minimized regression scenarios.
-2. Tune only the cartridge tendencies and existing action/performance policies implicated by those failures.
+2. Add a bounded autonomous initiative path and world-grounded topic renewal before tuning more renderer variation; closed crossplay currently has no external novelty source and settles into reciprocal acknowledgment.
 3. Extend C99 conformance fixtures into native cross-language replay comparisons.

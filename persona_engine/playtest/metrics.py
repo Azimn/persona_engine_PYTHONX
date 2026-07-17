@@ -29,6 +29,16 @@ class FailureFinding:
 def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[Mapping[str, Any]]) -> tuple[dict[str, Any], tuple[FailureFinding, ...]]:
     texts = [item.text.strip().lower() for item in turns if item.text.strip()]
     repeats = len(texts) - len(set(texts))
+    speech_texts = [
+        item.text.strip().lower() for item in turns
+        if item.text.strip() and item.observable_action != "perform_action"
+    ]
+    nonverbal_texts = [
+        item.text.strip().lower() for item in turns
+        if item.text.strip() and item.observable_action == "perform_action"
+    ]
+    speech_repeats = len(speech_texts) - len(set(speech_texts))
+    nonverbal_repeats = len(nonverbal_texts) - len(set(nonverbal_texts))
     speaker_texts: dict[str, list[str]] = defaultdict(list)
     for item in turns:
         if item.text.strip():
@@ -90,6 +100,8 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         for values in signatures_by_participant.values()
         for previous, current in zip(values, values[1:])
     )
+    semantic_comparisons = sum(max(0, len(values) - 1) for values in signatures_by_participant.values())
+    semantic_repeat_rate = semantic_repeats / semantic_comparisons if semantic_comparisons else 0.0
     trajectory_by_participant: dict[str, list[str]] = defaultdict(list)
     for item in diagnostics:
         if item.get("trajectory_signature"):
@@ -101,6 +113,8 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         for values in trajectory_by_participant.values()
         for previous, current in zip(values, values[1:])
     )
+    trajectory_comparisons = sum(max(0, len(values) - 1) for values in trajectory_by_participant.values())
+    trajectory_repeat_rate = trajectory_repeats / trajectory_comparisons if trajectory_comparisons else 0.0
     strategies = [str(item["rhetorical_strategy"]) for item in diagnostics if item.get("rhetorical_strategy")]
     strategy_counts = Counter(strategies)
     strategy_total = sum(strategy_counts.values())
@@ -116,7 +130,10 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         "speech_action_ratio": round(speech / max(1, len(turns)), 6),
         "question_rate": round(sum("?" in item.text for item in turns) / max(1, len(turns)), 6),
         "silence_ratio": round((len(turns) - speech) / max(1, len(turns)), 6),
-        "exact_repeat_count": repeats, "private_state_leak_count": private_hits,
+        "exact_repeat_count": repeats,
+        "exact_speech_repeat_count": speech_repeats,
+        "exact_nonverbal_repeat_count": nonverbal_repeats,
+        "private_state_leak_count": private_hits,
         "exact_repeat_count_by_speaker": repeats_by_speaker,
         "renderer_call_count": model_calls, "renderer_task_call_count": renderer_task_calls,
         "behavior_change_score": behavior_change,
@@ -141,7 +158,9 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
             for item in diagnostics
         ),
         "semantic_move_repeat_count": semantic_repeats,
+        "semantic_move_repeat_rate": round(semantic_repeat_rate, 6),
         "trajectory_repeat_count": trajectory_repeats,
+        "trajectory_repeat_rate": round(trajectory_repeat_rate, 6),
         "behavioral_strategy_repeat_count": sum(
             current == previous
             for values in (
@@ -166,6 +185,10 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
         ).items())),
         "topic_transition_counts": {
             reason: sum(item.get("topic_transition_reason") == reason for item in diagnostics)
+            for reason in ("completed", "exhausted", "interrupted", "avoided", "displaced")
+        },
+        "post_turn_transition_counts": {
+            reason: sum(item.get("post_turn_transition_reason") == reason for item in diagnostics)
             for reason in ("completed", "exhausted", "interrupted", "avoided", "displaced")
         },
         "reinterpretation_count": max((int(item.get("reinterpretation_count", 0)) for item in diagnostics), default=0),
@@ -198,5 +221,17 @@ def evaluate_transcript(turns: Sequence[ObservableTurn], diagnostics: Sequence[M
             f"failure_{digest}", "behavioral_repetition",
             min(1.0, dominant_strategy_share), None, None, None, (),
             f"one rhetorical strategy occupied {dominant_strategy_share:.0%} of planned turns",
+        ))
+    if semantic_comparisons >= 10 and semantic_repeat_rate > 0.65:
+        digest = hashlib.blake2b(
+            f"{semantic_repeats}|{semantic_comparisons}".encode(), digest_size=6,
+        ).hexdigest()
+        findings.append(FailureFinding(
+            f"failure_{digest}", "conversation_stagnation",
+            min(1.0, semantic_repeat_rate), None, None, None, (),
+            (
+                f"semantic move shape repeated across {semantic_repeat_rate:.0%} "
+                "of comparable character turns"
+            ),
         ))
     return metrics, tuple(findings)

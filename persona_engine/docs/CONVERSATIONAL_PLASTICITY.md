@@ -51,11 +51,20 @@ answer shapes and selects the least recently repeated valid combination using
 a stable seed. Meaningful repetition remains possible when the available
 action and obligation genuinely constrain the turn.
 
-Playtests measure exact, semantic-move, behavioral-strategy, and full
-trajectory repetition separately. They also report strategy entropy, dominant
-strategy share, energy bands, response spans, and memory roles. Entropy is not
-maximized: a recognizable character should have preferences without collapsing
-into one repeated interaction pattern.
+Playtests measure exact speech, exact nonverbal performance, semantic-move,
+behavioral-strategy, and full-trajectory repetition separately. They also
+report strategy entropy, dominant strategy share, energy bands, response spans,
+memory roles, and both pre-selection and post-turn topic transitions. A high
+semantic-repeat rate is a failure even when every sentence is textually unique.
+Entropy is not maximized: a recognizable character should have preferences
+without collapsing into one repeated interaction pattern.
+
+Character crossplay carries a generated response into the next actor turn
+without executing or recording it twice. Nonverbal performance remains visible
+but reaches the other character as structured nonverbal context, not as a
+literal utterance such as `gesture:minimal`. These host contracts are necessary
+for repetition metrics to describe character behavior rather than harness
+artifacts.
 
 ## C99 Shape
 

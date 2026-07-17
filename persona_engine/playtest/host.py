@@ -68,6 +68,7 @@ class DevelopmentalPlaytestHost:
         visible_world: dict[str, Any] = {}
         event_aliases: dict[tuple[str, str], str] = {}
         actors = self._actors()
+        pending_character_moves: dict[str, ActorMove] = {}
         turn_number = 0
         event_time = 1_700_000_000.0
         replay_index = 0
@@ -102,16 +103,29 @@ class DevelopmentalPlaytestHost:
             for local_turn in range(1, self.scenario.max_turns_per_day + 1):
                 turn_number += 1
                 actor_id, target_id = self._pair_for_turn(turn_number)
+                pending_move = pending_character_moves.pop(actor_id, None)
+                move_already_observed = False
+                context = ActorContext(
+                    self.scenario.scenario_id, actor_id, target_id, turn_number, day,
+                    dict(visible_world), tuple(transcript[-12:]), self._goal_for_day(day),
+                    self._phase_for_day(day), tuple(sorted({"speak", "interrupt", "wait", "leave", "return"})),
+                    self.scenario.stable_seed,
+                )
                 if replay_index < len(self.replay_moves):
                     move = self.replay_moves[replay_index]
                     replay_index += 1
-                else:
-                    context = ActorContext(
-                        self.scenario.scenario_id, actor_id, target_id, turn_number, day,
-                        dict(visible_world), tuple(transcript[-12:]), self._goal_for_day(day),
-                        self._phase_for_day(day), tuple(sorted({"speak", "interrupt", "wait", "leave", "return"})),
-                        self.scenario.stable_seed,
+                    move_already_observed = (
+                        pending_move is not None
+                        and self._same_observable_move(move, pending_move)
                     )
+                    if pending_move is None and isinstance(actors.get(actor_id), CharacterActor):
+                        regenerated = actors[actor_id].next_move(context)
+                        if not self._same_observable_move(regenerated, move):
+                            raise ValueError("character actor replay diverged from saved move")
+                elif pending_move is not None:
+                    move = pending_move
+                    move_already_observed = True
+                else:
                     move = actors[actor_id].next_move(context)
                 moves.append(move)
                 if move.host_event and target_id in self.agents:
@@ -123,8 +137,11 @@ class DevelopmentalPlaytestHost:
                     )
                     visible_world[f"move:{turn_number}"] = {"event_id": event["event_id"], "outcome": event["outcome"]}
                 result = self._deliver(target_id, move, event_time + local_turn)
-                observable = self._observable_from_result(turn_number, day, actor_id, target_id, move, result)
-                transcript.append(observable)
+                if not move_already_observed:
+                    observable = self._observable_from_result(
+                        turn_number, day, actor_id, target_id, move, result,
+                    )
+                    transcript.append(observable)
                 if result is not None:
                     character_turn = ObservableTurn(
                         turn_number, day, target_id, actor_id, str(result.get("response", "")), "character",
@@ -133,6 +150,9 @@ class DevelopmentalPlaytestHost:
                     )
                     transcript.append(character_turn)
                     diagnostics.append(self._diagnostic(day, target_id, result, self.agents[target_id].engine.renderer))
+                    target_actor = actors.get(target_id)
+                    if isinstance(target_actor, CharacterActor):
+                        pending_character_moves[target_id] = target_actor.move_from_result(result)
             for pid, agent in self.agents.items():
                 state_bytes = len(json.dumps(agent.engine._serialize_state(), sort_keys=True, default=str).encode())
                 growth.append({"day": day, "participant_id": pid, "serialized_state_bytes": state_bytes})
@@ -174,11 +194,40 @@ class DevelopmentalPlaytestHost:
         candidates = [item for item in targets if item != actor]
         return actor, candidates[(turn - 1) % len(candidates)]
 
+    @staticmethod
+    def _same_observable_move(left: ActorMove, right: ActorMove) -> bool:
+        def channels(move: ActorMove) -> tuple[tuple[str, str], ...]:
+            performance = move.visible_context.get("observable_performance") or {}
+            return tuple(
+                (str(item.get("channel", "")), str(item.get("function", "")))
+                for item in performance.get("acts", ())
+            )
+
+        return (
+            left.actor_id == right.actor_id
+            and left.move_kind == right.move_kind
+            and left.text == right.text
+            and channels(left) == channels(right)
+        )
+
     def _deliver(self, target_id: str, move: ActorMove, event_time: float):
         if target_id not in self.agents or move.move_kind in {"wait", "leave", "remain_silent"}:
             return None
-        return self.agents[target_id].say(move.text or "The other person acts without speaking.",
-                                          visible_context=dict(move.visible_context), event_time=event_time)
+        visible_context = dict(move.visible_context)
+        character_performance = (
+            move.move_kind == "perform_action"
+            and visible_context.get("interaction_type") == "character_to_character"
+            and visible_context.get("observable_performance")
+        )
+        if character_performance:
+            visible_context["source_modality"] = "nonverbal_performance"
+            visible_context["observed_utterance"] = ""
+            delivered_text = "..."
+        else:
+            delivered_text = move.text or "The other person acts without speaking."
+        return self.agents[target_id].say(
+            delivered_text, visible_context=visible_context, event_time=event_time,
+        )
 
     @staticmethod
     def _observable_from_result(turn, day, actor_id, target_id, move, result):
@@ -194,6 +243,8 @@ class DevelopmentalPlaytestHost:
         action = result.get("action_decision") or {}
         development = result.get("development") or {}
         conversation = result.get("conversation_candidate") or {}
+        continuity = result.get("conversation_continuity") or {}
+        active_topic = continuity.get("active_topic") or {}
         choreography = result.get("conversation_choreography") or {}
         performance = result.get("performance_plan") or {}
         return {
@@ -204,8 +255,13 @@ class DevelopmentalPlaytestHost:
             "conversation_move": conversation.get("move"),
             "conversation_obligation": conversation.get("obligation"),
             "conversation_extension": conversation.get("extension_move"),
+            "conversation_source_memory_id": conversation.get("source_memory_id"),
             "active_topic_id": conversation.get("active_topic_id"),
+            "post_turn_active_topic_id": active_topic.get("topic_id"),
+            "topic_depth": active_topic.get("depth", 0),
+            "topic_freshness": active_topic.get("freshness", 0.0),
             "topic_transition_reason": conversation.get("topic_transition_reason"),
+            "post_turn_transition_reason": continuity.get("last_transition_reason"),
             "move_signature": (
                 f"{conversation.get('obligation')}|{conversation.get('extension_move') or 'none'}|{action.get('action_kind')}"
                 if conversation else None

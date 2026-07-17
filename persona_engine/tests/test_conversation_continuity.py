@@ -33,7 +33,7 @@ def test_blackboard_bounds_topics_and_tracks_depth_freshness_and_importance():
     )
     assert state.active_topic.depth == 2
     assert state.active_topic.emotional_importance == 0.7
-    assert state.active_topic.freshness == 1.0
+    assert 0.8 < state.active_topic.freshness < 1.0
 
     for turn, text in enumerate(("A violin broke.", "The window opened.", "A letter arrived."), start=3):
         state.observe_input(
@@ -73,6 +73,35 @@ def test_transition_reasons_include_completed_exhausted_interrupted_avoided_and_
     for reason in ("exhausted", "interrupted", "avoided"):
         state.complete_turn(extension_move=None, action_kind="speak", transition_reason=reason)
         assert state.last_transition_reason == reason
+
+
+def test_exhausted_topic_leaves_active_slot_and_remains_bounded_background():
+    state = ConversationContinuityState(actor_id=3)
+    state.observe_input(
+        text="The same apparatus remains under discussion.", input_act="inform",
+        topic_id="apparatus", turn=1, emotional_importance=0.3,
+    )
+    state.active_topic.depth = 8
+
+    state.complete_turn(
+        extension_move=None, action_kind="speak", transition_reason="exhausted",
+    )
+
+    assert state.active_topic is None
+    assert state.background_topics[0].topic_id == "apparatus"
+    assert state.background_topics[0].freshness == 0.65
+
+
+def test_repetition_depletes_topic_freshness_instead_of_restoring_it():
+    state = ConversationContinuityState(actor_id=4)
+    for turn in range(1, 7):
+        state.observe_input(
+            text="The same apparatus remains under discussion.", input_act="inform",
+            topic_id="apparatus", turn=turn, emotional_importance=0.2,
+        )
+
+    assert state.active_topic.depth == 6
+    assert state.active_topic.freshness < 0.55
 
 
 def test_initiative_and_semantic_repetition_gate_optional_extensions():

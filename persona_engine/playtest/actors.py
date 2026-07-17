@@ -223,6 +223,9 @@ class CharacterActor:
             "speaker_id": context.target_id, "observed_utterance": incoming,
             "interaction_type": "character_to_character", **dict(context.visible_world),
         })
+        return self.move_from_result(result)
+
+    def move_from_result(self, result: Mapping[str, Any]) -> ActorMove:
         response = str(result.get("response", ""))
         performance = dict(result.get("performance_plan") or {})
         visible_action = self._visible_action(performance)

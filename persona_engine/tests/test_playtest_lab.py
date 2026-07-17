@@ -1,5 +1,6 @@
 """Observable actor and accelerated host contracts."""
 
+from dataclasses import replace
 import json
 from pathlib import Path
 
@@ -7,9 +8,10 @@ import pytest
 
 from persona_engine.playtest.actors import (
     ActorContext, ActorMove, HUMAN_POLICIES, OllamaActorConfig, OllamaHumanActor,
-    ScriptedHumanActor, assert_observable_only,
+    ObservableTurn, ScriptedHumanActor, assert_observable_only,
 )
 from persona_engine.playtest.host import DevelopmentalPlaytestHost
+from persona_engine.playtest.metrics import evaluate_transcript
 from persona_engine.playtest.report import write_reports
 from persona_engine.playtest.scenario import load_scenario
 
@@ -25,6 +27,45 @@ def test_actor_context_rejects_private_fields_recursively():
 def test_actor_move_rejects_private_mutation():
     with pytest.raises(ValueError):
         ActorMove("human", "provide_evidence", "Here.", {}, {"memory": "rewrite"}, "bad")
+
+
+def test_repeat_metrics_separate_speech_from_nonverbal_performance():
+    turns = (
+        ObservableTurn(1, 1, "kiki", "pretorius", "Hello.", "actor", "speak", None, (), {}),
+        ObservableTurn(2, 1, "kiki", "pretorius", "Hello.", "actor", "speak", None, (), {}),
+        ObservableTurn(3, 1, "pretorius", "kiki", "gesture:acknowledge", "actor", "perform_action", None, (), {}),
+        ObservableTurn(4, 1, "pretorius", "kiki", "gesture:acknowledge", "actor", "perform_action", None, (), {}),
+    )
+
+    metrics, _ = evaluate_transcript(turns, ())
+
+    assert metrics["exact_repeat_count"] == 2
+    assert metrics["exact_speech_repeat_count"] == 1
+    assert metrics["exact_nonverbal_repeat_count"] == 1
+
+
+def test_semantic_stagnation_fails_even_when_exact_text_does_not_repeat():
+    turns = tuple(
+        ObservableTurn(
+            index, 1, "kiki", "pretorius", f"Unique wording {index}",
+            "character", "speak", None, (), {},
+        )
+        for index in range(1, 14)
+    )
+    diagnostics = tuple(
+        {
+            "participant_id": "kiki",
+            "move_signature": "acknowledge|none|speak",
+            "trajectory_signature": f"trajectory-{index}",
+        }
+        for index in range(13)
+    )
+
+    metrics, findings = evaluate_transcript(turns, diagnostics)
+
+    assert metrics["exact_repeat_count"] == 0
+    assert metrics["semantic_move_repeat_rate"] == 1.0
+    assert any(item.code == "conversation_stagnation" for item in findings)
 
 
 def test_ollama_prompt_contains_observable_context_only():
@@ -112,9 +153,67 @@ def test_saved_moves_replay_without_actor_generation(tmp_path):
     ]
 
 
+def test_character_nonverbal_performance_is_not_delivered_as_spoken_markup():
+    class RecordingAgent:
+        def __init__(self):
+            self.calls = []
+
+        def say(self, text, *, visible_context, event_time):
+            self.calls.append((text, visible_context, event_time))
+            return {"response": ""}
+
+    host = object.__new__(DevelopmentalPlaytestHost)
+    host.agents = {"pretorius": RecordingAgent()}
+    performance = {
+        "acts": ({"channel": "gesture", "function": "acknowledge"},),
+    }
+    move = ActorMove(
+        "kiki", "perform_action", "gesture:acknowledge",
+        {
+            "interaction_type": "character_to_character",
+            "observable_performance": performance,
+        },
+        None, "character_engine_action",
+    )
+
+    host._deliver("pretorius", move, 123.0)
+
+    text, context, event_time = host.agents["pretorius"].calls[0]
+    assert text == "..."
+    assert context["observed_utterance"] == ""
+    assert context["source_modality"] == "nonverbal_performance"
+    assert context["observable_performance"] == performance
+    assert event_time == 123.0
+
+
 def test_character_crossplay_uses_separate_engines(tmp_path):
     scenario = load_scenario(ROOT / "playtest_scenarios" / "kiki_pretorius_crossplay_30_days.yaml")
     host = DevelopmentalPlaytestHost(scenario=scenario, cartridges_dir=ROOT / "cartridges", db_dir=tmp_path)
     assert host.agents["kiki"].engine is not host.agents["pretorius"].engine
     result = host.run()
     assert {item.speaker_id for item in result.transcript} >= {"kiki", "pretorius"}
+
+
+def test_character_crossplay_replay_preserves_single_execution_transcript(tmp_path):
+    scenario = replace(
+        load_scenario(ROOT / "playtest_scenarios" / "kiki_pretorius_crossplay_30_days.yaml"),
+        total_days=3,
+    )
+    first = DevelopmentalPlaytestHost(
+        scenario=scenario, cartridges_dir=ROOT / "cartridges", db_dir=tmp_path / "first",
+    ).run()
+    replayed = DevelopmentalPlaytestHost(
+        scenario=scenario, cartridges_dir=ROOT / "cartridges", db_dir=tmp_path / "replayed",
+        replay_moves=first.actor_moves,
+    ).run()
+
+    assert [
+        (item.speaker_id, item.listener_id, item.text, item.source, item.observable_action)
+        for item in replayed.transcript
+    ] == [
+        (item.speaker_id, item.listener_id, item.text, item.source, item.observable_action)
+        for item in first.transcript
+    ]
+    assert [item.get("action_kind") for item in replayed.diagnostics] == [
+        item.get("action_kind") for item in first.diagnostics
+    ]

@@ -2276,7 +2276,10 @@ class InteriorEngine:
             transition_reason = "avoided"
         elif (
             continuity_state.active_topic
-            and continuity_state.active_topic.depth >= 8
+            and (
+                continuity_state.active_topic.depth >= 8
+                or continuity_state.active_topic.freshness <= 0.55
+            )
             and not (selected_conversation and selected_conversation.extension_move)
         ):
             transition_reason = "exhausted"

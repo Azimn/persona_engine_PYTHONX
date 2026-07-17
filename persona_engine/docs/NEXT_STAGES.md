@@ -129,3 +129,18 @@ response span, pacing, disclosure, activity relation, resolution, and memory
 role while preserving the selected action and optional move. Per-actor recent
 trajectory signatures suppress repeated interaction shapes, and playtests now
 separate textual, semantic, behavioral, and full-trajectory repetition.
+
+## Stage 9: Autonomous Initiative And Grounded Topic Renewal
+
+Corrected crossplay now carries each generated character response forward once
+instead of executing it again on the next actor turn. It also transports
+nonverbal performance as structured observation rather than dialogue text.
+These repairs eliminate exact repeats but expose the real product failure:
+without a human or visible world event introducing novelty, both characters
+settle into silence and repeated acknowledgment.
+
+The next slice should let existing open loops, intrinsic intentions, current
+activity, salient world changes, and genuinely relevant autobiographical
+memories propose a bounded initiation move. The proposal must enter situated
+synthesis and may be declined. It must not create a second executive, invent a
+topic merely to keep talking, or force speech after reciprocal silence.
