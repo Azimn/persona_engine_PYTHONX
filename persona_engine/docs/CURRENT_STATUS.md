@@ -56,6 +56,15 @@ Persona Engine is currently at the v12 Human UI lineage. The Python package is t
 - The offline topic pilot now covers five deep subjects each for Pretorius and Kiki, uses authored wildcard patterns and contextual follow-ups, preserves listener history across modalities, and distinguishes deterministic renderer invocation from external model calls.
 - Offline inquiry completion writes a private first-person research note, stores a bounded supported character position, and can return to that position later without announcing the diary artifact.
 - Sustained Jay-style visit regressions exercise known topics, repeated questions, autobiographical recall, interruption, unknown-subject capture, private diary handoff, and character-specific conduct for both Pretorius and Kiki.
+- Online Dialogue Alpha uses local-model wording over the same canonical action,
+  performance, memory, actor, topic, and diary state. The workspace now carries
+  cartridge-authored voice examples and explicit interlocutor identity, while
+  exact whole-turn echoes and generic assistant tails are bounded at realization.
+- Live `qwen3:14b` visits verified sustained Jay/Pretorius and Jay/Kiki
+  conversation, explicit diary retention, artificial-identity discussion,
+  grounded Henry recall, and isolated Kiki/Pretorius crossplay. Structured
+  nonverbal plans cross between characters as observation rather than fake
+  dialogue.
 
 ## Current Tests
 
@@ -68,7 +77,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-397 passed, 1 skipped
+404 passed, 1 skipped
 ```
 
 The simulator scripts for Pretorius, interpretation, organism behavior, anchored misread behavior, situated strain/recovery, paired Pretorius/Kiki evaluation, and PersonaConsole v6 compatibility are expected to pass with the mock renderer fallback.
@@ -93,10 +102,17 @@ The simulator scripts for Pretorius, interpretation, organism behavior, anchored
 - Social recognition remains intentionally lean: stable host IDs are authoritative referent keys, while alias-only encounters may remain ambiguous and no face/voice recognition model is included.
 - Genesis history is deliberately sparse. Chapter summaries represent long periods but cannot reproduce the density, interference, or cue competition of a genuinely lived multi-decade memory stream.
 - The authored offline corpus is still a vertical slice, not broad production coverage. Human fifteen-minute visits remain the release gate; engineering uniqueness alone does not prove that a conversation is enjoyable.
+- The live 14B online checkpoint is an alpha baseline, not a model-independent
+  quality claim. The model can still simplify hard science, borrow nearby
+  metaphors, or produce a cautious grounded fallback on explicit recall.
 - Corrected thirty-day crossplay executes and records each response once. Before grounded initiative it showed roughly 62% silence, 78% semantic-move repetition, and 59% trajectory repetition. After bounded organism-time advancement and initiative, the current probe remains at zero exact repeats while semantic repetition and trajectory repetition both fall to roughly 47%. Silence remains roughly 62% and is now attributable by cause. No conversational memory is selected because this closed scenario contains no seeded autobiographical material relevant to the active exchange; the source is measured as unavailable rather than silently retuned.
 
 ## Recommended Next Work
 
-1. Run blind human illusion reviews against Pretorius and Kiki and turn visible failures into minimized regression scenarios.
-2. Run blind reviews of grounded initiative traces, especially proposal denials and the remaining high silence share, before changing thresholds. Seed autobiographical material only in scenarios intended to test memory initiative.
-3. Extend C99 conformance fixtures into native cross-language replay comparisons.
+1. Replay the accepted online visits against `qwen3:8b`, then one smaller local
+   model, without changing the scenarios or organism state.
+2. Score recognizable identity, direct answers, memory use, repetition,
+   assistant drift, diary continuity, and desire to continue the visit.
+3. Turn only demonstrated player-facing failures into minimized regressions;
+   do not add a cognitive subsystem to compensate for model quality.
+4. Extend C99 conformance fixtures into native cross-language replay comparisons.

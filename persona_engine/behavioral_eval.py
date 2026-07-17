@@ -157,28 +157,35 @@ class BehavioralEvaluationHarness:
         blind: list[BlindTranscriptItem] = []
         causal: list[CausalTurnRecord] = []
         speaker_id = first_responder
+        prior_observable_performance: dict[str, Any] | None = None
         for turn in range(1, turns + 1):
             listener_id = next(item for item in participant_ids if item != speaker_id)
             agent = self.agents[speaker_id]
+            visible_context = {
+                "speaker_id": listener_id,
+                "speaker_name": listener_id,
+                "observed_utterance": "" if prior_observable_performance else current_input,
+                "interaction_type": "character_to_character",
+            }
+            if prior_observable_performance is not None:
+                visible_context.update({
+                    "source_modality": "nonverbal_performance",
+                    "observable_performance": prior_observable_performance,
+                })
             result = agent.say(
-                current_input,
-                visible_context={
-                    "speaker_id": listener_id,
-                    "observed_utterance": current_input,
-                    "interaction_type": "character_to_character",
-                },
+                "..." if prior_observable_performance else current_input,
+                visible_context=visible_context,
             )
             reply = str(result["response"])
             performance = dict(result.get("performance_plan") or {})
             source = "observed_speech"
+            next_input = reply
+            next_performance = None
             if not reply:
-                acts = list(performance.get("acts") or [])
-                act = acts[0] if acts else {}
-                function = str(act.get("function", "continues"))
-                target = str(act.get("target", "")).strip()
-                visible_action = "withheld response" if function == "none" else f"{function}{' ' + target if target else ''}"
-                reply = f"*{visible_action}*"
+                reply = f"*{_observable_performance_text(performance)}*"
                 source = "observed_performance"
+                next_input = "..."
+                next_performance = performance
             blind.append(BlindTranscriptItem(turn, speaker_id, listener_id, reply, source=source))
             speech_ids = self._record_shared_event(
                 event_type=source,
@@ -213,7 +220,8 @@ class BehavioralEvaluationHarness:
                 performance_plan=dict(result.get("performance_plan") or {}),
                 speech_world_event_ids=speech_ids,
             ))
-            current_input = reply or "(silence)"
+            current_input = next_input
+            prior_observable_performance = next_performance
             speaker_id = listener_id
 
         return BehavioralEvaluationResult(
@@ -325,6 +333,37 @@ class BehavioralEvaluationHarness:
                 }),
             },
         )
+
+
+def _observable_performance_text(performance: dict[str, Any]) -> str:
+    """Render bounded public acts for a human transcript, never as dialogue."""
+
+    acts = list(performance.get("acts") or ())
+    phrases: list[str] = []
+    for channel in ("gesture", "activity", "gaze", "posture", "face"):
+        act = next((item for item in acts if item.get("channel") == channel), None)
+        if not act:
+            continue
+        function = str(act.get("function", "")).replace("_", " ").strip()
+        target = str(act.get("target", "")).replace("_", " ").strip()
+        if channel == "gesture" and function not in {"", "none"}:
+            article = "an" if function[:1].lower() in "aeiou" else "a"
+            phrases.append(f"offers {article} {function} acknowledgement")
+        elif channel == "activity" and function not in {"", "none"}:
+            if target == "responding to interruption":
+                phrases.append(f"{function} while responding to the interruption")
+            else:
+                activity = target if target and target != "current interlocutor" else "the current activity"
+                phrases.append(f"{function} {activity}")
+        elif channel == "gaze" and function not in {"", "none", "target"}:
+            phrases.append(f"holds an {function} gaze")
+        elif channel == "posture" and function not in {"", "none"}:
+            phrases.append(f"remains {function}")
+        elif channel == "face" and function not in {"", "none", "neutral"}:
+            phrases.append(f"keeps a {function} expression")
+        if len(phrases) >= 2:
+            break
+    return "; ".join(phrases) if phrases else "remains present without speaking"
 
 
 def _regulation_count(records: list[CausalTurnRecord], kind: str) -> int:

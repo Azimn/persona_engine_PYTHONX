@@ -2447,7 +2447,11 @@ class InteriorEngine:
             for item in groundable_retrievals
         )
         memory_grounding_mode = (
-            "required" if direct_grounding else "unavailable" if memory_request else "optional"
+            "required"
+            if memory_request and direct_grounding
+            else "unavailable"
+            if memory_request
+            else "optional"
         )
         if memory_request:
             retrieved = [
@@ -2598,17 +2602,29 @@ class InteriorEngine:
             transition_reason=transition_reason,
         )
         if selected_conversation and selected_conversation.move in {"defer_and_note", "reminisce_and_note"}:
+            user_requested_retention = (
+                "journal:user_requested_retention"
+                in selected_conversation.reason_codes
+            )
             self.intentions.add_open_loop(OpenLoop(
                 topic=user_text[:160],
                 emotional_charge=max(0.2, min(1.0, appraisal.novelty + 0.2)),
                 created_at=now,
                 last_touched=now,
                 urgency=0.62,
-                preferred_resolution="revisit when language capability is available",
+                preferred_resolution=(
+                    "revisit with the same participant"
+                    if user_requested_retention
+                    else "revisit when language capability is available"
+                ),
                 topic_key=selected_conversation.topic_key,
                 actor_id=self.active_actor_id,
                 source_event_id=input_world_event.event_id,
-                reason="offline_knowledge_unavailable",
+                reason=(
+                    "promised_followup"
+                    if user_requested_retention
+                    else "offline_knowledge_unavailable"
+                ),
                 required_capability=selected_conversation.required_capability,
                 status="pending",
             ))
@@ -2848,6 +2864,40 @@ class InteriorEngine:
         second_thoughts: list[str] = []
         system_prompt = ""
         if performance_plan.requires_language_renderer:
+            offline_realization = dict(
+                (self.cartridge_data or {}).get("offline_expression", {})
+            )
+            authored_voice_examples = list(
+                offline_topic_plan.fragments if offline_topic_plan else ()
+            )
+            example_group = {
+                "greeting": "greeting",
+                "apologize": "repair",
+                "leave_or_return": "farewell",
+            }.get(input_act, "question" if input_act.startswith("ask_") else "default")
+            authored_voice_examples.extend(
+                str(item) for item in offline_realization.get(example_group, ())[:3]
+            )
+            authored_voice_examples = list(dict.fromkeys(
+                item.replace(
+                    "{activity}",
+                    self.life_state.current_activity or "the current work",
+                ).replace(
+                    "{topic}",
+                    offline_topic_match.label or user_text[:100],
+                )
+                for item in authored_voice_examples
+                if item
+            ))[:6]
+            realization_max_chars = envelope.max_chars
+            if renderer_is_model_backed(self.renderer):
+                realization_max_chars = (
+                    max(realization_max_chars, 800)
+                    if bucket == "LOW"
+                    else max(realization_max_chars, 600)
+                    if bucket == "MEDIUM"
+                    else max(realization_max_chars, 350)
+                )
             frame = WorkspaceFrame(
                 core_identity_summary=self.ledger.summary() + (f" | beliefs: {self.belief_ledger.values}" if self.belief_ledger.values else ""),
                 relationship_summary=relationship_to_qualitative(self.relationship),
@@ -2887,7 +2937,11 @@ class InteriorEngine:
                 expression_envelope=envelope,
                 interpretive_beliefs=[b.text for b in interpretive_beliefs],
                 interpretive_belief_trace=[b.to_dict() for b in interpretive_beliefs],
-                forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
+                forbidden_claims=[
+                    "having no feelings",
+                    "memories not listed in the relevant memory field",
+                    "private thoughts from the user",
+                ],
                 action_decision=action_decision.to_dict(),
                 performance_plan=performance_payload,
                 self_monitor_summary=self_monitor.renderer_summary(
@@ -2943,6 +2997,13 @@ class InteriorEngine:
                     selected_conversation.extension_move if selected_conversation else None
                 ),
                 conversation_choreography=choreography_payload,
+                authored_voice_examples=authored_voice_examples,
+                realization_max_chars=realization_max_chars,
+                interlocutor_name=(
+                    self.actor_registry.fetch(self.active_actor_id).display_name
+                    if self.actor_registry.fetch(self.active_actor_id) is not None
+                    else None
+                ),
             )
             second_thoughts = derive_second_thoughts(frame)
             system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
@@ -2967,8 +3028,8 @@ class InteriorEngine:
                 private_thought_context="",
                 decision_payload=decision_payload,
                 expression_constraints={
-                    "max_chars": envelope.max_chars,
-                    "offline_realization": dict((self.cartridge_data or {}).get("offline_expression", {})),
+                    "max_chars": realization_max_chars,
+                    "offline_realization": offline_realization,
                     "memory_grounding_mode": memory_grounding_mode,
                     "action_decision": action_decision.to_dict(),
                     "performance_plan": performance_payload,

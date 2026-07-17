@@ -43,6 +43,9 @@ class WorkspaceFrame:
     conversational_obligation: Optional[str] = None
     optional_extension: Optional[str] = None
     conversation_choreography: dict[str, Any] = field(default_factory=dict)
+    authored_voice_examples: List[str] = field(default_factory=list)
+    realization_max_chars: Optional[int] = None
+    interlocutor_name: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -52,6 +55,11 @@ class WorkspaceFrame:
             f"Core identity: {self.core_identity_summary}",
             f"Relationship context: {self.relationship_summary}",
         ]
+        if self.interlocutor_name:
+            lines.append(
+                f"CURRENT INTERLOCUTOR: {self.interlocutor_name}. Address this person directly; "
+                "do not discuss them in the third person as though absent."
+            )
         if self.interpretive_beliefs:
             lines.append("Current character beliefs, grounded but subjective: " + " | ".join(self.interpretive_beliefs))
         if self.retrieved_memories:
@@ -148,7 +156,8 @@ class WorkspaceFrame:
         if self.secondary_pressure:
             lines.append(f"Secondary pressure may leak subtly: {self.secondary_pressure}")
         lines.append(
-            f"EXPRESSION CONSTRAINTS: tone={env.tone_label}, max_chars={env.max_chars}, "
+            f"EXPRESSION CONSTRAINTS: tone={env.tone_label}, "
+            f"max_chars={self.realization_max_chars or env.max_chars}, "
             f"directness={env.directness:.2f}, warmth={env.warmth:.2f}, guardedness={env.guardedness:.2f}, "
             f"vulnerability_allowed={env.vulnerability_allowed}, question_probability={env.question_probability:.2f}"
         )
@@ -156,5 +165,24 @@ class WorkspaceFrame:
             lines.append(f"If declining, use this character-grounded refusal mode: {env.refusal_mode}")
         if self.forbidden_claims:
             lines.append("Never claim: " + "; ".join(self.forbidden_claims))
-        lines.append("Never explain private calculations. Never say you are an AI or language model. Stay in character.")
+        if self.authored_voice_examples:
+            lines.append(
+                "AUTHORED CHARACTER EXAMPLES (adapt their voice and positions; "
+                "do not quote or enumerate them mechanically): "
+                + " | ".join(self.authored_voice_examples[:6])
+            )
+        lines.extend([
+            "ONLINE REALIZATION PRIORITY: Speak only as the character, in first person. "
+            "Do not sound like an assistant, host, therapist, or generic role-player.",
+            "Use the actual activity, relationship, memories, and selected action above. "
+            "Do not invent a substitute current activity or repeat the user's question as filler.",
+            "Do not copy or closely mimic the interlocutor's wording, cadence, or metaphors. "
+            "Respond from this character's own position and voice.",
+            "Keep intelligence, flaws, preferences, resistance, and emotional texture visible. "
+            "Natural disagreement, imagination, humor, uncertainty, and conflict are allowed.",
+            "Honor the planned turn shape. When no optional move is supplied, end after the required move; "
+            "do not append a generic offer, invitation, or follow-up question.",
+            "Do not write stage directions inside spoken dialogue; nonverbal behavior belongs to the performance plan.",
+            "Never explain private calculations or call yourself a language model. Stay fully in character.",
+        ])
         return "\n".join(lines)

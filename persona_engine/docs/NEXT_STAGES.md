@@ -144,3 +144,23 @@ activity, salient world changes, and genuinely relevant autobiographical
 memories propose a bounded initiation move. The proposal must enter situated
 synthesis and may be declined. It must not create a second executive, invent a
 topic merely to keep talking, or force speech after reciprocal silence.
+
+This bounded initiative slice is now implemented. Remaining silence is
+attributed by cause and is not automatically treated as failure.
+
+## Stage 10: Online Dialogue Alpha (Implemented, Model Descent Pending)
+
+The shared organism now drives both an intentionally authored offline adapter
+and a local-model online adapter. Online realization receives the canonical
+action, deterministic performance, actual activity, actor-scoped relationship,
+relevant memories, conversation obligation, and cartridge-authored voice
+examples. The current interlocutor is explicit. Exact model echoes fall back to
+authored realization, while a small terminal filter removes generic assistant
+invitations without suppressing character-specific questions.
+
+The live baseline is `qwen3:14b` through Ollama. The next product test is a
+controlled descent to `qwen3:8b` and then one smaller model using identical
+recorded visits. No new cognitive subsystem is justified during that
+comparison. The smallest acceptable model is the smallest one that preserves
+identity, continuity, memory use, disagreement, diary handoff, and the desire
+to continue the interaction.

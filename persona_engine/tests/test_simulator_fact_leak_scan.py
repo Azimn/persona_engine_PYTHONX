@@ -16,6 +16,15 @@ def test_fact_leak_scan_allows_capitalized_interpretive_terms_after_a_frame():
     assert warnings == []
 
 
+def test_fact_leak_scan_ignores_sentence_start_after_colon():
+    warnings = _fact_leak_warnings(
+        "Registered: Slower is acceptable.",
+        {"user_input": "Let's slow down."},
+        {"system_prompt": ""},
+    )
+    assert warnings == []
+
+
 def test_fact_leak_scan_still_flags_unknown_concrete_objects():
     warnings = _fact_leak_warnings("I heard footsteps.", {"user_input": "What was that?"}, {"system_prompt": ""})
     assert any("footsteps" in warning for warning in warnings)

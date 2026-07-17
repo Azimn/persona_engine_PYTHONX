@@ -52,7 +52,8 @@ def classify_input(text: str) -> str:
         return "low_information"
     if re.search(
         r"\b(bye|goodbye|gotta go|i (?:am|will) leav(?:e|ing)|"
-        r"i'll leave|leave you to it|talk later|i am back|i'm back|returned)\b",
+        r"i'll leave|leave you to it|let you get back|return to your work|"
+        r"get back to your work|talk later|i am back|i'm back|returned)\b",
         lowered,
     ):
         return "leave_or_return"
@@ -63,14 +64,31 @@ def classify_input(text: str) -> str:
         or re.search(r"^(correction|a correction)\b", lowered)
     ):
         return "correct"
-    if re.search(r"\b(you lied|prove it|you always|you never|why should i)\b", lowered):
+    if re.search(
+        r"\b(you lied|prove it|you always|you never|why should i|"
+        r"i (?:do not|don't) agree|i (?:reject|dispute))\b",
+        lowered,
+    ):
         return "challenge"
     if re.search(r"\b(hello|hi|hey|good morning|good afternoon|good evening)\b", lowered):
         return "greeting"
     if re.search(r"\b(remember|recall|what happened|your past|your memories|where did we leave)\b", lowered):
         return "ask_memory"
+    if re.search(
+        r"\b(make (?:a )?note|write (?:it|this) down|"
+        r"(?:keep|save|record|remember) (?:this|that|the question|whatever part).*"
+        r"(?:later|next (?:time|conversation|visit)))\b",
+        lowered,
+    ):
+        return "request_action"
     if re.search(r"^(give|show) me\b", lowered):
         return "request_action"
+    if re.search(r"^(explain|analy[sz]e|compare|distinguish|evaluate)\b", lowered):
+        return "ask_analysis"
+    if re.search(r"^(describe|define|identify|name|summarize)\b", lowered):
+        return "ask_fact"
+    if re.search(r"^tell me\b", lowered):
+        return "ask_fact"
     if "?" in text and re.search(
         r"\b(why|analy[sz]e|compare|resemble|analogy|design|theory|implications?|philosoph)\b",
         lowered,
@@ -292,8 +310,19 @@ def derive_conversation_candidate(
         str(getattr(continuity_state, "pending_obligation", None) or obligation_for_input(act))
         if continuity_state is not None else obligation_for_input(act)
     )
+    retain_for_later = bool(re.search(
+        r"\b(make (?:a )?note|write (?:it|this) down|"
+        r"(?:keep|save|record|remember) (?:this|that|the question|whatever part).*"
+        r"(?:later|next (?:time|conversation|visit)))\b",
+        str(text).casefold(),
+    ))
 
-    if ready_open_loop is not None and (
+    if retain_for_later:
+        move = "defer_and_note"
+        strength = 0.92
+        response_value = 0.84
+        reasons.append("journal:user_requested_retention")
+    elif ready_open_loop is not None and (
         getattr(ready_open_loop, "required_capability", "none") == "none"
         or (
             renderer_available

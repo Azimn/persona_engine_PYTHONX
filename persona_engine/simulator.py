@@ -60,7 +60,7 @@ def _fact_leak_warnings(text: str, turn: dict, result: dict, label: str = "respo
     allowed |= _SAFE_INTERPRETIVE_TERMS
     sentence_initials = {
         match.group(1).lower()
-        for match in re.finditer(r"(?:^|[.!?]\s+)([A-Z][a-zA-Z0-9_'-]{1,})", text)
+        for match in re.finditer(r"(?:^|[.!?:;]\s+)([A-Z][a-zA-Z0-9_'-]{1,})", text)
     }
     # Capitalization at a sentence boundary is not named-entity evidence by
     # itself. Concrete vocabulary is still checked independently below.

@@ -39,6 +39,11 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
 - Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
 - Cartridge-authored offline topic packs use AIML-like patterns, listener-specific family progression, contextual memory, and private unresolved-question handoff; see `persona_engine/docs/OFFLINE_DIALOGUE_AUTHORING.md`.
+- Online Dialogue Alpha connects the same organism to local Ollama realization
+  with cartridge-authored voice examples, explicit interlocutor identity,
+  larger answer budgets, diary continuity, nonverbal crossplay, and bounded
+  echo and assistant-tail filtering; see
+  `persona_engine/docs/ONLINE_DIALOGUE_ALPHA.md`.
 - A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
 - Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
 - World Authority for objective facts.
@@ -92,7 +97,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-397 passed, 1 skipped
+404 passed, 1 skipped
 ```
 
 ## Run Simulators

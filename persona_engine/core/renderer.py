@@ -218,6 +218,14 @@ class LocalLLMRenderer:
             offline_realization=offline_realization,
             offline_context=offline_context,
         )
+        rendered = self._strip_generic_assistant_tail(rendered)
+        if self._actual_backend != "offline" and self._echoes_input(rendered, user_text):
+            self._actual_backend = "offline"
+            self._fallback_reason = "Model output repeated the interlocutor input."
+            return self._offline.render(
+                messages, max_chars=max_chars, seed=request.seed, realization=offline_realization,
+                **offline_context,
+            )
         if grounding_mode == "required" and self._actual_backend != "offline" and not self._memory_grounded(
             rendered, user_text, request.retrieved_memories,
         ):
@@ -228,6 +236,28 @@ class LocalLLMRenderer:
                 **offline_context,
             )
         return rendered
+
+    @staticmethod
+    def _echoes_input(text: str, user_text: str) -> bool:
+        normalize = lambda value: " ".join(re.findall(r"[a-z0-9']+", str(value).casefold()))
+        rendered = normalize(text)
+        incoming = normalize(user_text)
+        return len(incoming) >= 40 and rendered == incoming
+
+    @staticmethod
+    def _strip_generic_assistant_tail(text: str) -> str:
+        patterns = (
+            r"\s+Let me know if\b[^.!?]*[.!?]?\s*$",
+            r"\s+How can I help\b[^.!?]*[.!?]?\s*$",
+            r"\s+Is there anything else\b[^.!?]*[.!?]?\s*$",
+            r"\s+What(?:'|’)s on your mind\?\s*$",
+        )
+        cleaned = str(text).strip()
+        for pattern in patterns:
+            candidate = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
+            if len(candidate) >= 40:
+                cleaned = candidate
+        return cleaned
 
     @staticmethod
     def _memory_grounded(text: str, user_text: str, memories) -> bool:
