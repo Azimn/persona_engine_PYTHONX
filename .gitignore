@@ -23,6 +23,8 @@ dist/
 *.sqlite
 *.sqlite3
 persona_state.db
+playtest_output/
+persona_engine/simulator_scripts/generated_regressions/
 
 # Local environment
 .env

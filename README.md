@@ -21,6 +21,31 @@ Persona Engine is a deterministic character-organism prototype with cartridge-dr
 - Installable `persona_engine` package.
 - Strict `.snp` cartridge validation.
 - Deterministic pressure, relationship, body, world, memory, intention, habit, symbol, belief-ledger, interpretation, and replay/debug systems.
+- Append-only objective world events, per-character subjective experience traces, bounded memory lifecycle, and explained hybrid retrieval.
+- Persisted current activity and interruption context plus a separate seeded vitality channel for bounded whim, limitation, and rare chaos events.
+- Derived integration capacity and bounded field width, with inspectable situated synthesis and action-completion records.
+- One canonical typed action per situated turn, selected from synthesis rather than by intrinsic motivation or the renderer.
+- Deterministic fallible self-monitoring that can miss conflict, overestimate capacity, conceal uncertainty, delay, clarify, correct, withdraw, or double down through synthesis-selected regulation.
+- Non-destructive autobiographical reconsolidation preserves original experience while versioning later evidence-backed meaning, including bounded deferral when contradiction is missed under strain.
+- Developmental Life v1 adds explicit evidence routing, bounded memory connections, procedural skills, relationship expectations, dyadic rituals, slow cartridge-authorized trait evidence, and observable-only automated playtesting.
+- Bounded `uint32` actor identities keep relationship histories and actor-tagged memories separate across users, NPCs, genesis figures, and duplicate names without pretending ambiguous aliases are certain identity.
+- Genesis years produce realistic historical age while sparse chapter summaries represent long periods without fabricating a lifetime of daily memories.
+- Portable offline conversation uses bounded input acts, memory-grounded reminiscence, capability-tagged pending topics, nonverbal acknowledgements, and persistent shuffle cooldowns without model calls.
+- Cartridge-authored Behavioral Richness tendencies expose probing, comparison, speculation, curiosity, and continued work through synthesis-selected actions and deterministic activity callbacks.
+- Grounded life callbacks can report actual elapsed activity and resume ordinary open loops. Every character possesses a journal artifact for private recall; cartridges govern its name and note voice, while conversation mentions require a relevant selected action.
+- A bounded per-actor conversation blackboard preserves topic depth, obligations, initiative, and semantic move variety so answers and acknowledgments precede at most one optional character move; turns may end without a follow-up question.
+- Deterministic conversational choreography varies rhetorical strategy, trajectory, energy, response span, pacing, disclosure, activity relation, and memory role after action selection without becoming another executive.
+- Bounded conversational initiative lets contextual memory, open loops, intrinsic activity, relationship expectations, or recent world changes propose one optional move; synthesis may select it, inhibit it, or preserve silence with an explicit reason.
+- Immutable performance plans that permit speech, gesture, silence, observation, delay, withdrawal, world action, or continued activity without forcing an expression-model call. Deterministic private cognition is the portable default, so non-speech turns can complete with zero renderer calls.
+- Cartridge-authored deterministic offline realization for distinct character voices without character language in core modules.
+- Cartridge-authored offline topic packs use AIML-like patterns, listener-specific family progression, contextual memory, and private unresolved-question handoff; see `persona_engine/docs/OFFLINE_DIALOGUE_AUTHORING.md`.
+- Online Dialogue Alpha connects the same organism to local Ollama realization
+  with cartridge-authored voice examples, explicit interlocutor identity,
+  larger answer budgets, diary continuity, nonverbal crossplay, and bounded
+  echo and assistant-tail filtering; see
+  `persona_engine/docs/ONLINE_DIALOGUE_ALPHA.md`.
+- A small read-only semantic substrate for structured generic features, inheritance, associations, and candidate affordances.
+- Validated capability-tier artifacts that remain usable by the same organism after a higher-capability renderer disappears.
 - World Authority for objective facts.
 - Noncanonical, traceable interpretive belief objects.
 - Mock-safe audio and vision observation plumbing.
@@ -72,7 +97,7 @@ python -m pytest persona_engine/tests -q
 Current expected result:
 
 ```text
-171 passed, 1 skipped
+404 passed, 1 skipped
 ```
 
 ## Run Simulators
@@ -82,7 +107,24 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/pre
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/organism_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_anchored_misread.yaml --cartridge persona_engine/cartridges/pretorius.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/synthesis_strain_recovery.yaml --cartridge persona_engine/cartridges/neutral.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/self_monitor_strain.yaml --cartridge persona_engine/cartridges/pretorius.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/self_monitor_correction.yaml --cartridge persona_engine/cartridges/kiki.snp
+python persona_engine/simulator.py --script persona_engine/simulator_scripts/autobiographical_reconsolidation_weeks.yaml --cartridge persona_engine/cartridges/pretorius.snp
+python -m persona_engine.behavioral_eval --scenario persona_engine/simulator_scripts/pretorius_kiki_paired.yaml
+python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/steady_collaborator_30_days.yaml --actor-mode scripted --judge deterministic --output-dir playtest_output/steady
+python -m persona_engine.playtest --scenario persona_engine/playtest_scenarios/initiative_world_changes_7_days.yaml --actor-mode character --judge deterministic --output-dir playtest_output/initiative
 ```
+
+Compare a fresh Pretorius with the same organism after authored history has
+passed through ordinary perception, consolidation, forgetting, and retrieval:
+
+```bash
+python -m persona_engine.genesis --cartridge persona_engine/cartridges/pretorius.snp --db genesis_eval.db --compare-fresh
+```
+
+See `persona_engine/docs/GENESIS_REPLAY.md` and
+`persona_engine/docs/PERSONAL_JOURNAL.md` for authority and portability rules.
 
 After editable install, the simulator entry point is also available:
 
@@ -110,7 +152,9 @@ Or use the installed entry point:
 persona-engine-ui
 ```
 
-Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, and working local renderer controls.
+Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, working local renderer controls, and checksum-verified session export/replay.
+
+When the server is started with `--debug`, the debug tab includes a read-only life inspector for current activity, intention, attention, recent objective events, subjective experience versions, recall reasons, vitality events, learning artifacts, synthesis, performance, and semantic candidates.
 
 ## Human Testing
 
@@ -129,7 +173,6 @@ Included cartridges:
 
 - `neutral.snp`
 - `pretorius.snp`
-- `pretorius_v6.snp`
 - `friendly.snp`
 - `kiki.snp`
 - `mentor.snp`
@@ -144,9 +187,20 @@ Detected models include conservative capability hints for thinking support, reco
 
 Offline rendering is always available and dependency-free. If a selected Ollama request fails or returns no final response text, the turn falls back to the deterministic offline renderer and the UI shows the requested backend, actual backend, and fallback reason. Renderer output remains noncanonical speech evidence in every mode.
 
+Private cognition is independently configured as `deterministic`,
+`model_optional`, or `model_required`. The portable default is deterministic.
+Turn results and the debug inspector report private-cognition renderer calls,
+expression renderer calls, fallback reasons, and total task calls separately.
+
 `local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
 
 Character sessions use separate persistence and renderer configuration. The UI labels a session as new, resumed, or fresh after reset. Read-only debug traces show retrieved-memory IDs and provenance; normal public status does not expose private memory state.
+
+## Session Export And Replay
+
+The report workspace can export a versioned JSON bundle containing the transcript, report draft, renderer configuration, cartridge checksum, canonical replay events, diagnostic turn records, stable turn seeds, and final state digest. Generated speech and renderer output are retained for human review but are never promoted into the canonical replay event stream.
+
+Importing a valid bundle creates an isolated replay database and replays only approved input, bounded sensor, and world-action events. Checksums and cartridge identity are verified before replay. Deterministic state is compared with the exported digest; exact LLM prose reproduction is not promised. Export bundles can contain private debug and submitted context, so treat them as sensitive local test artifacts.
 
 ## Known Limitations
 
@@ -163,6 +217,19 @@ Character sessions use separate persistence and renderer configuration. The UI l
 ## More Docs
 
 - `AGENTS.md`
+- `persona_engine/docs/V02_LIFE_SIMULATION.md`
+- `persona_engine/docs/SEMANTIC_SUBSTRATE.md`
+- `persona_engine/docs/INTRINSIC_MOTIVATION.md`
+- `persona_engine/docs/AUTOBIOGRAPHICAL_RECONSOLIDATION.md`
+- `persona_engine/docs/LONG_DURATION_MEMORY_PROOF.md`
+- `persona_engine/docs/DEVELOPMENTAL_LIFE_V1.md`
+- `persona_engine/docs/AUTOMATED_PLAYTESTING.md`
+- `persona_engine/docs/CHARACTER_CROSSPLAY.md`
+- `persona_engine/docs/BEHAVIORAL_RICHNESS.md`
+- `persona_engine/docs/CONVERSATION_CONTINUITY.md`
+- `persona_engine/docs/CONVERSATIONAL_PLASTICITY.md`
+- `persona_engine/docs/CHARACTER_BEHAVIOR_AUTHORING.md`
+- `persona_engine/docs/NEXT_STAGES.md`
 - `persona_engine/docs/ARCHITECTURE_LOCK.md`
 - `persona_engine/docs/LAZARUS_MAPPING.md`
 - `persona_engine/docs/CURRENT_STATUS.md`

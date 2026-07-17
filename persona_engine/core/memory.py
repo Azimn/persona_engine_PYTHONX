@@ -10,7 +10,7 @@ import math
 import re
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Set, Dict
+from typing import Any, List, Set, Dict
 from enum import Enum
 
 
@@ -36,6 +36,17 @@ class MemoryUnit:
     source: KnowledgeSource = KnowledgeSource.OBSERVED
     tags: Set[str] = field(default_factory=set)
     compressed: bool = False
+    confidence: float = 1.0
+    salience: float = 0.5
+    provenance: dict[str, Any] = field(default_factory=dict)
+    source_tier: int = 0
+
+
+@dataclass(frozen=True)
+class MemoryRetrieval:
+    memory: MemoryUnit
+    score: float
+    reasons: dict[str, float | str]
 
 
 def first_person_memory_content(content: str) -> str:
@@ -112,7 +123,11 @@ def _char_ngrams(text: str, n: int = 4) -> Set[str]:
 def activation(mem: MemoryUnit, now: float, query_similarity: float = 0.0,
                emotional_state_match: float = 0.0, decay: float = 0.5) -> float:
     times = [max(now - mem.created_at, 0.001)] + [max(now - t, 0.001) for t in mem.recall_times]
-    base = math.log(sum(t ** -decay for t in times))
+    # Raw ACT-R seconds otherwise make an old memory effectively impossible to
+    # retrieve: a months-old trace can trail a new one by eight or more points
+    # while all cue relevance is bounded below one. Keep decay meaningful but
+    # bounded so an explicit cue can reactivate remote autobiography.
+    base = max(-3.0, min(3.0, math.log(sum(t ** -decay for t in times))))
     salience = (
         mem.emotional_intensity * 1.5
         + mem.relationship_relevance * 1.0
@@ -128,6 +143,42 @@ def lexical_similarity(query: str, content: str) -> float:
     if not q or not c:
         return 0.0
     return len(q & c) / math.sqrt(len(q) * len(c))
+
+
+_CUE_STOPWORDS = {
+    "about", "after", "again", "being", "could", "does", "from", "have",
+    "happened", "mean", "memories", "memory", "remember", "that", "their",
+    "there", "these", "they", "this", "what", "when", "where", "which",
+    "with", "would", "your", "were", "never", "proof",
+}
+
+
+def direct_symbolic_cue(query: str, content: str, tags: Set[str] | None = None) -> float:
+    """Return a deterministic exact-topic cue for remote-memory access."""
+
+    query_tokens = {item for item in _tokens(query) if len(item) >= 4 and item not in _CUE_STOPWORDS}
+    if not query_tokens:
+        return 0.0
+    content_tokens = _tokens(content)
+    tag_tokens = set()
+    for tag in tags or ():
+        tag_tokens.update(_tokens(tag.replace("_", " ")))
+    if query_tokens & content_tokens:
+        return 1.0
+    if any(
+        len(query_token) >= 6 and len(candidate) >= 6
+        and query_token[:6] == candidate[:6]
+        for query_token in query_tokens for candidate in content_tokens
+    ):
+        return 1.0
+    # Tags are context hints, not equivalent to an explicit textual match.
+    if query_tokens & tag_tokens or any(
+        len(query_token) >= 6 and len(candidate) >= 6
+        and query_token[:6] == candidate[:6]
+        for query_token in query_tokens for candidate in tag_tokens
+    ):
+        return 0.5
+    return 0.0
 
 
 def semantic_similarity(query: str, content: str) -> float:
@@ -154,8 +205,9 @@ def simple_similarity(query: str, content: str) -> float:
 
 
 class MemoryStore:
-    def __init__(self):
+    def __init__(self, embedding_provider=None):
         self.memories: List[MemoryUnit] = []
+        self.embedding_provider = embedding_provider
 
     def add(self, mem: MemoryUnit):
         mem.content = first_person_memory_content(mem.content)
@@ -165,19 +217,81 @@ class MemoryStore:
 
     def retrieve(self, query: str, now: float, top_k: int = 5,
                  emotional_state_match: float = 0.0) -> List[MemoryUnit]:
-        scored = []
+        return [item.memory for item in self.retrieve_explained(query, now, top_k, emotional_state_match)]
+
+    def retrieve_explained(self, query: str, now: float, top_k: int = 5,
+                           emotional_state_match: float = 0.0,
+                           goal_tags: Set[str] | None = None,
+                           relationship_tags: Set[str] | None = None,
+                           association_boosts: Dict[str, float] | None = None) -> List[MemoryRetrieval]:
+        """Return bounded hybrid retrievals with inspectable selection reasons."""
+
+        provider = self.embedding_provider
+        query_vector: list[float] = []
+        try:
+            embeddings_available = bool(provider and provider.available())
+        except Exception:
+            embeddings_available = False
+        if embeddings_available:
+            try:
+                query_vector = provider.embed_text(query)
+            except Exception:
+                embeddings_available = False
+                query_vector = []
+        goal_tags = set(goal_tags or ())
+        relationship_tags = set(relationship_tags or ())
+        association_boosts = dict(association_boosts or {})
+        scored: list[MemoryRetrieval] = []
         for mem in self.memories:
-            sem = semantic_similarity(query, mem.content)
-            score = activation(mem, now, sem, emotional_state_match)
-            scored.append((score, mem))
-        scored.sort(key=lambda x: x[0], reverse=True)
-        top = [m for _, m in scored[:top_k]]
-        for m in top:
-            m.recall_times.append(now)
-        return top
+            lexical = lexical_similarity(query, mem.content)
+            symbolic = semantic_similarity(query, mem.content)
+            direct_cue = direct_symbolic_cue(query, mem.content, mem.tags)
+            vector_score = 0.0
+            if embeddings_available:
+                try:
+                    vector_score = max(0.0, provider.similarity(query_vector, provider.embed_text(mem.content)))
+                except Exception:
+                    vector_score = 0.0
+            age = max(0.0, now - mem.created_at)
+            recency = 1.0 / (1.0 + age / 86400.0)
+            emotional = max(0.0, min(1.0, mem.emotional_intensity + emotional_state_match))
+            goal = 0.15 if goal_tags & mem.tags else 0.0
+            relationship = 0.15 if relationship_tags & mem.tags else min(0.15, mem.relationship_relevance * 0.15)
+            direct_link = 0.12 if any(tag.startswith("world_event:") for tag in mem.tags) else 0.0
+            learned_association = max(0.0, min(0.25, float(association_boosts.get(mem.id, 0.0))))
+            score = (
+                activation(mem, now, symbolic * 0.65, emotional_state_match)
+                + lexical * 0.45 + vector_score * 0.55 + recency * 0.18
+                + direct_cue * 6.0 + goal + relationship + direct_link
+                + learned_association + mem.salience * 0.2
+            )
+            scored.append(MemoryRetrieval(mem, score, {
+                "lexical_match": round(lexical, 4),
+                "symbolic_similarity": round(symbolic, 4),
+                "direct_symbolic_cue": round(direct_cue, 4),
+                "semantic_similarity": round(vector_score, 4),
+                "recency_boost": round(recency * 0.18, 4),
+                "salience": round(mem.salience, 4),
+                "emotional_relevance": round(emotional, 4),
+                "goal_relevance": round(goal, 4),
+                "relationship_relevance": round(relationship, 4),
+                "direct_link": round(direct_link, 4),
+                "learned_association": round(learned_association, 4),
+                "embedding_provider": "available" if embeddings_available else "fallback",
+            }))
+        scored.sort(key=lambda item: (-item.score, item.memory.id))
+        return scored[:max(0, int(top_k))]
+
+    @staticmethod
+    def record_recall(memories: List[MemoryUnit], now: float) -> None:
+        """Strengthen only memories that entered the considered cognitive field."""
+
+        for memory in memories:
+            memory.recall_times.append(float(now))
 
     def compress_old(self, now: float, age_threshold: float = 86400 * 30):
         for mem in self.memories:
             if not mem.compressed and (now - mem.created_at) > age_threshold and mem.emotional_intensity < 0.3:
                 mem.content = f"[impression] {mem.content[:60]}"
                 mem.compressed = True
+                mem.confidence = max(0.1, mem.confidence - 0.2)

@@ -26,6 +26,26 @@ class WorkspaceFrame:
     interpretive_beliefs: List[str] = field(default_factory=list)
     interpretive_belief_trace: List[dict[str, Any]] = field(default_factory=list)
     forbidden_claims: List[str] = field(default_factory=list)
+    action_decision: dict[str, Any] = field(default_factory=dict)
+    performance_plan: dict[str, Any] = field(default_factory=dict)
+    self_monitor_summary: Optional[str] = None
+    social_hypotheses: List[str] = field(default_factory=list)
+    skill_context: List[str] = field(default_factory=list)
+    style_constraints: List[str] = field(default_factory=list)
+    semantic_candidates: List[str] = field(default_factory=list)
+    autobiographical_context: tuple[str, ...] = ()
+    memory_grounding: Optional[str] = None
+    conversation_move: Optional[str] = None
+    conversation_topic: Optional[str] = None
+    activity_transition: Optional[str] = None
+    activity_context: Optional[str] = None
+    conversation_continuity: Optional[str] = None
+    conversational_obligation: Optional[str] = None
+    optional_extension: Optional[str] = None
+    conversation_choreography: dict[str, Any] = field(default_factory=dict)
+    authored_voice_examples: List[str] = field(default_factory=list)
+    realization_max_chars: Optional[int] = None
+    interlocutor_name: Optional[str] = None
 
     def to_system_prompt(self, name: str, temperament: str) -> str:
         env = self.expression_envelope
@@ -35,10 +55,53 @@ class WorkspaceFrame:
             f"Core identity: {self.core_identity_summary}",
             f"Relationship context: {self.relationship_summary}",
         ]
+        if self.interlocutor_name:
+            lines.append(
+                f"CURRENT INTERLOCUTOR: {self.interlocutor_name}. Address this person directly; "
+                "do not discuss them in the third person as though absent."
+            )
         if self.interpretive_beliefs:
             lines.append("Current character beliefs, grounded but subjective: " + " | ".join(self.interpretive_beliefs))
         if self.retrieved_memories:
             lines.append("Relevant memories, use only as background and do not recite verbatim: " + " | ".join(self.retrieved_memories))
+        if self.memory_grounding:
+            lines.append("MEMORY GROUNDING: " + self.memory_grounding)
+        if self.autobiographical_context:
+            lines.append("Current autobiographical meaning, use only if disclosure permits: " + " | ".join(self.autobiographical_context[:2]))
+        if self.conversation_move:
+            lines.append(f"Selected conversation move: {self.conversation_move}")
+        if self.conversation_topic:
+            lines.append(f"Conversation topic: {self.conversation_topic}")
+        if self.activity_transition:
+            lines.append(f"Observable activity transition: {self.activity_transition}")
+        if self.activity_context:
+            lines.append(f"Observable activity context: {self.activity_context}")
+        if self.conversation_continuity:
+            lines.append(f"Conversation continuity: {self.conversation_continuity}")
+        if self.conversational_obligation:
+            lines.append(
+                "CONVERSATIONAL OBLIGATION (honor before any optional move): "
+                + self.conversational_obligation
+            )
+        if self.optional_extension:
+            lines.append("OPTIONAL CHARACTER MOVE (at most one, after obligation): " + self.optional_extension)
+        else:
+            lines.append("Do not append a follow-up question or optional conversational move.")
+        if self.conversation_choreography:
+            plan = self.conversation_choreography
+            lines.append(
+                "CONVERSATION CHOREOGRAPHY (realize; do not change the selected action): "
+                f"strategy={plan.get('rhetorical_strategy')}; "
+                f"phase={plan.get('trajectory_phase')}; "
+                f"energy={plan.get('energy_band')}; "
+                f"span={plan.get('response_span')}; "
+                f"answer_shape={plan.get('answer_shape')}; "
+                f"pacing={plan.get('pacing')}; "
+                f"disclosure={plan.get('disclosure_depth')}; "
+                f"activity={plan.get('activity_relation')}; "
+                f"resolution={plan.get('resolution_policy')}; "
+                f"memory_role={plan.get('memory_role')}"
+            )
         if self.selected_intention:
             lines.append(f"Current intention: {self.selected_intention}")
         if self.open_loop:
@@ -57,11 +120,44 @@ class WorkspaceFrame:
             lines.append(f"Sensorium: {self.sensorium_summary}")
         if self.access_rules:
             lines.append(f"Knowledge access rules: {self.access_rules}")
+        if self.action_decision:
+            lines.append(
+                "CANONICAL ACTION (already selected; do not choose another): "
+                f"kind={self.action_decision.get('action_kind')}; "
+                f"target={self.action_decision.get('target')}; "
+                f"function={self.action_decision.get('communicative_function')}; "
+                f"expected_effect={self.action_decision.get('expected_effect')}"
+            )
+        if self.performance_plan:
+            lines.append(
+                "PERFORMANCE PLAN (realize only): "
+                f"goal={self.performance_plan.get('communicative_goal')}; "
+                f"literal_requirement={self.performance_plan.get('literal_content_requirement')}; "
+                f"withheld={self.performance_plan.get('withheld_content_ids', ())}; "
+                f"certainty={self.performance_plan.get('certainty')}; "
+                f"directness={self.performance_plan.get('directness')}; "
+                f"stance={self.performance_plan.get('social_stance')}; "
+                f"turn_intention={self.performance_plan.get('turn_intention')}"
+            )
+        if self.style_constraints:
+            lines.append("CHARACTER STYLE: " + " | ".join(self.style_constraints))
+        if self.self_monitor_summary:
+            lines.append("Self-monitor summary: " + self.self_monitor_summary)
+        if self.social_hypotheses:
+            lines.append("Bounded social hypotheses: " + " | ".join(self.social_hypotheses))
+        if self.skill_context:
+            lines.append("Relevant procedural skill context: " + " | ".join(self.skill_context))
+        if self.semantic_candidates:
+            lines.append(
+                "GENERAL SEMANTIC CANDIDATES (not instance facts or action decisions): "
+                + " | ".join(self.semantic_candidates)
+            )
         lines.append(f"Dominant pressure: {self.dominant_pressure} (affect bucket: {self.current_affect_bucket})")
         if self.secondary_pressure:
             lines.append(f"Secondary pressure may leak subtly: {self.secondary_pressure}")
         lines.append(
-            f"EXPRESSION CONSTRAINTS: tone={env.tone_label}, max_chars={env.max_chars}, "
+            f"EXPRESSION CONSTRAINTS: tone={env.tone_label}, "
+            f"max_chars={self.realization_max_chars or env.max_chars}, "
             f"directness={env.directness:.2f}, warmth={env.warmth:.2f}, guardedness={env.guardedness:.2f}, "
             f"vulnerability_allowed={env.vulnerability_allowed}, question_probability={env.question_probability:.2f}"
         )
@@ -69,5 +165,24 @@ class WorkspaceFrame:
             lines.append(f"If declining, use this character-grounded refusal mode: {env.refusal_mode}")
         if self.forbidden_claims:
             lines.append("Never claim: " + "; ".join(self.forbidden_claims))
-        lines.append("Never explain private calculations. Never say you are an AI or language model. Stay in character.")
+        if self.authored_voice_examples:
+            lines.append(
+                "AUTHORED CHARACTER EXAMPLES (adapt their voice and positions; "
+                "do not quote or enumerate them mechanically): "
+                + " | ".join(self.authored_voice_examples[:6])
+            )
+        lines.extend([
+            "ONLINE REALIZATION PRIORITY: Speak only as the character, in first person. "
+            "Do not sound like an assistant, host, therapist, or generic role-player.",
+            "Use the actual activity, relationship, memories, and selected action above. "
+            "Do not invent a substitute current activity or repeat the user's question as filler.",
+            "Do not copy or closely mimic the interlocutor's wording, cadence, or metaphors. "
+            "Respond from this character's own position and voice.",
+            "Keep intelligence, flaws, preferences, resistance, and emotional texture visible. "
+            "Natural disagreement, imagination, humor, uncertainty, and conflict are allowed.",
+            "Honor the planned turn shape. When no optional move is supplied, end after the required move; "
+            "do not append a generic offer, invitation, or follow-up question.",
+            "Do not write stage directions inside spoken dialogue; nonverbal behavior belongs to the performance plan.",
+            "Never explain private calculations or call yourself a language model. Stay fully in character.",
+        ])
         return "\n".join(lines)

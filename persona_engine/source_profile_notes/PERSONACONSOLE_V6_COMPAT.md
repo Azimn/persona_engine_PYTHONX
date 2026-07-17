@@ -14,8 +14,12 @@ Generated cartridges:
 - `cartridges/friendly.snp`
 - `cartridges/kiki.snp`
 - `cartridges/mentor.snp`
-- `cartridges/pretorius_v6.snp`
+- `cartridges/pretorius.snp`
 - `cartridges/quiet.snp`
 - `cartridges/rival.snp`
 
-The existing `cartridges/pretorius.snp` remains as the native v10 Pretorius test cartridge. `pretorius_v6.snp` is the compatibility copy aligned to the PersonaConsole_v6 profile set.
+The canonical `cartridges/pretorius.snp` now subsumes the older compatibility
+copy. It retains the converted body, world, sensory, voice, and avatar
+contracts while adding the authored genesis, diary, behavioral tendencies, and
+online/offline dialogue material. The duplicate `pretorius_v6.snp` was retired
+so players cannot accidentally select the incomplete legacy character.

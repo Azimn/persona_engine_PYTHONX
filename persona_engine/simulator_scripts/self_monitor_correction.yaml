@@ -1,0 +1,27 @@
+life_steps:
+  - type: world_event
+    as: uncertain_event
+    event:
+      event_type: uncertain_observation
+      actors: [character]
+      location: workspace
+      action: remembered
+      targets: [notes]
+      outcome: a remembered detail remained uncertain
+      source: simulator
+  - type: subjective_experience
+    event: uncertain_event
+    perception:
+      interpretation: "My recall is uncertain."
+      confidence: 0.20
+      salience: 0.80
+      attention: 0.75
+
+turns:
+  - user_input: "That detail may be different from what you remember."
+    expect_state:
+      self_monitor.record_authority: canonical_cognitive_record
+      action_decision.action_kind: delay
+      model_calls.expression_renderer_called: false
+    expect_regulation_pattern: "ask_clarification|defer_judgment|self_correct|pause"
+    reject_response_pattern: "actual capacity|missed conflict|diagnostic|0\\.[0-9]+"

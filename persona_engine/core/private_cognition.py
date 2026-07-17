@@ -6,7 +6,8 @@ may influence runtime state.
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+import inspect
 import math
 from typing import Any
 
@@ -25,6 +26,22 @@ DEFAULT_THEME_RETRIEVAL_FILTERS: dict[str, dict[str, str]] = {
     "suppress_disclosure": {"tag": "identity_violation"},
 }
 ALLOWED_COGNITIVE_PRESSURES = set(DECAY_PROFILES) | {"suspicion"}
+PRIVATE_COGNITION_MODES = frozenset({"deterministic", "model_optional", "model_required"})
+
+
+@dataclass(frozen=True)
+class PrivateCognitionExecution:
+    proposal: PrivateCognitionProposal
+    mode: str
+    renderer_called: bool
+    reason: str
+    fallback_used: bool = False
+    error: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data.pop("proposal", None)
+        return data
 
 
 def _empty_proposal() -> PrivateCognitionProposal:
@@ -59,7 +76,7 @@ def _proposal_from_mapping(data: dict[str, Any]) -> PrivateCognitionProposal:
     )
 
 
-def generate_private_cognition(renderer, state_packet, cartridge) -> PrivateCognitionProposal:
+def generate_private_cognition(renderer, state_packet, cartridge, seed: int | None = None) -> PrivateCognitionProposal:
     """Call the renderer's private-cognition task without touching state."""
 
     if hasattr(renderer, "generate_private_cognition"):
@@ -71,6 +88,7 @@ def generate_private_cognition(renderer, state_packet, cartridge) -> PrivateCogn
                 evidence=[],
                 retrieved_memories=[],
                 cartridge=dict(cartridge or {}),
+                seed=seed,
             ))
         except TypeError:
             raw = renderer.generate_private_cognition(state_packet=state_packet, cartridge=cartridge)
@@ -85,6 +103,66 @@ def generate_private_cognition(renderer, state_packet, cartridge) -> PrivateCogn
     if isinstance(raw, dict):
         return _proposal_from_mapping(raw)
     return _empty_proposal()
+
+
+def execute_private_cognition(
+    renderer,
+    state_packet,
+    cartridge,
+    *,
+    mode: str = "deterministic",
+    need_score: float = 0.0,
+    optional_threshold: float = 0.65,
+    seed: int | None = None,
+) -> PrivateCognitionExecution:
+    """Select deterministic or model-backed cognition and fail closed."""
+
+    selected_mode = str(mode)
+    if selected_mode not in PRIVATE_COGNITION_MODES:
+        selected_mode = "deterministic"
+    bounded_need = max(0.0, min(1.0, float(need_score)))
+    threshold = max(0.0, min(1.0, float(optional_threshold)))
+    if selected_mode == "deterministic":
+        return PrivateCognitionExecution(
+            _empty_proposal(), selected_mode, False, "portable deterministic cognition",
+        )
+    if selected_mode == "model_optional" and bounded_need < threshold:
+        return PrivateCognitionExecution(
+            _empty_proposal(), selected_mode, False,
+            f"bounded need {bounded_need:.3f} below threshold {threshold:.3f}",
+        )
+    reason = (
+        "model-backed cognition required"
+        if selected_mode == "model_required"
+        else f"bounded need {bounded_need:.3f} met threshold {threshold:.3f}"
+    )
+    try:
+        if not hasattr(renderer, "generate_private_cognition"):
+            raise AttributeError("renderer has no private cognition task")
+        request = PrivateCognitionRequest(
+            ledger_digest={}, active_state=dict(state_packet or {}), arc_context={},
+            evidence=[], retrieved_memories=[], cartridge=dict(cartridge or {}), seed=seed,
+        )
+        method = renderer.generate_private_cognition
+        parameter_names = tuple(inspect.signature(method).parameters)
+        if "state_packet" in parameter_names and "cartridge" in parameter_names:
+            raw = renderer.generate_private_cognition(state_packet=state_packet, cartridge=cartridge)
+        else:
+            raw = renderer.generate_private_cognition(request)
+        if isinstance(raw, PrivateCognitionResult):
+            proposal = raw.proposal
+        elif isinstance(raw, PrivateCognitionProposal):
+            proposal = raw
+        elif isinstance(raw, dict):
+            proposal = _proposal_from_mapping(raw)
+        else:
+            raise ValueError("private cognition returned an unsupported result")
+        return PrivateCognitionExecution(proposal, selected_mode, True, reason)
+    except Exception as exc:
+        return PrivateCognitionExecution(
+            _empty_proposal(), selected_mode, True, reason, True,
+            f"{type(exc).__name__}: {exc}"[:240],
+        )
 
 
 def _allowed_themes(cartridge) -> set[str]:

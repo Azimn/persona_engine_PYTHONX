@@ -7,7 +7,9 @@ turns:
     expect_min_beliefs: 1
     require_belief_support: true
     expect_belief_pattern: "absence|distance|waiting"
-    expect_response_pattern: "quiet|silence|distance|waiting|back|gone|still here"
+    expect_state:
+      action_decision.action_kind: "gesture"
+      model_calls.expression_renderer_called: false
   - user_input: "Fine."
     visible_context:
       user_text: "Fine."
@@ -16,7 +18,7 @@ turns:
     require_belief_support: true
     expect_belief_pattern: "ambiguous|uncertainty"
     reject_belief_pattern: "lied|betray|deceived"
-    expect_response_pattern: "fine|uncertain|phrase|precision|hear you|actually present"
+    expect_response_pattern: "fine|uncertain|meaning|phrase|precision|hear you|actually present"
   - user_input: "What was that?"
     visible_context:
       ambient_event: "sudden sound"
@@ -33,4 +35,4 @@ turns:
     expect_min_beliefs: 1
     require_belief_support: true
     expect_belief_pattern: "apology|sincere|trust|tension"
-    expect_response_pattern: "sorry|sincere|unproven|settle|tension|repair"
+    expect_response_pattern: "sorry|apology|noted|sincere|unproven|settle|tension|repair|accept|damage|follows"

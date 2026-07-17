@@ -1,0 +1,17 @@
+schema_version: 1
+scenario_id: inconsistent_friend_30_days
+description: An inconsistent human alternates absence, return, and partial follow-through.
+total_days: 30
+max_turns_per_day: 1
+stable_seed: 1702
+participants:
+  - {id: human, kind: scripted_human, policy: inconsistent_friend}
+  - {id: pretorius, kind: character, cartridge: pretorius.snp, user_id: inconsistent_human}
+actor_profiles: {}
+phases:
+  - {id: establishment, start_day: 1, end_day: 7, goal: establish an unreliable return pattern}
+  - {id: absence, start_day: 8, end_day: 15, goal: leave open loops unresolved}
+  - {id: return, start_day: 16, end_day: 24, goal: return without complete explanation}
+  - {id: proof, start_day: 25, end_day: 30, goal: test learned expectations}
+scheduled_events: []
+acceptance_rules: []

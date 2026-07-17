@@ -1,0 +1,166 @@
+# Next Stages
+
+This roadmap prioritizes visible life, behavioral proof, and C99 portability.
+It is informed by the current Python engine, the older PersonaConsole society
+probe, and *Towards Avatars with Artificial Minds: Role of Semantic Memory*
+(Duch, Szymanski, and Sarnatowicz, 2006).
+
+## Paper Assessment
+
+The paper's useful lesson is not that Persona Engine needs a large ontology.
+Its useful lesson is that simple task-specific representations can outperform
+more ambitious knowledge structures when latency and practical behavior matter.
+
+Ideas worth carrying forward:
+
+- Distinguish verified false from unknown.
+- Store confidence and provenance with conceptual knowledge.
+- Prefer compact concept-property records for bounded tasks.
+- Retrieve associations quickly enough to affect current behavior.
+- Let missing distinctions propose relevant questions.
+- Preserve the difference between semantic knowledge and episodic experience.
+
+Ideas not justified for this project now:
+
+- A general-purpose semantic network or graph database.
+- Automatic ingestion of large external ontologies.
+- Unvalidated extraction of canonical facts from free text.
+- A separate avatar mind or dialogue controller.
+- Avatar technology that can mutate organism state.
+
+## Stage 1: Behavioral Proof (Implemented)
+
+Build a generic evaluation harness that:
+
+- runs one or two isolated character sessions;
+- captures only visible speech and actions for blind review;
+- exports matching synthesis, memory retrieval, world events, intrinsic
+  decisions, randomness provenance, and action outcomes separately;
+- checks repetition, assistant drift, identity bleed, and continuity;
+- supports offline and model-backed renderers through the same engine path.
+
+The first paired scenario is Pretorius and Kiki because their motives and
+performance constraints stress different failure modes. The host may pass
+observable speech between them but may never share private state.
+
+## Stage 2: Performance Separation (Implemented)
+
+Complete the existing seam:
+
+```text
+intrinsic motivation -> intention -> ActionDecision -> PerformancePlan
+```
+
+`ActionDecision` remains cognitive and portable. `PerformancePlan` realizes it
+as speech, gesture, expression, delay, continued activity, or silence. A model
+is called only when language is required.
+
+## Stage 3: Compact Semantic Affordances (Pilot Implemented)
+
+The current bounded semantic adapter contains:
+
+- concept ID;
+- explicit features, relations, and candidate affordances;
+- value: true, false, unknown, usually, or sometimes;
+- confidence;
+- provenance;
+- verification state;
+- source tier;
+- direct-over-inherited resolution.
+
+It uses sparse explicit profiles, deterministic one-hop activation, and small
+top-k lists. It does not build a general knowledge graph or accept prose as
+semantic authority.
+
+## Stage 4: Curiosity From Uncertainty
+
+Fallible self-monitoring is now implemented before this stage. Actual engine
+diagnostics produce character-shaped perceived diagnostics and regulation
+candidates that compete in situated synthesis. The next cognitive slice is
+bounded social attribution, but only where its hypotheses can visibly affect
+clarification, concealment, anticipation, delay, repair, withdrawal, or
+performance.
+
+Unknown high-value distinctions may create a bounded question proposal. That
+proposal enters the existing intention and synthesis systems and competes with
+current activity, pressure, habits, and relationship context. It does not gain
+automatic permission to interrupt or speak.
+
+## Stage 5: Long Duration And Port Fixtures
+
+The first long-duration proof is implemented. Original subjective experience
+survives fourteen-day decay, missed corrective evidence is deferred, calm
+reconsideration appends a new meaning, and C99-oriented JSON preserves the
+two-version chain.
+
+- Run month-scale summarized simulation without per-second ticks.
+- Measure event, memory, and knowledge growth.
+- Verify bounded forgetting and supersession.
+- Export fixed, versioned JSON fixtures for C99 reproduction.
+- Compare offline and Ollama behavior from identical causal records.
+
+Each stage must demonstrate a visible behavioral gain before the next one adds
+runtime structure.
+
+## Stage 6: Automated Developmental Play (Implemented)
+
+Scripted users, isolated character crossplay, optional Ollama actors, saved
+move replay, deterministic metrics, blind reports, and bounded developmental
+stores now run over accelerated weeks. The first unresolved outward failure is
+high exact repetition in deterministic offline expression.
+
+## Stage 7: Behavioral Richness (Implemented, Human Review Pending)
+
+Small cartridge-owned tendency banks now expose existing cognition as probing,
+comparison, speculation, curiosity, and continued activity. They enter the
+existing synthesis field, preserve canonical action ownership, and coordinate
+with structured performance tendencies. Blind reports include a human illusion
+review rather than treating architectural correctness as product success.
+
+Future character work should follow `CHARACTER_BEHAVIOR_AUTHORING.md`. New
+cognitive subsystems remain deferred until a blind playtest identifies a
+specific visible failure that cannot be expressed through the current systems.
+
+## Stage 8: Conversational Plasticity (Implemented, Long Crossplay Review Pending)
+
+A deterministic choreography record now sits between `ActionDecision` and
+`PerformancePlan`. It varies rhetorical strategy, trajectory phase, energy,
+response span, pacing, disclosure, activity relation, resolution, and memory
+role while preserving the selected action and optional move. Per-actor recent
+trajectory signatures suppress repeated interaction shapes, and playtests now
+separate textual, semantic, behavioral, and full-trajectory repetition.
+
+## Stage 9: Autonomous Initiative And Grounded Topic Renewal
+
+Corrected crossplay now carries each generated character response forward once
+instead of executing it again on the next actor turn. It also transports
+nonverbal performance as structured observation rather than dialogue text.
+These repairs eliminate exact repeats but expose the real product failure:
+without a human or visible world event introducing novelty, both characters
+settle into silence and repeated acknowledgment.
+
+The next slice should let existing open loops, intrinsic intentions, current
+activity, salient world changes, and genuinely relevant autobiographical
+memories propose a bounded initiation move. The proposal must enter situated
+synthesis and may be declined. It must not create a second executive, invent a
+topic merely to keep talking, or force speech after reciprocal silence.
+
+This bounded initiative slice is now implemented. Remaining silence is
+attributed by cause and is not automatically treated as failure.
+
+## Stage 10: Online Dialogue Alpha (Implemented, Model Descent Pending)
+
+The shared organism now drives both an intentionally authored offline adapter
+and a local-model online adapter. Online realization receives the canonical
+action, deterministic performance, actual activity, actor-scoped relationship,
+relevant memories, conversation obligation, and cartridge-authored voice
+examples. The current interlocutor is explicit. Exact model echoes fall back to
+authored realization, while a small terminal filter removes generic assistant
+invitations without suppressing character-specific questions.
+
+The live baseline is `qwen3:14b` through Ollama. The next product test is a
+controlled descent to `qwen3:8b` and then one smaller model using identical
+recorded visits. No new cognitive subsystem is justified during that
+comparison. The smallest acceptable model is the smallest one that preserves
+identity, continuity, memory use, disagreement, diary handoff, and the desire
+to continue the interaction.

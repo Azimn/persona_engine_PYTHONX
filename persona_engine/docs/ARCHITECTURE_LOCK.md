@@ -65,9 +65,89 @@ Only `DreamEngine` or explicitly governed consolidation rules may alter slow `Be
 
 Session history and memories must flow through memory, persistence, event-log, and canonicality/firewall rules. Generated renderer text is speech evidence, not objective fact.
 
+Objective events, original subjective experience, consolidated memory, and
+later autobiographical meaning are separate records. Decay must not rewrite
+original perception or encoding-time interpretation. Later meaning is
+append-only, evidence-linked, bounded, and governed by self-monitor awareness
+and reconsolidation validation. Renderer prose cannot create or revise it.
+
+Cartridge-authored genesis history is input history, not imported memory. It
+must pass through ordinary world-event, perception, consolidation, decay, and
+autobiographical pathways. Conflicting fictional continuities may coexist when
+their authority and provenance remain explicit.
+
+A personal journal is a character-authored world artifact. Its text proves
+only what was written. Reading it creates a new observation; journal text does
+not overwrite memory or objective history.
+
+All characters have the journal capability and possess its artifact in world
+inventory. A cartridge may name the artifact and author a bounded pending-note
+template. Saying that a note was made requires a real World Authority writing
+action. The journal is not an unsolicited life callback; its existence or text
+may enter conversation only through a relevant selected read, write, or
+disclosure action.
+
+### Actor Identity Owns Social Reference
+
+The bounded actor registry owns stable social referents. Internal identity is
+a deterministic nonzero `uint32`; names and aliases are fallible recognition
+cues and must not be treated as unique keys. Duplicate names remain separate,
+and ambiguous references may activate multiple candidates without merging
+their memories or relationships.
+
+The existing `RelationshipState` remains the relationship model, stored once
+per actor. World events, subjective experiences, memories, relationship
+expectations, and dyadic rituals may carry actor references. Renderers and
+free text cannot create an identity merge or prove that two referents are the
+same person.
+
 ### Renderer Owns Surface Language Only
 
 The LLM or mock renderer may produce expressive prose. It may not define what is true. It may not directly write memory, world facts, private state, cartridge content, or belief-ledger state.
+
+Offline conversation may classify bounded discourse acts and propose basic
+reply, reminiscence, deferral, topic return, clarification, or nonverbal
+acknowledgement. These are synthesis candidates, not final decisions.
+Reminiscence must be grounded in considered autobiographical memory. Pending
+topics reuse `OpenLoop`; renderer output may surface but never resolve them.
+
+Cartridge-authored behavioral tendencies may propose bounded probing,
+comparison, speculation, curiosity, or continued-work moves. They remain
+synthesis candidates. They may require actual activity, considered memory,
+familiarity, and bounded pressure, and they may select a validated performance
+tendency. They cannot select the final action, invent memory, or place
+character content in core modules.
+
+Per-actor conversation continuity is a bounded dialogue blackboard, not a
+second executive. It owns topic continuity, one pending conversational
+obligation, initiative budget, recent semantic move shapes, and transition
+reasons. It may gate optional conversation candidates and annotate contextual
+memory relevance. Synthesis still selects influences, `ActionDecision` still
+owns behavior, and the renderer still owns wording only.
+
+`ConversationChoreographyPlan` is a deterministic realization record between
+`ActionDecision` and `PerformancePlan`. It may vary rhetorical strategy,
+trajectory phase, conversational energy, response span, pacing, disclosure,
+activity relation, and memory role. It may not change the selected action,
+obligation, extension, target, intention, withheld content, or memory access.
+It is replay-authoritative for realization but is neither canonical cognition
+nor a canonical world record.
+
+Conversational initiative is a bounded source assessor, not a second
+executive. It may propose one optional move from contextual autobiographical
+memory, a due open loop, current intrinsic activity, a supported relationship
+expectation, or a recent world/life change. The current obligation remains
+first, situated synthesis may reject the proposal, and silence remains valid.
+It may not invent a topic, fact, memory, goal, or action.
+
+### Semantic Prior Boundary
+
+The read-only semantic substrate may supply generic concept features,
+associations, unknowns, and candidate affordances from structured observed
+concept IDs. These are priors, not instance facts, beliefs, motives, or action
+decisions. Semantic affordances must still compete in existing synthesis and
+pass normal action and World Authority validation. Free prose may not activate
+or write the semantic graph.
 
 Renderer output cannot create canonical belief. It is logged as noncanonical speech evidence behind the memory firewall.
 
@@ -82,6 +162,25 @@ Audio and vision layers report limited observations such as sound level, sudden 
 ### Voice and Avatar Own Performance Only
 
 Voice and avatar systems may perform public state. They do not decide state and must not mutate private organism state.
+
+### One Canonical Action Owns Each Situated Turn
+
+Intrinsic motivation supplies `IntrinsicProposal` candidates. Situated
+synthesis selects bounded influences, and `core/action.py` alone resolves them
+into the turn's canonical `ActionDecision`. A `PerformancePlan` may realize
+that decision through speech, gesture, observation, continued activity, delay,
+silence, world action, or withdrawal, but may not change its intention, target,
+or expected effect. Language rendering occurs only when the plan contains a
+speech act. Private cognition is a separate optional renderer task and must be
+reported separately. Its portable default is deterministic. Voice and avatar
+projection consume the same performance plan.
+
+Record authority uses explicit categories:
+
+- `canonical_cognitive_record`: accepted organism decisions such as `ActionDecision`.
+- `canonical_world_record`: objective outcomes owned by World Authority.
+- `deterministic_performance_record`: replay-authoritative realization derived from an accepted action, but not an objective world fact.
+- `noncanonical_renderer_output`: generated surface language, never canonical truth.
 
 ### Dream and Reflection Own Evidence-Backed Consolidation
 
@@ -102,6 +201,23 @@ The Tide means deterministic pressure, body, world, and sensorium drift during i
 
 The Tide does not currently include stochastic mood weather, random affect variance, calendar-based mood variance, or model-generated mood shifts. Do not add randomness without an explicit architecture change request.
 
+### Vitality Noise Is Separate And Bounded
+
+The v0.2 simulated-life extension explicitly authorizes `VitalityEventEngine` as a separate seeded subsystem for whims, ordinary limitations, and rare true-chaos events. It must remain distinct from Tide, persist its replay counter, record provenance, produce bounded proposals/effects, and never author objective facts or bypass action validation.
+
+### Situated Synthesis Narrows Attention, Not Authority
+
+Integration capacity is derived from existing organism load and may narrow the structured influences considered during a turn. The resulting `SynthesisResult` is immutable diagnostic evidence, not a second decision engine. Minimum capacity never disables identity, safety, canonicality, World Authority, action validation, or memory-firewall rules. Recovery widens access to evidence; it does not automatically rewrite beliefs or memories.
+
+### Self-Monitoring Is Fallible And Subordinate
+
+`SelfMonitor` may read actual engine diagnostics, but the character receives
+only a bounded, fallible perceived estimate. It emits regulation candidates;
+synthesis selects among candidates and other influences; `ActionDecision`
+owns action; `PerformancePlan` owns coordinated realization; the renderer owns
+wording only. Actual capacity, missed conflicts, and unreportable candidates
+must never enter renderer context or public status.
+
 ### Mask Suppression Is Traceable
 
 Mask Suppression is distributed across existing gates:
@@ -115,6 +231,14 @@ Mask Suppression is distributed across existing gates:
 - memory firewall
 
 Suppression traces are observability records only. They must not decide character behavior or mutate private state.
+
+### Developmental Learning Remains Subordinate
+
+Explicit evidence routing, memory connections, skills, relationship
+expectations, rituals, and earned-trait signals may supply bounded synthesis
+influences. They do not select actions independently. Actors and judges are
+test infrastructure, see observable state only, and may never write canonical
+learning. Cross-character play shares no private organism state.
 
 ## Allowed Change Types
 

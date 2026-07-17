@@ -117,6 +117,20 @@ def public_status_from_engine(engine, affect_bucket: str | None = None, dominant
 def debug_snapshot_from_engine(engine) -> dict[str, Any]:
     """Private debug view for development. Not intended for public UI mode."""
 
+    recent_events = engine.world_events.recent(20) if hasattr(engine, "world_events") else []
+    recent_experiences = engine.experiences.recent(20) if hasattr(engine, "experiences") else []
+    experiences_by_event: dict[str, list[dict[str, Any]]] = {}
+    for experience in recent_experiences:
+        experiences_by_event.setdefault(experience.world_event_id, []).append(experience.to_dict())
+    autobiographical_histories = {}
+    if hasattr(engine, "autobiographical_interpretations"):
+        for experience in recent_experiences:
+            versions = engine.autobiographical_interpretations.for_experience(experience.experience_id)
+            if versions:
+                autobiographical_histories[experience.experience_id] = {
+                    "current": engine.autobiographical_interpretations.current(experience.experience_id).to_dict(),
+                    "versions": [item.to_dict() for item in versions],
+                }
     return {
         "timestep": engine.timestep,
         "relationship": dict(vars(engine.relationship)),
@@ -128,4 +142,95 @@ def debug_snapshot_from_engine(engine) -> dict[str, Any]:
         "symbols": [vars(s) for s in engine.symbols.symbols.values()],
         "habits": [vars(h) for h in engine.habits.habits.values()],
         "memory_count": len(engine.memory.memories),
+        "life_inspector": {
+            "actors": getattr(engine, "actor_registry", None).inspection_list()
+            if getattr(engine, "actor_registry", None) else [],
+            "actor_relationships": getattr(engine, "actor_relationships", None).to_list()
+            if getattr(engine, "actor_relationships", None) else [],
+            "active_actor_id": getattr(engine, "active_actor_id", None),
+            "conversation_candidate": (
+                engine._last_conversation_candidate.to_dict()
+                if getattr(engine, "_last_conversation_candidate", None) else None
+            ),
+            "conversation_continuity": getattr(engine, "conversation_continuity", None).to_list()
+            if getattr(engine, "conversation_continuity", None) else [],
+            "offline_topic_match": (
+                engine._last_offline_topic_match.to_dict()
+                if getattr(engine, "_last_offline_topic_match", None) else None
+            ),
+            "offline_topic_plan": (
+                engine._last_offline_topic_plan.to_dict()
+                if getattr(engine, "_last_offline_topic_plan", None) else None
+            ),
+            "offline_topic_threads": getattr(engine, "offline_topic_threads", None).to_list()
+            if getattr(engine, "offline_topic_threads", None) else [],
+            "conversation_choreography": (
+                engine._last_conversation_choreography.to_dict()
+                if getattr(engine, "_last_conversation_choreography", None) else None
+            ),
+            "conversation_notes": [
+                asdict(item) for item in getattr(engine.intentions, "open_loops", ())
+                if getattr(item, "reason", "") in {
+                    "offline_knowledge_unavailable", "needs_research", "promised_followup"
+                }
+            ],
+            "offline_realization_state": getattr(
+                getattr(engine.renderer, "_offline", None), "to_state", lambda: {}
+            )(),
+            "state": engine.life_state.to_dict() if hasattr(engine, "life_state") else {},
+            "catch_up": dict(getattr(engine, "last_catch_up_summary", {})),
+            "objective_events": [event.to_dict() for event in recent_events],
+            "subjective_experiences": [experience.to_dict() for experience in recent_experiences],
+            "autobiographical_histories": autobiographical_histories,
+            "deferred_reinterpretations": [
+                item.to_dict() for item in getattr(engine, "deferred_reinterpretations", [])
+            ],
+            "autobiographical_activations": [
+                item.to_dict() for item in getattr(engine, "_last_autobiographical_activations", ())
+            ],
+            "interpretation_use_outcomes": [
+                item.to_dict() for item in getattr(engine, "interpretation_use_outcomes", [])[-20:]
+            ],
+            "autobiographical_evidence_links": [item.to_dict() for item in getattr(engine, "autobiographical_evidence_links", [])[-20:]],
+            "interpretation_status_events": getattr(engine, "interpretation_status_events", None).to_list()
+            if getattr(engine, "interpretation_status_events", None) else [],
+            "memory_connections": getattr(engine, "memory_connections", None).to_list()
+            if getattr(engine, "memory_connections", None) else [],
+            "skills": getattr(engine, "skills", None).to_list() if getattr(engine, "skills", None) else [],
+            "relationship_expectations": getattr(engine, "relationship_expectations", None).to_list()
+            if getattr(engine, "relationship_expectations", None) else [],
+            "dyadic_rituals": getattr(engine, "dyadic_rituals", None).to_list()
+            if getattr(engine, "dyadic_rituals", None) else [],
+            "development_episodes": getattr(engine, "development_episodes", None).to_list()[-20:]
+            if getattr(engine, "development_episodes", None) else [],
+            "genesis_replays": list(getattr(engine, "genesis_replays", ())),
+            "journal": getattr(engine, "journal", None).to_dict()
+            if getattr(engine, "journal", None) else None,
+            "discrepancies": [
+                {
+                    "world_event_id": event.event_id,
+                    "objective": event.outcome,
+                    "subjective": [item["perceived_summary"] for item in experiences_by_event.get(event.event_id, [])],
+                    "interpretations": [item["interpretation"] for item in experiences_by_event.get(event.event_id, [])],
+                }
+                for event in recent_events if experiences_by_event.get(event.event_id)
+            ],
+            "learning_artifacts": [item.to_dict() for item in getattr(engine, "capability_artifacts", []).artifacts]
+            if hasattr(getattr(engine, "capability_artifacts", None), "artifacts") else [],
+            "retrievals": list(getattr(engine, "_last_retrieved_memory_trace", [])),
+            "intrinsic": {
+                "state": engine.intrinsic_state.to_dict(),
+                "proposal": engine._last_intrinsic_proposal.to_dict() if getattr(engine, "_last_intrinsic_proposal", None) else None,
+                "action_decision": engine._last_action_decision.to_dict() if getattr(engine, "_last_action_decision", None) else None,
+            } if hasattr(engine, "intrinsic_state") else {},
+            "performance_plan": engine._last_performance_plan.to_dict()
+            if getattr(engine, "_last_performance_plan", None) else None,
+            "model_calls": dict(getattr(engine, "_last_model_call_metrics", {})),
+            "self_monitor": engine._last_self_monitor.to_dict()
+            if getattr(engine, "_last_self_monitor", None) else None,
+            "synthesis": engine._last_synthesis.to_dict() if getattr(engine, "_last_synthesis", None) else None,
+            "action_completion": engine._last_action_completion.to_dict() if getattr(engine, "_last_action_completion", None) else None,
+            "semantic_activation": engine._last_semantic_activation.to_dict()
+            if getattr(engine, "_last_semantic_activation", None) else None,
+        },
     }

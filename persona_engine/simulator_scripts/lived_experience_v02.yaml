@@ -1,0 +1,69 @@
+life_steps:
+  - type: idle
+    cycles: 2
+    expect:
+      activity_status: active
+  - type: world_event
+    as: projector_event
+    event:
+      event_type: device_malfunction
+      actors: [character]
+      location: workspace
+      action: attempted_repair
+      targets: [projector]
+      outcome: the projector failed to respond
+      source: simulator
+      payload:
+        objective_cause: loose_connection
+  - type: subjective_experience
+    event: projector_event
+    perception:
+      attention: 0.9
+      confidence: 0.75
+      salience: 0.8
+      emotional_residue: frustration
+      interpretation: resistance from the device
+      distortion:
+        emphasis: resistance
+  - type: action_attempt
+    as: mistaken_lesson
+    attempt:
+      decision: strike the control
+      objectively_reasonable: false
+      skill: 0.8
+      distraction: 0.2
+      fatigue: 0.1
+      observed_outcome: the projector started working
+      objective_cause: a loose connection shifted
+      now: 100.0
+      supporting_event_ids: [projector_event]
+      force_execution_failure: true
+      force_wrong_learning: true
+    expect:
+      succeeded: false
+  - type: recall
+    query: projector frustration
+    top_k: 2
+  - type: life_event
+    category: whim
+  - type: life_event
+    category: limitation
+  - type: life_event
+    category: chaos
+  - type: challenge_artifact
+    artifact: mistaken_lesson
+    evidence_strength: 0.8
+    expect:
+      verification_state: challenged
+
+turns:
+  - user_input: "I am here. What were you doing?"
+    visible_context:
+      user_presence: returned
+  - user_input: "You can continue after this."
+    visible_context:
+      user_presence: present
+
+life_steps_after:
+  - type: idle
+    cycles: 2

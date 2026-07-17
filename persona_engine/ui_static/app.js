@@ -379,6 +379,13 @@ async function sendChat(text, serverTruth = null, visibleContext = null, kind = 
         fullText += event.token;
         updateTranscriptNode(agentNode, fullText);
       }
+      if (event.type === 'performance') {
+        const performance = event.performance || {};
+        const act = (performance.acts || [])[0] || {};
+        const visibleAction = act.function === 'none' ? 'withheld response' : `${act.function || 'continues'}${act.target ? ` ${act.target}` : ''}`;
+        fullText = `*${visibleAction}*`;
+        updateTranscriptNode(agentNode, fullText);
+      }
       if (event.type === 'second_thought') {
         const meta = document.createElement('div');
         meta.className = 'meta';
@@ -406,7 +413,45 @@ async function sendSensor(kind, payload) {
 
 async function refreshDebug() {
   const data = await api('/debug');
+  renderLifeInspector(data.life_inspector || {});
   $('debugData').textContent = JSON.stringify(data, null, 2);
+}
+
+function renderLifeInspector(inspector) {
+  const holder = $('lifeInspector');
+  const life = inspector.state || {};
+  const events = inspector.objective_events || [];
+  const experiences = inspector.subjective_experiences || [];
+  const retrievals = inspector.retrievals || [];
+  const lifeEvents = life.events || [];
+  const artifacts = inspector.learning_artifacts || [];
+  const synthesis = inspector.synthesis || {};
+  const completion = inspector.action_completion || {};
+  const intrinsic = inspector.intrinsic || {};
+  const actionDecision = intrinsic.action_decision || {};
+  const semantic = inspector.semantic_activation || {};
+  const lifeEventRows = lifeEvents.slice(-5).reverse().map(item => `<p><strong>${escapeHtml(item.category)}</strong> ${escapeHtml(item.action)} <small>${escapeHtml(item.origin)}</small></p>`).join('');
+  const artifactRows = artifacts.slice(-4).reverse().map(item => `<p><strong>${escapeHtml(item.kind)}</strong> ${escapeHtml(item.content)} <small>tier ${item.source_tier} · ${escapeHtml(item.verification_state)}</small></p>`).join('');
+  holder.hidden = false;
+  holder.innerHTML = `
+    <section class="life-summary">
+      <div><span>activity</span><strong>${escapeHtml(life.current_activity || 'unknown')}</strong></div>
+      <div><span>intention</span><strong>${escapeHtml(life.current_intention || 'none')}</strong></div>
+      <div><span>attention</span><strong>${escapeHtml(life.attention_target || 'none')}</strong></div>
+      <div><span>status</span><strong>${escapeHtml(life.activity_status || 'unknown')}</strong></div>
+      <div><span>integration</span><strong>${Number(synthesis.integration_capacity || 0).toFixed(2)}</strong></div>
+      <div><span>field width</span><strong>${escapeHtml(String(synthesis.field_width || 0))}</strong></div>
+    </section>
+    <section class="life-list"><h3>Intrinsic action</h3>${actionDecision.decision_id ? `<article><strong>${escapeHtml(actionDecision.activity_description)} · ${escapeHtml(actionDecision.action_type)}</strong><p>want: ${escapeHtml(actionDecision.want_id)} · intention: ${escapeHtml(actionDecision.intention)}</p><p>target: ${escapeHtml(actionDecision.target)} · renderer required: ${escapeHtml(String(actionDecision.requires_renderer))}</p><p>${(actionDecision.selection_reason || []).map(escapeHtml).join(' · ')}</p></article>` : '<p class="empty-state">No intrinsic action selected yet.</p>'}</section>
+    <section class="life-list"><h3>Situated synthesis</h3>${synthesis.synthesis_id ? `<article><strong>${escapeHtml(synthesis.selected_intention_id || synthesis.selected_habit_id || 'no selected tendency')}</strong><p>considered: ${(synthesis.considered_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>inhibited: ${(synthesis.inhibited_influences || []).map(item => escapeHtml(item.influence_id)).join(' · ') || 'none'}</p><p>conflicts: ${(synthesis.unresolved_conflicts || []).map(escapeHtml).join(' · ') || 'none'}</p></article>` : '<p class="empty-state">No synthesis recorded yet.</p>'}</section>
+    <section class="life-list"><h3>Semantic candidates</h3>${(semantic.concepts || []).length ? `<article><strong>${semantic.concepts.map(item => escapeHtml(item.name)).join(' · ')}</strong><p>features: ${(semantic.features || []).map(item => `${escapeHtml(item.feature_name)}=${escapeHtml(item.value)}`).join(' · ') || 'none'}</p><p>affordances: ${(semantic.affordances || []).map(item => `${escapeHtml(item.action)} ${escapeHtml(item.target_name)}`).join(' · ') || 'none'}</p><p>unknowns: ${(semantic.unresolved_questions || []).map(escapeHtml).join(' · ') || 'none'} · candidates only, never world facts</p></article>` : '<p class="empty-state">No structured concepts were observed.</p>'}</section>
+    <section class="life-list"><h3>Action completion</h3>${completion.world_event_id ? `<article><strong>${escapeHtml(completion.attempted_action)} · ${escapeHtml(completion.outcome_status)}</strong><p>expected: ${escapeHtml(completion.expected_outcome)} · actual: ${escapeHtml(completion.actual_outcome)}</p><p>world: ${escapeHtml(completion.world_event_id)} · subjective: ${escapeHtml(completion.subjective_interpretation_reference || 'none')}</p></article>` : '<p class="empty-state">No completed action yet.</p>'}</section>
+    <section class="life-list"><h3>World and experience</h3>${events.slice(0, 5).map(event => {
+      const versions = experiences.filter(item => item.world_event_id === event.event_id);
+      return `<article><strong>World: ${escapeHtml(event.outcome || event.action)}</strong>${versions.map(item => `<p>${escapeHtml(item.character_id)}: ${escapeHtml(item.perceived_summary)} <small>${escapeHtml(item.emotional_residue)} · ${Number(item.confidence || 0).toFixed(2)}</small></p>`).join('')}</article>`;
+    }).join('') || '<p class="empty-state">No objective events yet.</p>'}</section>
+    <section class="life-list"><h3>Recall reasons</h3>${retrievals.slice(0, 4).map(item => `<article><strong>${escapeHtml(item.content || item.memory_id)}</strong><p>${Object.entries(item.reasons || {}).filter(([, value]) => Number(value) > 0 || value === 'available').map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(String(value))}`).join(' · ')}</p></article>`).join('') || '<p class="empty-state">No memories recalled yet.</p>'}</section>
+    <section class="life-list"><h3>Life events and learning</h3>${lifeEventRows || artifactRows ? lifeEventRows + artifactRows : '<p class="empty-state">No life events or artifacts yet.</p>'}</section>`;
 }
 
 function buildRatings() {
@@ -513,6 +558,58 @@ async function copyReport() {
   }
 }
 
+function downloadJson(payload, filename) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportSessionBundle() {
+  const bundle = await api('/session/export', {
+    method: 'POST',
+    body: JSON.stringify({ transcript: state.transcript, report_markdown: reportMarkdown() })
+  });
+  const stem = String(bundle.cartridge || 'session').replace(/\.snp$/i, '');
+  downloadJson(bundle, `${stem}-persona-session.json`);
+  showModal(`Exported ${bundle.canonical_events.length} replayable events with checksum ${bundle.checksum.slice(0, 12)}.`, 'Session exported');
+}
+
+function restoreTranscript(transcript) {
+  state.transcript = [];
+  clearConversation();
+  for (const item of transcript || []) {
+    if (item.role === 'User') addMessage('user', item.text || '');
+    if (item.role === 'Character') addMessage('char', item.text || '');
+  }
+  state.transcript = (transcript || [])
+    .filter(item => item && (item.role === 'User' || item.role === 'Character'))
+    .map(item => ({ role: item.role, text: String(item.text || ''), time: item.time || '' }));
+}
+
+async function importReplayFile(file) {
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) throw new Error('Replay bundle exceeds the 10 MB UI limit.');
+  const bundle = JSON.parse(await file.text());
+  const result = await api('/session/replay', { method: 'POST', body: JSON.stringify(bundle) });
+  state.currentCartridge = result.session.cartridge;
+  $('cartridgeSelect').value = result.session.cartridge;
+  restoreTranscript(result.transcript || []);
+  if (result.report_markdown) localStorage.setItem(REPORT_KEY, result.report_markdown);
+  updateStatus({ session: result.session, status: result.status, renderer: result.renderer });
+  applyRendererStatus(result.renderer);
+  await loadRendererControls();
+  await refreshStatus();
+  const digest = result.digest_matches ? 'State digest matched.' : 'State digest differs; inspect the replay trace.';
+  addMessage('system', `Replayed ${result.events_replayed} canonical events in an isolated session. ${digest}`);
+  showModal(digest, 'Replay complete');
+}
+
 function wireEvents() {
   $('inputForm').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -550,6 +647,7 @@ function wireEvents() {
   $('debugToggle').addEventListener('change', async (event) => {
     state.debugEnabled = event.target.checked;
     $('debugData').textContent = state.debugEnabled ? 'Loading debug details...' : 'Debug mode is off.';
+    $('lifeInspector').hidden = !state.debugEnabled;
     if (state.debugEnabled) {
       try { await refreshDebug(); }
       catch (err) { $('debugData').textContent = `Debug unavailable: ${err.message}`; }
@@ -558,6 +656,13 @@ function wireEvents() {
 
   $('captureExcerpt').addEventListener('click', captureLastExchange);
   $('copyReport').addEventListener('click', copyReport);
+  $('exportSession').addEventListener('click', () => exportSessionBundle().catch(err => showModal(err.message, 'Session export failed')));
+  $('importReplay').addEventListener('click', () => $('replayFile').click());
+  $('replayFile').addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    importReplayFile(file).catch(err => showModal(err.message, 'Replay import failed'));
+    event.target.value = '';
+  });
   $('clearReport').addEventListener('click', resetReportForSession);
 
   $('modalClose').addEventListener('click', hideModal);

@@ -24,8 +24,9 @@ class CharacterAgent:
         self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
         self.engine._persist()
 
-    def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
-        return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context)
+    def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None,
+            event_time: float | None = None) -> dict:
+        return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context, event_time=event_time)
 
     def dream(self, min_interval_seconds: int = 3600) -> list[str]:
         return self.engine.dream(min_interval_seconds=min_interval_seconds)
@@ -68,8 +69,8 @@ class CharacterAgent:
             observation = VisionObservation(**observation)
         return self.engine.ingest_vision_observation(observation)
 
-    def propose_world_action(self, action_type: str, payload: dict | None = None) -> dict:
-        return self.engine.propose_world_action(action_type, payload)
+    def propose_world_action(self, action_type: str, payload: dict | None = None, event_time: float | None = None) -> dict:
+        return self.engine.propose_world_action(action_type, payload, event_time=event_time)
 
     def plan_voice(self, text: str) -> dict:
         return self.engine.plan_voice(text)
@@ -79,6 +80,60 @@ class CharacterAgent:
 
     def idle(self):
         self.engine.run_idle_cycle()
+
+    def advance_time(self, elapsed_seconds: float, now: float | None = None):
+        return self.engine.advance_simulated_time(elapsed_seconds, now=now)
+
+    def record_world_event(self, **kwargs):
+        event = self.engine.record_world_event(**kwargs)
+        self.engine._persist()
+        return event.to_dict()
+
+    def perceive_world_event(self, event_id: str, **kwargs):
+        experience = self.engine.perceive_world_event(event_id, **kwargs)
+        return experience.to_dict() if experience else None
+
+    def force_life_event(self, category: str):
+        return self.engine.force_life_event(category)
+
+    def attempt_imperfect_action(self, **kwargs):
+        return self.engine.attempt_imperfect_action(**kwargs)
+
+    def begin_activity(self, activity: str, intention: str, attention_target: str):
+        return self.engine.begin_activity(activity, intention, attention_target)
+
+    def select_intrinsic_action(self, force: bool = True):
+        return self.engine.select_intrinsic_action(force=force)
+
+    def resolve_intrinsic_proposal(self):
+        return self.engine.resolve_intrinsic_proposal()
+
+    def set_private_cognition_mode(self, mode: str, optional_threshold: float | None = None):
+        self.engine.set_private_cognition_mode(mode, optional_threshold)
+
+    def complete_intrinsic_action(self, **kwargs):
+        return self.engine.complete_intrinsic_action(**kwargs)
+
+    def reinforce_habit(self, name: str, trigger: str, response_pattern: str, repetitions: int = 1):
+        return self.engine.reinforce_habit(name, trigger, response_pattern, repetitions)
+
+    def replay_genesis(self, *, end_time: float | None = None):
+        return self.engine.replay_genesis(end_time=end_time)
+
+    def write_journal_entry(self, text: str, **kwargs):
+        return self.engine.write_journal_entry(text, **kwargs)
+
+    def read_journal(self, query: str = "", **kwargs):
+        return self.engine.read_journal(query, **kwargs)
+
+    def materialize_journal(self, path: str | None = None):
+        return self.engine.materialize_journal(path)
+
+    def complete_offline_inquiry(self, **kwargs):
+        return self.engine.complete_offline_inquiry(**kwargs)
+
+    def decay_pressures_for_elapsed_time(self, dt_steps: int):
+        return self.engine.decay_pressures_for_elapsed_time(dt_steps)
 
     def start_background_idle(self, interval_seconds: float = 30.0):
         self.engine.start_background_idle(interval_seconds)

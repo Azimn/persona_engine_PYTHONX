@@ -8,6 +8,7 @@ state belongs in Persistence or a session snapshot.
 from __future__ import annotations
 
 import tomllib
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -35,8 +36,9 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc"}
+_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc", "intrinsic", "offline_expression", "offline_topics", "private_cognition", "self_monitor", "autobiographical_reconsolidation", "development", "genesis", "journal", "behavioral_richness"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
+_ALLOWED_TOP_LEVEL.add("performance_tendencies")
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
     "sensory_profile": {"audio_sensitivity", "vision_sensitivity", "interruption_sensitivity", "silence_sensitivity"},
@@ -45,6 +47,40 @@ _ALLOWED_SECTION_FIELDS.update({
     "cognitive_themes": {"allowed", "retrieval_filters"},
     "concealment": {"weights"},
     "arc": {"earned_changes"},
+    "intrinsic": {"selection_interval_ticks", "wants", "activities"},
+    "private_cognition": {"mode", "optional_threshold"},
+    "self_monitor": {
+        "introspective_accuracy", "bias_awareness", "uncertainty_tolerance",
+        "admission_threshold", "concealment_bias", "externalization_bias",
+        "correction_bias",
+    },
+    "autobiographical_reconsolidation": {
+        "minimum_interval_ticks", "maximum_versions_per_experience",
+        "calm_capacity_threshold", "conflict_threshold", "meaning_templates",
+    },
+    "development": {
+        "minimum_identity_evidence", "minimum_identity_confidence",
+        "minimum_distinct_contexts", "minimum_distinct_days",
+        "identity_commit_delta", "growth_rules",
+    },
+    "genesis": {"version", "episodes"},
+    "journal": {"object_name", "pending_note_template"},
+    "behavioral_richness": {"tendencies"},
+    "offline_topics": {"topics"},
+    "offline_expression": {
+        "identity_boundary", "sound", "ambiguous", "repair", "care", "slow",
+        "memory", "greeting", "farewell", "quiet", "question", "default",
+        "reminisce_openers", "reminisce_followups", "defer_and_note",
+        "return_to_topic", "researched_topic_return",
+        "ask_clarification",
+        "continuity_moves",
+        "probe", "compare", "challenge", "reminisce", "speculate", "express_curiosity",
+        "activity_update",
+        "obligation_answer", "obligation_acknowledge", "obligation_follow_up",
+        "choreography_direct", "choreography_acknowledge",
+        "choreography_qualify", "choreography_summarize",
+        "choreography_teach", "choreography_reflect",
+    },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
 _ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
@@ -167,6 +203,88 @@ def _validate_rules(rules: list[dict[str, Any]], beliefs: list[dict[str, Any]]) 
             raise CartridgeError(f"belief rule threshold_count must be >= 1 at index {idx}")
 
 
+def _validate_intrinsic(section: dict[str, Any]) -> None:
+    from .intrinsic import ACTION_TYPES
+
+    wants = section.get("wants", [])
+    activities = section.get("activities", [])
+    if not isinstance(wants, list) or not isinstance(activities, list):
+        raise CartridgeError("[intrinsic] wants and activities must be arrays")
+    if int(section.get("selection_interval_ticks", 6)) < 1:
+        raise CartridgeError("[intrinsic].selection_interval_ticks must be >= 1")
+    want_fields = {"id", "description", "baseline", "neglect_gain", "satisfaction"}
+    activity_fields = {
+        "id", "want_id", "description", "intention", "attention_target", "action_type", "target",
+        "base_utility", "energy_cost", "novelty_weight", "interruptible", "visibility",
+        "performance_tendency_id", "pressure_affinities",
+    }
+    want_ids: set[str] = set()
+    for index, want in enumerate(wants):
+        if not isinstance(want, dict):
+            raise CartridgeError(f"[intrinsic].wants[{index}] must be a table")
+        _unknown_keys(want, want_fields, f"[intrinsic].wants[{index}]")
+        if not want_fields.issubset(want):
+            raise CartridgeError(f"[intrinsic].wants[{index}] is missing a required field")
+        want_id = str(want["id"])
+        if not want_id or want_id in want_ids:
+            raise CartridgeError(f"duplicate or empty intrinsic want id: {want_id}")
+        want_ids.add(want_id)
+        for field in ("baseline", "neglect_gain", "satisfaction"):
+            number = float(want[field])
+            if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+                raise CartridgeError(f"[intrinsic].wants[{index}].{field} must be within [0, 1]")
+    activity_ids: set[str] = set()
+    required_activity = activity_fields - {"pressure_affinities", "performance_tendency_id"}
+    for index, activity in enumerate(activities):
+        if not isinstance(activity, dict):
+            raise CartridgeError(f"[intrinsic].activities[{index}] must be a table")
+        _unknown_keys(activity, activity_fields, f"[intrinsic].activities[{index}]")
+        if not required_activity.issubset(activity):
+            raise CartridgeError(f"[intrinsic].activities[{index}] is missing a required field")
+        activity_id = str(activity["id"])
+        if not activity_id or activity_id in activity_ids:
+            raise CartridgeError(f"duplicate or empty intrinsic activity id: {activity_id}")
+        activity_ids.add(activity_id)
+        if str(activity["want_id"]) not in want_ids:
+            raise CartridgeError(f"intrinsic activity references unknown want: {activity['want_id']}")
+        if str(activity["action_type"]) not in ACTION_TYPES:
+            raise CartridgeError(f"unsupported intrinsic action_type: {activity['action_type']}")
+        for field in ("energy_cost", "novelty_weight"):
+            number = float(activity[field])
+            if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+                raise CartridgeError(f"[intrinsic].activities[{index}].{field} must be within [0, 1]")
+        base_utility = float(activity["base_utility"])
+        if not math.isfinite(base_utility) or not -1.0 <= base_utility <= 1.0:
+            raise CartridgeError(f"[intrinsic].activities[{index}].base_utility must be within [-1, 1]")
+        affinities = activity.get("pressure_affinities", {})
+        if not isinstance(affinities, dict) or not all(
+            isinstance(key, str) and isinstance(value, (int, float))
+            and math.isfinite(float(value)) and -1.0 <= float(value) <= 1.0
+            for key, value in affinities.items()
+        ):
+            raise CartridgeError(f"[intrinsic].activities[{index}].pressure_affinities must be numeric")
+
+
+def _validate_performance_tendencies(data: dict[str, Any], intrinsic: dict[str, Any]) -> None:
+    from .performance import PerformanceProfile
+
+    tendencies = data.get("performance_tendencies", {})
+    if not isinstance(tendencies, dict):
+        raise CartridgeError("[performance_tendencies] must be a table")
+    for tendency_id, tendency in tendencies.items():
+        if not isinstance(tendency, dict):
+            raise CartridgeError(f"[performance_tendencies.{tendency_id}] must be a table")
+        try:
+            PerformanceProfile.from_cartridge_tendency(tendencies, str(tendency_id))
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid performance tendency {tendency_id}: {exc}") from exc
+    known = {str(key) for key in tendencies}
+    for activity in intrinsic.get("activities", []):
+        tendency_id = activity.get("performance_tendency_id")
+        if tendency_id and str(tendency_id) not in known:
+            raise CartridgeError(f"intrinsic activity references unknown performance tendency: {tendency_id}")
+
+
 def validate_cartridge_data(data: dict[str, Any]) -> None:
     """Validate raw TOML data before constructing runtime objects."""
     _unknown_keys(data, _ALLOWED_TOP_LEVEL, "top level")
@@ -181,6 +299,109 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
             _require_section(data, optional_section)
     if "cognitive_themes" in data:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
+    if "intrinsic" in data:
+        _validate_intrinsic(data["intrinsic"])
+    _validate_performance_tendencies(data, data.get("intrinsic", {}))
+    if "private_cognition" in data:
+        mode = str(data["private_cognition"].get("mode", "deterministic"))
+        if mode not in {"deterministic", "model_optional", "model_required"}:
+            raise CartridgeError(f"unsupported private cognition mode: {mode}")
+        threshold = float(data["private_cognition"].get("optional_threshold", 0.65))
+        if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+            raise CartridgeError("[private_cognition].optional_threshold must be within [0, 1]")
+    if "self_monitor" in data:
+        from .self_monitor import SelfMonitorProfile
+        try:
+            SelfMonitorProfile.from_dict(data["self_monitor"])
+        except ValueError as exc:
+            raise CartridgeError(f"invalid self-monitor profile: {exc}") from exc
+    if "autobiographical_reconsolidation" in data:
+        section = data["autobiographical_reconsolidation"]
+        if int(section.get("minimum_interval_ticks", 5)) < 1:
+            raise CartridgeError("autobiographical minimum_interval_ticks must be positive")
+        versions = int(section.get("maximum_versions_per_experience", 8))
+        if not 1 <= versions <= 8:
+            raise CartridgeError("autobiographical maximum_versions_per_experience must be within [1, 8]")
+        for field in ("calm_capacity_threshold", "conflict_threshold"):
+            value = float(section.get(field, 0.45))
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise CartridgeError(f"autobiographical {field} must be within [0, 1]")
+        templates = section.get("meaning_templates", {})
+        if not isinstance(templates, dict) or not all(
+            isinstance(key, str) and isinstance(value, str) and value.strip()
+            for key, value in templates.items()
+        ):
+            raise CartridgeError("autobiographical meaning_templates must be non-empty strings")
+    if "development" in data:
+        section = data["development"]
+        for field in ("minimum_identity_evidence", "minimum_distinct_contexts", "minimum_distinct_days"):
+            if int(section.get(field, 1)) < 1:
+                raise CartridgeError(f"[development].{field} must be positive")
+        for field in ("minimum_identity_confidence", "identity_commit_delta"):
+            value = float(section.get(field, 0.0))
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise CartridgeError(f"[development].{field} must be within [0, 1]")
+        rules = section.get("growth_rules", [])
+        if not isinstance(rules, list):
+            raise CartridgeError("[development].growth_rules must be an array")
+        allowed = {"signal", "trait", "direction"}
+        for index, rule in enumerate(rules):
+            if not isinstance(rule, dict) or set(rule) - allowed or not {"signal", "trait", "direction"}.issubset(rule):
+                raise CartridgeError(f"invalid development growth rule at index {index}")
+            if not -1.0 <= float(rule["direction"]) <= 1.0:
+                raise CartridgeError("development growth direction must be within [-1, 1]")
+    if "genesis" in data:
+        from .genesis import GenesisReplayer
+        try:
+            GenesisReplayer().parse(data["genesis"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid genesis history: {exc}") from exc
+    if "journal" in data:
+        object_name = data["journal"].get("object_name")
+        if not isinstance(object_name, str) or not object_name.strip() or len(object_name) > 120:
+            raise CartridgeError("[journal].object_name must contain 1..120 characters")
+        note_template = data["journal"].get("pending_note_template")
+        if note_template is not None and (
+            not isinstance(note_template, str) or not note_template.strip()
+            or len(note_template) > 500 or "{topic}" not in note_template
+        ):
+            raise CartridgeError(
+                "[journal].pending_note_template must contain {topic} and 1..500 characters"
+            )
+    if "offline_expression" in data:
+        for field in _ALLOWED_SECTION_FIELDS["offline_expression"]:
+            if field in data["offline_expression"]:
+                _require_string_list(data["offline_expression"], field, "[offline_expression]")
+                if not data["offline_expression"][field]:
+                    raise CartridgeError(f"[offline_expression].{field} must not be empty")
+                if field.startswith("choreography_") and any(
+                    "{content}" not in item for item in data["offline_expression"][field]
+                ):
+                    raise CartridgeError(
+                        f"[offline_expression].{field} entries must contain {{content}}"
+                    )
+    if "behavioral_richness" in data:
+        from .offline_conversation import parse_behavioral_tendencies
+        try:
+            tendencies = parse_behavioral_tendencies(data["behavioral_richness"])
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid behavioral richness: {exc}") from exc
+        known_performance = set(data.get("performance_tendencies", {}))
+        for tendency in tendencies:
+            if (
+                tendency.performance_tendency_id
+                and tendency.performance_tendency_id not in known_performance
+            ):
+                raise CartridgeError(
+                    "behavioral tendency references unknown performance tendency: "
+                    f"{tendency.performance_tendency_id}"
+                )
+    if "offline_topics" in data:
+        from .offline_topic_dialogue import OfflineTopicLibrary
+        try:
+            OfflineTopicLibrary.from_cartridge(data["offline_topics"])
+        except (TypeError, ValueError) as exc:
+            raise CartridgeError(f"invalid offline topics: {exc}") from exc
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -236,6 +457,17 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "cognitive_themes": data.get("cognitive_themes", {}),
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
+        "intrinsic": data.get("intrinsic", {}),
+        "private_cognition": data.get("private_cognition", {}),
+        "performance_tendencies": data.get("performance_tendencies", {}),
+        "self_monitor": data.get("self_monitor", {}),
+        "autobiographical_reconsolidation": data.get("autobiographical_reconsolidation", {}),
+        "development": data.get("development", {}),
+        "genesis": data.get("genesis", {}),
+        "journal": data.get("journal", {}),
+        "offline_expression": data.get("offline_expression", {}),
+        "offline_topics": data.get("offline_topics", {}),
+        "behavioral_richness": data.get("behavioral_richness", {}),
         "path": str(Path(path)),
     }
     return core, ledger, raw

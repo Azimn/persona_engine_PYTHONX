@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -61,19 +61,236 @@ class OfflineTemplateRenderer:
     def __init__(self):
         self._usage: dict[str, int] = {}
         self._turn = 0
+        self._recent_global: list[str] = []
+        self._recent_by_actor: dict[str, list[str]] = {}
 
-    def render(self, messages: list[dict[str, str]], max_chars: int = 200, seed: int | None = None) -> str:
+    def to_state(self) -> dict:
+        return {
+            "turn": self._turn,
+            "recent_global": self._recent_global[-24:],
+            "recent_by_actor": {
+                key: values[-8:] for key, values in sorted(self._recent_by_actor.items())[-16:]
+            },
+        }
+
+    def load_state(self, value: Mapping | None) -> None:
+        source = dict(value or {})
+        self._turn = max(0, int(source.get("turn", 0)))
+        self._recent_global = [str(item)[:160] for item in source.get("recent_global", ())][-24:]
+        self._recent_by_actor = {
+            str(key)[:20]: [str(item)[:160] for item in values][-8:]
+            for key, values in dict(source.get("recent_by_actor", {})).items()
+            if isinstance(values, list)
+        }
+
+    def render(
+        self,
+        messages: list[dict[str, str]],
+        max_chars: int = 200,
+        seed: int | None = None,
+        realization: Mapping[str, Sequence[str]] | None = None,
+        conversation_move: str | None = None,
+        obligation: str | None = None,
+        extension_move: str | None = None,
+        actor_id: int | str | None = None,
+        choreography: Mapping | None = None,
+        topic_plan: Mapping | None = None,
+    ) -> str:
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
-        group = self._classify(user_text, system_text)
-        template = self._choose(group, user_text, system_text, seed)
+        group = conversation_move or self._classify(user_text, system_text)
+        surface_group = self._classify(user_text, system_text)
+        if (
+            topic_plan
+            and surface_group not in {
+                "identity_boundary", "greeting", "farewell", "repair",
+            }
+            and group in {
+            "honor_obligation", "basic_reply",
+            "probe", "compare", "speculate", "express_curiosity",
+            }
+        ):
+            fragments = [
+                str(item).strip() for item in topic_plan.get("fragments", ())
+                if str(item).strip()
+            ][:3]
+            if fragments:
+                return self._clean_truncate(" ".join(fragments), max_chars)
+        if group == "honor_obligation":
+            if surface_group == "knowledge":
+                text = self._render_knowledge(system_text)
+            elif surface_group == "activity":
+                text = self._render_activity(system_text)
+            elif surface_group == "grounded_memory":
+                text = self._render_grounded_memory(user_text, system_text)
+            elif surface_group not in {"default", "question"}:
+                template = self._choose(
+                    surface_group, user_text, system_text, seed, realization, actor_id,
+                )
+                text = self._apply_tone(template.text, system_text, seed)
+            else:
+                text = self._render_obligation(
+                    obligation or "acknowledge", user_text, system_text,
+                    realization, seed, actor_id,
+                )
+            if extension_move and extension_move != "continue_working":
+                extension = (
+                    self._render_reminiscence(system_text, realization, seed, actor_id)
+                    if extension_move == "reminisce"
+                    else self._render_behavior_move(
+                        extension_move, system_text, realization, seed, actor_id,
+                    )
+                )
+                text = f"{text} {extension}"
+            if surface_group not in {
+                "sound", "unanchored_sound", "grounded_memory", "memory",
+                "activity", "knowledge", "identity_boundary", "farewell",
+            }:
+                text = self._apply_choreography(
+                    text, choreography, has_extension=bool(extension_move),
+                    realization=realization, seed=seed, actor_id=actor_id,
+                )
+            return self._clean_truncate(text, max_chars)
+        if group in {"reminisce", "reminisce_and_note"}:
+            if group == "reminisce_and_note":
+                detail = self._memory_detail(system_text)[:90].rstrip(" ,;:")
+                text = (
+                    f"I remember {detail}. "
+                    "I have kept the larger question for when I can examine it properly."
+                )
+            else:
+                text = self._render_reminiscence(system_text, realization, seed, actor_id)
+            return self._clean_truncate(text, max_chars)
+        if group in {"defer_and_note", "return_to_topic"}:
+            return self._clean_truncate(
+                self._render_topic_move(group, system_text, realization, seed, actor_id), max_chars
+            )
+        if group in {"probe", "compare", "speculate", "express_curiosity"}:
+            return self._clean_truncate(
+                self._render_behavior_move(group, system_text, realization, seed, actor_id), max_chars
+            )
+        if group == "activity_update":
+            return self._clean_truncate(
+                self._render_life_callback(group, system_text, realization, seed, actor_id), max_chars
+            )
+        if group == "grounded_memory":
+            return self._clean_truncate(self._render_grounded_memory(user_text, system_text), max_chars)
+        if group == "activity":
+            return self._clean_truncate(self._render_activity(system_text), max_chars)
+        if group == "knowledge":
+            return self._clean_truncate(self._render_knowledge(system_text), max_chars)
+        template = self._choose(group, user_text, system_text, seed, realization, actor_id)
         text = self._apply_tone(template.text, system_text, seed)
+        if group not in {
+            "sound", "unanchored_sound", "memory", "identity_boundary",
+        }:
+            text = self._apply_choreography(
+                text, choreography, has_extension=False,
+                realization=realization, seed=seed, actor_id=actor_id,
+            )
         return self._clean_truncate(text, max_chars)
+
+    def _apply_choreography(
+        self,
+        text: str,
+        choreography: Mapping | None,
+        *,
+        has_extension: bool,
+        realization: Mapping[str, Sequence[str]] | None = None,
+        seed: int | None = None,
+        actor_id: int | str | None = None,
+    ) -> str:
+        """Apply bounded structural variation without inventing new content."""
+
+        plan = dict(choreography or {})
+        if not plan or has_extension:
+            return text
+        span = str(plan.get("response_span", "normal"))
+        shape = str(plan.get("answer_shape", "direct"))
+        pacing = str(plan.get("pacing", "measured"))
+        strategy = str(plan.get("rhetorical_strategy", "direct"))
+        if span != "fragment":
+            frame_group = f"choreography_{strategy}"
+            if frame_group in {
+                "choreography_direct", "choreography_acknowledge",
+                "choreography_qualify", "choreography_summarize",
+                "choreography_teach", "choreography_reflect",
+            }:
+                frame = self._choose_text(
+                    frame_group, realization, ("{content}",), seed, actor_id,
+                )
+                text = frame.replace("{content}", text)
+        if shape == "staged" and "; " in text:
+            text = text.replace("; ", ". ", 1)
+        if span == "fragment":
+            clauses = re.split(r"(?<=[.!?])\s+|;\s+|,\s+", text, maxsplit=1)
+            if clauses and len(clauses[0]) >= 10:
+                text = clauses[0].rstrip(" ,;:")
+                if text[-1:] not in ".!?":
+                    text += "."
+        elif span == "brief" or pacing == "clipped":
+            sentences = re.split(r"(?<=[.!?])\s+", text, maxsplit=1)
+            if sentences and len(sentences[0]) >= 10:
+                text = sentences[0]
+        return text
+
+    def _render_obligation(
+        self, obligation: str, user_text: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        groups = {
+            "answer": "obligation_answer",
+            "clarify": "ask_clarification",
+            "acknowledge": "obligation_acknowledge",
+            "repair": "repair",
+            "follow_up": "obligation_follow_up",
+        }
+        defaults = {
+            "answer": (
+                "I can answer the part that is actually established.",
+                "My answer is conditional; the evidence does not support certainty.",
+                "The useful answer is narrower than the question.",
+            ),
+            "clarify": (
+                "I need one concrete detail before I choose a meaning.",
+                "Clarify which part you mean.",
+            ),
+            "acknowledge": (
+                "I heard you.",
+                "That is understood.",
+                "I have the point.",
+            ),
+            "repair": (
+                "I recognize the attempt to repair this.",
+                "The apology is acknowledged; what follows will matter more.",
+            ),
+            "follow_up": (
+                "I have not lost the unfinished matter.",
+                "That thread remains open.",
+            ),
+        }
+        group = groups.get(obligation, "obligation_acknowledge")
+        text = self._choose_text(group, realization, defaults.get(obligation, defaults["acknowledge"]), seed, actor_id)
+        return self._apply_tone(text, system_text, seed)
 
     def _classify(self, user_text: str, system_text: str) -> str:
         lowered = user_text.lower().strip()
         system_lowered = system_text.lower()
+        if re.search(
+            r"\b(bye|goodbye|gotta go|i (?:am|will) leav(?:e|ing)|"
+            r"i'll leave|leave you to it|talk later)\b",
+            lowered,
+        ):
+            return "farewell"
+        if any(phrase in lowered for phrase in (
+            "what were you doing", "what are you doing", "what are you working on",
+            "before i arrived", "before this", "what are you busy with",
+        )) and "before interruption:" in system_lowered:
+            return "activity"
+        if any(phrase in lowered for phrase in ("what did you learn", "what did you research", "what procedure")) and "validated knowledge:" in system_lowered:
+            return "knowledge"
         if any(phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not"]):
             return "identity_boundary"
         if lowered.rstrip(".") == "fine":
@@ -84,6 +301,14 @@ class OfflineTemplateRenderer:
             return "care"
         if "slow down" in lowered:
             return "slow"
+        explicit_memory_request = any(
+            phrase in lowered for phrase in (
+                "remember", "recall", "what happened", "your past",
+                "your memories", "where did we leave",
+            )
+        )
+        if explicit_memory_request and "relevant memories, use only as background" in system_lowered and self._memory_cue_matches(lowered, system_text):
+            return "grounded_memory"
         if any(word in lowered for word in ["remember", "word", "said before", "recall"]):
             return "memory"
         if "what was that" in lowered or (
@@ -102,17 +327,238 @@ class OfflineTemplateRenderer:
             return "question"
         return "default"
 
-    def _choose(self, group: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
-        candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]
+    @staticmethod
+    def _memory_cue_matches(user_text: str, system_text: str) -> bool:
+        match = re.search(
+            r"Relevant memories, use only as background and do not recite verbatim:\s*([^\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if not match:
+            return False
+        stop = {"about", "being", "does", "from", "happened", "memory", "memories", "remember", "that", "this", "what", "when", "where", "which", "with", "your"}
+        query = {item for item in re.findall(r"[a-z0-9']+", user_text) if len(item) >= 4 and item not in stop}
+        memory = set(re.findall(r"[a-z0-9']+", match.group(1).lower()))
+        if query & memory:
+            return True
+        return any(
+            len(left) >= 6 and len(right) >= 6 and left[:6] == right[:6]
+            for left in query for right in memory
+        )
+
+    @staticmethod
+    def _render_grounded_memory(user_text: str, system_text: str) -> str:
+        meaning = re.search(
+            r"Current autobiographical meaning, use only if disclosure permits:\s*([^|\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if meaning:
+            return meaning.group(1).strip()
+        memories = re.search(
+            r"Relevant memories, use only as background and do not recite verbatim:\s*([^|\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if not memories:
+            return "The relevant detail is not presently accessible to me."
+        detail = memories.group(1).strip()
+        detail = re.sub(r"^I noticed\s+", "", detail, flags=re.IGNORECASE).rstrip(" .")
+        return f"I remember that {detail}."
+
+    def _render_activity(self, system_text: str) -> str:
+        match = re.search(r"before interruption:\s*([^|\n]+)", system_text, re.IGNORECASE)
+        activity = "occupied with something"
+        if match:
+            candidate = re.sub(r"[^A-Za-z0-9 '\-]", "", match.group(1)).strip().lower()
+            if candidate:
+                activity = candidate[:80]
+        return f"I was {activity} before you interrupted me. I can return to it after this."
+
+    def _render_knowledge(self, system_text: str) -> str:
+        match = re.search(r"Validated knowledge:\s*([^\n]+)", system_text, re.IGNORECASE)
+        knowledge = "I retained a verified result, but its detail is unavailable here."
+        if match:
+            candidate = re.sub(r"[\r\n]+", " ", match.group(1)).strip()
+            if candidate:
+                knowledge = f"I retained this: {candidate[:140]}"
+        return knowledge
+
+    def _render_reminiscence(
+        self, system_text: str, realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        detail = self._memory_detail(system_text)
+        if not detail:
+            return "The recollection is not accessible enough for me to trust it."
+        opener = self._choose_text(
+            "reminisce_openers", realization,
+            ("That recollection still has weight.", "What remains is not a transcript."),
+            seed, actor_id,
+        )
+        followup = self._choose_text(
+            "reminisce_followups", realization,
+            ("What part of it are you returning to?", "That is the part still available to me."),
+            seed, actor_id,
+        )
+        return f"{opener} I remember {detail}. {followup}"
+
+    @staticmethod
+    def _memory_detail(system_text: str) -> str:
+        match = re.search(
+            r"Relevant memories, use only as background and do not recite verbatim:\s*([^|\n]+)",
+            system_text, re.IGNORECASE,
+        )
+        if not match:
+            return ""
+        detail = match.group(1).strip().rstrip(" .")
+        detail = re.sub(r"^I (?:remember(?: that)?|noticed|saw|heard you say:)\s*", "", detail, flags=re.IGNORECASE)
+        return detail
+
+    def _render_topic_move(
+        self, group: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        match = re.search(r"Conversation topic:\s*([^\n]+)", system_text, re.IGNORECASE)
+        topic = re.sub(r"[^A-Za-z0-9 '?,.\-]", "", match.group(1) if match else "that question").strip()[:100]
+        topic = topic.rstrip(" ?!.,;:")
+        knowledge_match = re.search(
+            r"Validated knowledge:\s*([^|\n]+)", system_text, re.IGNORECASE,
+        )
+        if group == "return_to_topic" and knowledge_match:
+            position = knowledge_match.group(1).strip().rstrip(" .")[:600]
+            selected = self._choose_text(
+                "researched_topic_return",
+                realization,
+                (
+                    "I returned to {topic}. My present position is this: {position}.",
+                    "The unfinished question about {topic} now has a defensible answer: {position}.",
+                ),
+                seed,
+                actor_id,
+            )
+            return selected.replace("{topic}", topic).replace("{position}", position)
+        defaults = {
+            "defer_and_note": (
+                "I cannot examine {topic} properly with what is available. I have kept the question for later.",
+                "That needs more reach than I have at present. I have marked {topic} for our return.",
+            ),
+            "return_to_topic": (
+                "I can return to {topic} now. The question did not disappear while it waited.",
+                "We left {topic} unfinished. I have the means to take it up properly now.",
+            ),
+        }
+        selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
+        return selected.replace("{topic}", topic)
+
+    def _render_behavior_move(
+        self, group: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        topic_match = re.search(r"Conversation topic:\s*([^\n]+)", system_text, re.IGNORECASE)
+        topic = re.sub(
+            r"[^A-Za-z0-9 '?,.\-]", "",
+            topic_match.group(1) if topic_match else "that point",
+        ).strip().rstrip(" ?!.,;:")[:100]
+        memory = self._memory_detail(system_text)[:100].rstrip(" ?!.,;:")
+        defaults = {
+            "probe": (
+                "What consequence of {topic} are you actually committed to?",
+                "Which part of {topic} would change your next action?",
+            ),
+            "compare": (
+                "That resembles {memory}. Where does the comparison fail?",
+                "I cannot separate {topic} from {memory}. Which distinction matters?",
+            ),
+            "challenge": (
+                "That conclusion outruns {topic}. Defend the missing step.",
+                "I do not grant {topic} merely because it was stated confidently.",
+            ),
+            "speculate": (
+                "One possibility is that {topic} changes the frame rather than the fact. I would not call that settled.",
+                "Suppose {topic} is only part of the cause. What else would have to be true?",
+            ),
+            "express_curiosity": (
+                "There is something unfinished in {topic}. What made you notice it now?",
+                "That is more interesting than it first appears. What follows from {topic}?",
+            ),
+        }
+        selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
+        return selected.replace("{topic}", topic).replace(
+            "{memory}", memory or "an earlier experience"
+        )
+
+    def _render_life_callback(
+        self, group: str, system_text: str,
+        realization: Mapping[str, Sequence[str]] | None,
+        seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        activity_match = re.search(
+            r"Observable activity context:\s*([^\n]+)", system_text, re.IGNORECASE,
+        )
+        activity = re.sub(
+            r"[^A-Za-z0-9 '\-]", "", activity_match.group(1) if activity_match else "my work",
+        ).strip()[:100]
+        defaults = {
+            "activity_update": (
+                "I was already occupied with {activity}. It continued after we last spoke.",
+                "While you were away, I continued {activity}. I have not abandoned it for this interruption.",
+            ),
+        }
+        selected = self._choose_text(group, realization, defaults[group], seed, actor_id)
+        return selected.replace("{activity}", activity)
+
+    def _choose_text(
+        self, group: str, realization: Mapping[str, Sequence[str]] | None,
+        fallback: Sequence[str], seed: int | None, actor_id: int | str | None,
+    ) -> str:
+        authored = (realization or {}).get(group, ())
+        values = [str(item) for item in authored if isinstance(item, str) and item.strip()] or list(fallback)
+        candidates = [OfflineTemplate(group, text, max(105, 190 - index * 7)) for index, text in enumerate(values)]
+        return self._choose_candidates(candidates, group, str(seed), "", seed, actor_id).text
+
+    def _choose(
+        self,
+        group: str,
+        user_text: str,
+        system_text: str,
+        seed: int | None,
+        realization: Mapping[str, Sequence[str]] | None,
+        actor_id: int | str | None = None,
+    ) -> OfflineTemplate:
+        authored = (realization or {}).get(group, ())
+        candidates = [
+            OfflineTemplate(group, str(text), max(105, 190 - index * 7))
+            for index, text in enumerate(authored)
+            if isinstance(text, str) and text.strip()
+        ]
+        if not candidates:
+            candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]
+        return self._choose_candidates(candidates, group, user_text, system_text, seed, actor_id)
+
+    def _choose_candidates(
+        self, candidates: Sequence[OfflineTemplate], group: str, user_text: str,
+        system_text: str, seed: int | None, actor_id: int | str | None,
+    ) -> OfflineTemplate:
         scored: list[tuple[int, OfflineTemplate]] = []
+        actor_key = str(actor_id)[:20] if actor_id is not None else "default"
+        actor_recent = self._recent_by_actor.get(actor_key, [])
         for idx, template in enumerate(candidates):
+            component_id = f"{group}:{hashlib.blake2b(template.text.encode('utf-8'), digest_size=5).hexdigest()}"
             usage = self._usage.get(template.text, 0)
             age_penalty = 900 if usage and self._turn - usage < 12 else 0
             jitter = self._stable_jitter(template.text, user_text, system_text, seed)
-            scored.append((template.weight + jitter - age_penalty - usage * 25 - idx, template))
+            recent_penalty = 500 * self._recent_global.count(component_id) + 700 * actor_recent.count(component_id)
+            scored.append((template.weight + jitter - age_penalty - usage * 25 - recent_penalty - idx, template))
         scored.sort(key=lambda item: item[0], reverse=True)
         chosen = scored[0][1]
         self._usage[chosen.text] = self._turn
+        chosen_id = f"{group}:{hashlib.blake2b(chosen.text.encode('utf-8'), digest_size=5).hexdigest()}"
+        self._recent_global = [*self._recent_global, chosen_id][-24:]
+        self._recent_by_actor[actor_key] = [*actor_recent, chosen_id][-8:]
+        if len(self._recent_by_actor) > 16:
+            oldest = next(iter(self._recent_by_actor))
+            if oldest != actor_key:
+                self._recent_by_actor.pop(oldest, None)
         return chosen
 
     def _stable_jitter(self, *parts) -> int:
@@ -130,6 +576,8 @@ class OfflineTemplateRenderer:
         if "current intention: protect_identity" in lowered and "identity" not in text.lower():
             additions.append("The boundary remains.")
         if not additions:
+            return text
+        if self._stable_jitter(text, seed, "tone_gate") % 3 == 0:
             return text
         pick = self._stable_jitter(text, seed) % len(additions)
         if text.endswith("?"):

@@ -1,4 +1,4 @@
-"""Layer 6 expression envelope and resistance policy."""
+"""Expression envelope and resistance policy."""
 
 from dataclasses import dataclass
 from typing import Optional, List

@@ -1,0 +1,17 @@
+schema_version: 1
+scenario_id: repair_after_rupture_21_days
+description: A repair-oriented human returns after an explicit rupture.
+total_days: 21
+max_turns_per_day: 1
+stable_seed: 1704
+participants:
+  - {id: human, kind: scripted_human, policy: repairing_partner}
+  - {id: kiki, kind: character, cartridge: kiki.snp, user_id: repair_human}
+actor_profiles: {}
+phases:
+  - {id: establishment, start_day: 1, end_day: 5, goal: establish trust}
+  - {id: rupture, start_day: 6, end_day: 10, goal: create and acknowledge tension}
+  - {id: repair, start_day: 11, end_day: 17, goal: clarify and return}
+  - {id: proof, start_day: 18, end_day: 21, goal: repeat a similar disagreement}
+scheduled_events: []
+acceptance_rules: []
