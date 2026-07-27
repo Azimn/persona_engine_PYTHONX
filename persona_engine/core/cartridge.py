@@ -7,12 +7,14 @@ state belongs in Persistence or a session snapshot.
 
 from __future__ import annotations
 
+import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from .identity import CoreIdentity, IdentityLedger
+from .offline_dialogue import register_dialogue
 
 
 class CartridgeError(ValueError):
@@ -35,7 +37,17 @@ _REQUIRED = {
     ),
     "interpretation_bias": ("silence_low_trust", "silence_high_trust", "ambiguous_sound", "identity_attack"),
 }
-_OPTIONAL_SECTIONS = {"sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes", "concealment", "arc"}
+_DIALOGUE_GROUPS = {
+    "identity_boundary", "greeting", "repair", "care", "thanks", "agreement",
+    "disagreement", "uncertain", "question", "memory", "memory_missing", "sound",
+    "unanchored_sound", "quiet", "how_are_you", "who_are_you", "what_doing",
+    "statement",
+}
+_DIALOGUE_SLOTS = {"address", "topic", "memory", "state", "identity"}
+_OPTIONAL_SECTIONS = {
+    "sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes",
+    "concealment", "arc", "dialogue",
+}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 _ALLOWED_SECTION_FIELDS.update({
@@ -45,6 +57,7 @@ _ALLOWED_SECTION_FIELDS.update({
     "cognitive_themes": {"allowed", "retrieval_filters"},
     "concealment": {"weights"},
     "arc": {"earned_changes"},
+    "dialogue": _DIALOGUE_GROUPS,
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
 _ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
@@ -97,7 +110,7 @@ def _require_section(data: dict[str, Any], section: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise CartridgeError(f"missing required section [{section}]")
     _unknown_keys(value, _ALLOWED_SECTION_FIELDS[section], f"[{section}]")
-    for field in _REQUIRED.get(section, ()):  # typed dict would be overkill here
+    for field in _REQUIRED.get(section, ()):
         if field not in value:
             raise CartridgeError(f"missing required field [{section}].{field}")
     for field, (lo, hi) in _NUMERIC_RANGES.items():
@@ -120,6 +133,18 @@ def _require_string_list(section: dict[str, Any], field: str, label: str) -> Non
     value = section.get(field)
     if not isinstance(value, list) or not all(isinstance(x, str) for x in value):
         raise CartridgeError(f"{label}.{field} must be a list of strings")
+
+
+def _validate_dialogue(dialogue: dict[str, Any]) -> None:
+    _unknown_keys(dialogue, _DIALOGUE_GROUPS, "[dialogue]")
+    slot_pattern = re.compile(r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
+    for group, entries in dialogue.items():
+        if not isinstance(entries, list) or not entries or not all(isinstance(entry, str) and entry.strip() for entry in entries):
+            raise CartridgeError(f"[dialogue].{group} must be a non-empty list of strings")
+        for entry in entries:
+            unknown_slots = sorted(set(slot_pattern.findall(entry)) - _DIALOGUE_SLOTS)
+            if unknown_slots:
+                raise CartridgeError(f"unsupported dialogue slot in [dialogue].{group}: {unknown_slots[0]}")
 
 
 def _require_list(data: dict[str, Any], key: str) -> list[dict[str, Any]]:
@@ -169,6 +194,7 @@ def _validate_rules(rules: list[dict[str, Any]], beliefs: list[dict[str, Any]]) 
 
 def validate_cartridge_data(data: dict[str, Any]) -> None:
     """Validate raw TOML data before constructing runtime objects."""
+
     _unknown_keys(data, _ALLOWED_TOP_LEVEL, "top level")
     metadata = _require_section(data, "metadata")
     identity_data = _require_section(data, "identity")
@@ -181,6 +207,8 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
             _require_section(data, optional_section)
     if "cognitive_themes" in data:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
+    if "dialogue" in data:
+        _validate_dialogue(data["dialogue"])
     _require_string_list(identity_data, "core_beliefs", "[identity]")
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
@@ -201,6 +229,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
     Returns `(CoreIdentity, IdentityLedger, raw_rules)` where `raw_rules`
     contains schema-validated data for downstream components.
     """
+
     try:
         with open(path, "rb") as handle:
             data = tomllib.load(handle)
@@ -222,6 +251,8 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         model_name=str(identity_data["model_name"]),
     )
     ledger = IdentityLedger(immutable=core)
+    dialogue = data.get("dialogue", {})
+    register_dialogue(core.name, dialogue)
     raw = {
         "metadata": metadata,
         "beliefs": data["beliefs"],
@@ -236,6 +267,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "cognitive_themes": data.get("cognitive_themes", {}),
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
+        "dialogue": dialogue,
         "path": str(Path(path)),
     }
     return core, ledger, raw
