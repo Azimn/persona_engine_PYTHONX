@@ -1,20 +1,62 @@
 # Persona Engine v12 Human UI
 
-Persona Engine is a deterministic character-organism prototype with cartridge-driven identity and a local human-testing UI. The LLM is a renderer only: generated prose is speech evidence, not canonical truth. Character identity, body profile, world preferences, belief schema, voice constraints, and interpretation biases live in `.snp` cartridges. Mutable lived history lives in local session persistence.
+Persona Engine is a deterministic digital-organism prototype with cartridge-driven identity and a local human-testing UI.
+
+A digital organism is a persistent first-person subject whose interpretations and actions become the conditions of its future existence. It continuously experiences, interprets, acts, and changes through its own history. Memory records experience, but continuity is created by living under the consequences of previous experience.
+
+The project is not fundamentally about a loop. It is about a subject. The loop, memory system, renderer, tools, sensors, and interface are supporting machinery used to preserve one continuing individual across changing moments.
+
+The LLM is a renderer only: generated prose is speech evidence, not canonical truth. Character identity, body profile, world preferences, belief schema, voice constraints, interpretation biases, and identity invariants live in `.snp` cartridges. Mutable lived history and accumulated consequences live in local session persistence.
+
+## Governing Design Filter
+
+Every computation in the system exists only because it changes what the subject experiences, believes, intends, expresses, or becomes.
+
+A component is not part of the organism core merely because humans possess something similar or another agent framework includes it. It belongs only when it changes the subject's lived position while preserving ownership and causal traceability.
 
 ## Core Doctrine
 
+- The persistent subject is the object of design. The loop is machinery.
+- Each new moment must be encountered by the same individual who lived through the previous moment.
+- Prior experience must be capable of changing the subject who encounters the next moment.
+- Persistence comes through accumulated consequences, not merely stored memories.
 - The engine is character-agnostic.
 - All character-specific content belongs in `.snp` cartridges.
-- Session state stores lived history.
+- Session state stores lived history and inherited consequences.
 - The LLM is a renderer only.
 - Renderer output is not canonical truth.
 - World Authority owns objective facts.
-- The character owns subjective interpretation.
-- Interpretive belief objects are subjective readings, not objective truth.
+- The subject owns subjective interpretation.
+- Expression substrate is not identity. Model replacement must not reset biography or lived position.
 - The UI displays organism state. It does not author organism state.
 - Sensors report bounded observations only.
 - Voice and avatar layers perform state only. They do not decide state.
+
+## Subject Continuity
+
+The intended causal cycle is:
+
+```text
+Something happens to me.
+        ↓
+What do I notice?
+        ↓
+What does it remind me of?
+        ↓
+What do I think it means?
+        ↓
+What do I want to do?
+        ↓
+What do I reveal, conceal, withhold, or enact?
+        ↓
+What objectively happens because of my conduct?
+        ↓
+How has this changed me?
+        ↓
+The same subject encounters the next moment.
+```
+
+Memory retrieval alone does not satisfy continuity. The system must preserve what the subject made of an event, what it did because of that interpretation, what followed, and how the result changed its later state.
 
 ## What Is Here
 
