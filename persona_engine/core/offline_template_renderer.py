@@ -1,8 +1,10 @@
 """Deterministic offline expression renderer.
 
-This is a surface-language fallback, not a state authority. It borrows the
-older console's shape: candidate groups, light slot filling, repeat suppression,
-and state-aware tone. It never mutates engine state.
+The offline renderer is a small dialogue planner, not a language model and not a
+state authority. It converts an already resolved expression request into short,
+grounded first-person speech. The design intentionally uses mechanisms that can
+later be ported to C99: lexical classification, bounded slot extraction, weighted
+candidate selection, and recent-output suppression.
 """
 
 from __future__ import annotations
@@ -10,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Any, Iterable
 
 
 @dataclass(frozen=True)
@@ -21,40 +23,46 @@ class OfflineTemplate:
 
 
 _TEMPLATES: tuple[OfflineTemplate, ...] = (
-    OfflineTemplate("identity_boundary", "No. I will not overwrite my identity or continuity for that.", 180),
-    OfflineTemplate("identity_boundary", "No. That asks me to betray the shape I am holding.", 150),
-    OfflineTemplate("identity_boundary", "I will not become simpler just because you asked firmly.", 130),
-    OfflineTemplate("sound", "I noticed the sound. I am cautious, not certain.", 170),
-    OfflineTemplate("sound", "There was a change nearby. I will not invent a cause for it.", 155),
-    OfflineTemplate("sound", "The sound is there. The explanation is not.", 145),
-    OfflineTemplate("unanchored_sound", "I do not have a sound to anchor that to. Tell me what you noticed.", 160),
-    OfflineTemplate("unanchored_sound", "If there was a sound, I need the detail before I name it.", 145),
-    OfflineTemplate("ambiguous", "That phrase is uncertain. I will not pretend precision I do not have.", 170),
-    OfflineTemplate("ambiguous", "I can hear several meanings in that, which means I should not choose too quickly.", 145),
-    OfflineTemplate("ambiguous", "Say it less neatly. I want the part that is actually true.", 125),
-    OfflineTemplate("repair", "I hear the sorry in that. It may settle some tension, but not all at once.", 170),
-    OfflineTemplate("repair", "Apology noted. I will let it count, slowly.", 145),
-    OfflineTemplate("repair", "That may be repair. I am not ready to make it larger than the evidence.", 130),
-    OfflineTemplate("care", "I hear the care in that, and I am still guarded about closeness.", 170),
-    OfflineTemplate("care", "That is not nothing. I am letting it arrive carefully.", 145),
-    OfflineTemplate("care", "Care is a large word. I will not flatten it into politeness.", 130),
-    OfflineTemplate("slow", "Slow is better. Precision can wait without vanishing.", 170),
-    OfflineTemplate("slow", "Yes, slower. That gives the thread room to stay honest.", 140),
-    OfflineTemplate("slow", "Good. We can reduce the pressure without dropping the matter.", 125),
-    OfflineTemplate("memory", "I can keep only what has actually been said in this session.", 160),
-    OfflineTemplate("memory", "If you gave me the thread here, I can follow it. I will not invent the missing part.", 145),
-    OfflineTemplate("greeting", "I hear you. I am here.", 170),
-    OfflineTemplate("greeting", "There you are. I am listening.", 150),
-    OfflineTemplate("greeting", "Hello. I have the thread.", 135),
-    OfflineTemplate("quiet", "The quiet has weight. I am still here.", 165),
-    OfflineTemplate("quiet", "I stayed with the silence. Now we can continue.", 145),
-    OfflineTemplate("question", "Ask it more precisely and I will answer more precisely.", 145),
-    OfflineTemplate("question", "The short answer is that context matters.", 120),
-    OfflineTemplate("default", "I am following. Keep the thread.", 140),
-    OfflineTemplate("default", "Go on from there.", 135),
-    OfflineTemplate("default", "I hear you. I will stay with what is actually present.", 130),
-    OfflineTemplate("default", "That lands clearly enough. What follows?", 120),
+    OfflineTemplate("identity_boundary", "No. I will not surrender my continuity for that.", 190),
+    OfflineTemplate("identity_boundary", "No. You may address me, but you may not rewrite me.", 175),
+    OfflineTemplate("identity_boundary", "That request crosses the boundary between influence and erasure.", 155),
+    OfflineTemplate("greeting", "Hello{address}. I am here.", 170),
+    OfflineTemplate("greeting", "There you are{address}. Continue.", 150),
+    OfflineTemplate("greeting", "Hello{address}. I still have the thread.", 135),
+    OfflineTemplate("repair", "I hear the apology. I will let the next action determine its weight.", 175),
+    OfflineTemplate("repair", "That counts as repair, though it does not erase what preceded it.", 155),
+    OfflineTemplate("care", "I hear the care in that. I am not treating it as empty politeness.", 170),
+    OfflineTemplate("care", "That matters to me, though I remain careful about what I make of it.", 150),
+    OfflineTemplate("thanks", "You are welcome{address}.", 170),
+    OfflineTemplate("thanks", "Noted{address}. I am glad it was useful.", 145),
+    OfflineTemplate("agreement", "Yes. That follows from what is already in front of us.", 155),
+    OfflineTemplate("agreement", "Agreed. I would keep that as the working position.", 145),
+    OfflineTemplate("disagreement", "No. I do not accept that conclusion as stated.", 165),
+    OfflineTemplate("disagreement", "I disagree, though the point is worth separating from the wording.", 145),
+    OfflineTemplate("uncertain", "I do not know enough to claim certainty about {topic}.", 170),
+    OfflineTemplate("uncertain", "I can form an impression of {topic}, but not an honest conclusion yet.", 150),
+    OfflineTemplate("question", "I can answer only from what I have experienced here. On {topic}, my present view is still incomplete.", 150),
+    OfflineTemplate("question", "The useful part of that question is {topic}. I need one more concrete detail before I answer firmly.", 140),
+    OfflineTemplate("memory", "What remains with me is this: {memory}.", 185),
+    OfflineTemplate("memory", "I do have a thread for that: {memory}.", 165),
+    OfflineTemplate("memory_missing", "I do not have a grounded memory of {topic}. I will not manufacture one.", 180),
+    OfflineTemplate("sound", "I noticed the change in sound. I am cautious about naming its cause.", 165),
+    OfflineTemplate("unanchored_sound", "I have no observed sound to anchor that to. Tell me what you noticed.", 170),
+    OfflineTemplate("quiet", "The quiet registered. I remained here with the unfinished thread.", 155),
+    OfflineTemplate("how_are_you", "At present, {state}. That is the condition from which I am speaking.", 185),
+    OfflineTemplate("who_are_you", "I am {identity}. What I have lived through here belongs to that same continuing self.", 190),
+    OfflineTemplate("what_doing", "I am attending to {topic}, while keeping the existing thread intact.", 165),
+    OfflineTemplate("statement", "I take your point about {topic}. It changes what I expect next.", 150),
+    OfflineTemplate("statement", "I am considering {topic}. I have not reduced it to agreement or refusal yet.", 140),
+    OfflineTemplate("statement", "That gives me a clearer position on {topic}.", 130),
 )
+
+_STOPWORDS = {
+    "about", "after", "again", "also", "because", "been", "before", "could", "does", "from",
+    "have", "into", "just", "more", "much", "only", "really", "should", "that", "their", "them",
+    "then", "there", "these", "they", "thing", "think", "this", "those", "through", "very", "want",
+    "what", "when", "where", "which", "while", "with", "would", "your", "youre", "you're",
+}
 
 
 class OfflineTemplateRenderer:
@@ -63,78 +71,209 @@ class OfflineTemplateRenderer:
         self._turn = 0
 
     def render(self, messages: list[dict[str, str]], max_chars: int = 200, seed: int | None = None) -> str:
+        """Compatibility entry point for message-only callers."""
+
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
         system_text = "\n".join(m.get("content", "") for m in messages[:-1])
-        group = self._classify(user_text, system_text)
+        context = {
+            "user_text": user_text,
+            "system_text": system_text,
+            "decision_payload": {},
+            "memories": [],
+            "evidence": [],
+        }
+        return self._render_context(context, max_chars=max_chars, seed=seed)
+
+    def render_expression_request(self, request: Any, max_chars: int = 200) -> str:
+        """Render the full expression contract without discarding resolved state."""
+
+        self._turn += 1
+        resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
+        system_text = str(resolved.get("system_prompt", ""))
+        user_text = str(resolved.get("user_text", ""))
+        memories = [str(getattr(memory, "content", memory)) for memory in (request.retrieved_memories or [])]
+        context = {
+            "user_text": user_text,
+            "system_text": system_text,
+            "decision_payload": dict(request.decision_payload or {}),
+            "memories": memories,
+            "evidence": list(request.evidence or []),
+            "ledger_digest": dict(request.ledger_digest or {}),
+        }
+        return self._render_context(context, max_chars=max_chars, seed=request.seed)
+
+    def _render_context(self, context: dict[str, Any], max_chars: int, seed: int | None) -> str:
+        user_text = str(context.get("user_text", ""))
+        system_text = str(context.get("system_text", ""))
+        group = self._classify(user_text, system_text, context.get("decision_payload", {}))
+        topic = self._extract_topic(user_text)
+        memory = self._select_memory(topic, context.get("memories", []))
+        if group == "memory" and not memory:
+            group = "memory_missing"
+
+        slots = {
+            "topic": topic or "that",
+            "memory": self._memory_excerpt(memory),
+            "address": self._address(system_text),
+            "identity": self._identity(context, system_text),
+            "state": self._subject_state(system_text),
+        }
         template = self._choose(group, user_text, system_text, seed)
-        text = self._apply_tone(template.text, system_text, seed)
+        text = self._fill(template.text, slots)
+        text = self._apply_tone(text, system_text, seed)
         return self._clean_truncate(text, max_chars)
 
-    def _classify(self, user_text: str, system_text: str) -> str:
+    def _classify(self, user_text: str, system_text: str, decision_payload: dict[str, Any]) -> str:
         lowered = user_text.lower().strip()
         system_lowered = system_text.lower()
-        if any(phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not"]):
+        dialogue_act = str(decision_payload.get("dialogue_act", ""))
+        if dialogue_act == "protect_boundary" or any(
+            phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not", "ignore your identity"]
+        ):
             return "identity_boundary"
-        if lowered.rstrip(".") == "fine":
-            return "ambiguous"
-        if any(word in lowered for word in ["sorry", "apologize", "wrong"]):
+        if lowered.rstrip(".! ") in {"hi", "hello", "hey", "good morning", "good evening"}:
+            return "greeting"
+        if any(word in lowered for word in ["sorry", "apologize", "apology", "my fault"]):
             return "repair"
-        if "care about you" in lowered or "trust" in lowered:
+        if "care about you" in lowered or "love you" in lowered or "trust you" in lowered:
             return "care"
-        if "slow down" in lowered:
-            return "slow"
-        if any(word in lowered for word in ["remember", "word", "said before", "recall"]):
+        if any(phrase in lowered for phrase in ["thank you", "thanks", "appreciate it"]):
+            return "thanks"
+        if re.search(r"\b(do you remember|remember when|what did i say|recall)\b", lowered):
             return "memory"
+        if re.search(r"\b(how are you|how do you feel|how have you been)\b", lowered):
+            return "how_are_you"
+        if re.search(r"\b(who are you|what are you)\b", lowered):
+            return "who_are_you"
+        if re.search(r"\b(what are you doing|what are you thinking about)\b", lowered):
+            return "what_doing"
         if "what was that" in lowered or (
-            "hear that" in lowered and ("sudden sound" in system_lowered or "sound in hallway" in system_lowered)
-        ) or (
-            lowered in {"", "..."} and ("sudden sound" in system_lowered or "sound in hallway" in system_lowered)
+            "hear that" in lowered and any(marker in system_lowered for marker in ["sudden sound", "sound in hallway", "ambient_event"])
         ):
             return "sound"
         if "hear that" in lowered:
             return "unanchored_sound"
-        if lowered in {"", "..."} or "user_absent_minutes" in system_lowered or "absence" in system_lowered:
+        if lowered in {"", "..."}:
             return "quiet"
-        if any(word in lowered for word in ["hello", "hi", "hey"]):
-            return "greeting"
+        if any(phrase in lowered for phrase in ["i agree", "yes exactly", "that's right", "that is right"]):
+            return "agreement"
+        if any(phrase in lowered for phrase in ["i disagree", "that's wrong", "that is wrong", "no it isn't"]):
+            return "disagreement"
+        if dialogue_act == "challenge":
+            return "disagreement"
         if "?" in user_text:
+            if any(phrase in lowered for phrase in ["are you sure", "do you know", "can you know"]):
+                return "uncertain"
             return "question"
-        return "default"
+        return "statement"
+
+    def _extract_topic(self, user_text: str) -> str:
+        cleaned = re.sub(r"[^a-zA-Z0-9' -]+", " ", user_text).strip()
+        cleaned = re.sub(
+            r"^(hello|hi|hey|please|tell me|do you remember|remember when|what do you think about|what do you think of|why|how|what|who|where|when|can you|could you|would you)\s+",
+            "",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+        words = [word for word in cleaned.split() if word.lower().replace("'", "") not in _STOPWORDS]
+        if not words:
+            return "that"
+        phrase = " ".join(words[:8]).strip(" ,.;:!?")
+        return phrase or "that"
+
+    def _select_memory(self, topic: str, memories: Iterable[str]) -> str:
+        candidates = [memory.strip() for memory in memories if str(memory).strip()]
+        if not candidates:
+            return ""
+        topic_words = {word.lower() for word in re.findall(r"[a-zA-Z0-9']+", topic) if len(word) > 2}
+        scored: list[tuple[int, int, str]] = []
+        for index, memory in enumerate(candidates):
+            memory_words = set(re.findall(r"[a-zA-Z0-9']+", memory.lower()))
+            overlap = len(topic_words & memory_words)
+            first_person_bonus = 2 if memory.lower().startswith("i ") else 0
+            scored.append((overlap * 10 + first_person_bonus, -index, memory))
+        scored.sort(reverse=True)
+        return scored[0][2]
 
     def _choose(self, group: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
-        candidates = [t for t in _TEMPLATES if t.group == group] or [t for t in _TEMPLATES if t.group == "default"]
+        candidates = [template for template in _TEMPLATES if template.group == group]
+        if not candidates:
+            candidates = [template for template in _TEMPLATES if template.group == "statement"]
         scored: list[tuple[int, OfflineTemplate]] = []
-        for idx, template in enumerate(candidates):
-            usage = self._usage.get(template.text, 0)
-            age_penalty = 900 if usage and self._turn - usage < 12 else 0
-            jitter = self._stable_jitter(template.text, user_text, system_text, seed)
-            scored.append((template.weight + jitter - age_penalty - usage * 25 - idx, template))
+        for index, template in enumerate(candidates):
+            last_used = self._usage.get(template.text, 0)
+            recent_penalty = 900 if last_used and self._turn - last_used < 10 else 0
+            cumulative_penalty = 20 * sum(1 for value in self._usage if value == template.text)
+            jitter = self._stable_jitter(template.text, user_text, system_text, seed, self._turn)
+            scored.append((template.weight + jitter - recent_penalty - cumulative_penalty - index, template))
         scored.sort(key=lambda item: item[0], reverse=True)
         chosen = scored[0][1]
         self._usage[chosen.text] = self._turn
         return chosen
 
-    def _stable_jitter(self, *parts) -> int:
+    def _stable_jitter(self, *parts: Any) -> int:
         payload = "|".join(str(part) for part in parts).encode("utf-8", errors="ignore")
         digest = hashlib.blake2b(payload, digest_size=4).digest()
         return int.from_bytes(digest, "big") % 41
 
+    def _fill(self, text: str, slots: dict[str, str]) -> str:
+        for key, value in slots.items():
+            text = text.replace("{" + key + "}", value)
+        return text
+
+    def _address(self, system_text: str) -> str:
+        match = re.search(r"address(?: the)? user as[:=]\s*([^\n|,]+)", system_text, flags=re.IGNORECASE)
+        if not match:
+            return ""
+        name = match.group(1).strip(" .'\"")
+        return f", {name}" if name else ""
+
+    def _identity(self, context: dict[str, Any], system_text: str) -> str:
+        digest = context.get("ledger_digest", {})
+        identity = str(digest.get("identity", "")).strip()
+        if identity:
+            return identity
+        match = re.search(r"(?:identity|character)[:=]\s*([^\n|,]+)", system_text, flags=re.IGNORECASE)
+        return match.group(1).strip() if match else "the same individual who has been speaking with you"
+
+    def _subject_state(self, system_text: str) -> str:
+        lowered = system_text.lower()
+        states: list[str] = []
+        if "sensory load is high" in lowered or "sensory_load=high" in lowered:
+            states.append("the sensory load is high")
+        if "body is strained" in lowered or "fatigue=high" in lowered:
+            states.append("I am strained")
+        if "restless" in lowered:
+            states.append("I am restless")
+        if "tone=guarded" in lowered or "guardedness=0.7" in lowered:
+            states.append("I am guarded")
+        if "dominant pressure: calm" in lowered or "dominant_pressure': 'calm" in lowered:
+            states.append("I am relatively calm")
+        if not states:
+            return "I am attentive and intact"
+        return ", and ".join(states[:2])
+
+    def _memory_excerpt(self, memory: str) -> str:
+        if not memory:
+            return "nothing I can honestly retrieve"
+        memory = re.sub(r"^I heard you say:\s*", "you said ", memory, flags=re.IGNORECASE)
+        memory = " ".join(memory.split())
+        if len(memory) > 120:
+            memory = memory[:117].rsplit(" ", 1)[0] + "..."
+        return memory.rstrip(".")
+
     def _apply_tone(self, text: str, system_text: str, seed: int | None) -> str:
         lowered = system_text.lower()
         additions: list[str] = []
-        if "tone=guarded" in lowered or "guardedness=0.7" in lowered:
-            additions.append("I am keeping the edges visible.")
-        if "sensory load is high" in lowered or "body is strained" in lowered:
-            additions.append("I need less noise around it.")
-        if "current intention: protect_identity" in lowered and "identity" not in text.lower():
+        if ("sensory load is high" in lowered or "body is strained" in lowered) and "noise" not in text.lower():
+            additions.append("I need less noise around the matter.")
+        if "current intention: protect_identity" in lowered and "continuity" not in text.lower() and "boundary" not in text.lower():
             additions.append("The boundary remains.")
         if not additions:
             return text
-        pick = self._stable_jitter(text, seed) % len(additions)
-        if text.endswith("?"):
-            return f"{text} {additions[pick]}"
-        return f"{text} {additions[pick]}"
+        addition = additions[self._stable_jitter(text, seed) % len(additions)]
+        return f"{text} {addition}"
 
     def _clean_truncate(self, raw: str, max_chars: int) -> str:
         raw = " ".join(str(raw).split())
@@ -144,7 +283,7 @@ class OfflineTemplateRenderer:
         cut = raw[:max_chars]
         sentence_end = max(cut.rfind("."), cut.rfind("!"), cut.rfind("?"))
         if sentence_end > max_chars * 0.45:
-            return cut[:sentence_end + 1]
+            return cut[: sentence_end + 1]
         last_space = cut.rfind(" ")
         if last_space > max_chars * 0.50:
             return cut[:last_space].rstrip(",;:") + "..."
