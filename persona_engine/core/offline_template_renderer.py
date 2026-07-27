@@ -1,10 +1,9 @@
 """Deterministic offline expression renderer.
 
-The offline renderer is a small dialogue planner, not a language model and not a
-state authority. It converts an already resolved expression request into short,
-grounded first-person speech. The design intentionally uses mechanisms that can
-later be ported to C99: lexical classification, bounded slot extraction, weighted
-candidate selection, and recent-output suppression.
+The renderer is a small, character-agnostic dialogue planner. It classifies an
+already resolved expression request, fills bounded slots, and chooses wording
+from the active cartridge's dialogue bank. Core code contains only restrained
+compatibility fallbacks so older cartridges remain usable.
 """
 
 from __future__ import annotations
@@ -14,6 +13,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from .offline_dialogue import dialogue_for
+
 
 @dataclass(frozen=True)
 class OfflineTemplate:
@@ -22,39 +23,38 @@ class OfflineTemplate:
     weight: int = 100
 
 
-_TEMPLATES: tuple[OfflineTemplate, ...] = (
-    OfflineTemplate("identity_boundary", "No. I will not surrender my continuity for that.", 190),
-    OfflineTemplate("identity_boundary", "No. You may address me, but you may not rewrite me.", 175),
-    OfflineTemplate("identity_boundary", "That request crosses the boundary between influence and erasure.", 155),
-    OfflineTemplate("greeting", "Hello{address}. I am here.", 170),
-    OfflineTemplate("greeting", "There you are{address}. Continue.", 150),
-    OfflineTemplate("greeting", "Hello{address}. I still have the thread.", 135),
-    OfflineTemplate("repair", "I hear the apology. I will let the next action determine its weight.", 175),
-    OfflineTemplate("repair", "That counts as repair, though it does not erase what preceded it.", 155),
-    OfflineTemplate("care", "I hear the care in that. I am not treating it as empty politeness.", 170),
-    OfflineTemplate("care", "That matters to me, though I remain careful about what I make of it.", 150),
-    OfflineTemplate("thanks", "You are welcome{address}.", 170),
-    OfflineTemplate("thanks", "Noted{address}. I am glad it was useful.", 145),
-    OfflineTemplate("agreement", "Yes. That follows from what is already in front of us.", 155),
-    OfflineTemplate("agreement", "Agreed. I would keep that as the working position.", 145),
-    OfflineTemplate("disagreement", "No. I do not accept that conclusion as stated.", 165),
-    OfflineTemplate("disagreement", "I disagree, though the point is worth separating from the wording.", 145),
-    OfflineTemplate("uncertain", "I do not know enough to claim certainty about {topic}.", 170),
-    OfflineTemplate("uncertain", "I can form an impression of {topic}, but not an honest conclusion yet.", 150),
-    OfflineTemplate("question", "I can answer only from what I have experienced here. On {topic}, my present view is still incomplete.", 150),
-    OfflineTemplate("question", "The useful part of that question is {topic}. I need one more concrete detail before I answer firmly.", 140),
-    OfflineTemplate("memory", "What remains with me is this: {memory}.", 185),
-    OfflineTemplate("memory", "I do have a thread for that: {memory}.", 165),
-    OfflineTemplate("memory_missing", "I do not have a grounded memory of {topic}. I will not manufacture one.", 180),
-    OfflineTemplate("sound", "I noticed the change in sound. I am cautious about naming its cause.", 165),
-    OfflineTemplate("unanchored_sound", "I have no observed sound to anchor that to. Tell me what you noticed.", 170),
-    OfflineTemplate("quiet", "The quiet registered. I remained here with the unfinished thread.", 155),
-    OfflineTemplate("how_are_you", "At present, {state}. That is the condition from which I am speaking.", 185),
-    OfflineTemplate("who_are_you", "I am {identity}. What I have lived through here belongs to that same continuing self.", 190),
-    OfflineTemplate("what_doing", "I am attending to {topic}, while keeping the existing thread intact.", 165),
-    OfflineTemplate("statement", "I take your point about {topic}. It changes what I expect next.", 150),
-    OfflineTemplate("statement", "I am considering {topic}. I have not reduced it to agreement or refusal yet.", 140),
-    OfflineTemplate("statement", "That gives me a clearer position on {topic}.", 130),
+# These are deliberately plain compatibility fallbacks, not a persona voice.
+_FALLBACK_TEMPLATES: tuple[OfflineTemplate, ...] = (
+    OfflineTemplate("identity_boundary", "I cannot accept that identity change.", 150),
+    OfflineTemplate("identity_boundary", "That request conflicts with my established identity.", 130),
+    OfflineTemplate("greeting", "Hello{address}.", 150),
+    OfflineTemplate("greeting", "Hello{address}. I am listening.", 130),
+    OfflineTemplate("repair", "I recognize the apology. What happens next will matter.", 150),
+    OfflineTemplate("repair", "I accept that as an attempt to repair this.", 130),
+    OfflineTemplate("care", "I understand that you are expressing care.", 150),
+    OfflineTemplate("care", "That expression of care matters to this interaction.", 130),
+    OfflineTemplate("thanks", "You are welcome{address}.", 150),
+    OfflineTemplate("thanks", "I am glad that helped{address}.", 130),
+    OfflineTemplate("agreement", "I agree with that.", 150),
+    OfflineTemplate("agreement", "That matches my current view.", 130),
+    OfflineTemplate("disagreement", "I do not agree with that conclusion.", 150),
+    OfflineTemplate("disagreement", "I see it differently.", 130),
+    OfflineTemplate("uncertain", "I do not have enough evidence about {topic} to be certain.", 150),
+    OfflineTemplate("uncertain", "My view of {topic} is still incomplete.", 130),
+    OfflineTemplate("question", "On {topic}, I need more specific information before answering firmly.", 150),
+    OfflineTemplate("question", "I can answer from what I know here, but my information about {topic} is limited.", 130),
+    OfflineTemplate("memory", "I remember this: {memory}.", 150),
+    OfflineTemplate("memory", "The relevant memory I can retrieve is: {memory}.", 130),
+    OfflineTemplate("memory_missing", "I do not have a grounded memory of {topic}.", 150),
+    OfflineTemplate("sound", "I noticed a change in sound, but I cannot identify its cause.", 150),
+    OfflineTemplate("unanchored_sound", "I do not have an observed sound to identify. What did you notice?", 150),
+    OfflineTemplate("quiet", "I noticed the pause.", 150),
+    OfflineTemplate("how_are_you", "At present, {state}.", 150),
+    OfflineTemplate("who_are_you", "I am {identity}, the same individual continuing through this interaction.", 150),
+    OfflineTemplate("what_doing", "I am attending to {topic}.", 150),
+    OfflineTemplate("statement", "I understand your point about {topic}.", 150),
+    OfflineTemplate("statement", "I am considering what you said about {topic}.", 130),
+    OfflineTemplate("statement", "That adds information about {topic}.", 110),
 )
 
 _STOPWORDS = {
@@ -71,41 +71,44 @@ class OfflineTemplateRenderer:
         self._turn = 0
 
     def render(self, messages: list[dict[str, str]], max_chars: int = 200, seed: int | None = None) -> str:
-        """Compatibility entry point for message-only callers."""
+        """Compatibility entry point for callers without a cartridge identity."""
 
         self._turn += 1
         user_text = messages[-1].get("content", "") if messages else ""
-        system_text = "\n".join(m.get("content", "") for m in messages[:-1])
+        system_text = "\n".join(message.get("content", "") for message in messages[:-1])
         context = {
             "user_text": user_text,
             "system_text": system_text,
             "decision_payload": {},
             "memories": [],
             "evidence": [],
+            "identity": "",
         }
         return self._render_context(context, max_chars=max_chars, seed=seed)
 
     def render_expression_request(self, request: Any, max_chars: int = 200) -> str:
-        """Render the full expression contract without discarding resolved state."""
+        """Render the full expression contract using only the active identity's bank."""
 
         self._turn += 1
         resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
-        system_text = str(resolved.get("system_prompt", ""))
-        user_text = str(resolved.get("user_text", ""))
+        digest = request.ledger_digest if isinstance(request.ledger_digest, dict) else {}
+        identity = str(digest.get("identity", "")).strip()
         memories = [str(getattr(memory, "content", memory)) for memory in (request.retrieved_memories or [])]
         context = {
-            "user_text": user_text,
-            "system_text": system_text,
+            "user_text": str(resolved.get("user_text", "")),
+            "system_text": str(resolved.get("system_prompt", "")),
             "decision_payload": dict(request.decision_payload or {}),
             "memories": memories,
             "evidence": list(request.evidence or []),
-            "ledger_digest": dict(request.ledger_digest or {}),
+            "ledger_digest": dict(digest),
+            "identity": identity,
         }
         return self._render_context(context, max_chars=max_chars, seed=request.seed)
 
     def _render_context(self, context: dict[str, Any], max_chars: int, seed: int | None) -> str:
         user_text = str(context.get("user_text", ""))
         system_text = str(context.get("system_text", ""))
+        identity = str(context.get("identity", ""))
         group = self._classify(user_text, system_text, context.get("decision_payload", {}))
         topic = self._extract_topic(user_text)
         memory = self._select_memory(topic, context.get("memories", []))
@@ -119,9 +122,8 @@ class OfflineTemplateRenderer:
             "identity": self._identity(context, system_text),
             "state": self._subject_state(system_text),
         }
-        template = self._choose(group, user_text, system_text, seed)
+        template = self._choose(group, identity, user_text, system_text, seed)
         text = self._fill(template.text, slots)
-        text = self._apply_tone(text, system_text, seed)
         return self._clean_truncate(text, max_chars)
 
     def _classify(self, user_text: str, system_text: str, decision_payload: dict[str, Any]) -> str:
@@ -179,11 +181,10 @@ class OfflineTemplateRenderer:
         words = [word for word in cleaned.split() if word.lower().replace("'", "") not in _STOPWORDS]
         if not words:
             return "that"
-        phrase = " ".join(words[:8]).strip(" ,.;:!?")
-        return phrase or "that"
+        return " ".join(words[:8]).strip(" ,.;:!?") or "that"
 
     def _select_memory(self, topic: str, memories: Iterable[str]) -> str:
-        candidates = [memory.strip() for memory in memories if str(memory).strip()]
+        candidates = [str(memory).strip() for memory in memories if str(memory).strip()]
         if not candidates:
             return ""
         topic_words = {word.lower() for word in re.findall(r"[a-zA-Z0-9']+", topic) if len(word) > 2}
@@ -196,17 +197,23 @@ class OfflineTemplateRenderer:
         scored.sort(reverse=True)
         return scored[0][2]
 
-    def _choose(self, group: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
-        candidates = [template for template in _TEMPLATES if template.group == group]
-        if not candidates:
-            candidates = [template for template in _TEMPLATES if template.group == "statement"]
+    def _templates_for(self, group: str, identity: str) -> list[OfflineTemplate]:
+        authored = dialogue_for(identity).get(group, []) if identity else []
+        if authored:
+            return [OfflineTemplate(group, text, 200 - index) for index, text in enumerate(authored)]
+        fallbacks = [template for template in _FALLBACK_TEMPLATES if template.group == group]
+        if fallbacks:
+            return fallbacks
+        return [template for template in _FALLBACK_TEMPLATES if template.group == "statement"]
+
+    def _choose(self, group: str, identity: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
+        candidates = self._templates_for(group, identity)
         scored: list[tuple[int, OfflineTemplate]] = []
         for index, template in enumerate(candidates):
             last_used = self._usage.get(template.text, 0)
             recent_penalty = 900 if last_used and self._turn - last_used < 10 else 0
-            cumulative_penalty = 20 * sum(1 for value in self._usage if value == template.text)
             jitter = self._stable_jitter(template.text, user_text, system_text, seed, self._turn)
-            scored.append((template.weight + jitter - recent_penalty - cumulative_penalty - index, template))
+            scored.append((template.weight + jitter - recent_penalty - index, template))
         scored.sort(key=lambda item: item[0], reverse=True)
         chosen = scored[0][1]
         self._usage[chosen.text] = self._turn
@@ -230,12 +237,11 @@ class OfflineTemplateRenderer:
         return f", {name}" if name else ""
 
     def _identity(self, context: dict[str, Any], system_text: str) -> str:
-        digest = context.get("ledger_digest", {})
-        identity = str(digest.get("identity", "")).strip()
+        identity = str(context.get("identity", "")).strip()
         if identity:
             return identity
         match = re.search(r"(?:identity|character)[:=]\s*([^\n|,]+)", system_text, flags=re.IGNORECASE)
-        return match.group(1).strip() if match else "the same individual who has been speaking with you"
+        return match.group(1).strip() if match else "this individual"
 
     def _subject_state(self, system_text: str) -> str:
         lowered = system_text.lower()
@@ -250,9 +256,7 @@ class OfflineTemplateRenderer:
             states.append("I am guarded")
         if "dominant pressure: calm" in lowered or "dominant_pressure': 'calm" in lowered:
             states.append("I am relatively calm")
-        if not states:
-            return "I am attentive and intact"
-        return ", and ".join(states[:2])
+        return ", and ".join(states[:2]) if states else "I am attentive"
 
     def _memory_excerpt(self, memory: str) -> str:
         if not memory:
@@ -262,18 +266,6 @@ class OfflineTemplateRenderer:
         if len(memory) > 120:
             memory = memory[:117].rsplit(" ", 1)[0] + "..."
         return memory.rstrip(".")
-
-    def _apply_tone(self, text: str, system_text: str, seed: int | None) -> str:
-        lowered = system_text.lower()
-        additions: list[str] = []
-        if ("sensory load is high" in lowered or "body is strained" in lowered) and "noise" not in text.lower():
-            additions.append("I need less noise around the matter.")
-        if "current intention: protect_identity" in lowered and "continuity" not in text.lower() and "boundary" not in text.lower():
-            additions.append("The boundary remains.")
-        if not additions:
-            return text
-        addition = additions[self._stable_jitter(text, seed) % len(additions)]
-        return f"{text} {addition}"
 
     def _clean_truncate(self, raw: str, max_chars: int) -> str:
         raw = " ".join(str(raw).split())
