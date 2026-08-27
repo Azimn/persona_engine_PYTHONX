@@ -2,7 +2,11 @@
 
 The classifier borrows the useful MindSculpt-style idea that not every event is
 just undifferentiated text. It assigns memory type, relevance, and promotion
-eligibility while preserving the existing memory firewall.
+eligibility while preserving the memory firewall.
+
+Wayfarer authority rule: canonicality fails closed. An explicit noncanonical
+marker always wins over an event type, and subjective interpretations are never
+promoted to canonical truth merely because they are worth remembering.
 """
 
 from __future__ import annotations
@@ -10,11 +14,32 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+
+# These event types are allowed to contain canonical evidence by default.
+# Subjective belief/interpretation events are intentionally absent. Slow belief
+# state is governed by the belief/consolidation subsystem, not by treating a
+# belief event as objective memory truth.
 CANONICAL_EVENT_TYPES = {
-    "user_statement", "input", "world_fact", "sensorium", "belief", "interpretive_belief",
-    "manual_authorized_fact", "dream_consolidation", "state_transition",
+    "user_statement",
+    "input",
+    "world_fact",
+    "sensorium",
+    "manual_authorized_fact",
+    "dream_consolidation",
+    "state_transition",
 }
-NONCANONICAL_EVENT_TYPES = {"speech", "renderer_output", "ui_state", "avatar_state", "voice_plan", "mock_response"}
+
+# These event families are never canonical regardless of caller-supplied flags.
+NONCANONICAL_EVENT_TYPES = {
+    "speech",
+    "renderer_output",
+    "ui_state",
+    "avatar_state",
+    "voice_plan",
+    "mock_response",
+    "interpretive_belief",
+    "private_cognition",
+}
 
 
 @dataclass
@@ -34,17 +59,43 @@ class MemoryClassification:
     canonical_truth: bool = False
 
 
+def _explicitly_noncanonical(payload: dict[str, Any]) -> bool:
+    """Return True when the producer explicitly denies canonical authority.
+
+    Several subsystems use different field names for historical reasons. Until
+    those schemas converge, the memory firewall treats any explicit False as a
+    veto. This is deliberately asymmetric: a caller may deny canonicality, but
+    a True flag cannot elevate an event family that is structurally forbidden.
+    """
+
+    for key in ("canonical", "canonical_truth", "response_is_canonical_truth"):
+        if payload.get(key) is False:
+            return True
+    return False
+
+
 def can_promote_to_canonical_memory(event_type: str, payload: dict[str, Any] | None = None) -> bool:
-    """Return whether an event may become canonical memory truth."""
+    """Return whether an event may become canonical memory truth.
+
+    Promotion is fail-closed:
+
+    1. structurally noncanonical event families can never be elevated;
+    2. any explicit noncanonical marker vetoes promotion;
+    3. default-canonical event families are accepted only after those vetoes;
+    4. unknown event families require an explicit ``canonical_truth=True`` and
+       still cannot bypass rules 1 or 2.
+    """
+
     event_type = str(event_type)
     payload = payload or {}
+
     if event_type in NONCANONICAL_EVENT_TYPES:
         return False
-    if payload.get("response_is_canonical_truth") is False:
+    if _explicitly_noncanonical(payload):
         return False
     if event_type in CANONICAL_EVENT_TYPES:
         return True
-    return bool(payload.get("canonical_truth") is True)
+    return payload.get("canonical_truth") is True
 
 
 class EventClassifier:
