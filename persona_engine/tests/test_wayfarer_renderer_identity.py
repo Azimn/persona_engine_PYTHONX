@@ -5,10 +5,12 @@ which model executes or renders the character. Renderer choice belongs to the
 host/session layer.
 """
 
+from dataclasses import asdict, fields
 from pathlib import Path
 
 from persona_engine.agent import CharacterAgent
 from persona_engine.core.cartridge import load_cartridge
+from persona_engine.core.identity import CoreIdentity
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,11 +54,41 @@ def test_legacy_identity_model_name_is_accepted_but_ignored(tmp_path):
 
     identity, _, raw = load_cartridge(str(path))
 
-    # During the v1 compatibility window CoreIdentity still exposes the old
-    # constructor field, but cartridge data no longer controls it.
+    # During the v1 compatibility window attribute access returns only the
+    # compatibility default. The caller/cartridge-supplied value is discarded.
     assert identity.model_name == "missing-model-for-mock"
     assert raw["migration_warnings"]
     assert "ignored by Wayfarer" in raw["migration_warnings"][0]
+
+
+def test_model_name_is_not_stored_identity_state():
+    identity = CoreIdentity(
+        name="Portable",
+        core_beliefs=("I persist",),
+        temperament="steady",
+        model_name="should-not-become-identity",
+    )
+
+    assert "model_name" not in {item.name for item in fields(identity)}
+    assert "model_name" not in asdict(identity)
+    assert "should-not-become-identity" not in repr(identity)
+
+
+def test_legacy_model_name_does_not_change_identity_equality():
+    first = CoreIdentity(
+        name="Portable",
+        core_beliefs=("I persist",),
+        temperament="steady",
+        model_name="model-a",
+    )
+    second = CoreIdentity(
+        name="Portable",
+        core_beliefs=("I persist",),
+        temperament="steady",
+        model_name="model-b",
+    )
+
+    assert first == second
 
 
 def test_cartridge_cannot_select_runtime_renderer(tmp_path):
