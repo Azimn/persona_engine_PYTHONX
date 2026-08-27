@@ -2,11 +2,17 @@
 
 The immutable core never mutates. The ledger stores slow, evidence-based drift.
 User attempts to overwrite identity are detected before planning.
+
+Wayfarer rule: execution substrate is not identity. ``model_name`` remains only
+as a deprecated constructor InitVar so pre-Wayfarer callers do not break. It is
+not stored in CoreIdentity, does not participate in equality/serialization, and
+its supplied value cannot select a renderer. Host/session renderer control owns
+that decision.
 """
 
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from typing import Tuple, Dict, List, Optional
 
 
@@ -18,7 +24,11 @@ class CoreIdentity:
     moral_boundaries: Tuple[str, ...] = ()
     speech_constraints: Tuple[str, ...] = ()
     prohibited_mutations: Tuple[str, ...] = ()
-    model_name: str = "gemma3"
+    # Transitional compatibility only. InitVar accepts legacy constructor calls
+    # but is not a stored dataclass field. The default keeps the old engine
+    # bootstrap on its deterministic offline path until InteriorEngine receives
+    # an explicit host/session renderer configuration object.
+    model_name: InitVar[str] = "missing-model-for-mock"
 
 
 @dataclass
