@@ -88,7 +88,11 @@ def test_event_classifier_memory_firewall():
     belief = classifier.classify("belief", {"text": "The silence feels guarded."})
     assert not speech.canonical_truth
     assert speech.memory_type == "speech"
-    assert belief.canonical_truth
+    # Wayfarer contract: a subjective belief may be important state without
+    # automatically becoming canonical memory truth. Slow belief changes are
+    # owned by the governed belief/consolidation path.
+    assert not belief.canonical_truth
+    assert belief.memory_type == "interpretive"
     assert can_promote_to_canonical_memory("voice_plan", {}) is False
 
 
