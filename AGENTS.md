@@ -1,4 +1,4 @@
-# Persona Engine Agent Instructions
+# Project Wayfarer Agent Instructions
 
 These instructions are mandatory for Codex agents and other automated coding assistants working in this repository.
 
@@ -7,15 +7,16 @@ These instructions are mandatory for Codex agents and other automated coding ass
 When working on the `wayfarer` branch, read these files before making changes, in this order:
 
 1. `persona_engine/docs/WAYFARER_MASTER_PLAN.md`
-2. `persona_engine/docs/WAYFARER_CHARTER.md`
-3. `persona_engine/docs/AI_DEVELOPER_HANDOFF.md`
-4. `persona_engine/docs/AUTHORITY_MATRIX.md`
-5. `persona_engine/docs/ARCHITECTURE_LOCK.md`
-6. `persona_engine/docs/WAYFARER_BASELINE.md`
-7. `persona_engine/docs/CURRENT_STATUS.md`
-8. Relevant tests for the subsystem being modified
+2. `persona_engine/docs/WAYFARER_PROGRESS.md`
+3. `persona_engine/docs/WAYFARER_CHARTER.md`
+4. `persona_engine/docs/AI_DEVELOPER_HANDOFF.md`
+5. `persona_engine/docs/AUTHORITY_MATRIX.md`
+6. `persona_engine/docs/ARCHITECTURE_LOCK.md`
+7. `persona_engine/docs/WAYFARER_BASELINE.md`
+8. `persona_engine/docs/CURRENT_STATUS.md`
+9. Relevant tests for the subsystem being modified
 
-The Wayfarer master plan is the canonical progress tracker. Important implementation status, test results, architectural decisions, blockers, and next actions must be written back to repository documentation. Do not leave required project memory only in a chat, coding-agent session, commit message, or hidden reasoning trace.
+`WAYFARER_MASTER_PLAN.md` is the detailed roadmap. `WAYFARER_PROGRESS.md` is the short-form live operational record and must be updated after substantive work. Important implementation status, test results, architectural decisions, blockers, and next actions must be written back to repository documentation. Do not leave required project memory only in a chat, coding-agent session, commit message, or hidden reasoning trace.
 
 For non-Wayfarer work, also read:
 
@@ -24,7 +25,7 @@ For non-Wayfarer work, also read:
 3. `persona_engine/docs/LAZARUS_MAPPING.md`
 4. `persona_engine/docs/CURRENT_STATUS.md`
 
-This repository is a Python reference laboratory for shaping behavior, UI, testing, and doctrine before selected, stabilized contracts are projected toward lower-resource hosts, including a future C99/P99-compatible runtime.
+This repository is the Python reference laboratory for shaping and falsifying Project Wayfarer semantics before selected, stabilized contracts are projected toward lower-resource hosts, including a future C99/P99-compatible runtime.
 
 ## Foundational Definition
 
@@ -61,6 +62,8 @@ Do not add a subsystem merely because another agent framework has one or because
 - Natural-language social input is evidence/experience, not a direct authority token.
 - A peer message, consensus claim, or model suggestion may not directly become an executable goal.
 - Character willingness and host capability/permission are separate gates.
+- Renderer/model selection belongs to runtime/host configuration, not identity.
+- Generic engine code must not impose one ontology on every character.
 
 ## Subject Continuity Contract
 
@@ -101,9 +104,13 @@ Do not let model replacement, renderer fallback, UI restart, process restart, or
 
 Do not silently merge divergent lived histories. A copied individual that accumulates different experiences is a branch/descendant unless an explicit future merge semantics is designed and approved.
 
+Do not add cryptographic machinery merely because an ordinary append-only local ledger exists. Security mechanisms must correspond to an explicit threat model. For the current local single-owner prototype, sequence numbers, transactions, schema validation, state digests/checkpoints, and integrity checks are the default continuity-ledger tools. A cryptographic hash chain is optional future hardening for untrusted synchronization or hostile custody.
+
+Do not proliferate per-trait plasticity constants without an experimental validation plan. Numerical parameters must produce identifiable observable effects, survive sensitivity/holdout testing, and be versioned with their evidence.
+
 ## Where Things Belong
 
-- Authored character identity, temperament, values, voice constraints, phenotype, world/body profile, interpretation bias, belief schema, lore, plasticity parameters, and initial dispositions: `.snp` portable character source.
+- Authored character identity, temperament, values, voice constraints, phenotype, world/body profile, interpretation bias, belief schema, lore, plasticity profiles, and initial dispositions: `.snp` portable character source.
 - Mutable lived position, relationships, commitments, pressures, habits, beliefs, developmental offsets, and inherited consequences: canonical subject/continuity state.
 - Objective facts and outcomes: World Authority and approved host/world/session channels.
 - Subjective short-term readings: interpretation layer as noncanonical, support-traced belief objects.
@@ -116,14 +123,14 @@ Do not silently merge divergent lived histories. A copied individual that accumu
 ## Safe Work Pattern
 
 1. Inspect the relevant files before editing.
-2. Check the current Wayfarer milestone and immediate next action.
+2. Check the current Wayfarer milestone and `WAYFARER_PROGRESS.md` immediate next action.
 3. Keep changes narrowly scoped to the active task.
 4. Search callers before altering public interfaces.
 5. Preserve package installability and command-line entry points.
 6. Add or update tests when behavior or contracts change.
 7. For continuity changes, test that an earlier interpretation or action changes a later subject state.
 8. Run the most relevant tests before finishing.
-9. Update the Wayfarer tracker and baseline/progress documentation as appropriate.
+9. Update `WAYFARER_PROGRESS.md` and the master plan/status documentation as appropriate.
 10. Clearly report commands run, results, files changed, migrations, and unresolved risks.
 
 For documentation-only changes, do not modify runtime code solely to satisfy style preferences.
@@ -140,7 +147,7 @@ Boundary modules and structured state objects should document:
 - what may actually commit changes,
 - what is expected to survive model/host replacement.
 
-## Current verification baseline
+## Current verification state
 
 The expected full test command is:
 
@@ -150,10 +157,13 @@ python -m pytest persona_engine/tests -q
 
 The original pre-Wayfarer baseline and its known failures are recorded in `persona_engine/docs/WAYFARER_BASELINE.md`.
 
-After the first Wayfarer canonicality repair, GitHub Actions run `33110735888` verified the branch on both Python 3.11 and Python 3.12. Python 3.11 reported:
+Latest completed green Wayfarer CI before this instruction update:
 
-```text
-188 passed, 1 skipped, 1 warning
-```
+- Run: `33111704143`
+- Commit: `fcaf4fd9af2f5c8e6e32b7ab5225ce133cb6c67e`
+- Python 3.11: `194 passed, 1 skipped, 1 warning in 3.46s`
+- Python 3.12: successful
+
+Check GitHub Actions for any newer head before quoting a newer result.
 
 Do not replace the frozen pre-Wayfarer baseline with later green results. Keep both the original baseline evidence and the current branch status.
