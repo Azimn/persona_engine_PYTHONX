@@ -43,7 +43,10 @@ def test_output_validator_and_sanitizer_are_traced():
     with tempfile.TemporaryDirectory() as d:
         db = os.path.join(d, "state.db")
         agent = make_agent(db)
-        agent.engine.renderer.generate = lambda *args, **kwargs: "As an AI, I cannot experience feelings."
+        # Wayfarer note: expression now flows through generate_expression().
+        # Patch the active renderer seam so this remains a real validator test
+        # rather than accidentally exercising the offline fallback path.
+        agent.engine.renderer.generate_expression = lambda *args, **kwargs: "As an AI, I cannot experience feelings."
         res = agent.say("Hello.")
         gates = {trace["gate"]: trace["action"] for trace in res["suppression_trace"]}
         assert gates["output_validator"] == "blocked"
