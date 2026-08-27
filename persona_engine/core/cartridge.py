@@ -3,6 +3,11 @@
 A cartridge is a TOML `.snp` file that defines authored, character-specific
 configuration. Engine modules must remain character-agnostic; mutable lived
 state belongs in Persistence or a session snapshot.
+
+Wayfarer renderer rule: renderer/model selection is host/session configuration,
+not character identity. Schema v1 cartridges may still contain the historical
+``[identity].model_name`` field for backward compatibility, but the loader does
+not grant that field renderer-selection authority.
 """
 
 from __future__ import annotations
@@ -23,7 +28,7 @@ class CartridgeError(ValueError):
 
 _REQUIRED = {
     "metadata": ("entity_id", "entity_name", "schema_version"),
-    "identity": ("core_beliefs", "temperament", "moral_boundaries", "speech_constraints", "prohibited_mutations", "model_name"),
+    "identity": ("core_beliefs", "temperament", "moral_boundaries", "speech_constraints", "prohibited_mutations"),
     "voice": ("forbidden_lexicon", "speaking_style", "address_user_as"),
     "body_profile": (
         "baseline_energy", "baseline_tension", "baseline_comfort", "restlessness_gain",
@@ -50,6 +55,10 @@ _OPTIONAL_SECTIONS = {
 }
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS
 _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
+# v1 compatibility only. The field is accepted so existing cartridges continue
+# to load, but it is not part of the Wayfarer identity contract and is ignored
+# for renderer selection.
+_ALLOWED_SECTION_FIELDS["identity"].add("model_name")
 _ALLOWED_SECTION_FIELDS.update({
     "sensory_profile": {"audio_sensitivity", "vision_sensitivity", "interruption_sensitivity", "silence_sensitivity"},
     "voice_profile": {"default_rate", "default_volume", "hesitation_bias", "interruptible"},
@@ -223,11 +232,26 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
     _validate_rules(belief_rules, beliefs)
 
 
+def _migration_warnings(identity_data: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    if "model_name" in identity_data:
+        warnings.append(
+            "[identity].model_name is a legacy v1 field and is ignored by Wayfarer; "
+            "configure the renderer through host/session RendererConfig instead."
+        )
+    return warnings
+
+
 def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, Any]]:
     """Load a `.snp` TOML cartridge.
 
-    Returns `(CoreIdentity, IdentityLedger, raw_rules)` where `raw_rules`
+    Returns ``(CoreIdentity, IdentityLedger, raw_rules)`` where ``raw_rules``
     contains schema-validated data for downstream components.
+
+    Legacy v1 ``[identity].model_name`` is accepted but deliberately ignored.
+    Cartridge loading always selects the deterministic offline compatibility
+    renderer hint; host/session code may replace the renderer through the
+    approved renderer-control path.
     """
 
     try:
@@ -248,7 +272,9 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         moral_boundaries=tuple(str(x) for x in identity_data["moral_boundaries"]),
         speech_constraints=tuple(str(x) for x in identity_data["speech_constraints"]),
         prohibited_mutations=tuple(str(x) for x in identity_data["prohibited_mutations"]),
-        model_name=str(identity_data["model_name"]),
+        # Compatibility only. The authored cartridge is not allowed to choose
+        # its execution substrate. UI/host RendererConfig owns that decision.
+        model_name="missing-model-for-mock",
     )
     ledger = IdentityLedger(immutable=core)
     dialogue = data.get("dialogue", {})
@@ -268,6 +294,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "concealment": data.get("concealment", {}),
         "arc": data.get("arc", {}),
         "dialogue": dialogue,
+        "migration_warnings": _migration_warnings(identity_data),
         "path": str(Path(path)),
     }
     return core, ledger, raw
