@@ -1,74 +1,111 @@
-# Persona Engine v12 Human UI
+# Project Wayfarer
 
-Persona Engine is a deterministic digital-organism prototype with cartridge-driven identity and a local human-testing UI.
+Project Wayfarer is the active next-generation development line of the PythonX Persona Engine.
 
-A digital organism is a persistent first-person subject whose interpretations and actions become the conditions of its future existence. It continuously experiences, interprets, acts, and changes through its own history. Memory records experience, but continuity is created by living under the consequences of previous experience.
+Repository: `Azimn/persona_engine_PYTHONX`  
+Development branch: `wayfarer`  
+Frozen pre-Wayfarer baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
-The project is not fundamentally about a loop. It is about a subject. The loop, memory system, renderer, tools, sensors, and interface are supporting machinery used to preserve one continuing individual across changing moments.
+If you cloned the repository normally, switch branches before evaluating current Wayfarer work:
 
-The LLM is a renderer only: generated prose is speech evidence, not canonical truth. Character identity, body profile, world preferences, belief schema, voice constraints, interpretation biases, and identity invariants live in `.snp` cartridges. Mutable lived history and accumulated consequences live in local session persistence.
-
-## Governing Design Filter
-
-Every computation in the system exists only because it changes what the subject experiences, believes, intends, expresses, or becomes.
-
-A component is not part of the organism core merely because humans possess something similar or another agent framework includes it. It belongs only when it changes the subject's lived position while preserving ownership and causal traceability.
-
-## Core Doctrine
-
-- The persistent subject is the object of design. The loop is machinery.
-- Each new moment must be encountered by the same individual who lived through the previous moment.
-- Prior experience must be capable of changing the subject who encounters the next moment.
-- Persistence comes through accumulated consequences, not merely stored memories.
-- The engine is character-agnostic.
-- All character-specific content belongs in `.snp` cartridges.
-- Session state stores lived history and inherited consequences.
-- The LLM is a renderer only.
-- Renderer output is not canonical truth.
-- World Authority owns objective facts.
-- The subject owns subjective interpretation.
-- Expression substrate is not identity. Model replacement must not reset biography or lived position.
-- The UI displays organism state. It does not author organism state.
-- Sensors report bounded observations only.
-- Voice and avatar layers perform state only. They do not decide state.
-
-## Subject Continuity
-
-The intended causal cycle is:
-
-```text
-Something happens to me.
-        ↓
-What do I notice?
-        ↓
-What does it remind me of?
-        ↓
-What do I think it means?
-        ↓
-What do I want to do?
-        ↓
-What do I reveal, conceal, withhold, or enact?
-        ↓
-What objectively happens because of my conduct?
-        ↓
-How has this changed me?
-        ↓
-The same subject encounters the next moment.
+```bash
+git switch wayfarer
 ```
 
-Memory retrieval alone does not satisfy continuity. The system must preserve what the subject made of an event, what it did because of that interpretation, what followed, and how the result changed its later state.
+The `main` branch is intentionally retained as the pre-Wayfarer comparison point.
 
-## What Is Here
+## What Wayfarer Is
 
-- Installable `persona_engine` package.
-- Strict `.snp` cartridge validation.
-- Deterministic pressure, relationship, body, world, memory, intention, habit, symbol, belief-ledger, interpretation, and replay/debug systems.
-- World Authority for objective facts.
-- Noncanonical, traceable interpretive belief objects.
-- Mock-safe audio and vision observation plumbing.
-- Voice-plan and avatar-safe state projection.
-- FastAPI human-testing UI with cartridge selection, session reset, streamed chat, public status, current beliefs, proactive proposals, mock sensors, and optional read-only debug details.
-- Scripted simulators for deterministic checks.
+Wayfarer is a reference architecture for a portable, persistent simulated individual.
+
+The project is not fundamentally a chatbot or a role-play prompt. The design target is one continuing individual whose identity, biography, relationships, commitments, memories, affective state, developmental history, and causal consequences live outside any particular language model.
+
+A language model may provide semantic interpretation, proposal generation, or natural-language realization. It is not the authority over who the character is.
+
+The same individual is intended eventually to move among different substrates and expression systems, including:
+
+- deterministic/no-model rendering,
+- very small local models,
+- larger local models,
+- frontier models,
+- desktop and phone interfaces,
+- game NPC hosts,
+- simulated social environments,
+- future low-resource P99/C99-compatible runtimes.
+
+Changing the renderer may change fluency, vocabulary, reasoning bandwidth, or style. It must not silently replace the individual's lived history or identity trajectory.
+
+## Current Wayfarer Doctrine
+
+- The persistent subject is the object of design.
+- The model is a replaceable semantic/expression substrate.
+- Renderer output is not canonical truth.
+- Character-specific content belongs in `.snp` data or explicitly character-scoped lived state.
+- World Authority owns objective facts.
+- The character owns subjective interpretation.
+- Social language is experience/evidence, not direct write authority.
+- A peer agent, consensus claim, or model suggestion cannot directly become an executable goal.
+- Character willingness and host capability/permission are separate gates.
+- One individual has one canonical lived history.
+- Divergent copies become branches/descendants unless explicit merge semantics are designed later.
+- The portable source may be rich while constrained runtimes execute a sparse projection.
+- No cognitive subsystem belongs in the minimum runtime until testing shows that it contributes observable character fidelity.
+
+## Current Verified Test State
+
+Latest completed Wayfarer CI before this README update:
+
+- GitHub Actions run: `33111704143`
+- Head: `fcaf4fd9af2f5c8e6e32b7ab5225ce133cb6c67e`
+- Python 3.11: `194 passed, 1 skipped, 1 warning in 3.46s`
+- Python 3.12: successful
+
+Run locally with:
+
+```bash
+python -m pytest persona_engine/tests -q
+```
+
+The historical `171 passed, 1 skipped` figure in the old documentation was stale. The true frozen baseline and its failures are preserved in `persona_engine/docs/WAYFARER_BASELINE.md`.
+
+## Important Baseline Regression That Wayfarer Already Fixed
+
+The pre-Wayfarer test `test_output_validator_and_sanitizer_are_traced` monkeypatched `renderer.generate`, but the production expression path had moved to `renderer.generate_expression`. The test therefore stopped injecting invalid output into the actual renderer seam.
+
+Wayfarer corrected the test to patch `generate_expression()` directly so validator/sanitizer tracing is tested against the live path.
+
+## M1 Work Already Completed
+
+Wayfarer has already:
+
+- added CI on Python 3.11 and 3.12,
+- added durable project/handoff documentation,
+- made event canonicality fail closed,
+- made subjective interpretation/private cognition structurally noncanonical,
+- added adversarial canonicality tests,
+- made legacy `[identity].model_name` optional,
+- prevented cartridge `model_name` from selecting a renderer,
+- turned `CoreIdentity.model_name` into compatibility-only constructor input rather than stored identity,
+- removed renderer hints from bundled cartridges,
+- added renderer/identity authority tests.
+
+The next M1 task is to remove remaining universal AI/language-model ontology assumptions from generic engine/output code and move such conflicts into character-specific self-model policy.
+
+## Two Design Decisions Added During Review
+
+### Keep the continuity ledger simple until the threat model requires more
+
+The local-first reference implementation does **not** require a cryptographic previous-hash chain for every event.
+
+The default target is an append-only, sequence-numbered, transactional ledger with event IDs, continuity epochs, schema validation, causal references where useful, state digests/checkpoints, and explicit export/import integrity checks.
+
+Cryptographic tamper evidence becomes an optional future profile only if Wayfarer introduces untrusted multi-party synchronization, hostile hosts, remote custody, or another real adversarial-integrity requirement.
+
+### Plasticity numbers must earn their existence
+
+Wayfarer will not assign many per-trait constants simply because they look plausible.
+
+Developmental parameters must be kept parsimonious, tied to observable behavior, sensitivity-tested, evaluated on held-out scenarios, versioned, and supported by experimental evidence before trait-specific overrides are accepted.
 
 ## Install
 
@@ -78,46 +115,31 @@ From the repository root:
 python -m pip install -e .
 ```
 
-For the full local developer/test setup:
+For developer/test dependencies:
 
 ```bash
 python -m pip install -r requirements-dev.txt
 ```
 
-Dependency files:
+Ollama is optional. Deterministic tests do not require network access, a GPU, microphone, camera, TTS, avatar engine, or a model download.
 
-- `requirements.txt`: core runtime dependencies.
-- `requirements-ui.txt`: optional UI server dependencies.
-- `requirements-test.txt`: test dependencies, including FastAPI TestClient support.
-- `requirements-dev.txt`: combined local development setup.
-
-Ollama is optional. Tests and simulators pass through the mock renderer fallback and do not require Ollama, a network model, microphone, camera, TTS, avatar engine, GPU, or mobile runtime.
-
-## Verify The Package
+## Run the Human UI
 
 ```bash
-python -c "import persona_engine; print('ok')"
+python -m uvicorn "persona_engine.ui:create_app" --factory --reload
 ```
 
-Expected output:
-
-```text
-ok
-```
-
-## Run Tests
+or:
 
 ```bash
-python -m pytest persona_engine/tests -q
+persona-engine-ui
 ```
 
-Current expected result:
-
-```text
-171 passed, 1 skipped
-```
+The current UI supports cartridge selection, session reset, streamed chat, public organism status, current interpretive beliefs, proactive proposals, mock-safe sensor observations, read-only debug details, and local renderer controls.
 
 ## Run Simulators
+
+Examples:
 
 ```bash
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/pretorius_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
@@ -126,91 +148,61 @@ python persona_engine/simulator.py --script persona_engine/simulator_scripts/org
 python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_anchored_misread.yaml --cartridge persona_engine/cartridges/pretorius.snp
 ```
 
-After editable install, the simulator entry point is also available:
-
-```bash
-persona-engine-sim --script persona_engine/simulator_scripts/pretorius_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
-```
-
-## Run The Human UI
-
-Install UI dependencies if you did not install `requirements-dev.txt`:
-
-```bash
-python -m pip install -r requirements-ui.txt
-```
-
-Run with Uvicorn:
-
-```bash
-python -m uvicorn "persona_engine.ui:create_app" --factory --reload
-```
-
-Or use the installed entry point:
-
-```bash
-persona-engine-ui
-```
-
-Open the local URL printed by Uvicorn. The UI supports cartridge selection, session reset, streamed chat, public organism status, avatar-safe state, voice-plan inspection, current interpretive beliefs, proactive proposals, mock audio observations, mock vision observations, optional read-only debug details, and working local renderer controls.
-
-## Human Testing
-
-Use one report per cartridge session:
-
-- `persona_engine/docs/HUMAN_TESTING_PROTOCOL.md`
-- `persona_engine/docs/HUMAN_TESTING_REPORT_TEMPLATE.md`
-
-The report template captures continuity, boundedness, memory, resistance, time/consequence, grounded interpretation, fact leakage, verbatim excerpts, and failures to convert into simulator scripts or regression tests.
+A dedicated preserved simulator-artifact baseline is still pending and is tracked in the Wayfarer progress file.
 
 ## Cartridges
 
-Cartridges live in `persona_engine/cartridges/`. They are strict TOML `.snp` files. Character-specific identity, voice, body profile, world profile, interpretation bias, belief values, and belief rules belong there, not in engine modules.
+Current `.snp` cartridges live in `persona_engine/cartridges/`.
 
-Included cartridges:
+Wayfarer is preparing these files to become the authored portable source of an individual, with a future MatrAIx-compatible phenotype interoperability layer and runtime-specific projections.
 
-- `neutral.snp`
-- `pretorius.snp`
-- `pretorius_v6.snp`
-- `friendly.snp`
-- `kiki.snp`
-- `mentor.snp`
-- `quiet.snp`
-- `rival.snp`
+Renderer/model selection is runtime configuration, not identity.
 
-## Renderer Backends
+## Project Documentation
 
-The human UI discovers Ollama directly through its local HTTP service and lists models actually installed on the machine. No Ollama Python package is required. Renderer settings are scoped per cartridge and include provider, model, thinking mode, request timeout, and token budget.
+AI coding tools and human contributors should read the following before behavior-changing work:
 
-Detected models include conservative capability hints for thinking support, recommended thinking mode, private-cognition JSON reliability, context size, practical timeout, token budget, and final-answer behavior. These are model-family guidance for testing, not benchmark claims. Unsupported thinking settings are rejected by the server.
+1. `persona_engine/docs/WAYFARER_MASTER_PLAN.md`
+2. `persona_engine/docs/WAYFARER_PROGRESS.md`
+3. `persona_engine/docs/WAYFARER_CHARTER.md`
+4. `persona_engine/docs/AI_DEVELOPER_HANDOFF.md`
+5. `persona_engine/docs/AUTHORITY_MATRIX.md`
+6. `persona_engine/docs/ARCHITECTURE_LOCK.md`
+7. `persona_engine/docs/WAYFARER_BASELINE.md`
+8. `persona_engine/docs/CURRENT_STATUS.md`
+9. relevant tests
 
-Offline rendering is always available and dependency-free. If a selected Ollama request fails or returns no final response text, the turn falls back to the deterministic offline renderer and the UI shows the requested backend, actual backend, and fallback reason. Renderer output remains noncanonical speech evidence in every mode.
+Root `AGENTS.md` contains mandatory instructions for Codex and other automated coding assistants.
 
-`local_hf` registry entries are visible as a future provider seam but cannot yet be selected through the human UI.
+## Current Major Future Milestones
 
-Character sessions use separate persistence and renderer configuration. The UI labels a session as new, resumed, or fresh after reset. Read-only debug traces show retrieved-memory IDs and provenance; normal public status does not expose private memory state.
+The detailed roadmap tracks:
 
-## Known Limitations
+- `.snp` v2 and phenotype interoperability,
+- a canonical continuity ledger,
+- linear subject time,
+- cross-host handoff and branching semantics,
+- experience-centered memory,
+- controlled personality development,
+- affective homeostasis,
+- structured model-as-organ cognition,
+- social influence and anti-coercion,
+- action/tool authority,
+- semantic speech planning,
+- a better zero-model compositional renderer,
+- offscreen life,
+- substrate-neutral host protocol,
+- migration/ownership tooling,
+- Society Lab adversarial social testing,
+- renderer-swap benchmarks,
+- ablation and Minimum Viable Individual measurement,
+- eventual P99-next contract port,
+- runtime projection compilation,
+- hardware-budget profiling,
+- long-duration release trials.
 
-- No real microphone input is implemented.
-- No real camera input is implemented.
-- No real TTS output is implemented.
-- No real avatar engine is implemented.
-- GPU support is not required or tested.
-- Mobile-native app support is not implemented.
-- Autonomous background execution is limited to local engine idle hooks, not a full agent runtime.
-- The human UI uses mock-safe sensor controls and state plans.
-- Debug mode is local and read-only.
+## Current Principle
 
-## More Docs
+The minimum renderer and the minimum character are not the same problem.
 
-- `AGENTS.md`
-- `persona_engine/docs/ARCHITECTURE_LOCK.md`
-- `persona_engine/docs/LAZARUS_MAPPING.md`
-- `persona_engine/docs/CURRENT_STATUS.md`
-- `persona_engine/docs/HUMAN_TESTING_UI.md`
-- `persona_engine/docs/HUMAN_TESTING_PROTOCOL.md`
-- `persona_engine/docs/HUMAN_TESTING_REPORT_TEMPLATE.md`
-- `persona_engine/docs/V9_INTERFACE_NOTES.md`
-- `persona_engine/docs/V10_SENSORY_EMBODIMENT_NOTES.md`
-- `persona_engine/docs/C99_PORTING_NOTES.md`
+Wayfarer first determines the smallest causal machinery required for a persistent individual to remain coherent, recognizable, socially responsive, developmentally plausible, and substrate-independent. Only then should that stabilized individual contract be projected back toward the lowest-resource runtime.
