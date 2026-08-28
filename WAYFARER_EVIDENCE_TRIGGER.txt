@@ -1,3 +1,3 @@
 Project Wayfarer M0 evidence capture trigger.
 
-After the evidence package is successfully committed, this trigger file should be removed. The reusable workflow remains available through workflow_dispatch.
+Attempt 2 records every simulator's exit code and continues the evidence capture even when a lexical simulator oracle fails. The reusable workflow remains available through workflow_dispatch after this trigger is removed.
