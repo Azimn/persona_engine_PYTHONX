@@ -1,0 +1,120 @@
+name: Wayfarer Evidence Capture
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [wayfarer]
+    paths:
+      - WAYFARER_EVIDENCE_TRIGGER.txt
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Create evidence directories
+        run: mkdir -p persona_engine/evidence/wayfarer_m0/simulators
+      - name: Run documented deterministic simulators
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_sim () {
+            local name="$1"
+            local script="$2"
+            local cartridge="$3"
+            local out="persona_engine/evidence/wayfarer_m0/simulators/${name}.txt"
+            echo '$' python persona_engine/simulator.py --script "$script" --cartridge "$cartridge" | tee "$out"
+            python persona_engine/simulator.py --script "$script" --cartridge "$cartridge" 2>&1 | tee -a "$out"
+          }
+          run_sim pretorius_basic persona_engine/simulator_scripts/pretorius_basic.yaml persona_engine/cartridges/pretorius.snp
+          run_sim interpretation_basic persona_engine/simulator_scripts/interpretation_basic.yaml persona_engine/cartridges/pretorius.snp
+          run_sim interpretation_anchored_misread persona_engine/simulator_scripts/interpretation_anchored_misread.yaml persona_engine/cartridges/pretorius.snp
+          run_sim organism_basic persona_engine/simulator_scripts/organism_basic.yaml persona_engine/cartridges/pretorius.snp
+          run_sim personaconsole_v6_compat persona_engine/simulator_scripts/personaconsole_v6_compat.yaml persona_engine/cartridges/pretorius_v6.snp
+      - name: Capture deterministic Pretorius session and state evidence
+        run: |
+          python tools/capture_wayfarer_evidence.py \
+            --cartridge persona_engine/cartridges/pretorius.snp \
+            --output persona_engine/evidence/wayfarer_m0/pretorius_deterministic_session.json \
+            --db .wayfarer_evidence_state.db
+      - name: Write evidence manifest
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import platform
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('persona_engine/evidence/wayfarer_m0')
+          files = []
+          for path in sorted(root.rglob('*')):
+              if path.is_file() and path.name != 'manifest.json':
+                  files.append({
+                      'path': path.as_posix(),
+                      'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                      'bytes': path.stat().st_size,
+                  })
+          manifest = {
+              'evidence_schema': 'wayfarer-m0-evidence-manifest-v1',
+              'captured_at_utc': datetime.now(timezone.utc).isoformat(),
+              'source_commit_before_evidence_commit': os.environ.get('GITHUB_SHA', 'unknown'),
+              'python': platform.python_version(),
+              'platform': platform.platform(),
+              'files': files,
+              'note': 'SHA-256 values are artifact checksums, not a cryptographic event-chain design.',
+          }
+          (root / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+      - name: Write evidence README
+        shell: bash
+        run: |
+          cat > persona_engine/evidence/wayfarer_m0/README.md <<'EOF'
+          # Wayfarer M0 Evidence Package
+
+          This directory is a reproducible behavioral evidence capture for Project Wayfarer before `.snp` v2 work begins.
+
+          It contains fresh-state stdout from every documented simulator script and one deterministic Pretorius session captured with the offline renderer. The Pretorius JSON package includes turn outputs, selected intentions, validator/suppression traces, interpretive-belief traces, public state after each turn, the event log, final debug state, final serialized state, renderer status, and a final-state checkpoint checksum.
+
+          These files are evidence snapshots, not golden prose fixtures. Natural-language surface output should only become a strict regression requirement where the test explicitly intends lexical stability. Semantic/state contracts remain more important than preserving incidental wording.
+
+          The checksums in `manifest.json` and the Pretorius state checkpoint are ordinary artifact integrity/comparison values. They do not imply a hash-chained continuity ledger.
+
+          Re-run this capture through the `Wayfarer Evidence Capture` workflow or by running the simulator commands and `tools/capture_wayfarer_evidence.py` locally from a clean state.
+          EOF
+      - name: Verify evidence files exist
+        run: |
+          test -s persona_engine/evidence/wayfarer_m0/pretorius_deterministic_session.json
+          test -s persona_engine/evidence/wayfarer_m0/manifest.json
+          test -s persona_engine/evidence/wayfarer_m0/simulators/pretorius_basic.txt
+          test -s persona_engine/evidence/wayfarer_m0/simulators/interpretation_basic.txt
+          test -s persona_engine/evidence/wayfarer_m0/simulators/interpretation_anchored_misread.txt
+          test -s persona_engine/evidence/wayfarer_m0/simulators/organism_basic.txt
+          test -s persona_engine/evidence/wayfarer_m0/simulators/personaconsole_v6_compat.txt
+      - name: Commit evidence package
+        run: |
+          git config user.name "Wayfarer Evidence"
+          git config user.email "wayfarer-evidence@users.noreply.github.com"
+          git add persona_engine/evidence/wayfarer_m0
+          if git diff --cached --quiet; then
+            echo "Evidence capture produced no changes."
+          else
+            git commit -m "Capture Wayfarer M0 behavioral evidence"
+            git push origin HEAD:wayfarer
+          fi
