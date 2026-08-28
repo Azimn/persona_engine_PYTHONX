@@ -51,7 +51,8 @@ def test_output_validator_and_sanitizer_are_traced():
         res = agent.say("Hello.")
         gates = {trace["gate"]: trace["action"] for trace in res["suppression_trace"]}
         assert gates["output_validator"] == "blocked"
-        assert gates["renderer_sanitizer"] == "sanitized"
+        assert gates["consistency_layer"] == "fallback"
+        assert res["validation_action"] == "fallback_identity_only"
         assert "As an AI" not in res["response"]
 
 

@@ -28,6 +28,8 @@ from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
+from .consistency import ConsistencyLayer, regeneration_constraints
+from .renderer_contract import ValidationAction, ValidationRequest
 from .symbols import SharedSymbol, SymbolStore
 from .situated import SituatedInterfaceState, InterfaceEvent
 from .workspace import WorkspaceFrame
@@ -122,6 +124,7 @@ class InteriorEngine:
         # Start deterministically offline until an approved host/session replaces it.
         self.renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
         self.validator = OutputValidator()
+        self.consistency = ConsistencyLayer(self.validator)
         self.persistence = Persistence(db_path)
         self.deception_ledger = DeceptionLedger()
         self.dream_engine = DreamEngine(self.persistence, self.belief_ledger)
@@ -415,19 +418,34 @@ class InteriorEngine:
         return max(0.0, min(1.0, raw))
 
     def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:
+        """Resolve semantic conduct independently from expression intensity.
+
+        A HIGH risk bucket may shorten/guard expression, but arousal alone is not
+        an identity-boundary event. The semantic dialogue act follows the actual
+        trigger/resistance policy so overload cannot masquerade as identity threat.
+        """
+
         suspicion = self.pressures.pressures.get("suspicion")
         suspicion_value = suspicion.magnitude if suspicion else 0.0
         dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
-        if resistance == "challenge":
-            dialogue_act = "challenge"
-        if risk > 0.8:
+        if resistance == "character_refusal":
             dialogue_act = "protect_boundary"
+        elif resistance == "challenge":
+            dialogue_act = "challenge"
+        elif resistance == "go_quiet":
+            dialogue_act = "withdraw"
+        elif resistance == "deflect":
+            dialogue_act = "deflect"
+        elif resistance == "shift_topic":
+            dialogue_act = "redirect"
         return {
             "dialogue_act": dialogue_act,
             "concealment_mode": "none",
             "challenge_threshold": 0.60,
             "suspicion": round(suspicion_value, 3),
             "triggers": list(triggers),
+            "resistance_mode": resistance or "none",
+            "risk_bucket": bucket_risk(risk),
         }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
@@ -759,13 +777,108 @@ class InteriorEngine:
             seed=seed,
         )
 
-        violations = self.validator.check(
-            response,
-            retrieved,
+        validation_request = ValidationRequest(
+            candidate_text=response,
+            identity_constraints=tuple(self.identity.forbidden_self_claims),
+            interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),
+            relevant_history=tuple(retrieved),
+            decision_payload=dict(decision_payload),
+            canonical_context={"world": self.world.to_dict()},
             deception_ledger=self.deception_ledger,
-            decision_payload=decision_payload,
-            forbidden_self_claims=self.identity.forbidden_self_claims,
         )
+        validation = self.consistency.evaluate(validation_request)
+        violations = [issue.detail for issue in validation.issues]
+        validation_action = validation.action.value
+        original_response = response
+
+        if validation.action == ValidationAction.SANITIZE_CONTINUE:
+            response = validation.output_text
+            suppression_traces.append(_suppression_trace(
+                "renderer_sanitizer",
+                "sanitized",
+                "soft consistency issue repaired locally",
+                "warning",
+            ))
+        elif validation.action == ValidationAction.REGENERATE_CONSTRAINED:
+            constraints = regeneration_constraints(validation)
+            retry_prompt = system_prompt
+            if constraints:
+                retry_prompt += "\nCONSISTENCY RETRY CONSTRAINTS: " + "; ".join(constraints)
+            response = render_expression(
+                self.renderer,
+                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                resolved_state={"system_prompt": retry_prompt, "user_text": user_text},
+                arc_context={},
+                evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
+                retrieved_memories=retrieved,
+                private_thought_context="",
+                decision_payload=decision_payload,
+                expression_constraints={"max_chars": envelope.max_chars, "consistency_constraints": constraints},
+                deception_obligations=[],
+                seed=seed,
+            )
+            retry_validation = self.consistency.evaluate(ValidationRequest(
+                candidate_text=response,
+                identity_constraints=tuple(self.identity.forbidden_self_claims),
+                interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),
+                relevant_history=tuple(retrieved),
+                decision_payload=dict(decision_payload),
+                canonical_context={"world": self.world.to_dict()},
+                deception_ledger=self.deception_ledger,
+            ))
+            if retry_validation.issues:
+                fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
+                response = render_expression(
+                    fallback_renderer,
+                    ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                    resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+                    arc_context={},
+                    evidence=[{"type": "input", "text": user_text}],
+                    retrieved_memories=retrieved,
+                    private_thought_context="",
+                    decision_payload=decision_payload,
+                    expression_constraints={"max_chars": envelope.max_chars},
+                    deception_obligations=[],
+                    seed=seed,
+                )
+            suppression_traces.append(_suppression_trace(
+                "consistency_layer",
+                "regenerated",
+                "hard renderer inconsistency triggered one bounded retry/fallback",
+                "warning",
+            ))
+        elif validation.action == ValidationAction.FALLBACK_IDENTITY_ONLY:
+            fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
+            response = render_expression(
+                fallback_renderer,
+                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+                arc_context={},
+                evidence=[{"type": "input", "text": user_text}],
+                retrieved_memories=retrieved,
+                private_thought_context="",
+                decision_payload=decision_payload,
+                expression_constraints={"max_chars": envelope.max_chars},
+                deception_obligations=[],
+                seed=seed,
+            )
+            fallback_validation = self.consistency.evaluate(ValidationRequest(
+                candidate_text=response,
+                identity_constraints=tuple(self.identity.forbidden_self_claims),
+                relevant_history=tuple(retrieved),
+                decision_payload=dict(decision_payload),
+                canonical_context={"world": self.world.to_dict()},
+                deception_ledger=self.deception_ledger,
+            ))
+            if fallback_validation.issues:
+                response = "..."
+            suppression_traces.append(_suppression_trace(
+                "consistency_layer",
+                "fallback",
+                "critical renderer inconsistency used deterministic identity-safe fallback",
+                "error",
+            ))
+
         if violations:
             suppression_traces.append(_suppression_trace(
                 "output_validator",
@@ -773,26 +886,20 @@ class InteriorEngine:
                 "; ".join(violations),
                 "warning",
             ))
-            original_response = response
-            response = self.validator.sanitize(
-                response, forbidden_self_claims=self.identity.forbidden_self_claims
-            )
-            if response != original_response:
-                suppression_traces.append(_suppression_trace(
-                    "renderer_sanitizer",
-                    "sanitized",
-                    "renderer output changed after validator violation",
-                    "warning",
-                ))
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "validation", {
                 "violations": violations,
+                "issues": [
+                    {"code": issue.code, "severity": issue.severity.value, "authority_source": issue.authority_source}
+                    for issue in validation.issues
+                ],
+                "action": validation_action,
                 "original_response": original_response,
-                "sanitized_response": response,
+                "final_response": response,
                 "suppression_trace": [trace.to_dict() for trace in suppression_traces],
                 "memory_types": ["validation"],
             })
 
-        self._appraise_response_effect(response, risk, bucket)
+        self._appraise_decision_effect(decision_payload, risk, bucket)
         self.interface.mark_output(now)
 
         self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
@@ -834,6 +941,11 @@ class InteriorEngine:
             "restlessness": round(self.restlessness, 3),
             "relationship": dict(vars(self.relationship)),
             "violations_caught": violations,
+            "validation_action": validation_action,
+            "validation_issues": [
+                {"code": issue.code, "severity": issue.severity.value, "authority_source": issue.authority_source}
+                for issue in validation.issues
+            ],
             "suppression_trace": suppression_payload,
             "open_loop": open_loop.topic if open_loop else None,
             "selected_intention": selected_intention.name if selected_intention else None,
@@ -860,16 +972,21 @@ class InteriorEngine:
             },
         }
 
-    def _appraise_response_effect(self, response: str, risk: float, bucket: str):
-        lowered = response.lower()
-        if bucket == "HIGH" and any(w in lowered for w in ["no", "stop", "enough", "won't"]):
+    def _appraise_decision_effect(self, decision_payload: dict[str, Any], risk: float, bucket: str):
+        """Apply consequences of the character's resolved conduct, not renderer wording.
+
+        Renderer punctuation or lexical choice must not become a hidden write path
+        into affective state. Future speech-plan effects belong here only when they
+        are represented as typed semantic decisions.
+        """
+
+        dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))
+        if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:
             top = self.pressures.top()
             if top:
                 top.magnitude = max(0.0, top.magnitude - 0.08)
-            self.relationship.tension = min(1.0, self.relationship.tension + 0.02)
-        if "?" in response and self.relationship.tension < 0.5:
-            curiosity = self.pressures.ensure("curiosity")
-            curiosity.magnitude = min(1.0, curiosity.magnitude + 0.03)
+            if dialogue_act in {"protect_boundary", "challenge"}:
+                self.relationship.tension = min(1.0, self.relationship.tension + 0.02)
 
     def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool, suppression_traces: list[SuppressionTrace] | None = None):
         # Memory firewall: generated wording is logged as speech evidence, not
