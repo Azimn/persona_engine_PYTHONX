@@ -1,3 +1,3 @@
 Project Wayfarer M1 ordered maintenance trigger.
 
-This file exists only to trigger the one-time maintenance workflow that finishes renderer/identity decoupling before ontology decoupling. It will be removed after the pass is verified.
+Attempt 2 uses the auditable tools/wayfarer_m1_patch.py maintenance script and the simplified workflow.
