@@ -1,8 +1,9 @@
 """Scripted conversation simulator for deterministic engine checks.
 
-Supports optional server_truth and visible_context per turn, plus a conservative
-fact-leak diagnostic that warns if the renderer introduces capitalized proper
-nouns or known concrete-object terms outside the visible frame.
+Supports optional server_truth and visible_context per turn, plus bounded
+wall-clock advancement/restart controls and conservative fact-leak diagnostics.
+The time controls exist for continuity-pressure scenarios; they do not pretend
+that the current pre-M4 idle loop is already a complete ContinuityClock.
 """
 
 from __future__ import annotations
@@ -66,8 +67,6 @@ def _fact_leak_warnings(text: str, turn: dict, result: dict, label: str = "respo
         match.group(1).lower()
         for match in re.finditer(r"(?:^|[.!?]\s+)([A-Z][a-zA-Z0-9_'-]{1,})", text)
     }
-    # Capitalized proper noun style leak. Sentence-initial stop words are not
-    # named entities and should not contaminate review logs.
     warnings = []
     for token in re.findall(r"\b[A-Z][a-zA-Z0-9_'-]{2,}\b", text):
         lowered = token.lower()
@@ -81,6 +80,24 @@ def _fact_leak_warnings(text: str, turn: dict, result: dict, label: str = "respo
     return warnings
 
 
+def _apply_time_advance(agent: CharacterAgent, seconds: float, *, restart: bool, cartridge: str, user_id: str, db_path: str) -> CharacterAgent:
+    """Advance persisted wall-clock position without simulating hidden events here.
+
+    InteriorEngine owns the catch-up semantics. The simulator only alters the
+    persisted last-wall-time marker and optionally reconstructs the process so
+    tests can exercise real shutdown/resume behavior.
+    """
+
+    seconds = max(0.0, float(seconds))
+    if seconds <= 0:
+        return agent
+    agent.engine.last_wall_time -= seconds
+    agent.engine._persist()
+    if restart:
+        return CharacterAgent(cartridge_path=cartridge, user_id=user_id, db_path=db_path)
+    return agent
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--script", required=True)
@@ -91,11 +108,23 @@ def main(argv=None) -> int:
     with open(args.script, "r", encoding="utf-8") as handle:
         script = yaml.safe_load(handle)
     db_path = args.db or os.path.join(tempfile.mkdtemp(), "sim_state.db")
-    agent = CharacterAgent(cartridge_path=args.cartridge, user_id="sim_user", db_path=db_path)
+    user_id = "sim_user"
+    agent = CharacterAgent(cartridge_path=args.cartridge, user_id=user_id, db_path=db_path)
 
     failures = 0
     leak_warnings = 0
     for idx, turn in enumerate(script.get("turns", []), start=1):
+        advance_seconds = float(turn.get("advance_time_seconds", 0) or 0)
+        if advance_seconds > 0:
+            agent = _apply_time_advance(
+                agent,
+                advance_seconds,
+                restart=bool(turn.get("restart_after_advance", False)),
+                cartridge=args.cartridge,
+                user_id=user_id,
+                db_path=db_path,
+            )
+
         user_input = turn["user_input"]
         result = agent.say(user_input, server_truth=turn.get("server_truth"), visible_context=turn.get("visible_context"))
         response = result["response"]
@@ -110,6 +139,16 @@ def main(argv=None) -> int:
             if actual != expected:
                 ok = False
                 reasons.append(f"state {key} expected {expected!r}, got {actual!r}")
+        for key, expected in (turn.get("expect_state_min") or {}).items():
+            actual = _get_path(result, key)
+            if not isinstance(actual, (int, float)) or float(actual) < float(expected):
+                ok = False
+                reasons.append(f"state {key} expected >= {expected!r}, got {actual!r}")
+        for key, expected in (turn.get("expect_state_max") or {}).items():
+            actual = _get_path(result, key)
+            if not isinstance(actual, (int, float)) or float(actual) > float(expected):
+                ok = False
+                reasons.append(f"state {key} expected <= {expected!r}, got {actual!r}")
         beliefs = result.get("interpretive_belief_trace", []) or []
         min_beliefs = turn.get("expect_min_beliefs")
         if min_beliefs is not None and len(beliefs) < int(min_beliefs):

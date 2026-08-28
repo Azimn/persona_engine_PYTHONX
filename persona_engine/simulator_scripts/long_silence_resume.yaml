@@ -1,0 +1,17 @@
+fail_on_fact_leak: true
+turns:
+  - user_input: "Hello."
+    server_truth:
+      user_presence: "present"
+    visible_context:
+      user_presence: "present"
+    expect_response_pattern: "hello|there you are|continue|thread|mock"
+
+  - user_input: "..."
+    advance_time_seconds: 28800
+    restart_after_advance: true
+    expect_response_pattern: "quiet|pause|unfinished|mock"
+    expect_state_min:
+      body.fatigue: 0.75
+    expect_state_max:
+      body.energy: 0.55

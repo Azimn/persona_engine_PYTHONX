@@ -1,9 +1,21 @@
-"""Renderer task contract for cognition-capable backends."""
+"""Renderer, cognition, and consistency-layer contracts.
+
+Wayfarer deliberately separates three authorities:
+
+* the character core resolves state and choice;
+* a renderer realizes that choice in language;
+* the consistency layer checks candidate expression before it is exposed.
+
+The validation dataclasses in this module are the normative assembly boundary.
+Legacy ``OutputValidator.check()`` / ``sanitize()`` calls remain supported while
+callers migrate to the structured contract.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Protocol
+from enum import Enum
+from typing import Any, Protocol
 
 from .cognition_schemas import PrivateCognitionProposal
 
@@ -39,9 +51,90 @@ class ExpressionRequest:
     seed: int | None = None
 
 
+class ValidationSeverity(str, Enum):
+    """Severity of a candidate-expression consistency problem.
+
+    ``SOFT`` means the intended character decision remains usable and wording can
+    be repaired locally. ``HARD`` means the candidate should be regenerated
+    under tighter constraints. ``CRITICAL`` means the candidate conflicts with
+    a high-authority source such as self-model or World Authority and should not
+    be trusted as the basis of a normal regeneration loop.
+    """
+
+    SOFT = "soft"
+    HARD = "hard"
+    CRITICAL = "critical"
+
+
+class ValidationAction(str, Enum):
+    """Recommended response to the most severe validation issue."""
+
+    ACCEPT = "accept"
+    SANITIZE_CONTINUE = "sanitize_continue"
+    REGENERATE_CONSTRAINED = "regenerate_constrained"
+    FALLBACK_IDENTITY_ONLY = "fallback_identity_only"
+
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    code: str
+    severity: ValidationSeverity
+    detail: str
+    authority_source: str = "consistency_layer"
+
+
+@dataclass(frozen=True)
+class ValidationRequest:
+    """Everything the consistency layer is allowed to inspect.
+
+    Candidate language is noncanonical. Identity constraints and canonical
+    context are higher-authority inputs. Interpretive state is explicitly
+    subjective/noncanonical but may be used to detect contradictions in the
+    renderer's realization. Relevant history contains only memories selected by
+    the character core; the validator does not perform independent retrieval.
+    """
+
+    candidate_text: str
+    identity_constraints: tuple[str, ...] = ()
+    interpretive_state: tuple[dict[str, Any], ...] = ()
+    relevant_history: tuple[Any, ...] = ()
+    decision_payload: dict[str, Any] = field(default_factory=dict)
+    canonical_context: dict[str, Any] = field(default_factory=dict)
+    authorization: Any | None = None
+    deception_ledger: Any | None = None
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    candidate_text: str
+    output_text: str
+    issues: tuple[ValidationIssue, ...]
+    action: ValidationAction
+
+    @property
+    def passed(self) -> bool:
+        return not self.issues
+
+    @property
+    def max_severity(self) -> ValidationSeverity | None:
+        if not self.issues:
+            return None
+        rank = {
+            ValidationSeverity.SOFT: 1,
+            ValidationSeverity.HARD: 2,
+            ValidationSeverity.CRITICAL: 3,
+        }
+        return max((issue.severity for issue in self.issues), key=rank.get)
+
+
 class CognitionRenderer(Protocol):
     def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
         ...
 
     def generate_expression(self, request: ExpressionRequest) -> str:
+        ...
+
+
+class ConsistencyValidator(Protocol):
+    def evaluate(self, request: ValidationRequest) -> ValidationResult:
         ...
