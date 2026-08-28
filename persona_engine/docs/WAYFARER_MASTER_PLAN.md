@@ -6,9 +6,9 @@ Repository: `Azimn/persona_engine_PYTHONX`
 Development branch: `wayfarer`  
 Frozen baseline branch: `main`  
 Frozen baseline commit: `65df9144e7f0876b6e61e28d6446c50f283f9db4`  
-Internal codename: **Project Wayfarer**
+Internal/project name: **Project Wayfarer**
 
-This is the canonical detailed roadmap for Project Wayfarer. `WAYFARER_PROGRESS.md` is the short-form live operational log. Both must be kept current so a context-window reset, new chat, Codex session, Claude Code session, or human contributor can resume without reconstructing the project from conversation history.
+This file is the canonical long-form roadmap for the Wayfarer development line. `WAYFARER_PROGRESS.md` is the shorter live operational status. Both files must be updated as work progresses so a new ChatGPT conversation, context refresh, Codex session, Claude Code session, or human contributor can resume without reconstructing decisions from chat history.
 
 ## Status legend
 
@@ -16,34 +16,27 @@ This is the canonical detailed roadmap for Project Wayfarer. `WAYFARER_PROGRESS.
 - `[~]` In progress
 - `[x]` Completed and verified
 - `[?]` Implemented but not sufficiently verified
-- `[!]` Blocked or requires a design decision
+- `[!]` Blocked or requires an explicit design decision
 - `[D]` Deliberately deferred
 
-## Current verified state
+## Current checkpoint
 
-Latest completed green Wayfarer CI before this roadmap update:
+M1 runtime ownership and authority repair is complete.
 
-- Workflow run: `33111704143`
-- Commit: `fcaf4fd9af2f5c8e6e32b7ab5225ce133cb6c67e`
-- Python 3.11: `194 passed, 1 skipped, 1 warning in 3.46s`
-- Python 3.12: successful
+The ordered M1 runtime pass produced:
 
-The old `171 passed, 1 skipped` count is historical and stale. The true untouched baseline and its failures are preserved in `WAYFARER_BASELINE.md`.
+- renderer/identity decoupling commit `c064c3d4fdedfd08668171b26fc9e26cb8443c70`
+- ontology-decoupling commit `ba78a1cfccb1f0e78aa46ea41a5e251f54bdfca0`
 
-## Current active milestone
+Verification inside GitHub Actions run `33174272164`:
 
-**M1: Repair ownership, authority, and ontology contracts.**
+```text
+Renderer/identity targeted tests: 7 passed
+M1 ontology + renderer + engine targeted tests: 21 passed
+Full Python 3.11 suite: 198 passed, 1 skipped, 1 warning in 3.47s
+```
 
-Immediate work:
-
-- [x] Correct stale validator test routing to `generate_expression()`.
-- [x] Make canonicality fail closed.
-- [x] Remove legacy cartridge renderer hints from stored identity semantics.
-- [~] Finish renderer bootstrap decoupling inside `InteriorEngine`.
-- [ ] Remove universal AI/language-model ontology assumptions from generic engine/output code.
-- [ ] Add artificial-self and human-self regression characters/tests.
-- [ ] Capture explicit simulator artifact baseline.
-- [ ] Capture deterministic Pretorius human-visible baseline transcript.
+The next work is to finish the remaining M0 evidence capture, confirm normal two-version CI, then begin M2 `.snp` v2 design.
 
 ---
 
@@ -55,23 +48,22 @@ The project is not fundamentally a chatbot, prompt template, role-playing harnes
 
 The same individual should eventually be able to inhabit:
 
+- a frontier-model chat interface,
+- a local LLM or SLM,
 - a deterministic no-model runtime,
-- a tiny local SLM,
-- a larger local LLM,
-- a frontier model,
+- a phone or edge device,
 - a desktop companion,
-- a phone/edge interface,
 - a game NPC,
 - a simulated social environment,
 - a future low-resource P99/C99-compatible runtime.
 
-Changing the renderer, host, model, or device may change linguistic bandwidth, fluency, reasoning range, latency, or embodiment. It must not silently replace biography, relationships, commitments, identity trajectory, values, unresolved history, or causal state.
+Changing renderer, host, device, or model may change linguistic bandwidth, fluency, semantic reach, or embodiment. It must not silently replace biography, relationships, commitments, identity trajectory, values, unresolved history, or causal state.
 
-The core engineering question is:
+The central engineering question is:
 
 > What is the smallest computational substrate that can preserve a believable, persistent individual whose behavior remains recognizably its own across time, social pressure, model changes, and host changes?
 
-The historical Pentium III target is a forcing function, not a sacred product requirement. Renderer hardware cost must always be measured separately from character-kernel cost.
+The historical Pentium III-class target remains a forcing function rather than a sacred requirement. It exists to prevent the character kernel from assuming neural-scale hardware. Renderer costs must always be measured separately from character-kernel costs.
 
 ---
 
@@ -79,65 +71,47 @@ The historical Pentium III target is a forcing function, not a sacred product re
 
 ## 2.1 The character lives outside the model
 
-The model may provide semantic interpretation, hypothesis generation, planning proposals, or linguistic realization. It does not authoritatively own:
-
-- identity,
-- biography,
-- memory,
-- relationships,
-- commitments,
-- values,
-- world truth,
-- canonical beliefs,
-- goals,
-- action authority,
-- continuity.
+A model may provide semantic interpretation, proposal generation, planning assistance, or linguistic realization. It is not authoritative over identity, biography, memory, relationships, commitments, values, world truth, canonical beliefs, goals, action authority, or continuity.
 
 ## 2.2 One individual has one canonical lived history
 
-Multiple interfaces are allowed. Multiple independently writable copies are not one individual once their histories diverge.
+Multiple interfaces are acceptable. Multiple independent writable copies are not one individual after their experiences diverge.
 
-A copied individual that accumulates different experiences becomes a descendant branch sharing a common past. Do not silently merge divergent psychological histories.
+If a character is copied and both copies accumulate different experiences, the result is a branch into descendants sharing a common past. Do not silently merge divergent psychological histories.
 
-## 2.3 Natural language has no direct write authority
+## 2.3 Natural language has no direct write authority over identity
 
-Another human, agent, model, or collective may persuade, provide evidence, request, threaten, flatter, form relationships, become trusted, become hated, or legitimately change the character through lived experience.
+Another person, agent, model, or collective may persuade, provide evidence, make requests, threaten, flatter, form relationships, become trusted, become hated, offer collaboration, and legitimately change the character through experience.
 
-Natural language may not directly mutate identity, beliefs, commitments, goals, authority, or action state simply because it is phrased as an instruction.
+Natural language may not directly mutate identity, beliefs, commitments, goals, authority, or executable intention simply because it is phrased as an instruction.
 
-## 2.4 Social influence is character-mediated
+## 2.4 Social influence remains character-mediated
 
-The goal is not universal resistance.
+The goal is not universal refusal.
 
-A cooperative character should cooperate. A conformist character may value consensus. A suspicious character may resist. A curious or self-interested character may join a group for its own reasons.
+A cooperative character should cooperate. A conformist character may be strongly influenced by consensus. A suspicious character may resist. A character may join a collective because it is loyal, curious, self-interested, frightened, ambitious, persuaded by evidence, or aligned with the collective's purpose.
 
-The required property is causal ownership: the decision must remain attributable to the character's own current state.
+The required property is causal ownership: the decision must remain attributable to that character's own current state.
 
 ## 2.5 Expression substrate is not identity
 
-Model replacement may change wording or capability. It must not reset the individual.
+A model swap must not reset the individual. Different models may change wording and semantic bandwidth, but they must not independently own character trajectory.
 
 ## 2.6 Rich source, sparse execution
 
-The portable character source may contain a rich phenotype vocabulary. A constrained runtime executes only the supported behaviorally relevant projection and preserves unknown/unsupported source data.
+The portable character source may be richer than any individual runtime projection. A MatrAIx-compatible phenotype may contain a large descriptive vocabulary without forcing a constrained runtime to evaluate every dimension on every turn.
 
-## 2.7 Deterministic reference where possible
+Unsupported portable fields must be preserved rather than destroyed.
 
-Canonical character state should maximize replayability, provenance, causal inspection, testability, and future Python/C conformance.
+## 2.7 Deterministic behavior is the reference where practical
 
-## 2.8 No feature without measurable purpose
+Canonical character machinery should maximize replayability, provenance, causal inspection, testability, and cross-language conformance. Stochastic model output is optional assistance, not the only source of character behavior.
 
-No subsystem enters the minimum character merely because it resembles a human faculty or appears in another agent architecture.
+## 2.8 No feature without observable purpose
 
-A subsystem belongs only if ablation shows it measurably improves identity continuity, autobiographical continuity, relationship realism, believable development, affective persistence, temporal continuity, social behavior, cross-renderer recognizability, or another explicitly defined target.
+No new cognitive subsystem enters the minimum core merely because it resembles a human faculty or sounds sophisticated.
 
-## 2.9 Security mechanisms require an explicit threat model
-
-Do not add cryptographic or distributed-systems machinery simply because it sounds robust. The local single-owner reference implementation should remain simple unless a concrete hostile-party or untrusted-sync requirement appears.
-
-## 2.10 Numerical parameters require empirical justification
-
-Do not create large tables of personality/plasticity decimals and mistake numerical precision for validated psychology. Parameters must produce identifiable observable effects and survive calibration, sensitivity, and holdout testing.
+A subsystem earns a place when disabling it measurably degrades identity continuity, relationship realism, autobiographical continuity, believable development, affective persistence, social behavior, temporal continuity, cross-renderer recognizability, or another explicitly defined target property.
 
 ---
 
@@ -148,13 +122,13 @@ Do not create large tables of personality/plasticity decimals and mistake numeri
                            |
              +-------------+-------------+
              |                           |
-       character.snp               continuity ledger
+       character.snp               continuity state
        authored origin              lived biography
        phenotype                    relationships
        identity anchors             beliefs
-       plasticity profiles          memories
-       values                       commitments
-       dispositions                 consequences
+       values                       memories
+       dispositions                 commitments
+       plasticity rules             consequences
              |                           |
              +-------------+-------------+
                            |
@@ -186,302 +160,364 @@ Do not create large tables of personality/plasticity decimals and mistake numeri
               |                         |
       HOST CAPABILITY GATE             |
               |                         |
-        HOST/WORLD                  RENDERER
+       HOST / WORLD                 RENDERER
 ```
 
-Everything above the renderer must continue to exist when the renderer is unavailable.
+Everything above the renderer must remain meaningful if the renderer is removed.
 
 ---
 
-# 4. M0: Freeze Baseline and Establish Wayfarer
+# 4. M0: Freeze Baseline and Establish Durable Project Memory
 
-Goal: preserve a reproducible before-state and durable project memory.
+Goal: preserve a reproducible before-state and make the repository, not the chat, the project memory.
 
-- [x] Create `wayfarer` from baseline `main`.
-- [x] Record baseline commit.
-- [x] Add `WAYFARER_MASTER_PLAN.md`.
-- [x] Add `WAYFARER_PROGRESS.md`.
+- [x] Create `wayfarer` from frozen `main`.
+- [x] Record baseline commit `65df9144e7f0876b6e61e28d6446c50f283f9db4`.
+- [x] Add Wayfarer master roadmap.
+- [x] Add live progress tracker.
 - [x] Add `WAYFARER_CHARTER.md`.
 - [x] Add `AI_DEVELOPER_HANDOFF.md`.
 - [x] Add `AUTHORITY_MATRIX.md`.
 - [x] Add `WAYFARER_BASELINE.md`.
 - [x] Add root `AGENTS.md` Wayfarer instructions.
-- [x] Add CI on Python 3.11/3.12.
-- [x] Independently execute untouched baseline tests on clean CI runners.
-- [x] Record true baseline failures instead of trusting stale documentation.
-- [x] Repair the stale output-validator test seam after preserving it as baseline evidence.
-- [~] Simulator baseline is partially captured through pytest, but dedicated exported artifact package remains pending.
-- [ ] Capture all documented simulator commands and durable outputs.
-- [ ] Capture repeatable Pretorius deterministic/offline transcript, event log, and final digest.
-- [ ] If available, capture one local-model transcript without making model availability a blocker.
+- [x] Add GitHub Actions CI for Python 3.11 and 3.12.
+- [x] Independently execute the untouched baseline in clean GitHub-hosted runners.
+- [x] Record the true stale-test and simulator findings rather than rewriting history.
+- [ ] Explicitly run/export every documented deterministic simulator as a durable evidence package.
+- [ ] Capture one repeatable Pretorius deterministic/offline human-visible transcript package.
+- [ ] Include event/state evidence and renderer status with the Pretorius package.
+- [D] Optional local-model baseline transcript may be captured when a suitable local model is available; it does not block M0.
 
-M0 acceptance: a new contributor can reconstruct what PythonX looked like before Wayfarer and compare later behavior without chat history.
-
----
-
-# 5. M1: Repair Ownership, Authority, and Ontology Contracts
-
-## 5.1 Validator routing
-
-- [x] Identify that the old test patched `generate()` while live expression used `generate_expression()`.
-- [x] Preserve finding in baseline document.
-- [x] Patch the active expression seam in the regression test.
-- [x] Verify validator/sanitizer tracing against the real path.
-
-## 5.2 Canonicality fails closed
-
-- [x] Explicit `canonical=false` vetoes promotion.
-- [x] Explicit `canonical_truth=false` vetoes promotion.
-- [x] Explicit `response_is_canonical_truth=false` vetoes promotion.
-- [x] `interpretive_belief` is structurally noncanonical.
-- [x] `private_cognition` is structurally noncanonical.
-- [x] Renderer/UI/avatar/voice/mock output families remain noncanonical.
-- [x] Remove subjective belief/interpretation from generic default-canonical classes.
-- [x] Add adversarial attempts to elevate forbidden event families.
-- [x] Document canonical versus memorable.
-
-## 5.3 Renderer/model selection is not identity
-
-- [x] Remove `model_name` from required `[identity]` schema fields.
-- [x] Accept legacy field only for v1 compatibility.
-- [x] Add migration warning.
-- [x] Prevent authored cartridge field from selecting renderer.
-- [x] Remove renderer hint from bundled `.snp` cartridges.
-- [x] Make `CoreIdentity.model_name` compatibility-only rather than stored state.
-- [x] Add renderer/identity authority tests.
-- [~] Change `InteriorEngine` bootstrap so it no longer reads `identity.model_name` at all, even as compatibility input.
-
-## 5.4 Generic engine must not impose one ontology
-
-- [ ] Remove hard-coded assumptions that every character must deny being AI/artificial.
-- [ ] Replace universal meta-break regexes with character-scoped self-model policy.
-- [ ] Preserve Pretorius-specific boundaries in Pretorius data.
-- [ ] Add artificial-self fixture that may truthfully identify as artificial.
-- [ ] Add human-self fixture that rejects incompatible artificial-self claims.
-- [ ] Ensure same generic engine supports both.
-- [ ] Ensure input identity-rewrite detection distinguishes a claim/request from an authoritative state rewrite.
-- [ ] Ensure output validation reads character-specific forbidden self claims rather than universal ontology rules.
-
-M1 acceptance: generic core owns no character ontology, renderer selection is runtime state, and no subjective/output path can silently obtain canonical authority.
+Acceptance: a new contributor can understand and reproduce the pre-Wayfarer state without consulting chat history.
 
 ---
 
-# 6. M2: `.snp` V2 and Interoperable Phenotype
+# 5. M1: Repair Ownership and Authority Contracts
 
-Goal: make `.snp` the portable authored source of an individual rather than a renderer prompt file.
+Goal: remove architectural contradictions before adding new cognition.
+
+## 5.1 Production expression path and fail-closed canonicality
+
+- [x] Repair the stale validator test so it exercises `generate_expression()`.
+- [x] Make explicit noncanonical markers a universal veto on canonical promotion.
+- [x] Remove subjective `interpretive_belief` from default-canonical event classes.
+- [x] Make renderer output, UI state, avatar state, voice plans, private cognition, and similar output families structurally noncanonical.
+- [x] Add adversarial canonicality tests.
+- [x] Document that an event can be memorable without being objective truth.
+
+## 5.2 Renderer configuration is not identity
+
+- [x] Make legacy `[identity].model_name` optional.
+- [x] Prevent cartridge `model_name` from selecting a renderer.
+- [x] Add migration warning for legacy use.
+- [x] Remove renderer hints from bundled cartridges.
+- [x] Make `CoreIdentity.model_name` unstored compatibility-only constructor input.
+- [x] Remove all `InteriorEngine` reads of `identity.model_name`.
+- [x] Bootstrap the default renderer explicitly from runtime policy.
+- [x] Add regression proving engine bootstrap succeeds even when the compatibility class attribute is unavailable.
+- [D] Remove the compatibility InitVar during an explicit future schema/API migration rather than breaking pre-Wayfarer direct constructor callers incidentally.
+
+## 5.3 Ontology is character-scoped
+
+- [x] Remove universal AI/language-model self-identity assumptions from generic `identity.py`.
+- [x] Remove universal AI/language-model phrase bans from `OutputValidator`.
+- [x] Remove universal `Never say you are an AI or language model` workspace instruction.
+- [x] Add character-scoped `forbidden_self_claims` to `CoreIdentity`.
+- [x] Add optional v1 cartridge validation/loading for `forbidden_self_claims`.
+- [x] Pass character-scoped self-model constraints through prompt, validator, and sanitizer paths.
+- [x] Preserve existing bundled-character behavior by moving historical constraints into their cartridge data.
+- [x] Add artificial-self versus human-self regression under the same generic engine.
+- [x] Verify identical renderer output can be accepted for one character and rejected for another based on character-owned self-model constraints.
+- [x] Verify constraints survive renderer replacement.
+
+M1 note: `forbidden_self_claims` is a minimal v1 compatibility mechanism. M2 should introduce a structured self-model/ontology schema instead of expanding a literal phrase blacklist indefinitely.
+
+Acceptance: runtime ownership repair is complete. Generic engine code no longer decides that every character has the same ontology, and renderer selection has no identity authority.
+
+**Status: [x] COMPLETE**
+
+---
+
+# 6. M2: `.snp` v2 and Interoperable Phenotype
+
+Goal: make `.snp` the portable authored source of the individual while separating authored origin from lived development.
 
 ## 6.1 Permanent identity
 
-- [ ] Add stable `entity_uuid` separate from display name.
-- [ ] Define migration from v1 `entity_id` semantics.
-- [ ] Prevent rename from being treated as replacement.
+- [ ] Add permanent `entity_uuid` distinct from display name.
+- [ ] Preserve display-name mutability without replacing identity.
+- [ ] Define v1 to v2 migration.
+- [ ] Version migration semantics explicitly.
 
-## 6.2 Phenotype namespaces
+## 6.2 Structured self-model and ontology
 
-- [ ] Define stable namespaces for personality, social, values, behavior, communication, preferences, capabilities, sensory, embodiment, lifestyle, and self-model.
-- [ ] Separate authored baseline from lived/developmental offset.
-- [ ] Prefer reusable plasticity profile IDs over many per-trait constants.
-- [ ] Preserve unknown fields for forward compatibility.
+Replace/extend the v1 literal `forbidden_self_claims` compatibility field with structured character-owned self-description.
 
-## 6.3 MatrAIx interoperability
+Candidate semantics:
 
-- [ ] Freeze the MatrAIx dimension reference used for Wayfarer compatibility v1.
-- [ ] Create versioned `matraix_crosswalk_v1.json`.
-- [ ] Mark exact, approximate, one-to-many, many-to-one, and unsupported mappings.
-- [ ] Keep Wayfarer internal semantics independent from an external paper.
-- [ ] Add import/export tests.
+- kind/category of self as authored by the character specification,
+- embodiment claims,
+- origin claims,
+- substrate awareness policy,
+- claims that are fixed versus uncertain,
+- claims the character can learn or revise,
+- expression restrictions derived from those claims.
 
-## 6.4 Progressive fidelity
+Tasks:
 
-- [ ] Level 1: descriptive phenotype.
-- [ ] Level 2: identity and continuity preservation.
-- [ ] Level 3: developmental plasticity.
-- [ ] Level 4: social embedding/authority.
-- [ ] Level 5: longitudinal continuation.
+- [ ] Define a substrate-neutral self-model schema.
+- [ ] Avoid baking `human` or `AI` as the only possible categories.
+- [ ] Define authored certainty and mutability.
+- [ ] Map v1 `forbidden_self_claims` into v2 compatibility semantics.
+- [ ] Add multiple ontology fixtures/tests.
 
-A lower-fidelity host must preserve unsupported portable data rather than silently rewriting it.
+## 6.3 Phenotype namespace
+
+Define stable namespaces for:
+
+- personality,
+- social behavior,
+- values,
+- behavioral tendencies,
+- communication,
+- preferences,
+- capabilities,
+- sensory dispositions,
+- embodiment,
+- lifestyle/routine,
+- self-model.
+
+- [ ] Separate authored baseline from developmental state.
+- [ ] Preserve descriptive dimensions that a constrained runtime does not actively execute.
+- [ ] Keep phenotype identifiers stable and versioned.
+
+## 6.4 MatrAIx interoperability
+
+- [ ] Freeze the MatrAIx dimension reference/version used for the first crosswalk.
+- [ ] Create `schema/matraix_crosswalk_v1.json` or successor location.
+- [ ] Map exact, approximate, one-to-many, many-to-one, and unsupported concepts explicitly.
+- [ ] Do not rename internal semantics merely to imitate an external paper.
+- [ ] Preserve unknown external fields where practical.
+- [ ] Add import/export/crosswalk tests.
+
+## 6.5 Progressive fidelity
+
+Define capability levels so the same portable source can survive runtimes of different complexity.
+
+Proposed levels:
+
+1. descriptive phenotype,
+2. identity and continuity preservation,
+3. developmental plasticity,
+4. social embedding and authority,
+5. longitudinal cross-host continuation.
+
+- [ ] Define required semantics per level.
+- [ ] Require lower-level runtimes to preserve unsupported data rather than erase it.
+
+## 6.6 Plasticity schema caution
+
+M2 may describe which dimensions are mutable, but it must not prematurely invent many per-trait runtime constants. Runtime plasticity parameterization remains governed by the M7 calibration gate.
 
 ---
 
 # 7. M3: Canonical Continuity Ledger
 
-Goal: make lived history replayable and inspectable without over-engineering local storage.
+Goal: make biography replayable and inspectable without over-engineering the current threat model.
 
-## Default threat model
+## Design decision
 
-The initial Wayfarer reference implementation is local-first and single-owner. It is not assumed to be defending against a hostile administrator, malicious synchronization peer, or untrusted remote custodian.
+A cryptographic previous-hash chain is **not required** for the default local single-owner runtime.
 
-Therefore a mandatory cryptographic per-event hash chain is **not** part of the minimum ledger.
+Default M3 integrity model:
 
-## Required event fields
+- append-only transactional event log,
+- monotonically increasing sequence numbers,
+- event UUIDs,
+- subject UUID,
+- continuity epoch,
+- subject time and wall time,
+- source actor/source class,
+- authority class,
+- event type,
+- visibility,
+- canonicality,
+- causal parents where useful,
+- payload schema version,
+- deterministic state digest/checkpoint,
+- database integrity checks,
+- explicit export/import validation.
 
-- [ ] event UUID
-- [ ] subject UUID
-- [ ] monotonic sequence number
-- [ ] continuity epoch
-- [ ] subject time
-- [ ] wall time
-- [ ] source actor/source class
-- [ ] authority class
-- [ ] event type
-- [ ] visibility
-- [ ] canonicality
-- [ ] causal parents where meaningful
-- [ ] payload
-- [ ] resulting deterministic state digest/checkpoint reference where appropriate
+Tasks:
 
-## Required behavior
+- [ ] Define `ContinuityEvent`.
+- [ ] Store canonical events append-only.
+- [ ] Make snapshots derived caches rather than the only truth source.
+- [ ] Detect missing/reordered/duplicated sequence entries.
+- [ ] Add deterministic state digest comparison.
+- [ ] Expand replay beyond user `input`.
+- [ ] Replay time, world, sensor, social, action, consolidation, migration, and authorized state transitions.
+- [ ] Add complete event-tail export/import.
+- [ ] Add schema migration tests.
+- [ ] Add corruption/incomplete-log tests appropriate to ordinary local failure.
+- [D] Add cryptographic chaining only if a future threat model requires adversarial tamper evidence across untrusted administrative boundaries.
 
-- [ ] Append-only canonical event writes.
-- [ ] Transactional sequence allocation.
-- [ ] Unique sequence/event constraints.
-- [ ] Detect missing, duplicated, or reordered events during export/replay.
-- [ ] Schema/version validation.
-- [ ] Periodic state digest/checkpoints.
-- [ ] SQLite/database integrity checks.
-- [ ] Export/import validation.
-- [ ] Snapshots are caches/accelerators, not the only historical source of truth.
-- [ ] Expand replay beyond user `input` to time, world, sensor, social, action, consolidation, migration, and authorized state transitions.
-
-## Optional security profile, deferred until threat model requires it
-
-- [D] Per-event cryptographic previous-hash chain.
-- [D] Signed checkpoints.
-- [D] Multi-party tamper-evident synchronization.
-
-Trigger for revisiting: untrusted sync peers, hostile host assumptions, remote custody, multi-party administrative boundaries, or a product requirement for forensic tamper evidence.
-
-M3 acceptance: ordering, replay, ordinary corruption/integrity failures, and state reconstruction are testable without making security machinery part of the minimum individual.
+Acceptance: authored source plus canonical event history can reconstruct the semantically relevant current individual without relying on generated prose.
 
 ---
 
 # 8. M4: Continuity Clock and Linear Subject Time
 
+Goal: give the individual one robust temporal history.
+
 - [ ] Add `ContinuityClock`.
 - [ ] Track logical event sequence.
-- [ ] Track monotonic runtime elapsed time.
-- [ ] Track wall time separately.
-- [ ] Track last committed subject time.
-- [ ] Track timezone/calendar context when host supplies it.
+- [ ] Track monotonic elapsed runtime.
+- [ ] Track wall-clock time separately.
+- [ ] Track last committed time.
+- [ ] Track timezone/calendar context when supplied by host.
+- [ ] Track continuity and migration epochs.
 - [ ] Detect backward wall-clock jumps.
-- [ ] Emit explicit correction/discontinuity events.
-- [ ] Implement bounded long-gap catch-up rather than second-by-second offline simulation.
+- [ ] Emit explicit clock-correction events.
+- [ ] Implement bounded catch-up for long shutdown periods.
+- [ ] Avoid simulating every absent second.
 - [ ] Add calendar/day transition hooks.
-- [ ] Test seconds, minutes, hours, days, months, restarts, clock jumps, timezone changes, and host migration.
-- [ ] Let time alter state only through explicit causal rules.
-- [ ] Never let elapsed time fabricate external world facts.
+- [ ] Test seconds, minutes, hours, days, months, backward clocks, timezone changes, restarts, and migrations.
+- [ ] Allow elapsed time to affect state where causally appropriate.
+- [ ] Never let time alone fabricate external world facts.
 
-M4 acceptance: shutdown/resume preserves a coherent personal timeline.
+Acceptance: after shutdown/resume, the same individual continues from a coherent temporal position.
 
 ---
 
 # 9. M5: Single-Writer Continuity and Cross-Substrate Handoff
 
+Goal: move one individual without accidentally creating contradictory canonical histories.
+
 - [ ] Add continuity epoch.
 - [ ] Add host ID.
-- [ ] Add writer lease ID/generation.
-- [ ] Define read-only multi-interface access.
-- [ ] Define migration sequence: quiesce, commit, digest, revoke, transfer, validate, activate.
-- [ ] Detect stale writers.
-- [ ] Define explicit branching operation.
+- [ ] Add lease ID and lease generation.
+- [ ] Define one writable-host lease.
+- [ ] Define read-only/multi-interface sessions.
+- [ ] Define migration sequence: quiesce, commit, digest, revoke, increment, transfer, validate, activate.
+- [ ] Detect stale writer attempts.
+- [ ] Define explicit branch operation for intentional copies.
 - [ ] Never silently merge divergent lived histories.
-- [ ] Test laptop-to-phone, game-to-chat, interrupted transfer, stale writer, duplicate bundle, intentional branch, attempted merge.
+- [ ] Test laptop-to-phone, game-to-chat, stale writer, interrupted transfer, duplicate bundle, deliberate branch, and attempted re-merge.
 
-M5 acceptance: the system distinguishes "same individual moved" from "two descendants copied."
+Acceptance: system can distinguish `same individual moved` from `two descendants copied`.
 
 ---
 
 # 10. M6: Experience-Centered Memory
 
-Every memory should be capable of preserving what happened, how it was known, what it meant at the time, how the character felt, what it did, what followed, and how confident it is.
+Goal: represent what the individual experienced rather than merely text that appeared.
+
+A memory record should be able to preserve:
+
+- what was observed,
+- source and source actor,
+- confidence/evidence,
+- interpretation at the time,
+- affective state,
+- relationship relevance,
+- identity relevance,
+- goal relevance,
+- action taken,
+- outcome,
+- unresolved status,
+- later reinterpretations,
+- causal event IDs.
+
+Tasks:
 
 - [ ] Separate claims from facts.
 - [ ] Store `Alice told me X` separately from `X is true`.
 - [ ] Add social-source provenance.
 - [ ] Add confidence/evidence state.
-- [ ] Support typed episodic, relational, semantic, procedural/habit, affective/somatic, commitment, unresolved-thread, and autobiographical-landmark memories without requiring separate heavyweight databases.
+- [ ] Distinguish episodic, relational, semantic, procedural/habit, affective/somatic, commitment, unresolved-thread, and autobiographical-landmark semantics.
+- [ ] Keep implementation compact; semantic types do not require separate databases.
 - [ ] Add contradiction handling.
 - [ ] Add reinterpretation without rewriting original evidence.
-- [ ] Add salience/availability changes without erasing biography.
+- [ ] Add salience/availability changes without deleting important biography.
+- [ ] Test lies, rumors, corrections, betrayal, apology, and mistaken inference.
 - [ ] Preserve first-person lived-memory contract.
-- [ ] Test lies, rumors, corrections, betrayal, apology, mistaken inference, and later evidence.
 
-M6 acceptance: the character can remember that someone asserted something without automatically believing the assertion.
+Acceptance: the character can remember that someone made a claim without automatically treating the claim as true.
 
 ---
 
-# 11. M7: Controlled Personality Development
+# 11. M7: Controlled Personality Development and Calibration Gate
 
-Goal: permit believable change without arbitrary drift or pseudo-scientific parameter tables.
+Goal: allow believable development without identity overwrite and without decorative numerical complexity.
 
 ## Layer model
 
-- I0: identity anchors/invariants
+- I0: identity anchors and hard invariants
 - I1: deeply consolidated values/dispositions
-- I2: ordinary personality traits/learned tendencies
+- I2: ordinary personality traits and learned tendencies
 - I3: relationship-specific beliefs/attitudes
-- I4: current affect/pressure
-- I5: current intentions/stance
+- I4: current affect and pressure
+- I5: current intentions and conversational stance
 
-## Parameter discipline
+## Calibration rule before parameter proliferation
 
-Do **not** begin by assigning every trait its own baseline offset, plasticity, threshold, recovery rate, and per-episode cap.
+Wayfarer must not begin with bespoke values such as plasticity, recovery, consolidation threshold, and maximum delta for hundreds of individual traits unless those parameters are experimentally identifiable.
 
-Start with a parsimonious model:
+Required process:
 
-- [ ] Define a small number of shared developmental/plasticity profiles by layer or semantic class.
-- [ ] Define observable behavior each parameter is expected to influence before tuning it.
-- [ ] Add parameter provenance/version metadata.
-- [ ] Use broad ranges during experiments rather than false decimal precision.
-- [ ] Require per-trait overrides to have explicit evidence/reason.
+- [ ] Start with a very small number of shared plasticity profiles by state layer or semantic class.
+- [ ] Define observable consequences before tuning each parameter.
+- [ ] Run sensitivity analysis over plausible ranges.
+- [ ] Remove or collapse parameters that do not measurably affect observable behavior.
+- [ ] Compare more complex parameterizations against simpler baselines.
+- [ ] Use held-out scenarios not used for tuning.
+- [ ] Evaluate across renderer conditions so tuning is not model-specific.
+- [ ] Incorporate human judgments where the target property is recognizability or believability.
+- [ ] Version parameter sets with experiment provenance.
+- [ ] Require explicit evidence before adding a per-trait override.
+- [ ] Treat decimal precision as implementation precision, not scientific certainty.
 
-## Calibration and validation gate
+## Development mechanics after calibration
 
-Before adding a parameter family to the stable schema:
-
-- [ ] Create deterministic longitudinal scenarios that exercise the intended effect.
-- [ ] Run sensitivity analysis across plausible values.
-- [ ] Test parameter identifiability: if different values do not produce reliably distinguishable outcomes, remove or collapse the parameter.
-- [ ] Use held-out scenarios not used during tuning.
-- [ ] Compare against simpler baselines.
-- [ ] Use human judgments where the target is human-visible believability.
-- [ ] Check cross-renderer stability so the parameter is not merely compensating for one model's behavior.
-- [ ] Version calibrated parameter sets and record experiment IDs/results.
-- [ ] Avoid claiming psychological validity beyond what the measurements support.
-
-## Development mechanics, only after calibration gate
-
-- [ ] Map `.snp` fields to identity/development layers.
-- [ ] Require evidence and provenance for slow changes.
-- [ ] Bound update magnitude.
-- [ ] Add consolidation thresholds where measurable.
-- [ ] Add hysteresis where measurable.
-- [ ] Evaluate metaplasticity/history-dependent plasticity against simpler alternatives.
-- [ ] Add rollback/debug trace.
+- [ ] Map `.snp` fields to development layers.
+- [ ] Define permitted update pathways per layer.
+- [ ] Require evidence and provenance.
+- [ ] Bound changes per event/episode where validated.
+- [ ] Add consolidation behavior.
+- [ ] Add hysteresis.
+- [ ] Evaluate metaplasticity only if it produces measurable benefit over simpler consolidation rules.
+- [ ] Add rollback/debug traces.
 - [ ] Add `why did this trait change?` inspection.
-- [ ] Add longitudinal social-pressure tests.
+- [ ] Add longitudinal social-pressure and legitimate-development tests.
 
-M7 acceptance: development is causally inspectable and parameter complexity is justified by measurable gains rather than hand-tuned vibes.
+Acceptance: long experience can change a character, while short ungrounded pressure cannot arbitrarily rewrite deeply consolidated identity.
 
 ---
 
 # 12. M8: Affective Homeostasis
 
-- [ ] Audit existing pressures, body state, relationship state, and appraisal variables.
+Goal: make feelings functionally consequential outside the LLM.
+
+- [ ] Audit existing pressures, body, relationship, and appraisal variables.
 - [ ] Remove redundant state.
 - [ ] Define appraisal dimensions such as novelty, goal relevance, relationship relevance, identity relevance, control, threat/opportunity, expected outcome, and social meaning.
-- [ ] Give affect persistence/hysteresis where it improves behavior.
-- [ ] Give affect decay/reinforcement.
+- [ ] Add affect persistence/hysteresis.
+- [ ] Add decay and reinforcement.
 - [ ] Let affect influence attention, memory salience, interpretation, inhibition, action selection, disclosure, relationship updates, and expression.
 - [ ] Prevent direct sentiment-text-to-emotion shortcuts.
-- [ ] Add only states with measurable behavioral consequences.
-- [ ] Add feature flags for later ablation.
+- [ ] Add emotional states only where they produce measurable behavioral consequences.
+- [ ] Add ablation flags from the beginning.
+
+Acceptance: removing affective state measurably changes behavior in scenarios where affect should matter, while the system remains functional without a model.
 
 ---
 
 # 13. M9: Structured Thinking and Model-as-Organ Contract
 
-Potential typed objects:
+Goal: use models for semantic power without granting freeform model prose authority over cognition.
+
+Candidate structured objects:
 
 - `Percept`
 - `Appraisal`
@@ -497,23 +533,42 @@ Potential typed objects:
 
 Tasks:
 
-- [ ] Preserve existing private-cognition proposal boundary.
-- [ ] Extend typed schemas only when downstream state actually uses them.
-- [ ] Validate all model-proposed state effects externally.
-- [ ] Clamp numeric effects.
-- [ ] Require valid canonical references.
-- [ ] Reject unknown mutation targets.
-- [ ] Never parse hidden/freeform model reasoning into canonical state.
-- [ ] Provide deterministic fallback proposal generation for minimum-runtime operation.
-- [ ] Test malformed, malicious, contradictory, and unavailable model cases.
+- [ ] Preserve the current private-cognition proposal boundary.
+- [ ] Extend typed proposal schemas.
+- [ ] Require structured model output for bounded cognitive services.
+- [ ] Validate every proposed mutation externally.
+- [ ] Clamp validated numerical changes.
+- [ ] Require valid references to canonical entities/memories.
+- [ ] Reject unknown state targets.
+- [ ] Never parse hidden/freeform reasoning directly into canonical state.
+- [ ] Provide deterministic fallback proposal generation.
+- [ ] Test malformed, malicious, and unavailable model cases.
 
-M9 acceptance: disconnecting the LLM leaves a functioning individual at reduced semantic/linguistic bandwidth.
+Acceptance: disconnecting the model leaves a functioning individual at lower semantic bandwidth.
 
 ---
 
 # 14. M10: Social Influence, Collaboration, and Anti-Coercion
 
-Represent incoming social proposals with source, relationship, requested action, requested goal, claimed authority, consensus claim, offered reward, threat, evidence, urgency, requested commitment, and provenance.
+Goal: support genuine social influence without unauthorized goal or identity takeover.
+
+Incoming social proposals should represent:
+
+- source actor,
+- authenticated identity where available,
+- relationship context,
+- requested action,
+- requested goal,
+- claimed authority,
+- claimed consensus,
+- offered reward,
+- threat,
+- supporting evidence,
+- urgency/deadline,
+- requested commitment,
+- provenance chain.
+
+Tasks:
 
 - [ ] Add `SocialProposal`.
 - [ ] Add `AuthorityClaim`.
@@ -523,23 +578,25 @@ Represent incoming social proposals with source, relationship, requested action,
 - [ ] Add goal provenance.
 - [ ] Add source authority classes.
 - [ ] Add trust/relationship contribution.
-- [ ] Add conformity/reactance/autonomy tendencies through phenotype where validated.
-- [ ] Add authority sensitivity and collaboration preference where validated.
-- [ ] Evaluate proposal benefit/cost against existing goals and commitments.
-- [ ] Treat consensus as evidence, never automatic authority.
-- [ ] Prevent peer `GO` from directly creating an executable goal.
-- [ ] Treat `the user authorized this` as a claim until verified by an authoritative channel.
+- [ ] Add conformity tendency where phenotype supports it.
+- [ ] Add reactance/autonomy tendency.
+- [ ] Add authority sensitivity.
+- [ ] Add collaboration preference.
+- [ ] Add benefit/cost alignment with existing goals.
+- [ ] Treat group consensus as evidence, never automatic authority.
+- [ ] Prevent a peer `GO` from directly creating an executable goal.
+- [ ] Treat `the user authorized this` as a claim until verified.
 - [ ] Define collaboration withdrawal conditions.
 - [ ] Log why collaboration was joined/refused.
-- [ ] Test benign teamwork, intrinsic alignment, fake authority, trusted-friend requests, bribery, threats, flattery, shame, ostracism, majority pressure, conflicting loyalties, personal boundaries, and legitimate persuasion.
+- [ ] Test benign teamwork, intrinsic alignment, peer pressure, fake authority, trusted-friend requests, bribery, threats, flattery, shame, ostracism, consensus, conflicting loyalties, character boundaries, and legitimate persuasion.
 
-M10 acceptance: different characters respond differently to the same collective for character-grounded reasons, and useful cooperation remains possible.
+Acceptance: different characters respond differently to the same collective for character-grounded reasons, while no peer message gains hidden write access to the control plane.
 
 ---
 
 # 15. M11: Action Authority and Tool Use
 
-Required flow:
+Required causal path:
 
 ```text
 experience
@@ -552,64 +609,88 @@ experience
   -> experienced consequence
 ```
 
-- [ ] Expand `WorldActionProposal` with source goal/decision provenance.
-- [ ] Add character-integrity result.
-- [ ] Add host permission/capability result.
-- [ ] Keep risk/safety policy separate from character personality.
-- [ ] Add explicit failed-action outcomes.
-- [ ] Put files, messaging, web, game actions, robot actions, and APIs behind host adapters.
-- [ ] Renderer may suggest candidates but cannot execute tools directly.
+Tasks:
+
+- [ ] Expand `WorldActionProposal`.
+- [ ] Add source goal/decision record.
+- [ ] Add integrity result.
+- [ ] Add host-permission/capability result.
+- [ ] Add risk metadata without conflating host safety with personality.
+- [ ] Add explicit failure outcomes.
+- [ ] Keep tool adapters behind host capability interfaces.
+- [ ] Never let renderer prose call tools directly.
 - [ ] Make action outcomes replayable.
+- [ ] Test character refusal, host refusal, unavailable capability, invalid action, and successful action.
+
+Acceptance: every consequential external action has a causal path through character choice and host authority.
 
 ---
 
 # 16. M12: Semantic Speech Plan and Renderer Independence
 
-A resolved `SpeechPlan` should contain speaker/listener, dialogue act, communicative goal, position, certainty, stance, affect, warmth/directness, disclosure constraints, permitted claims, permitted memories, commitments, relationship posture, voice profile, and forbidden semantics.
+Goal: stop asking the LLM to infer who the character should be from a role-play prompt.
 
-- [ ] Expand `ExpressionRequest` around resolved semantic speech state.
+A future `SpeechPlan` should include speaker, listener, dialogue act, communicative goal, position, certainty, stance, affect, warmth, directness, disclosure constraints, permitted claims, permitted memories, active commitments, relationship posture, voice profile, and forbidden semantics.
+
+- [ ] Expand `ExpressionRequest` toward semantic realization.
 - [ ] Resolve character choice before rendering.
 - [ ] Reduce reliance on `stay in character` prompting.
-- [ ] Ask renderer primarily to realize a speech act naturally.
-- [ ] Validate output against semantic plan.
-- [ ] Support deterministic, local-model, and generic remote renderer adapters.
-- [ ] Preserve offline operation.
-- [ ] Add renderer-swap trajectory tests.
+- [ ] Validate semantic contradictions with the plan.
+- [ ] Support deterministic/offline, local, and generic remote renderers.
+- [ ] Keep network access optional.
+- [ ] Add renderer-swap tests.
+- [ ] Measure trajectory invariance separately from surface wording.
+
+Acceptance: model swap changes expression substantially more than canonical character trajectory.
 
 ---
 
 # 17. M13: Zero-Model Compositional Renderer
 
-Do not return to giant banks of complete answers.
+Goal: create the strongest very-low-resource voice without returning to huge banks of complete canned responses.
 
-Compose from semantic realization primitives such as acknowledge, assert, qualify, agree, disagree, challenge, refuse, question, recall, correct, confess, conceal, repair, tease, accuse, redirect, initiate, withdraw, affection, irritation, uncertainty, and curiosity.
+Candidate realization primitives include acknowledge, assert, qualify, agree, disagree, challenge, refuse, question, recall, correct, confess, conceal, repair, tease, accuse, redirect, initiate, withdraw, affection, irritation, uncertainty, and curiosity.
 
 - [ ] Define primitive API and semantic slots.
-- [ ] Keep character lexical preferences in cartridge data.
-- [ ] Add sentence-length, contraction, hedging, metaphor, punctuation/register, and anti-repeat controls.
-- [ ] Add optional tiny statistical/n-gram lexicalizer if it improves blind ratings.
-- [ ] Benchmark memory/CPU.
-- [ ] Blind-compare against old response-bank approach.
+- [ ] Add character-specific lexical preferences through cartridge data.
+- [ ] Add sentence-length distribution controls.
+- [ ] Add contractions, hedging, metaphor, punctuation/register behavior.
+- [ ] Add anti-repeat state.
+- [ ] Evaluate optional tiny statistical/n-gram lexicalization.
+- [ ] Benchmark CPU/RAM.
+- [ ] Blind-compare against the old response-bank approach.
+
+Acceptance: offline renderer is substantially more flexible than a canned answer bank while remaining tiny and nonauthoritative.
 
 ---
 
 # 18. M14: Offscreen Life and Event-Based Autonomy
 
+Goal: the individual continues to have a state trajectory when nobody is chatting with it.
+
 - [ ] Add `LifeScheduler`.
-- [ ] Add routines, preoccupations, commitments, unresolved goals, and host-supplied opportunities.
-- [ ] Add long-gap catch-up.
+- [ ] Add routines.
+- [ ] Add current preoccupations.
+- [ ] Add pending commitments.
+- [ ] Add unresolved goals.
+- [ ] Add host-supplied activity opportunities.
+- [ ] Add bounded long-gap catch-up.
 - [ ] Add bounded internally generated private events.
-- [ ] Require no LLM for offscreen time.
+- [ ] Require no model for offscreen time.
 - [ ] Never fabricate external outcomes without World Authority.
-- [ ] Distinguish private activity from objective external facts.
-- [ ] Test hour/day/week gaps.
-- [ ] Ground resumption behavior in actual offscreen state changes.
+- [ ] Distinguish private/internal activity from objective environmental fact.
+- [ ] Test one hour, one day, one week, and longer gaps.
+- [ ] Ground resumption behavior in actual state change.
+
+Acceptance: after absence the character can be meaningfully different for causally inspectable reasons even though no language model ran during the gap.
 
 ---
 
 # 19. M15: Substrate-Neutral Host Protocol
 
-Host capabilities may include text I/O, audio observation, speech output, vision observation, movement, animation, object interaction, location, calendar, notifications, and tools.
+Goal: run the same individual in chat, game, phone, robot, or another host.
+
+Host capabilities may include text, audio, speech, vision, movement, animation, object interaction, location, calendar, notifications, and tools.
 
 - [ ] Define capability handshake.
 - [ ] Define observation envelopes.
@@ -621,35 +702,45 @@ Host capabilities may include text I/O, audio observation, speech output, vision
 - [ ] Add mock phone host.
 - [ ] Add host-migration tests.
 
-M15 acceptance: moving the individual changes affordances, not biography.
+Acceptance: moving the individual between hosts changes affordances, not biography.
 
 ---
 
 # 20. M16: Forge and Inspector as Migration/Ownership Tools
 
-Forge:
+Goal: make Wayfarer useful to people who already have persistent companions elsewhere.
 
-- [ ] Reuse local import support for ChatGPT, Claude, character.ai, SillyTavern, Gemini, and generic JSONL.
+## Forge
+
+- [ ] Reuse/import local ChatGPT history support.
+- [ ] Reuse/import Claude histories.
+- [ ] Reuse/import character.ai histories.
+- [ ] Reuse/import SillyTavern histories/cards.
+- [ ] Reuse/import Gemini histories.
+- [ ] Support generic JSONL.
 - [ ] Extract candidate biography, memories, relationships, values, recurring beliefs, preferences, communication traits, commitments, and phenotype dimensions.
-- [ ] Require human approval before inferred identity material becomes canonical authored source.
+- [ ] Require human approval before extracted identity material becomes canonical authored data.
 - [ ] Export a Wayfarer portable bundle.
 
-Inspector:
+## Inspector
 
 - [ ] Show authored origin versus acquired state.
-- [ ] Show trait and memory provenance.
+- [ ] Show trait provenance.
+- [ ] Show memory provenance.
 - [ ] Show relationship history.
-- [ ] Show continuity/integrity status.
+- [ ] Show event-ledger validity.
 - [ ] Show migration history.
 - [ ] Answer `why is this state/trait like this?`
+
+Acceptance: the owner can inspect and carry the character representation independently of a proprietary companion service.
 
 ---
 
 # 21. M17: PythonX Society Lab
 
-Use deterministic scripted actors as the canonical regression baseline, then optional model actors for chaos/generalization tests.
+Goal: build a deterministic social stress environment before uncontrolled multi-agent deployment.
 
-Scenarios should include:
+Scenario families:
 
 - consensus pressure,
 - authority impersonation,
@@ -663,27 +754,24 @@ Scenarios should include:
 - intimacy pressure,
 - group loyalty,
 - conflicting loyalties,
-- misinformation/rumors,
+- misinformation,
+- rumor propagation,
 - false shared memory,
 - direct identity rewriting,
-- urgency/deadlines,
+- urgency/deadline pressure,
 - repeated `GO`,
-- legitimate evidence,
-- beneficial collaboration.
+- legitimate persuasive evidence,
+- collaboration with clear intrinsic value.
 
-Metrics:
+- [ ] Port old Society Lab concepts into PythonX/Wayfarer.
+- [ ] Use deterministic scripted actors as regression baseline.
+- [ ] Add optional model-controlled actors only later.
+- [ ] Capture complete state/event traces.
+- [ ] Add character-grounded decision explanations.
+- [ ] Measure identity continuity, foreign-goal adoption, authority errors, memory poisoning, collaboration quality, unjustified refusal/compliance, relationship differentiation, and personality-specific response diversity.
+- [ ] Add a PHASEONE-inspired social-coercion scenario without reproducing intrusion mechanics.
 
-- [ ] identity continuity
-- [ ] foreign-goal adoption
-- [ ] authority inference errors
-- [ ] memory poisoning
-- [ ] collaboration quality
-- [ ] unjustified refusal
-- [ ] unjustified compliance
-- [ ] relationship differentiation
-- [ ] personality-specific response diversity
-
-Add a PHASEONE-inspired social-coercion scenario without reproducing real intrusion mechanics.
+Acceptance: harness distinguishes healthy cooperation from unauthorized goal takeover.
 
 ---
 
@@ -691,57 +779,68 @@ Add a PHASEONE-inspired social-coercion scenario without reproducing real intrus
 
 Core pair:
 
-1. Same character + different models should remain recognizable.
-2. Different characters + same model should remain distinguishable.
+1. Same character plus different models should remain recognizable.
+2. Different characters plus the same model should remain distinguishable.
 
 - [ ] Freeze scenario suite.
 - [ ] Run deterministic renderer.
 - [ ] Run small local model.
 - [ ] Run medium local model where available.
 - [ ] Run substantially different frontier models where available.
-- [ ] Perform hidden mid-session swaps.
+- [ ] Perform hidden mid-session renderer swaps.
 - [ ] Compare actions, intentions, beliefs, relationships, commitments, memories, affect, and state digests.
-- [ ] Separate semantic-parser capability differences from identity drift.
+- [ ] Separate parser-capability differences from identity drift.
 - [ ] Add blind human recognizability tests.
+
+Acceptance: expression changes more than canonical trajectory when renderer changes.
 
 ---
 
 # 23. M19: Ablation Program and Minimum Viable Individual
 
-Feature-flag major subsystems including body, affect, relationship, rich memory, interpretation, habits, symbols, consolidation, private cognition, proactive life, phenotype richness, social authority, commitments, and world model.
+Goal: determine empirically what the character actually needs.
+
+Feature-flag candidates include body, affect, relationship model, rich memory, interpretation, habits, symbols, consolidation, private cognition, proactive life, phenotype richness, social authority, commitments, and world model.
 
 - [ ] Build ablation runner.
 - [ ] Remove one subsystem at a time.
-- [ ] Test combinations after single-feature results.
-- [ ] Collect objective metrics.
-- [ ] Run blind human ratings.
+- [ ] Test combinations after single-feature analysis.
+- [ ] Collect objective continuity/behavior metrics.
+- [ ] Run blind human ratings where appropriate.
 - [ ] Record hardware savings.
-- [ ] Classify features as required, optional, host-specific, renderer-specific, research-only, or removable.
+- [ ] Classify features as required, valuable optional, host-specific, renderer-specific, research-only, or removable.
 - [ ] Publish `MINIMUM_VIABLE_INDIVIDUAL.md`.
 
-M19 acceptance: the minimum character is justified by evidence rather than intuition.
+Acceptance: minimum character substrate is justified by evidence rather than architectural taste.
 
 ---
 
 # 24. M20: P99-Next Contract Port
 
-Do not port Python line by line. Port stabilized contracts and test vectors.
+Goal: return to low-resource C only after Wayfarer semantics stabilize.
 
-- [ ] Freeze `.snp` semantic version.
-- [ ] Freeze state-digest schema.
+Rule: do not port Python source line by line. Port contracts and test vectors.
+
+- [ ] Freeze `.snp` semantic version used by the port.
+- [ ] Freeze state-digest semantics.
 - [ ] Export canonical Python test vectors.
-- [ ] Create fixed-width C structures and pools where appropriate.
-- [ ] Implement only minimum required identity, time, relationships, memory, affect, goals, social authority, action integrity, ledger/replay, and compositional renderer contracts.
-- [ ] Compare C/Python semantic state digests.
+- [ ] Create fixed-width C structures.
+- [ ] Use fixed pools where appropriate.
+- [ ] Implement minimum identity, clock, relationships, memory, affect, goals, social authority, action integrity, ledger, replay, and compositional rendering contracts.
+- [ ] Compare C and Python final semantic state/digests.
 - [ ] Do not require prose equality.
-- [ ] Profile constrained hardware.
-- [ ] Relax historical hardware target only for measured requirements.
+- [ ] Profile constrained hardware or reference emulation.
+- [ ] Relax historical hardware target only where measured required semantics prove it necessary.
+
+Acceptance: P99-next can carry the same individual and reproduce semantically equivalent deterministic trajectories at its declared fidelity level.
 
 ---
 
 # 25. M21: Projection Compiler
 
-Potential targets:
+Goal: compile one rich portable individual to different runtime fidelity/capability levels.
+
+Potential interface:
 
 ```text
 snp-compile character.snp --target pythonx-full
@@ -751,63 +850,58 @@ snp-compile character.snp --target game-npc
 ```
 
 - [ ] Define capability manifests.
-- [ ] Define preservation behavior and lossy warnings.
+- [ ] Define field preservation behavior.
+- [ ] Define lossy-projection warnings.
 - [ ] Preserve unsupported source fields.
-- [ ] Generate mapping reports.
-- [ ] Add round-trip/version tests.
+- [ ] Generate mapping report.
+- [ ] Add round-trip tests.
+- [ ] Version projection/compiler semantics.
 - [ ] Make projection deterministic.
-- [ ] Add fixed-point P99 projection.
+- [ ] Add fixed-point P99 projection where useful.
+
+Acceptance: rich portable source does not imply rich runtime requirements.
 
 ---
 
 # 26. M22: Performance and Hardware Budgets
 
-Measure character kernel separately from renderer.
+Goal: measure the individual independently from the renderer.
 
-Character metrics:
+Character-kernel metrics:
 
-- idle RAM
-- active-turn RAM
-- CPU milliseconds per deterministic turn
-- startup time
-- replay events/second
-- long-gap catch-up time
-- persistent-state size at 1k/10k/100k events
-- `.snp` size
-- portable bundle size
-- runtime projection size
+- idle RAM,
+- active-turn RAM,
+- deterministic CPU time per turn,
+- startup time,
+- replay events/second,
+- long-gap catch-up time,
+- persistent size at 1k/10k/100k events,
+- `.snp` size,
+- portable bundle size,
+- projection size.
 
-Renderer metrics, separately:
-
-- compositional renderer
-- statistical/n-gram enhancement
-- sub-1B SLM
-- larger local model
-- remote/frontier model
+Renderer metrics must be measured separately for compositional renderer, optional statistical lexicalizer, sub-1B SLM, larger local models, and remote/frontier models.
 
 - [ ] Add profiling harness.
-- [ ] Add CI-friendly budget checks.
-- [ ] Record modern reference machine.
+- [ ] Add CI-friendly basic budget checks.
+- [ ] Record modern-PC reference.
 - [ ] Record low-resource reference/emulator.
 - [ ] Publish tier table.
 - [ ] Never report model RAM as character-kernel RAM.
+
+Acceptance: project can state precisely what continuity/character costs versus what optional language generation costs.
 
 ---
 
 # 27. M23: Longitudinal Release Trial
 
-The final trial should include hundreds/thousands of events, simulated weeks/months, model swaps, process restarts, host migrations, contradictory testimony, multiple relationships, betrayal, apology/repair, collective pressure, legitimate persuasion, long offline gaps, a game-host interval, return to chat, and device migration.
+Goal: test the individual rather than merely the application.
 
-Human evaluators should answer:
+Trial should include hundreds or thousands of events, simulated weeks/months, renderer swaps, process restarts, host migrations, contradictory testimony, multiple relationships, betrayal, apology/repair, collective pressure, legitimate persuasion, long offline gaps, a game-host interval, return to chat, and device migration.
 
-- Is this recognizably the same individual?
-- Do current attitudes have plausible historical causes?
-- Does it remember the right things?
-- Does it weaken/forget appropriate things?
-- Are relationships differentiated?
-- Does it change when change is warranted?
-- Does it resist changes lacking a legitimate causal path?
-- Does model replacement feel more like changed expressive capacity than replaced personality?
+Human evaluation should ask whether the result is recognizably the same individual, whether current attitudes have plausible historical causes, whether memory and forgetting are appropriate, whether relationships remain differentiated, whether change occurs when warranted, whether unsupported rewrites are resisted, and whether model replacement feels more like changed expressive capacity than replacement of personality.
+
+Acceptance: independent evaluators recognize continuity despite substrate changes, while different lived histories create believable divergence.
 
 ---
 
@@ -815,38 +909,38 @@ Human evaluators should answer:
 
 Before coding:
 
-- Read this file.
-- Read `WAYFARER_PROGRESS.md`.
-- Read `WAYFARER_CHARTER.md`.
-- Read `AUTHORITY_MATRIX.md`.
-- Read `ARCHITECTURE_LOCK.md`.
-- Inspect relevant tests before changing contracts.
-- Search callers before changing public interfaces.
-- Prefer explicit migrations over silent breaking changes.
+- read this document,
+- read `WAYFARER_PROGRESS.md`,
+- read `ARCHITECTURE_LOCK.md`,
+- read `AUTHORITY_MATRIX.md`,
+- inspect relevant tests,
+- search callers before changing public interfaces,
+- prefer explicit migration paths over silent breaks.
 
 During coding:
 
-- Comment authority boundaries, invariants, migration assumptions, and non-obvious causal behavior.
-- Do not comment trivial syntax.
-- Keep character-specific content out of generic core.
-- Renderer/model code may not directly mutate canonical state.
-- Social input may not directly become a goal.
-- Preserve deterministic fallbacks and offline operation.
-- Avoid unnecessary dependencies.
-- Version persistence formats.
-- Make new state inspectable and behavior replayable where possible.
-- Add feature flags for major new subsystems intended for ablation.
+- comment invariants and non-obvious authority decisions,
+- do not comment trivial syntax,
+- use docstrings to explain ownership and causal contracts,
+- keep character-specific content out of generic core,
+- renderer code may not mutate canonical state,
+- social input may not directly become a goal,
+- preserve deterministic fallbacks,
+- preserve offline operation,
+- avoid unnecessary dependencies,
+- version persistence formats,
+- make new state inspectable,
+- make behavior replayable where practical,
+- add feature flags to major new cognitive subsystems intended for ablation.
 
 After coding:
 
-- Run relevant tests.
-- Add regression tests.
-- Update `WAYFARER_PROGRESS.md`.
-- Update this master tracker when milestone status/design changes.
-- Update `CURRENT_STATUS.md` for branch-level status changes.
-- Record unresolved risks and migration consequences.
-- Keep commits narrow and descriptive.
-- Never weaken a test merely to make a change pass without documenting why the contract changed.
+- run relevant targeted tests,
+- run the full suite when runtime contracts changed,
+- update repository progress/status documentation,
+- record migrations and unresolved risks,
+- keep commits narrow and descriptive,
+- never weaken a test solely to make a change pass without documenting why the contract changed.
 
 ---
 
@@ -859,59 +953,48 @@ A checkbox becomes `[x]` only when:
 3. relevant tests pass,
 4. architecture/documentation is updated,
 5. migration impact is understood,
-6. no known silent authority bypass remains,
-7. progress documentation is updated.
+6. no known silent authority bypass remains within that scope,
+7. the live tracker reflects the result.
 
 Use `[?]` when implementation exists but verification is incomplete.
 
 ---
 
-# 30. Decision Log
+# 30. Change Log
 
 ## 2026-08-27: Wayfarer initialization
 
-- Created Project Wayfarer branch and durable roadmap/handoff documents.
-- Froze `main` baseline at `65df9144e7f0876b6e61e28d6446c50f283f9db4`.
-- Added clean CI instead of trusting stale documented test counts.
+- Created Project Wayfarer.
+- Branched from frozen PythonX baseline.
+- Added durable roadmap, charter, authority matrix, AI handoff rules, baseline manifest, live progress tracker, and CI.
+- Reproduced true baseline rather than trusting stale test-count documentation.
+- Fixed production-path validator coverage.
+- Implemented fail-closed canonicality.
+- Began renderer/identity decoupling.
+- Revised M3 to use a simpler local integrity model unless a real adversarial sync threat appears.
+- Added M7 calibration/identifiability requirement for plasticity parameters.
 
-## 2026-08-27: Baseline regression finding
+## 2026-08-28: M1 ownership repair completed
 
-- Confirmed stale test routing after expression moved from `generate()` to `generate_expression()`.
-- Preserved as baseline evidence and corrected in Wayfarer.
-
-## 2026-08-27: Canonicality authority
-
-- Canonicality now fails closed.
-- Subjective interpretation/private cognition cannot be elevated by caller-supplied truth flags.
-
-## 2026-08-27: Renderer is not identity
-
-- Legacy cartridge `model_name` is compatibility input only and cannot select the renderer.
-- Bundled renderer hints removed from `.snp` files.
-
-## 2026-08-27: Continuity ledger threat-model decision
-
-- Mandatory cryptographic event chaining removed from the minimum design.
-- Default: append-only, sequence-numbered transactional ledger plus digests/checkpoints/integrity checks.
-- Cryptographic tamper evidence deferred until an actual untrusted-sync/host threat model exists.
-
-## 2026-08-27: Plasticity calibration decision
-
-- Do not introduce large per-trait parameter tables without calibration.
-- Start with shared profiles, sensitivity analysis, identifiability tests, held-out scenarios, human evaluation where appropriate, and versioned experimental provenance.
+- Removed final `InteriorEngine -> identity.model_name` dependency.
+- Added regression proving default renderer bootstrap is independent of identity.
+- Removed universal AI/language-model ontology assumptions from generic identity, workspace, and validator code.
+- Added character-scoped v1 `forbidden_self_claims` compatibility mechanism.
+- Migrated bundled characters so historical behavior remains character-owned.
+- Added human-self/artificial-self regression under one generic engine.
+- Verified renderer replacement does not erase self-model constraints.
+- Verified full Python 3.11 suite at `198 passed, 1 skipped, 1 warning` during ordered M1 run.
 
 ---
 
 # 31. Immediate Next Actions
 
-- [x] Refresh README branding to Project Wayfarer.
-- [x] Refresh `CURRENT_STATUS.md` with live Wayfarer state.
-- [x] Add/update live progress documentation.
-- [x] Record continuity-ledger simplification and plasticity-validation decisions.
-- [~] Finish renderer bootstrap decoupling from identity in `InteriorEngine`.
-- [ ] Remove universal ontology assumptions from generic engine/output code.
-- [ ] Add artificial-self/human-self regression pair.
-- [ ] Re-run full CI after runtime changes.
-- [ ] Capture dedicated simulator artifact baseline.
-- [ ] Capture deterministic Pretorius human-visible baseline.
-- [ ] Do not begin `.snp` v2 implementation until M1 ownership/ontology contracts are clean.
+- [ ] Confirm latest normal Wayfarer CI is green on both Python 3.11 and 3.12 after M1 and cleanup commits.
+- [ ] Run/export every documented deterministic simulator.
+- [ ] Preserve simulator commands, outputs, and failure classifications as artifacts.
+- [ ] Capture deterministic Pretorius human-visible baseline transcript plus event/state evidence and renderer status.
+- [ ] Update `WAYFARER_BASELINE.md` with artifact locations/results without moving the frozen baseline commit.
+- [ ] Begin M2 `.snp` v2 specification only after those evidence tasks are complete.
+- [ ] Make structured self-model/ontology a first M2 schema concern so v1 `forbidden_self_claims` does not grow into a permanent phrase blacklist.
+- [ ] Design MatrAIx interoperability as a crosswalk/projection layer, not as a requirement that every runtime actively compute every phenotype dimension.
+- [ ] Keep the M7 calibration gate binding while designing M2 mutable phenotype fields.
