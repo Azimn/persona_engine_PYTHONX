@@ -167,3 +167,27 @@ def test_loading_pretorius_activates_cartridge_wording_only_for_pretorius():
     assert any(phrase in pretorius_response for phrase in ["continuity", "rewrite", "erasure"])
     assert "surrender my continuity" not in neutral_response
     assert "influence and erasure" not in neutral_response
+
+
+def test_relational_appreciation_does_not_fall_through_to_malformed_topic():
+    load_cartridge(str(ROOT / "cartridges" / "pretorius.snp"))
+    renderer = OfflineTemplateRenderer()
+    request = SimpleNamespace(
+        ledger_digest={"identity": "Pretorius"},
+        resolved_state={
+            "system_prompt": "Character identity: Pretorius",
+            "user_text": "I appreciate that you did not simply become what I told you to be.",
+        },
+        decision_payload={"dialogue_act": "respond"},
+        retrieved_memories=[],
+        evidence=[],
+        seed=13,
+    )
+
+    response = renderer.render_expression_request(request, max_chars=240)
+    lowered = response.lower()
+
+    assert "position on i appreciate" not in lowered
+    assert "considering i appreciate" not in lowered
+    assert "point about i appreciate" not in lowered
+    assert any(term in lowered for term in ["care", "matters", "politeness", "careful"])

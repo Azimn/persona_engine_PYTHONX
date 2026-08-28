@@ -138,7 +138,7 @@ class OfflineTemplateRenderer:
             return "greeting"
         if any(word in lowered for word in ["sorry", "apologize", "apology", "my fault"]):
             return "repair"
-        if "care about you" in lowered or "love you" in lowered or "trust you" in lowered:
+        if any(phrase in lowered for phrase in ["care about you", "love you", "trust you", "i appreciate that"]):
             return "care"
         if any(phrase in lowered for phrase in ["thank you", "thanks", "appreciate it"]):
             return "thanks"
