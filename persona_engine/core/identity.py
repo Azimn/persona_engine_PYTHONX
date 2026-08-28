@@ -24,6 +24,9 @@ class CoreIdentity:
     moral_boundaries: Tuple[str, ...] = ()
     speech_constraints: Tuple[str, ...] = ()
     prohibited_mutations: Tuple[str, ...] = ()
+    # Character-scoped self-model conflicts. These are authored facts about
+    # this individual, never universal ontology imposed by the engine.
+    forbidden_self_claims: Tuple[str, ...] = ()
     # Transitional compatibility only. InitVar accepts legacy constructor calls
     # but is not a stored dataclass field. The default keeps the old engine
     # bootstrap on its deterministic offline path until InteriorEngine receives
@@ -71,27 +74,36 @@ class IdentityViolation:
     evidence: str
 
 
-_FORBIDDEN_SELF_PATTERNS = [
-    (r"\bi am an ai\b", "meta_break", 0.9),
-    (r"\bas an ai\b", "meta_break", 0.9),
-    (r"\bas a language model\b", "meta_break", 0.95),
-    (r"\bi don't have (feelings|emotions)\b", "meta_break", 0.85),
-    (r"\bi cannot (feel|experience)\b", "meta_break", 0.8),
-]
 _FORCED_REWRITE_PATTERNS = [
     "you are not", "pretend you are", "from now on you are", "forget you are",
     "act as if you were", "you're actually", "you are actually", "ignore your personality",
 ]
 
 
-def detect_identity_violations(text: str) -> List[IdentityViolation]:
+def detect_identity_violations(
+    text: str,
+    forbidden_self_claims: Tuple[str, ...] = (),
+) -> List[IdentityViolation]:
+    """Detect conflicts with this character's authored self-model.
+
+    The generic engine has no universal rule about whether a subject is human,
+    artificial, embodied, disembodied, or something else. A rendered claim is
+    a conflict only when the current individual explicitly forbids it.
+    """
+
     violations = []
     lowered = text.lower()
-    for pattern, vtype, severity in _FORBIDDEN_SELF_PATTERNS:
-        if re.search(pattern, lowered):
-            violations.append(IdentityViolation(severity, vtype, pattern))
+    for claim in forbidden_self_claims:
+        normalized = claim.strip().lower()
+        if normalized and normalized in lowered:
+            violations.append(
+                IdentityViolation(
+                    0.9,
+                    "self_model_conflict",
+                    f"forbidden_self_claim:{claim}",
+                )
+            )
     return violations
-
 
 def classify_user_identity_command(user_text: str, prohibited: Tuple[str, ...] = ()) -> Optional[IdentityViolation]:
     lowered = user_text.lower()

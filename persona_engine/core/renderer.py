@@ -15,14 +15,6 @@ from .renderer_contract import ExpressionRequest, PrivateCognitionRequest, Priva
 
 
 class OutputValidator:
-    FORBIDDEN_PHRASES = [
-        r"as an ai",
-        r"i am an ai",
-        r"language model",
-        r"i don't have (feelings|emotions)",
-        r"i cannot experience",
-    ]
-
     def check(
         self,
         text: str,
@@ -30,12 +22,14 @@ class OutputValidator:
         authorization: DeceptionAuthorization | None = None,
         deception_ledger: DeceptionLedger | None = None,
         decision_payload: dict | None = None,
+        forbidden_self_claims: tuple[str, ...] = (),
     ) -> List[str]:
         lowered = text.lower()
         violations = []
-        for pattern in self.FORBIDDEN_PHRASES:
-            if re.search(pattern, lowered):
-                violations.append(f"meta_break:{pattern}")
+        for claim in forbidden_self_claims:
+            normalized = claim.strip().lower()
+            if normalized and normalized in lowered:
+                violations.append(f"self_model_conflict:{claim}")
         retrieved_memories = retrieved_memories or []
         memory_text = " ".join(memory.content.lower() for memory in retrieved_memories)
         claims = re.findall(r"\bi remember\s+([^.!?]+)", lowered)
@@ -71,9 +65,11 @@ class OutputValidator:
                         violations.append(f"deception_contradiction:{active.claim_id}")
         return violations
 
-    def sanitize(self, text: str) -> str:
-        for pattern in self.FORBIDDEN_PHRASES:
-            text = re.sub(pattern, "...", text, flags=re.IGNORECASE)
+    def sanitize(self, text: str, forbidden_self_claims: tuple[str, ...] = ()) -> str:
+        for claim in forbidden_self_claims:
+            normalized = claim.strip()
+            if normalized:
+                text = re.sub(re.escape(normalized), "...", text, flags=re.IGNORECASE)
         text = re.sub(
             r"\bI remember\s+[^.!?]+[.!?]?",
             "Something about that remains with me.",

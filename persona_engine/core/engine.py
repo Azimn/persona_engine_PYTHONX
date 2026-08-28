@@ -735,7 +735,10 @@ class InteriorEngine:
             expression_envelope=envelope,
             interpretive_beliefs=[b.text for b in interpretive_beliefs],
             interpretive_belief_trace=[b.to_dict() for b in interpretive_beliefs],
-            forbidden_claims=["being an AI", "having no feelings", "memories not listed in the relevant memory field", "private thoughts from the user"],
+            forbidden_claims=list(self.identity.forbidden_self_claims) + [
+                "memories not listed in the relevant memory field",
+                "private thoughts from the user",
+            ],
         )
 
         second_thoughts = derive_second_thoughts(frame)
@@ -756,7 +759,13 @@ class InteriorEngine:
             seed=seed,
         )
 
-        violations = self.validator.check(response, retrieved, deception_ledger=self.deception_ledger, decision_payload=decision_payload)
+        violations = self.validator.check(
+            response,
+            retrieved,
+            deception_ledger=self.deception_ledger,
+            decision_payload=decision_payload,
+            forbidden_self_claims=self.identity.forbidden_self_claims,
+        )
         if violations:
             suppression_traces.append(_suppression_trace(
                 "output_validator",
@@ -765,7 +774,9 @@ class InteriorEngine:
                 "warning",
             ))
             original_response = response
-            response = self.validator.sanitize(response)
+            response = self.validator.sanitize(
+                response, forbidden_self_claims=self.identity.forbidden_self_claims
+            )
             if response != original_response:
                 suppression_traces.append(_suppression_trace(
                     "renderer_sanitizer",

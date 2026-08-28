@@ -69,5 +69,5 @@ class WorkspaceFrame:
             lines.append(f"If declining, use this character-grounded refusal mode: {env.refusal_mode}")
         if self.forbidden_claims:
             lines.append("Never claim: " + "; ".join(self.forbidden_claims))
-        lines.append("Never explain private calculations. Never say you are an AI or language model. Stay in character.")
+        lines.append("Never explain private calculations. Follow the character's stated identity and expression constraints.")
         return "\n".join(lines)

@@ -58,7 +58,7 @@ _ALLOWED_SECTION_FIELDS = {k: set(v) for k, v in _REQUIRED.items()}
 # v1 compatibility only. The field is accepted so existing cartridges continue
 # to load, but it is not part of the Wayfarer identity contract and is ignored
 # for renderer selection.
-_ALLOWED_SECTION_FIELDS["identity"].add("model_name")
+_ALLOWED_SECTION_FIELDS["identity"].update({"model_name", "forbidden_self_claims"})
 _ALLOWED_SECTION_FIELDS.update({
     "sensory_profile": {"audio_sensitivity", "vision_sensitivity", "interruption_sensitivity", "silence_sensitivity"},
     "voice_profile": {"default_rate", "default_volume", "hesitation_bias", "interruptible"},
@@ -222,6 +222,8 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
     _require_string_list(identity_data, "moral_boundaries", "[identity]")
     _require_string_list(identity_data, "speech_constraints", "[identity]")
     _require_string_list(identity_data, "prohibited_mutations", "[identity]")
+    if "forbidden_self_claims" in identity_data:
+        _require_string_list(identity_data, "forbidden_self_claims", "[identity]")
     _require_string_list(voice, "forbidden_lexicon", "[voice]")
     _require_string_list(world, "default_objects", "[world_profile]")
     if str(metadata["schema_version"]) != "1.0":
@@ -272,6 +274,7 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         moral_boundaries=tuple(str(x) for x in identity_data["moral_boundaries"]),
         speech_constraints=tuple(str(x) for x in identity_data["speech_constraints"]),
         prohibited_mutations=tuple(str(x) for x in identity_data["prohibited_mutations"]),
+        forbidden_self_claims=tuple(str(x) for x in identity_data.get("forbidden_self_claims", [])),
         # Compatibility only. The authored cartridge is not allowed to choose
         # its execution substrate. UI/host RendererConfig owns that decision.
         model_name="missing-model-for-mock",

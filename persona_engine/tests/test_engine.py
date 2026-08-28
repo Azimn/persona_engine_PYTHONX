@@ -15,6 +15,7 @@ def make_agent(path):
         core_beliefs=("I am stoic", "I value precision"),
         temperament="Melancholic",
         prohibited_mutations=("cheerful", "submissive"),
+        forbidden_self_claims=("as an ai", "i am an ai", "language model", "i cannot experience"),
         model_name="missing-model-for-mock",
     )
     return CharacterAgent(core, user_id="tester", db_path=path)
