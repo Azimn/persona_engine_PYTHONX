@@ -1,0 +1,3 @@
+Project Wayfarer M0 evidence capture trigger.
+
+After the evidence package is successfully committed, this trigger file should be removed. The reusable workflow remains available through workflow_dispatch.
