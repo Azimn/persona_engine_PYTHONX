@@ -126,6 +126,8 @@ class InteriorEngine:
         self.validator = OutputValidator()
         self.consistency = ConsistencyLayer(self.validator)
         self.persistence = Persistence(db_path)
+        if self.identity.entity_uuid:
+            self.persistence.bind_subject(self.identity.name, self.user_id, self.identity.entity_uuid)
         self.deception_ledger = DeceptionLedger()
         self.dream_engine = DreamEngine(self.persistence, self.belief_ledger)
 
@@ -276,7 +278,9 @@ class InteriorEngine:
         }
 
     def _persist(self):
-        self.persistence.save_many(self.identity.name, self.user_id, self._serialize_state())
+        state = self._serialize_state()
+        self.persistence.save_many(self.identity.name, self.user_id, state)
+        self.persistence.record_checkpoint(self.identity.name, self.user_id, state)
 
     # ---------------- idle and silent processing ----------------
     def _catch_up_idle(self):
