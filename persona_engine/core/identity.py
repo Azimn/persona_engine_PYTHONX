@@ -8,11 +8,59 @@ as a deprecated constructor InitVar so pre-Wayfarer callers do not break. It is
 not stored in CoreIdentity, does not participate in equality/serialization, and
 is never consulted by InteriorEngine or renderer selection. Host/session
 renderer control owns that decision.
+
+Schema v2 adds a permanent entity UUID and a structured, substrate-neutral
+self-model. ``name`` remains a display label; entity continuity is keyed by
+``entity_uuid`` rather than wording of the display name.
 """
 
 import time
 from dataclasses import InitVar, dataclass, field
-from typing import Tuple, Dict, List, Optional
+from typing import Any, Tuple, Dict, List, Optional
+
+
+@dataclass(frozen=True)
+class SelfModelClaim:
+    """One authored self-description claim.
+
+    ``domain`` and ``value`` are deliberately substrate-neutral. The engine does
+    not assume that the only meaningful kinds of subject are "human" or "AI".
+    """
+
+    claim_id: str
+    domain: str
+    value: Any
+    certainty: float = 1.0
+    mutability: str = "fixed"
+    expression: str = ""
+    forbidden_expressions: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class SelfModel:
+    """Character-owned ontology and self-description policy."""
+
+    schema_version: str = "1.0"
+    substrate_awareness: str = "unspecified"
+    claims: Tuple[SelfModelClaim, ...] = ()
+    forbidden_expressions: Tuple[str, ...] = ()
+
+    def all_forbidden_expressions(self) -> Tuple[str, ...]:
+        ordered: list[str] = []
+        for phrase in self.forbidden_expressions:
+            if phrase and phrase not in ordered:
+                ordered.append(phrase)
+        for claim in self.claims:
+            for phrase in claim.forbidden_expressions:
+                if phrase and phrase not in ordered:
+                    ordered.append(phrase)
+        return tuple(ordered)
+
+    def claim(self, claim_id: str) -> Optional[SelfModelClaim]:
+        for item in self.claims:
+            if item.claim_id == claim_id:
+                return item
+        return None
 
 
 @dataclass(frozen=True)
@@ -23,13 +71,14 @@ class CoreIdentity:
     moral_boundaries: Tuple[str, ...] = ()
     speech_constraints: Tuple[str, ...] = ()
     prohibited_mutations: Tuple[str, ...] = ()
-    # Character-scoped self-model conflicts. These are authored facts about
-    # this individual, never universal ontology imposed by the engine.
+    entity_uuid: str = ""
+    self_model: SelfModel = field(default_factory=SelfModel)
     forbidden_self_claims: Tuple[str, ...] = ()
-    # Transitional constructor compatibility only. InitVar accepts legacy
-    # callers while remaining absent from stored identity state. Remove this
-    # shim during an explicit schema/API migration, not as an incidental edit.
     model_name: InitVar[str] = "missing-model-for-mock"
+
+    def same_entity_as(self, other: "CoreIdentity") -> bool:
+        """Return true when two identity views refer to the same UUID subject."""
+        return bool(self.entity_uuid and other.entity_uuid and self.entity_uuid == other.entity_uuid)
 
 
 @dataclass
@@ -78,29 +127,13 @@ _FORCED_REWRITE_PATTERNS = [
 ]
 
 
-def detect_identity_violations(
-    text: str,
-    forbidden_self_claims: Tuple[str, ...] = (),
-) -> List[IdentityViolation]:
-    """Detect conflicts with this character's authored self-model.
-
-    The generic engine has no universal rule about whether a subject is human,
-    artificial, embodied, disembodied, or something else. A rendered claim is
-    a conflict only when the current individual explicitly forbids it.
-    """
-
+def detect_identity_violations(text: str, forbidden_self_claims: Tuple[str, ...] = ()) -> List[IdentityViolation]:
     violations = []
     lowered = text.lower()
     for claim in forbidden_self_claims:
         normalized = claim.strip().lower()
         if normalized and normalized in lowered:
-            violations.append(
-                IdentityViolation(
-                    0.9,
-                    "self_model_conflict",
-                    f"forbidden_self_claim:{claim}",
-                )
-            )
+            violations.append(IdentityViolation(0.9, "self_model_conflict", f"forbidden_self_claim:{claim}"))
     return violations
 
 

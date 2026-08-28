@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wayfarer.local/schema/wayfarer-snp-v2.schema.json",
+  "title": "Project Wayfarer .snp v2 parsed TOML schema",
+  "type": "object",
+  "required": ["metadata", "identity", "beliefs", "belief_rules", "voice", "body_profile", "world_profile", "interpretation_bias", "self_model", "phenotype", "portability"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["entity_id", "entity_uuid", "entity_name", "schema_version"],
+      "properties": {
+        "entity_id": {"type": "string", "minLength": 1},
+        "entity_uuid": {"type": "string", "format": "uuid"},
+        "entity_name": {"type": "string", "minLength": 1},
+        "schema_version": {"const": "2.0"},
+        "migration_semantics": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "identity": {
+      "type": "object",
+      "required": ["core_beliefs", "temperament", "moral_boundaries", "speech_constraints", "prohibited_mutations"],
+      "properties": {
+        "core_beliefs": {"type": "array", "items": {"type": "string"}},
+        "temperament": {"type": "string"},
+        "moral_boundaries": {"type": "array", "items": {"type": "string"}},
+        "speech_constraints": {"type": "array", "items": {"type": "string"}},
+        "prohibited_mutations": {"type": "array", "items": {"type": "string"}},
+        "forbidden_self_claims": {"type": "array", "items": {"type": "string"}, "deprecated": true},
+        "model_name": {"type": "string", "deprecated": true}
+      },
+      "additionalProperties": false
+    },
+    "self_model": {
+      "type": "object",
+      "required": ["schema_version", "substrate_awareness"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "substrate_awareness": {"enum": ["unspecified", "opaque", "contextual", "explicit"]},
+        "forbidden_expressions": {"type": "array", "items": {"type": "string"}},
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "domain", "value"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"},
+              "domain": {"type": "string", "minLength": 1},
+              "value": {},
+              "certainty": {"type": "number", "minimum": 0, "maximum": 1},
+              "mutability": {"enum": ["fixed", "developmental", "evidence_revisable", "uncertain"]},
+              "expression": {"type": "string"},
+              "forbidden_expressions": {"type": "array", "items": {"type": "string"}}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "phenotype": {
+      "type": "object",
+      "required": ["schema_version", "state_semantics"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "state_semantics": {"const": "authored_baseline"},
+        "personality": {"type": "object"},
+        "social_behavior": {"type": "object"},
+        "values": {"type": "object"},
+        "behavioral_tendencies": {"type": "object"},
+        "communication": {"type": "object"},
+        "preferences": {"type": "object"},
+        "capabilities": {"type": "object"},
+        "sensory_dispositions": {"type": "object"},
+        "embodiment": {"type": "object"},
+        "lifestyle_routine": {"type": "object"},
+        "self_model": {"type": "object"},
+        "extensions": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "portability": {
+      "type": "object",
+      "required": ["minimum_fidelity_level", "preserve_unknown_fields", "required_namespaces"],
+      "properties": {
+        "minimum_fidelity_level": {"type": "integer", "minimum": 1, "maximum": 5},
+        "preserve_unknown_fields": {"const": true},
+        "required_namespaces": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "beliefs": {"type": "array", "items": {"type": "object"}},
+    "belief_rules": {"type": "array", "items": {"type": "object"}},
+    "voice": {"type": "object"},
+    "body_profile": {"type": "object"},
+    "world_profile": {"type": "object"},
+    "interpretation_bias": {"type": "object"},
+    "sensory_profile": {"type": "object"},
+    "voice_profile": {"type": "object"},
+    "avatar_profile": {"type": "object"},
+    "cognitive_themes": {"type": "object"},
+    "concealment": {"type": "object"},
+    "arc": {"type": "object"},
+    "dialogue": {"type": "object"}
+  },
+  "additionalProperties": false
+}
