@@ -1,3 +1,3 @@
 Project Wayfarer M0 evidence capture trigger.
 
-Attempt 2 records every simulator's exit code and continues the evidence capture even when a lexical simulator oracle fails. The reusable workflow remains available through workflow_dispatch after this trigger is removed.
+Attempt 3 captures the quality-repaired pre-v2 baseline after the offline relational-appreciation fix and the interpretation_basic repair-oracle correction. This is the final M0 evidence checkpoint before substantive `.snp` v2 schema work.
