@@ -50,6 +50,20 @@ v1 migration is intentionally conservative. It adds a deterministic UUID, maps t
 
 It does not invent positive ontology claims. A legacy phrase ban such as `i am an ai` does not prove that the authored subject is human, biological, fictional, or anything else. Rich positive ontology should be authored explicitly in v2.
 
+## MatrAIx interoperability
+
+The first crosswalk is frozen in `schema/matraix_crosswalk_v1.json`. It references `MatrAIx-ai/MatrAIx-Persona-8B` commit `39d850270917db25535dac3f7aa2561732050e82` and the `persona/schema/dimensions.json` blob `742a50ed79f106675311c09f016fff48951f841c`, whose upstream schema declares version `1.0` and 1,290 target dimensions.
+
+Interoperability is lossless before it is clever. Every imported MatrAIx dimension, including dimensions unknown to Wayfarer, is preserved under `phenotype.extensions.matraix.dimensions`. The crosswalk then applies only explicit native projections.
+
+Crosswalk relations are typed as `exact`, `approximate`, `one_to_many`, `many_to_one`, or `unsupported`. Exact mappings may be bidirectional. Approximate mappings are import-only unless a future crosswalk establishes a reversible semantic transform. One-to-many export occurs only when the native views remain consistent. Many-to-one mappings use explicit named bundles. Unsupported dimensions are preservation-only.
+
+This prevents two opposite errors: discarding useful external phenotype information merely because a small runtime does not execute it, and pretending that similarly named concepts are semantically identical when they are not.
+
+`persona_engine.core.matraix_interop` provides deterministic import/export helpers. `tools/matraix_crosswalk.py` exposes the same operations for offline JSON files. No network access or MatrAIx package installation is required at runtime.
+
+The crosswalk is a projection layer, not a new identity authority. Importing `economic_motivation`, for example, may populate authored phenotype description but cannot create an executable goal. Imported demographic fields that lack a native Wayfarer namespace remain preserved external descriptors rather than being forced into unrelated internal state.
+
 ## Current boundary
 
-This M2 slice defines portable authored source. It does not yet implement the MatrAIx crosswalk, developmental plasticity constants, social authority, the M3 canonical continuity ledger, or cross-host writer leases. Those remain separate milestones.
+The implemented M2 foundation now includes portable identity, structured self-model, phenotype namespaces, progressive fidelity, versioned v1 migration, and the first frozen MatrAIx interoperability layer. It does not introduce developmental plasticity constants, social authority, the M3 canonical continuity ledger, or cross-host writer leases. Those remain separate milestones with their own acceptance tests.

@@ -1,0 +1,105 @@
+{
+  "crosswalk_version": "1.0",
+  "reference": {
+    "name": "MatrAIx Persona Dimension Space",
+    "repository": "MatrAIx-ai/MatrAIx-Persona-8B",
+    "commit_sha": "39d850270917db25535dac3f7aa2561732050e82",
+    "schema_path": "persona/schema/dimensions.json",
+    "schema_blob_sha": "742a50ed79f106675311c09f016fff48951f841c",
+    "schema_version": "1.0",
+    "target_dimensions": 1290,
+    "frozen_at": "2026-08-28",
+    "policy": "Full external dimension dictionaries are preserved losslessly. Native Wayfarer projection occurs only through explicit mappings in this file."
+  },
+  "relation_types": ["exact", "approximate", "one_to_many", "many_to_one", "unsupported"],
+  "mappings": [
+    {
+      "id": "primary_language",
+      "relation": "exact",
+      "matraix_ids": ["primary_language"],
+      "wayfarer_paths": ["communication.primary_language"],
+      "direction": "bidirectional",
+      "notes": "Same descriptive concept; categorical value is preserved verbatim."
+    },
+    {
+      "id": "risk_tolerance",
+      "relation": "exact",
+      "matraix_ids": ["risk_tolerance"],
+      "wayfarer_paths": ["personality.risk_tolerance"],
+      "direction": "bidirectional",
+      "notes": "Authored descriptive disposition, not current risk state."
+    },
+    {
+      "id": "decision_style",
+      "relation": "exact",
+      "matraix_ids": ["decision_style"],
+      "wayfarer_paths": ["behavioral_tendencies.decision_style"],
+      "direction": "bidirectional",
+      "notes": "Authored descriptive tendency."
+    },
+    {
+      "id": "learning_style",
+      "relation": "exact",
+      "matraix_ids": ["learning_style"],
+      "wayfarer_paths": ["preferences.learning_style"],
+      "direction": "bidirectional",
+      "notes": "Descriptive preference only."
+    },
+    {
+      "id": "media_diet",
+      "relation": "exact",
+      "matraix_ids": ["media_diet"],
+      "wayfarer_paths": ["preferences.media_diet"],
+      "direction": "bidirectional",
+      "notes": "Descriptive preference only."
+    },
+    {
+      "id": "economic_motivation",
+      "relation": "exact",
+      "matraix_ids": ["economic_motivation"],
+      "wayfarer_paths": ["values.economic_motivation"],
+      "direction": "bidirectional",
+      "notes": "Authored value/motivation descriptor, not a runtime goal."
+    },
+    {
+      "id": "values_priority",
+      "relation": "approximate",
+      "matraix_ids": ["values_priority"],
+      "wayfarer_paths": ["values.priority"],
+      "direction": "import_only",
+      "notes": "Projected for inspection but not exported from Wayfarer because value-system semantics may differ."
+    },
+    {
+      "id": "tone_expected",
+      "relation": "approximate",
+      "matraix_ids": ["tone_expected"],
+      "wayfarer_paths": ["communication.preferred_tone"],
+      "direction": "import_only",
+      "notes": "MatrAIx expectation about interaction tone is close to, but not identical with, a Wayfarer communication preference."
+    },
+    {
+      "id": "dominant_trait_split",
+      "relation": "one_to_many",
+      "matraix_ids": ["dominant_trait"],
+      "wayfarer_paths": ["personality.dominant_trait", "behavioral_tendencies.dominant_trait_expression"],
+      "direction": "bidirectional_if_consistent",
+      "notes": "One broad external descriptor is exposed both as authored personality description and behavioral-expression hint. Export occurs only when both Wayfarer values agree."
+    },
+    {
+      "id": "decision_profile_bundle",
+      "relation": "many_to_one",
+      "matraix_ids": ["risk_tolerance", "decision_style"],
+      "wayfarer_paths": ["behavioral_tendencies.decision_profile"],
+      "direction": "bidirectional_bundle",
+      "notes": "The composite Wayfarer field is a named dictionary keyed by the two source dimension IDs; individual exact mappings remain independently available."
+    },
+    {
+      "id": "demographic_passthrough",
+      "relation": "unsupported",
+      "matraix_ids": ["age_bracket", "region", "gender_identity", "urbanicity", "socioeconomic_band"],
+      "wayfarer_paths": [],
+      "direction": "preserve_only",
+      "notes": "Wayfarer v2 does not currently define a native demographic namespace. These values remain losslessly available in phenotype.extensions.matraix.dimensions."
+    }
+  ]
+}
