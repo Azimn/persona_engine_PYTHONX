@@ -106,7 +106,7 @@ def event_authority(event_type: str, payload: dict[str, Any] | None = None) -> C
     explicit_actor = str(payload.get("source_actor", "")).strip()
     if event_type in {"input", "user_statement"}:
         return ContinuityAuthority(explicit_actor or "user", "external_user", "reported_input")
-    if event_type in {"sensorium", "world_fact", "manual_authorized_fact", "world_action_resolution"}:
+    if event_type in {"sensorium", "sensor_observation", "world_fact", "manual_authorized_fact", "world_action_resolution"}:
         return ContinuityAuthority(explicit_actor or "host", "host_world", "world_authority")
     if event_type == "dream_consolidation":
         return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "consolidation_authority", "private")
@@ -123,6 +123,10 @@ def canonical_continuity_eligible(event_type: str, payload: dict[str, Any] | Non
         # WorldAuthority resolution is canonical only when the host actually
         # accepted/resolved the proposal. Rejected proposals remain diagnostics.
         return bool(payload.get("accepted"))
+    if event_type == "sensor_observation":
+        # These payloads are produced only after the bounded sensory router has
+        # converted host observation into safe observation/fact structures.
+        return isinstance(payload.get("observation"), dict) and payload.get("sensor_type") in {"audio", "vision"}
     return can_promote_to_canonical_memory(event_type, payload)
 
 
