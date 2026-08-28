@@ -1,3 +1,0 @@
-Project Wayfarer M0 evidence capture trigger.
-
-Attempt 3 captures the quality-repaired pre-v2 baseline after the offline relational-appreciation fix and the interpretation_basic repair-oracle correction. This is the final M0 evidence checkpoint before substantive `.snp` v2 schema work.

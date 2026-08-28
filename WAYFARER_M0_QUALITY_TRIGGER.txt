@@ -1,3 +1,0 @@
-Project Wayfarer M0 quality repair trigger.
-
-This one-time trigger repairs the two issues preserved by the initial evidence package: the interpretation_basic lexical oracle and the malformed relational-appreciation offline response.

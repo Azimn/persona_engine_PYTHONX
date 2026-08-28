@@ -255,9 +255,13 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
 
 
 def _migration_warnings(identity_data: dict[str, Any], source_schema_version: str) -> list[str]:
+    """Return only actionable/deprecated-source warnings.
+
+    Silent in-memory normalization of a valid v1 cartridge is ordinary
+    compatibility behavior, not a warning condition. The normalized schema and
+    migration semantics remain inspectable in ``raw`` metadata.
+    """
     warnings: list[str] = []
-    if source_schema_version == V1_SCHEMA_VERSION:
-        warnings.append("schema v1 cartridge normalized to the Wayfarer v2 portable representation in memory; authored source remains unchanged until explicitly migrated.")
     if "model_name" in identity_data:
         warnings.append("[identity].model_name is a legacy v1 field and is ignored by Wayfarer; configure the renderer through host/session RendererConfig instead.")
     if source_schema_version == V2_SCHEMA_VERSION and "forbidden_self_claims" in identity_data:
