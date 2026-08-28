@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+ENGINE = ROOT / "core" / "engine.py"
+OFFLINE = ROOT / "core" / "offline_template_renderer.py"
+
+
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count != 1:
+        raise RuntimeError(f"{label}: expected exactly one match, found {count}")
+    return text.replace(old, new, 1)
+
+
+def patch_engine() -> None:
+    text = ENGINE.read_text(encoding="utf-8")
+
+    text = replace_once(
+        text,
+        "from .renderer import LocalLLMRenderer, OutputValidator, render_expression\n",
+        "from .renderer import LocalLLMRenderer, OutputValidator, render_expression\n"
+        "from .consistency import ConsistencyLayer, regeneration_constraints\n"
+        "from .renderer_contract import ValidationAction, ValidationRequest\n",
+        "consistency imports",
+    )
+
+    text = replace_once(
+        text,
+        "        self.validator = OutputValidator()\n        self.persistence = Persistence(db_path)\n",
+        "        self.validator = OutputValidator()\n"
+        "        self.consistency = ConsistencyLayer(self.validator)\n"
+        "        self.persistence = Persistence(db_path)\n",
+        "consistency initialization",
+    )
+
+    old_decision = '''    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:\n        suspicion = self.pressures.pressures.get("suspicion")\n        suspicion_value = suspicion.magnitude if suspicion else 0.0\n        dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"\n        if resistance == "challenge":\n            dialogue_act = "challenge"\n        if risk > 0.8:\n            dialogue_act = "protect_boundary"\n        return {\n            "dialogue_act": dialogue_act,\n            "concealment_mode": "none",\n            "challenge_threshold": 0.60,\n            "suspicion": round(suspicion_value, 3),\n            "triggers": list(triggers),\n        }\n'''
+    new_decision = '''    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:\n        """Resolve semantic conduct independently from expression intensity.\n\n        A HIGH risk bucket may shorten/guard expression, but arousal alone is not\n        an identity-boundary event. The semantic dialogue act follows the actual\n        trigger/resistance policy so overload cannot masquerade as identity threat.\n        """\n\n        suspicion = self.pressures.pressures.get("suspicion")\n        suspicion_value = suspicion.magnitude if suspicion else 0.0\n        dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"\n        if resistance == "character_refusal":\n            dialogue_act = "protect_boundary"\n        elif resistance == "challenge":\n            dialogue_act = "challenge"\n        elif resistance == "go_quiet":\n            dialogue_act = "withdraw"\n        elif resistance == "deflect":\n            dialogue_act = "deflect"\n        elif resistance == "shift_topic":\n            dialogue_act = "redirect"\n        return {\n            "dialogue_act": dialogue_act,\n            "concealment_mode": "none",\n            "challenge_threshold": 0.60,\n            "suspicion": round(suspicion_value, 3),\n            "triggers": list(triggers),\n            "resistance_mode": resistance or "none",\n            "risk_bucket": bucket_risk(risk),\n        }\n'''
+    text = replace_once(text, old_decision, new_decision, "decision resolver")
+
+    old_validation = '''        violations = self.validator.check(\n            response,\n            retrieved,\n            deception_ledger=self.deception_ledger,\n            decision_payload=decision_payload,\n            forbidden_self_claims=self.identity.forbidden_self_claims,\n        )\n        if violations:\n            suppression_traces.append(_suppression_trace(\n                "output_validator",\n                "blocked",\n                "; ".join(violations),\n                "warning",\n            ))\n            original_response = response\n            response = self.validator.sanitize(\n                response, forbidden_self_claims=self.identity.forbidden_self_claims\n            )\n            if response != original_response:\n                suppression_traces.append(_suppression_trace(\n                    "renderer_sanitizer",\n                    "sanitized",\n                    "renderer output changed after validator violation",\n                    "warning",\n                ))\n            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "validation", {\n                "violations": violations,\n                "original_response": original_response,\n                "sanitized_response": response,\n                "suppression_trace": [trace.to_dict() for trace in suppression_traces],\n                "memory_types": ["validation"],\n            })\n\n        self._appraise_response_effect(response, risk, bucket)\n'''
+    new_validation = '''        validation_request = ValidationRequest(\n            candidate_text=response,\n            identity_constraints=tuple(self.identity.forbidden_self_claims),\n            interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),\n            relevant_history=tuple(retrieved),\n            decision_payload=dict(decision_payload),\n            canonical_context={"world": self.world.to_dict()},\n            deception_ledger=self.deception_ledger,\n        )\n        validation = self.consistency.evaluate(validation_request)\n        violations = [issue.detail for issue in validation.issues]\n        validation_action = validation.action.value\n        original_response = response\n\n        if validation.action == ValidationAction.SANITIZE_CONTINUE:\n            response = validation.output_text\n            suppression_traces.append(_suppression_trace(\n                "renderer_sanitizer",\n                "sanitized",\n                "soft consistency issue repaired locally",\n                "warning",\n            ))\n        elif validation.action == ValidationAction.REGENERATE_CONSTRAINED:\n            constraints = regeneration_constraints(validation)\n            retry_prompt = system_prompt\n            if constraints:\n                retry_prompt += "\\nCONSISTENCY RETRY CONSTRAINTS: " + "; ".join(constraints)\n            response = render_expression(\n                self.renderer,\n                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},\n                resolved_state={"system_prompt": retry_prompt, "user_text": user_text},\n                arc_context={},\n                evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],\n                retrieved_memories=retrieved,\n                private_thought_context="",\n                decision_payload=decision_payload,\n                expression_constraints={"max_chars": envelope.max_chars, "consistency_constraints": constraints},\n                deception_obligations=[],\n                seed=seed,\n            )\n            retry_validation = self.consistency.evaluate(ValidationRequest(\n                candidate_text=response,\n                identity_constraints=tuple(self.identity.forbidden_self_claims),\n                interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),\n                relevant_history=tuple(retrieved),\n                decision_payload=dict(decision_payload),\n                canonical_context={"world": self.world.to_dict()},\n                deception_ledger=self.deception_ledger,\n            ))\n            if retry_validation.issues:\n                fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")\n                response = render_expression(\n                    fallback_renderer,\n                    ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},\n                    resolved_state={"system_prompt": system_prompt, "user_text": user_text},\n                    arc_context={},\n                    evidence=[{"type": "input", "text": user_text}],\n                    retrieved_memories=retrieved,\n                    private_thought_context="",\n                    decision_payload=decision_payload,\n                    expression_constraints={"max_chars": envelope.max_chars},\n                    deception_obligations=[],\n                    seed=seed,\n                )\n            suppression_traces.append(_suppression_trace(\n                "consistency_layer",\n                "regenerated",\n                "hard renderer inconsistency triggered one bounded retry/fallback",\n                "warning",\n            ))\n        elif validation.action == ValidationAction.FALLBACK_IDENTITY_ONLY:\n            fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")\n            response = render_expression(\n                fallback_renderer,\n                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},\n                resolved_state={"system_prompt": system_prompt, "user_text": user_text},\n                arc_context={},\n                evidence=[{"type": "input", "text": user_text}],\n                retrieved_memories=retrieved,\n                private_thought_context="",\n                decision_payload=decision_payload,\n                expression_constraints={"max_chars": envelope.max_chars},\n                deception_obligations=[],\n                seed=seed,\n            )\n            fallback_validation = self.consistency.evaluate(ValidationRequest(\n                candidate_text=response,\n                identity_constraints=tuple(self.identity.forbidden_self_claims),\n                relevant_history=tuple(retrieved),\n                decision_payload=dict(decision_payload),\n                canonical_context={"world": self.world.to_dict()},\n                deception_ledger=self.deception_ledger,\n            ))\n            if fallback_validation.issues:\n                response = "..."\n            suppression_traces.append(_suppression_trace(\n                "consistency_layer",\n                "fallback",\n                "critical renderer inconsistency used deterministic identity-safe fallback",\n                "error",\n            ))\n\n        if violations:\n            suppression_traces.append(_suppression_trace(\n                "output_validator",\n                "blocked",\n                "; ".join(violations),\n                "warning",\n            ))\n            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "validation", {\n                "violations": violations,\n                "issues": [\n                    {"code": issue.code, "severity": issue.severity.value, "authority_source": issue.authority_source}\n                    for issue in validation.issues\n                ],\n                "action": validation_action,\n                "original_response": original_response,\n                "final_response": response,\n                "suppression_trace": [trace.to_dict() for trace in suppression_traces],\n                "memory_types": ["validation"],\n            })\n\n        self._appraise_decision_effect(decision_payload, risk, bucket)\n'''
+    text = replace_once(text, old_validation, new_validation, "validation policy")
+
+    old_effect = '''    def _appraise_response_effect(self, response: str, risk: float, bucket: str):\n        lowered = response.lower()\n        if bucket == "HIGH" and any(w in lowered for w in ["no", "stop", "enough", "won't"]):\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n            self.relationship.tension = min(1.0, self.relationship.tension + 0.02)\n        if "?" in response and self.relationship.tension < 0.5:\n            curiosity = self.pressures.ensure("curiosity")\n            curiosity.magnitude = min(1.0, curiosity.magnitude + 0.03)\n\n'''
+    new_effect = '''    def _appraise_decision_effect(self, decision_payload: dict[str, Any], risk: float, bucket: str):\n        """Apply consequences of the character's resolved conduct, not renderer wording.\n\n        Renderer punctuation or lexical choice must not become a hidden write path\n        into affective state. Future speech-plan effects belong here only when they\n        are represented as typed semantic decisions.\n        """\n\n        dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))\n        if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n            if dialogue_act in {"protect_boundary", "challenge"}:\n                self.relationship.tension = min(1.0, self.relationship.tension + 0.02)\n\n'''
+    text = replace_once(text, old_effect, new_effect, "decision effect")
+
+    text = replace_once(
+        text,
+        '''            "violations_caught": violations,\n            "suppression_trace": suppression_payload,\n''',
+        '''            "violations_caught": violations,\n            "validation_action": validation_action,\n            "validation_issues": [\n                {"code": issue.code, "severity": issue.severity.value, "authority_source": issue.authority_source}\n                for issue in validation.issues\n            ],\n            "suppression_trace": suppression_payload,\n''',
+        "validation result projection",
+    )
+
+    ENGINE.write_text(text, encoding="utf-8")
+
+
+def patch_offline_renderer() -> None:
+    text = OFFLINE.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        '''        dialogue_act = str(decision_payload.get("dialogue_act", ""))\n        if dialogue_act == "protect_boundary" or any(\n''',
+        '''        dialogue_act = str(decision_payload.get("dialogue_act", ""))\n        if dialogue_act == "withdraw":\n            return "quiet"\n        if dialogue_act == "protect_boundary" or any(\n''',
+        "offline withdraw precedence",
+    )
+    OFFLINE.write_text(text, encoding="utf-8")
+
+
+if __name__ == "__main__":
+    patch_engine()
+    patch_offline_renderer()
