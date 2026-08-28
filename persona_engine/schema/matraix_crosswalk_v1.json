@@ -1,5 +1,6 @@
 {
   "crosswalk_version": "1.0",
+  "unmapped_dimension_policy": "preserve_only_unsupported",
   "reference": {
     "name": "MatrAIx Persona Dimension Space",
     "repository": "MatrAIx-ai/MatrAIx-Persona-8B",
@@ -9,7 +10,7 @@
     "schema_version": "1.0",
     "target_dimensions": 1290,
     "frozen_at": "2026-08-28",
-    "policy": "Full external dimension dictionaries are preserved losslessly. Native Wayfarer projection occurs only through explicit mappings in this file."
+    "policy": "Full external dimension dictionaries are preserved losslessly. Native Wayfarer projection occurs only through explicit mappings in this file. Every unlisted MatrAIx dimension is classified as preservation-only unsupported until a reviewed crosswalk revision assigns native semantics."
   },
   "relation_types": ["exact", "approximate", "one_to_many", "many_to_one", "unsupported"],
   "mappings": [

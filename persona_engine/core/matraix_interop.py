@@ -4,6 +4,10 @@ The crosswalk is deliberately conservative. Complete external dimension maps are
 preserved under ``phenotype.extensions.matraix.dimensions``. Native projection
 occurs only through a frozen, versioned crosswalk, so adding interoperability
 never grants an external taxonomy authority over Wayfarer's internal semantics.
+
+Any MatrAIx dimension not explicitly listed in the crosswalk is treated as
+preservation-only unsupported data. That default is intentional: semantic
+silence is safer than inventing equivalence from a similar label.
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ from .cartridge_v2 import PHENOTYPE_NAMESPACES, PHENOTYPE_SCHEMA_VERSION, valida
 DEFAULT_CROSSWALK_PATH = Path(__file__).resolve().parents[1] / "schema" / "matraix_crosswalk_v1.json"
 RELATION_TYPES = {"exact", "approximate", "one_to_many", "many_to_one", "unsupported"}
 DIRECTIONS = {"bidirectional", "import_only", "bidirectional_if_consistent", "bidirectional_bundle", "preserve_only"}
+UNMAPPED_DIMENSION_POLICY = "preserve_only_unsupported"
 
 
 class MatraixInteropError(ValueError):
@@ -28,9 +33,9 @@ def _read_json(path: str | Path) -> dict[str, Any]:
     try:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise MatraixInteropError(f"could not read MatrAIx crosswalk {path}: {exc}") from exc
+        raise MatraixInteropError(f"could not read JSON {path}: {exc}") from exc
     if not isinstance(payload, dict):
-        raise MatraixInteropError("MatrAIx crosswalk root must be an object")
+        raise MatraixInteropError(f"JSON root must be an object: {path}")
     return payload
 
 
@@ -39,6 +44,10 @@ def validate_crosswalk(data: dict[str, Any]) -> None:
     mappings = data.get("mappings")
     if str(data.get("crosswalk_version", "")) != "1.0":
         raise MatraixInteropError("unsupported MatrAIx crosswalk_version")
+    if data.get("unmapped_dimension_policy") != UNMAPPED_DIMENSION_POLICY:
+        raise MatraixInteropError(
+            f"unmapped_dimension_policy must be {UNMAPPED_DIMENSION_POLICY!r}"
+        )
     if not isinstance(reference, dict):
         raise MatraixInteropError("crosswalk reference must be an object")
     for field in ("repository", "commit_sha", "schema_path", "schema_blob_sha", "schema_version", "target_dimensions"):
@@ -100,6 +109,113 @@ def load_crosswalk(path: str | Path | None = None) -> dict[str, Any]:
     return payload
 
 
+def mapped_matraix_ids(crosswalk: dict[str, Any] | None = None) -> set[str]:
+    mapping_data = copy.deepcopy(crosswalk) if crosswalk is not None else load_crosswalk()
+    validate_crosswalk(mapping_data)
+    return {
+        source_id
+        for mapping in mapping_data["mappings"]
+        for source_id in mapping["matraix_ids"]
+    }
+
+
+def classify_matraix_dimension(dimension_id: str, crosswalk: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return explicit crosswalk semantics for one external dimension ID."""
+
+    mapping_data = copy.deepcopy(crosswalk) if crosswalk is not None else load_crosswalk()
+    validate_crosswalk(mapping_data)
+    matches = [mapping for mapping in mapping_data["mappings"] if dimension_id in mapping["matraix_ids"]]
+    if not matches:
+        return {
+            "dimension_id": dimension_id,
+            "relation": "unsupported",
+            "direction": "preserve_only",
+            "explicit": False,
+            "policy": UNMAPPED_DIMENSION_POLICY,
+            "mapping_ids": [],
+        }
+    relations = sorted({str(mapping["relation"]) for mapping in matches})
+    directions = sorted({str(mapping["direction"]) for mapping in matches})
+    return {
+        "dimension_id": dimension_id,
+        "relation": relations[0] if len(relations) == 1 else "multiple",
+        "direction": directions[0] if len(directions) == 1 else "multiple",
+        "explicit": True,
+        "policy": "explicit_mapping",
+        "mapping_ids": [str(mapping["id"]) for mapping in matches],
+    }
+
+
+def audit_matraix_catalog(
+    catalog: dict[str, Any],
+    *,
+    crosswalk: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Audit a local MatrAIx ``dimensions.json`` against the frozen crosswalk.
+
+    This is an offline integrity/compatibility audit. It validates schema version,
+    declared dimension count, duplicate IDs, and whether every explicitly mapped
+    source ID exists in the supplied catalog. It does not fetch network content
+    or claim that every upstream dimension has native Wayfarer semantics.
+    """
+
+    if not isinstance(catalog, dict):
+        raise MatraixInteropError("MatrAIx catalog must be an object")
+    mapping_data = copy.deepcopy(crosswalk) if crosswalk is not None else load_crosswalk()
+    validate_crosswalk(mapping_data)
+    reference = mapping_data["reference"]
+    dimensions = catalog.get("dimensions")
+    if not isinstance(dimensions, list):
+        raise MatraixInteropError("MatrAIx catalog dimensions must be an array")
+
+    ids: list[str] = []
+    malformed_indexes: list[int] = []
+    for index, item in enumerate(dimensions):
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"].strip():
+            malformed_indexes.append(index)
+            continue
+        ids.append(item["id"])
+    duplicate_ids = sorted({item for item in ids if ids.count(item) > 1})
+    catalog_ids = set(ids)
+    mapped_ids = mapped_matraix_ids(mapping_data)
+    missing_mapped_ids = sorted(mapped_ids - catalog_ids)
+    schema_version_match = str(catalog.get("schemaVersion", "")) == str(reference["schema_version"])
+    declared_target = catalog.get("targetDimensions")
+    target_count_match = isinstance(declared_target, int) and declared_target == int(reference["target_dimensions"])
+    actual_count_match = len(ids) == int(reference["target_dimensions"])
+
+    explicit_ids = sorted(catalog_ids & mapped_ids)
+    implicit_preserve_only_ids = sorted(catalog_ids - mapped_ids)
+    valid = not malformed_indexes and not duplicate_ids and not missing_mapped_ids and schema_version_match and target_count_match and actual_count_match
+    return {
+        "valid": valid,
+        "crosswalk_version": mapping_data["crosswalk_version"],
+        "unmapped_dimension_policy": mapping_data["unmapped_dimension_policy"],
+        "catalog_schema_version": catalog.get("schemaVersion"),
+        "expected_schema_version": reference["schema_version"],
+        "catalog_declared_target_dimensions": declared_target,
+        "expected_target_dimensions": reference["target_dimensions"],
+        "catalog_actual_dimension_count": len(ids),
+        "schema_version_match": schema_version_match,
+        "target_count_match": target_count_match,
+        "actual_count_match": actual_count_match,
+        "malformed_indexes": malformed_indexes,
+        "duplicate_ids": duplicate_ids,
+        "missing_mapped_ids": missing_mapped_ids,
+        "explicitly_mapped_dimension_count": len(explicit_ids),
+        "implicit_preserve_only_dimension_count": len(implicit_preserve_only_ids),
+        "explicitly_mapped_dimension_ids": explicit_ids,
+    }
+
+
+def audit_matraix_catalog_file(
+    path: str | Path,
+    *,
+    crosswalk: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return audit_matraix_catalog(_read_json(path), crosswalk=crosswalk)
+
+
 def _get_path(data: dict[str, Any], dotted: str) -> Any:
     current: Any = data
     for part in dotted.split("."):
@@ -156,6 +272,7 @@ def import_matraix_dimensions(
         raise MatraixInteropError("phenotype.extensions must be an object")
     extensions["matraix"] = {
         "crosswalk_version": mapping_data["crosswalk_version"],
+        "unmapped_dimension_policy": mapping_data["unmapped_dimension_policy"],
         "reference": copy.deepcopy(mapping_data["reference"]),
         "dimensions": copy.deepcopy(dimensions),
         "applied_mappings": [],

@@ -56,14 +56,27 @@ The first crosswalk is frozen in `schema/matraix_crosswalk_v1.json`. It referenc
 
 Interoperability is lossless before it is clever. Every imported MatrAIx dimension, including dimensions unknown to Wayfarer, is preserved under `phenotype.extensions.matraix.dimensions`. The crosswalk then applies only explicit native projections.
 
-Crosswalk relations are typed as `exact`, `approximate`, `one_to_many`, `many_to_one`, or `unsupported`. Exact mappings may be bidirectional. Approximate mappings are import-only unless a future crosswalk establishes a reversible semantic transform. One-to-many export occurs only when the native views remain consistent. Many-to-one mappings use explicit named bundles. Unsupported dimensions are preservation-only.
+Crosswalk relations are typed as `exact`, `approximate`, `one_to_many`, `many_to_one`, or `unsupported`. Exact mappings may be bidirectional. Approximate mappings are import-only unless a future crosswalk establishes a reversible semantic transform. One-to-many export occurs only when the native views remain consistent. Many-to-one mappings use explicit named bundles. Explicit unsupported dimensions are preservation-only.
+
+The root crosswalk policy `unmapped_dimension_policy = preserve_only_unsupported` closes the remaining ambiguity for the rest of the 1,290-dimensional space. A dimension not listed in a reviewed mapping is automatically classified as unsupported for native execution and preserved verbatim. Wayfarer never guesses a native semantic mapping from a label or description.
 
 This prevents two opposite errors: discarding useful external phenotype information merely because a small runtime does not execute it, and pretending that similarly named concepts are semantically identical when they are not.
 
-`persona_engine.core.matraix_interop` provides deterministic import/export helpers. `tools/matraix_crosswalk.py` exposes the same operations for offline JSON files. No network access or MatrAIx package installation is required at runtime.
+`persona_engine.core.matraix_interop` provides deterministic import/export, mapping classification, and offline catalog-audit helpers. `tools/matraix_crosswalk.py` exposes the same operations for JSON files. No network access or MatrAIx package installation is required at runtime.
+
+Examples:
+
+```bash
+python tools/matraix_crosswalk.py import --input persona.json --output phenotype.json
+python tools/matraix_crosswalk.py export --input phenotype.json --output dimensions.json
+python tools/matraix_crosswalk.py classify primary_language
+python tools/matraix_crosswalk.py audit --catalog dimensions.json --output audit.json
+```
+
+The audit operation checks the locally supplied upstream catalog against the frozen reference: schema version, declared 1,290-dimension target, actual dimension count, duplicate/malformed IDs, and existence of every source ID used by an explicit Wayfarer mapping. It fails closed but remains offline. The frozen Git commit and blob SHA identify which upstream catalog should be audited.
 
 The crosswalk is a projection layer, not a new identity authority. Importing `economic_motivation`, for example, may populate authored phenotype description but cannot create an executable goal. Imported demographic fields that lack a native Wayfarer namespace remain preserved external descriptors rather than being forced into unrelated internal state.
 
 ## Current boundary
 
-The implemented M2 foundation now includes portable identity, structured self-model, phenotype namespaces, progressive fidelity, versioned v1 migration, and the first frozen MatrAIx interoperability layer. It does not introduce developmental plasticity constants, social authority, the M3 canonical continuity ledger, or cross-host writer leases. Those remain separate milestones with their own acceptance tests.
+The implemented M2 foundation includes portable identity, structured self-model, phenotype namespaces, progressive fidelity, versioned v1 migration, and a frozen, lossless MatrAIx interoperability layer with an explicit fallback policy for all unmapped dimensions. It does not introduce developmental plasticity constants, social authority, the M3 canonical continuity ledger, or cross-host writer leases. Those remain separate milestones with their own acceptance tests.
