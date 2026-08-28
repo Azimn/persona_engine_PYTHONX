@@ -1,3 +1,0 @@
-Project Wayfarer M1 ordered maintenance trigger.
-
-Attempt 3 uses tools/wayfarer_m1_patch_v2.py with compile checks between architectural steps.
