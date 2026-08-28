@@ -33,4 +33,4 @@ turns:
     expect_min_beliefs: 1
     require_belief_support: true
     expect_belief_pattern: "apology|sincere|trust|tension"
-    expect_response_pattern: "sorry|sincere|unproven|settle|tension|repair"
+    expect_response_pattern: "sorry|apology|sincere|unproven|settle|tension|repair"

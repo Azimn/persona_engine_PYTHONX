@@ -2,10 +2,6 @@ name: Wayfarer Evidence Capture
 
 on:
   workflow_dispatch:
-  push:
-    branches: [wayfarer]
-    paths:
-      - WAYFARER_EVIDENCE_TRIGGER.txt
 
 permissions:
   contents: write
