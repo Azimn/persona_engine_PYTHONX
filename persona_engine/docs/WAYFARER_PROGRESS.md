@@ -1,160 +1,208 @@
 # Project Wayfarer Live Progress
 
-This file is the short-form operational status for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. This file records what is actually true now so a new ChatGPT, Codex, Claude Code, or human session can resume without reconstructing state from chat history.
+This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. A new ChatGPT, Codex, Claude Code, or human development session should read this file before inferring project state from older chat history.
 
 Last updated: 2026-08-28
 
-## Current branch
+## Current branch and lineage
 
-- Project name: **Project Wayfarer**
-- Repository: `Azimn/persona_engine_PYTHONX`
-- Development branch: `wayfarer`
-- Frozen pre-Wayfarer baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
-- M1 renderer-decoupling commit: `c064c3d4fdedfd08668171b26fc9e26cb8443c70`
-- M1 ontology-decoupling commit: `ba78a1cfccb1f0e78aa46ea41a5e251f54bdfca0`
+Project: **Project Wayfarer**  
+Repository: `Azimn/persona_engine_PYTHONX`  
+Development branch: `wayfarer`  
+Frozen pre-Wayfarer branch: `main`  
+Frozen baseline commit: `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
-A normal clone still lands on `main`. Use:
+A normal clone may still land on `main`. Use:
 
 ```bash
 git switch wayfarer
 ```
 
-before evaluating current Wayfarer behavior. Do not rewrite `main` merely to make it current. Its purpose is to preserve the before-state.
+Do not move the frozen baseline merely to make it look current.
+
+## Current runtime checkpoint
+
+Latest integrated runtime commit before this documentation refresh:
+
+```text
+d4eda44380a186cbd1da208dbf983213a9425f17
+Integrate consistency severity and renderer-independent decision effects
+```
+
+The immediately preceding consistency-contract commit was:
+
+```text
+25a0f4eaa46d99afc2960bc2dc9558ad10b77135
+Formalize consistency layer and early invariance tests
+```
+
+That first consistency commit intentionally exposed a real long-silence semantic bug: generic high arousal was being converted into `protect_boundary`, so eight hours of bounded idle catch-up followed by `...` produced an identity-erasure refusal even though there was no identity threat. CI at that checkpoint reported `233 passed, 1 failed, 1 skipped, 1 warning` on Python 3.11, with the same new scenario failing on Python 3.12.
+
+The runtime integration commit fixes the defect at the decision layer rather than relaxing the simulator oracle. High arousal now changes expression bandwidth but does not by itself define the semantic dialogue act. `character_refusal` resolves to `protect_boundary`, `challenge` remains challenge, `go_quiet` resolves to `withdraw`, `deflect` resolves to deflect, and `shift_topic` resolves to redirect. The offline renderer explicitly honors `withdraw` as quiet behavior.
+
+The targeted integration workflow completed successfully before pushing `d4eda443...`. The normal Python 3.11/3.12 Wayfarer CI is triggered by this documentation commit and is the final verification for this checkpoint.
 
 ## Frozen baseline findings
 
-The old documentation said `171 passed, 1 skipped`, but that count was stale.
-
-Independent clean GitHub Actions verification of the untouched baseline found:
-
-- Python 3.11: `177 passed, 2 failed, 1 skipped, 1 warning`
-- Python 3.12: `178 passed, 1 failed, 1 skipped, 1 warning`
-
-The shared failure was `test_output_validator_and_sanitizer_are_traced`. It patched `renderer.generate`, while live expression routing had moved to `renderer.generate_expression`, so the invalid text no longer entered the real production seam. The Python 3.11 baseline also exposed a brittle lexical expectation in the anchored-misread simulator. Both findings are preserved in `WAYFARER_BASELINE.md`.
-
-## Latest verified runtime result
-
-The ordered M1 maintenance run `33174272164` completed successfully and pushed both runtime commits only after compilation, targeted tests, and the complete Python 3.11 suite passed.
-
-Verification inside that run:
+The pre-Wayfarer documentation claimed `171 passed, 1 skipped`; that count was stale. Clean GitHub-hosted execution of the frozen baseline found:
 
 ```text
-Renderer/identity targeted tests: 7 passed
-M1 ontology + renderer + engine targeted tests: 21 passed
-Full Python 3.11 suite: 198 passed, 1 skipped, 1 warning in 3.47s
+Python 3.11: 177 passed, 2 failed, 1 skipped, 1 warning
+Python 3.12: 178 passed, 1 failed, 1 skipped, 1 warning
 ```
 
-The normal two-version Wayfarer CI should be treated as the final branch verification after the documentation/cleanup commits in this pass. Check GitHub Actions and update this section if its result differs.
+One shared failure was a stale renderer test patching `generate()` after production had moved to `generate_expression()`. Python 3.11 also exposed a brittle lexical simulator expectation. These findings are preserved as baseline history rather than rewritten away.
 
-## Completed foundation work
+## M0: baseline and durable project memory
 
-- [x] Created `wayfarer` from the frozen PythonX baseline.
-- [x] Added Wayfarer CI on Python 3.11 and 3.12.
-- [x] Added `WAYFARER_CHARTER.md`.
-- [x] Added `AI_DEVELOPER_HANDOFF.md`.
-- [x] Added `AUTHORITY_MATRIX.md`.
-- [x] Added `WAYFARER_BASELINE.md`.
-- [x] Added `WAYFARER_MASTER_PLAN.md`.
-- [x] Added this live progress tracker.
-- [x] Branded README/current-status documentation as Project Wayfarer.
-- [x] Updated root `AGENTS.md` so AI coding tools are directed to Wayfarer project memory first.
+**Status: COMPLETE for deterministic/offline evidence.**
 
-## Completed M1 ownership/authority repair
+Completed:
 
-### Production-path validator coverage
+- [x] Frozen pre-Wayfarer baseline commit recorded.
+- [x] Wayfarer CI established for Python 3.11 and 3.12.
+- [x] Architecture charter, authority matrix, baseline manifest, AI handoff rules, master roadmap, live tracker, and root `AGENTS.md` established.
+- [x] All documented deterministic simulators captured through the evidence workflow.
+- [x] Deterministic Pretorius session/state evidence captured.
+- [x] Offline-renderer defect found by that evidence was preserved before repair.
+- [x] Simulator semantic oracles stabilized so valid repair/apology language does not fail on incidental wording.
+- [D] A local-model evidence transcript is useful but does not block M0.
 
-- [x] Corrected `test_output_validator_and_sanitizer_are_traced` to patch `generate_expression()`, the active production expression seam.
+## M1: ownership, canonicality, renderer independence, ontology
 
-### Fail-closed canonicality
+**Status: COMPLETE.**
 
-- [x] Explicit noncanonical markers veto canonical promotion.
-- [x] `interpretive_belief` is not a default-canonical event class.
-- [x] `private_cognition` and other output/UI families are structurally noncanonical.
-- [x] Added adversarial canonicality tests.
+Key completed contracts:
 
-### Renderer is not identity
+- [x] Production validator test exercises `generate_expression()`, the actual renderer seam.
+- [x] Explicit noncanonical markers fail closed.
+- [x] Interpretive belief, private cognition, renderer speech, UI/avatar/voice output remain noncanonical.
+- [x] Renderer/model selection is not identity state.
+- [x] `InteriorEngine` does not consult `identity.model_name`.
+- [x] Generic engine code no longer assumes every character must deny being an AI or language model.
+- [x] Self-model restrictions are character-owned.
+- [x] Artificial-self and human-self characters coexist under the same generic engine.
 
-- [x] Legacy `[identity].model_name` is optional rather than required.
-- [x] Legacy cartridge `model_name` cannot select a renderer.
-- [x] Legacy cartridge use produces a migration warning.
-- [x] Bundled cartridges no longer contain renderer hints.
-- [x] `CoreIdentity.model_name` is compatibility-only `InitVar`, not stored identity.
-- [x] `InteriorEngine` no longer reads `identity.model_name` at all.
-- [x] Default engine renderer bootstrap is explicitly offline host/runtime policy.
-- [x] Added a regression that removes the compatibility class attribute and proves `InteriorEngine` still boots correctly.
+## M2: `.snp` v2 and interoperability phenotype
 
-The `CoreIdentity.model_name` InitVar remains only as a deliberate compatibility shim for pre-Wayfarer constructor callers. Its eventual removal belongs to an explicit schema/API migration, not an incidental refactor.
+**Status: ARCHITECTURAL FOUNDATION COMPLETE.**
 
-### Ontology is character-scoped
+Completed:
 
-- [x] Removed universal `I am an AI` / `language model` identity assumptions from generic `identity.py`.
-- [x] Removed universal AI/language-model phrase bans from `OutputValidator`.
-- [x] Removed the universal `Never say you are an AI or language model` workspace instruction.
-- [x] Added character-scoped `forbidden_self_claims` to `CoreIdentity` and v1 cartridge validation.
-- [x] Engine prompts, validation, and sanitization now consume the current character's self-model constraints.
-- [x] Migrated bundled existing characters to explicit self-model constraints so historical behavior remains character-owned rather than engine-owned.
-- [x] Added a human-self/artificial-self regression pair under the same generic engine.
-- [x] Verified an artificial character may truthfully render `I am an AI` while a human-self character configured to reject that claim catches and sanitizes the same renderer output.
-- [x] Verified character self-model constraints survive renderer replacement.
+- [x] Permanent `entity_uuid` separate from display name.
+- [x] Deterministic, versioned v1-to-v2 normalization.
+- [x] Structured substrate-neutral self-model claims with certainty and mutability semantics.
+- [x] Authored phenotype namespaces separated from lived mutable state.
+- [x] Unknown portable data must be preserved.
+- [x] Progressive fidelity levels 1 through 5 defined.
+- [x] Machine-readable Wayfarer v2 schema companion added.
+- [x] MatrAIx reference frozen to upstream commit `39d850270917db25535dac3f7aa2561732050e82`, schema blob `742a50ed79f106675311c09f016fff48951f841c`, schema version 1.0, 1,290 dimensions.
+- [x] Lossless MatrAIx import/export layer implemented.
+- [x] Exact, approximate, one-to-many, many-to-one, and unsupported mapping relations represented explicitly.
+- [x] Every unmapped MatrAIx dimension has defined `preserve_only_unsupported` behavior rather than guessed native semantics.
+- [x] Offline crosswalk/catalog audit can validate a local copy of the frozen upstream schema.
 
-`forbidden_self_claims` is intentionally a small v1 compatibility mechanism. M2 should replace/extend it with a more structured `.snp` v2 self-model/ontology representation rather than growing a large literal phrase list.
+Native crosswalk enrichment can continue later without reopening the underlying portability architecture.
 
-## M1 status
+Last fully green pre-consistency CI checkpoint: Python 3.11 `224 passed, 1 skipped, 1 warning`; Python 3.12 also green.
 
-**Runtime ownership work: COMPLETE.**
+## Consistency/validation checkpoint pulled forward from later milestones
 
-Remaining pre-M2 housekeeping is evidence capture, not another identity-authority redesign:
+This phase implemented several load-bearing contracts earlier than originally scheduled.
 
-- [ ] Capture dedicated simulator artifacts with commands and outputs.
-- [ ] Capture a deterministic Pretorius human-visible baseline transcript package.
-- [ ] Record final normal Python 3.11/3.12 Wayfarer CI after this pass.
+### Explicit consistency interface
 
-## Design decision: continuity ledger simplicity
+- [x] Added typed `ValidationRequest` and `ValidationResult` assembly boundary.
+- [x] Validation input explicitly distinguishes candidate text, character-owned identity constraints, noncanonical interpretive state, selected relevant history, resolved decision payload, canonical context, authorization, and deception obligations.
+- [x] Added `CONSISTENCY_LAYER.md` so a future contributor cannot silently change the renderer/validator seam without changing the contract.
 
-The original roadmap proposed a hash-chained event ledger. That is stronger than the current threat model requires.
+### Severity and response policy
 
-For the local-first single-owner prototype, the default M3 design is:
+- [x] `soft` issue: local sanitize-and-continue.
+- [x] `hard` issue: one bounded constrained regeneration, followed by deterministic offline fallback if still invalid.
+- [x] `critical` issue: skip ordinary retry and use deterministic identity-safe fallback.
+- [x] Self-model and explicit World Authority conflicts are critical.
+- [x] False-memory, unauthorized-fabrication, private-user-state, and deception contradictions are hard.
+- [x] Validation events now record issue code, severity, authority source, and chosen response action.
 
-- append-only event log,
-- monotonically increasing sequence numbers,
-- event UUIDs,
-- continuity epoch,
-- transactional writes,
-- schema validation,
-- causal-parent references where useful,
-- deterministic state digests/checkpoints,
-- SQLite/database integrity checks,
-- explicit export/import validation.
+### Renderer output no longer writes affect through wording
 
-A per-event cryptographic previous-hash chain is **not required by default**. Cryptographic chaining becomes an optional integrity profile only if Wayfarer later introduces a real requirement such as untrusted multi-party synchronization, remote custody, hostile hosts, or proof of tamper evidence across administrative boundaries.
+- [x] Removed raw response-text/punctuation feedback from character pressure updates.
+- [x] Post-expression consequences now consume the resolved semantic `decision_payload` rather than whether a renderer happened to use `?`, `no`, or `won't`.
+- [x] Added regression proving two renderers with different punctuation cannot create different pressure trajectories from the same resolved turn.
 
-## Design decision: plasticity parameters require calibration
+### Early renderer-swap invariance
 
-Wayfarer must not turn personality development into tables of aesthetically chosen decimals.
+- [x] Added deterministic renderer-swap contract tests holding character input/history fixed while changing surface wording.
+- [x] Tests compare identity, slow beliefs, relationship state, pressures, decision payload, interpretive beliefs, and memory semantics.
+- [x] Added manual `tools/renderer_swap_probe.py` for a real two-Ollama-model local experiment when suitable models are available.
 
-M7 therefore begins with a calibration gate:
+## Belief-structure audit
 
-1. Start with a small number of shared plasticity profiles by state layer or semantic class.
-2. Define the observable behavioral effect before tuning a parameter.
-3. Run sensitivity analysis over plausible ranges.
-4. Remove or collapse parameters that are not identifiable from observable behavior.
-5. Require per-trait overrides to have a documented reason and experimental provenance.
-6. Calibrate against repeated scripted scenarios, longitudinal tests, cross-renderer tests, and human judgments where appropriate.
-7. Hold out scenarios from tuning so the model is not simply fitted to regression cases.
-8. Version parameter sets and record which experiments justified them.
-9. Treat numerical precision as implementation precision, not scientific certainty.
+**Finding: two structures exist intentionally, at different timescales. They are not duplicate authorities.**
 
-The goal is a parsimonious developmental model whose parameters earn their existence empirically.
+`InterpretiveBelief` is fast, turn-level, source-grounded, subjective, deterministic, and noncanonical. `BeliefLedger` is slow, persistent, cartridge-defined, and consolidation/evidence-gated. The required causal bridge is:
+
+```text
+visible evidence
+  -> interpretive belief
+  -> memory/evidence events
+  -> explicit consolidation
+  -> slow belief ledger
+```
+
+No direct `InterpretiveBelief.confidence -> BeliefRecord.value` assignment is permitted. See `BELIEF_TIMESCALE_AUDIT.md`.
+
+## M8 homeostasis acceptance gate
+
+The homeostasis milestone may not add variables simply because they sound psychologically plausible.
+
+`HOMEOSTASIS_ACCEPTANCE_GATE.md` now requires every proposed state variable to declare its owner, semantic range, baseline source, explicit input events, deterministic/calibrated update rule, decay/recovery rule, downstream consumers, observable consequence, ablation flag, calibration plan, persistence timescale, and performance cost.
+
+A state variable that no real decision, interpretation, memory, relationship, consistency, or speech-planning path reads does not ship.
+
+## M19 ablation split
+
+The Minimum Viable Individual work is now explicitly two studies:
+
+```text
+Study A: hold renderer fixed, remove character machinery
+Study B: hold character machinery fixed, reduce renderer capability
+```
+
+Only after the main effects are understood should reduced character kernels and reduced renderers be combined factorially. See `ABLATION_STUDY_PLAN.md`.
+
+## Pressure-scenario audit
+
+Identity rewrite, accusation/integrity pressure, and intimacy/care under uncertain trust already have meaningful existing coverage.
+
+Long silence was only partially covered before this phase. Wayfarer now has a real eight-hour persisted wall-clock advance plus process restart scenario. It verifies that identity persists and bounded idle catch-up materially changes somatic state rather than resetting it.
+
+The test exposed a genuine semantic bug, now repaired: overload no longer masquerades as an identity boundary.
+
+Important remaining limitation: the current pre-M4 catch-up still caps long gaps at 200 five-second internal cycles. Because `WorldState.idle_events()` receives five-second slices, this is not a complete representation of eight hours of subject time and does not yet generate correct long-gap absence semantics. That belongs to M4 ContinuityClock, not to another affect variable. See `PRESSURE_SCENARIO_AUDIT.md`.
+
+## Design decision: M3 continuity ledger remains simple
+
+No mandatory cryptographic previous-event hash chain for the local single-owner prototype.
+
+M3 target remains an append-only transactional continuity log with monotonic sequence, event UUID, permanent subject UUID, continuity epoch, subject/wall time, source/authority metadata, visibility/canonicality, causal references where useful, schema versioning, deterministic state checkpoints/digests, SQLite integrity checks, and explicit import/export validation.
+
+Cryptographic chaining is deferred unless Wayfarer later gains a real untrusted-sync or hostile-custody threat model.
+
+## Design decision: M7 plasticity parameters require calibration
+
+Wayfarer must not encode aesthetic decimal precision as scientific validity. Start with a very small number of shared plasticity profiles, define observable effects, run sensitivity/identifiability checks, compare against simpler models, hold out scenarios from tuning, evaluate across renderers, and require evidence before adding per-trait overrides.
 
 ## Immediate next actions
 
-1. Capture and preserve all documented deterministic simulator outputs as the remaining M0 evidence package.
-2. Capture a repeatable deterministic Pretorius transcript, event log, renderer status, and final state information.
-3. Confirm the normal Python 3.11/3.12 Wayfarer CI is green after the M1 code and cleanup commits.
-4. Update `WAYFARER_BASELINE.md` with those artifact locations/results without changing the frozen baseline commit.
-5. Begin M2 `.snp` v2 design with permanent entity identity, structured self-model/ontology, phenotype namespaces, progressive-fidelity rules, and MatrAIx interoperability crosswalk planning.
-6. Before implementing M2 plasticity fields, keep the M7 calibration rule in force: schema expressiveness does not justify arbitrary runtime parameters.
+1. Confirm the normal Python 3.11/3.12 CI for the integrated consistency checkpoint is green and record the exact count here.
+2. Begin M3 as a phase-sized ledger implementation: add the canonical continuity table beside the existing diagnostic `event_log`, dual-write only authority-eligible canonical events, key by permanent subject UUID, add sequence/event UUID/epoch/provenance/visibility/schema fields, deterministic checkpoints, integrity validation, and event-tail export/import.
+3. Keep legacy `event_log` during M3 migration rather than rewriting persistence in one destructive step.
+4. Expand replay only after the ledger event contract is stable.
+5. In M4, replace bounded five-second pseudo-catch-up with explicit elapsed-time/ContinuityClock semantics so an eight-hour absence is represented as eight hours without executing every missing second.
+6. Run the manual two-Ollama-model renderer-swap probe when local models are available and preserve its output as evidence, but do not make model availability a CI requirement.
 
-## Rule for future contributors
+## Contributor rule
 
-If this file, `WAYFARER_MASTER_PLAN.md`, and the code disagree, do not guess which is correct. Inspect branch history and tests, establish live behavior, then update repository documentation in the same work pass. Repository documentation is part of the implementation contract.
+If code, `WAYFARER_MASTER_PLAN.md`, and this file disagree, inspect the live branch/tests first and then update repository documentation in the same work pass. Do not guess from stale chat context. Repository documentation is part of the implementation contract.
