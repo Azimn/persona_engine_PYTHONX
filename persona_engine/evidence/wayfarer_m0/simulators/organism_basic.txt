@@ -1,0 +1,6 @@
+$ python persona_engine/simulator.py --script persona_engine/simulator_scripts/organism_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
+Turn 1: PASS
+Turn 2: PASS
+Turn 3: PASS
+Dream changed: ['trust_user']
+SIMULATOR_EXIT_CODE=0

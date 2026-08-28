@@ -1,0 +1,7 @@
+$ python persona_engine/simulator.py --script persona_engine/simulator_scripts/interpretation_anchored_misread.yaml --cartridge persona_engine/cartridges/pretorius.snp
+Turn 1: PASS
+Turn 2: PASS
+Turn 3: PASS
+Turn 4: PASS
+Dream changed: []
+SIMULATOR_EXIT_CODE=0

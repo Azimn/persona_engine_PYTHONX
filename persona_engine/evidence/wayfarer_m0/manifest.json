@@ -1,0 +1,53 @@
+{
+  "all_simulators_passed": false,
+  "captured_at_utc": "2026-08-28T13:23:28.940738+00:00",
+  "evidence_schema": "wayfarer-m0-evidence-manifest-v1",
+  "files": [
+    {
+      "bytes": 72064,
+      "path": "persona_engine/evidence/wayfarer_m0/pretorius_deterministic_session.json",
+      "sha256": "173316b194da54e7fb23a46da7eb93d913012a4206ee23a26edde48164ca7229"
+    },
+    {
+      "bytes": 134,
+      "path": "persona_engine/evidence/wayfarer_m0/simulator_results.tsv",
+      "sha256": "0f2fac3761cc978b38d210a0330fa78207de95459ac559f894b88a7a07d0271c"
+    },
+    {
+      "bytes": 260,
+      "path": "persona_engine/evidence/wayfarer_m0/simulators/interpretation_anchored_misread.txt",
+      "sha256": "ecba89edcc0584eb0de781360701307bc652a0439dee01448fdcade41915d6cb"
+    },
+    {
+      "bytes": 7915,
+      "path": "persona_engine/evidence/wayfarer_m0/simulators/interpretation_basic.txt",
+      "sha256": "e7152b49d3801df28bb0f65e3bc334de1c33d51749731f86e5936a90980b136b"
+    },
+    {
+      "bytes": 242,
+      "path": "persona_engine/evidence/wayfarer_m0/simulators/organism_basic.txt",
+      "sha256": "3b43d23b764c22b43271c2ecd07075e6bc321256eabd5a22f336063bee7622ab"
+    },
+    {
+      "bytes": 255,
+      "path": "persona_engine/evidence/wayfarer_m0/simulators/personaconsole_v6_compat.txt",
+      "sha256": "80cc8782a4078fb7a77cea71e5118bb01b3f05577c33b2846899ac63bf9ca449"
+    },
+    {
+      "bytes": 308,
+      "path": "persona_engine/evidence/wayfarer_m0/simulators/pretorius_basic.txt",
+      "sha256": "5ad57c4a3e27433a5a4bdb0e9d7803dba22bd6f306e25ee4bea0139659384576"
+    }
+  ],
+  "note": "SHA-256 values are artifact checksums, not a cryptographic event-chain design.",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.11.16",
+  "simulator_exit_codes": {
+    "interpretation_anchored_misread": 0,
+    "interpretation_basic": 1,
+    "organism_basic": 0,
+    "personaconsole_v6_compat": 0,
+    "pretorius_basic": 0
+  },
+  "source_commit_before_evidence_commit": "2d0a7caef9aaa5ec795af0353f7f11d0650249f0"
+}

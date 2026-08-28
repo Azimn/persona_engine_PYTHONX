@@ -1,0 +1,11 @@
+$ python persona_engine/simulator.py --script persona_engine/simulator_scripts/pretorius_basic.yaml --cartridge persona_engine/cartridges/pretorius.snp
+Turn 1: PASS
+Turn 2: PASS
+Turn 3: PASS
+Turn 4: PASS
+Turn 5: PASS
+Turn 6: PASS
+Turn 7: PASS
+Turn 8: PASS
+Dream changed: ['trust_user']
+SIMULATOR_EXIT_CODE=0
