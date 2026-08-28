@@ -1,3 +1,3 @@
 Project Wayfarer M1 ordered maintenance trigger.
 
-Attempt 2 uses the auditable tools/wayfarer_m1_patch.py maintenance script and the simplified workflow.
+Attempt 3 uses tools/wayfarer_m1_patch_v2.py with compile checks between architectural steps.
