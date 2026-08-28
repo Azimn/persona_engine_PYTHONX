@@ -31,13 +31,15 @@ jobs:
           git config user.email "wayfarer-maintenance@users.noreply.github.com"
       - name: Step 1 - renderer bootstrap decoupling
         run: |
-          python tools/wayfarer_m1_patch.py step1
+          python tools/wayfarer_m1_patch_v2.py step1
+          python -m compileall -q persona_engine
           python -m pytest persona_engine/tests/test_wayfarer_renderer_identity.py -q
           git add persona_engine/core/engine.py persona_engine/tests/test_wayfarer_renderer_identity.py
           git commit -m "Decouple default renderer from character identity"
       - name: Step 2 - character-scoped ontology
         run: |
-          python tools/wayfarer_m1_patch.py step2
+          python tools/wayfarer_m1_patch_v2.py step2
+          python -m compileall -q persona_engine
           python -m pytest persona_engine/tests/test_engine.py persona_engine/tests/test_wayfarer_renderer_identity.py persona_engine/tests/test_wayfarer_ontology.py -q
           git add persona_engine/core persona_engine/cartridges persona_engine/tests
           git commit -m "Move ontology policy into character scope"
