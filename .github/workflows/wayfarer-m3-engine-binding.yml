@@ -1,0 +1,46 @@
+name: Wayfarer M3 engine binding
+
+on:
+  push:
+    branches: [wayfarer]
+    paths:
+      - '.wayfarer/m3_engine_binding.trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Bind InteriorEngine to portable subject continuity
+        run: python persona_engine/tools/_wayfarer_m3_engine_patch.py
+      - name: Run M3 targeted tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_continuity_ledger.py \
+            persona_engine/tests/test_continuity_engine_binding.py \
+            persona_engine/tests/test_engine.py \
+            persona_engine/tests/test_renderer_swap_contract.py -q
+      - name: Commit engine integration and remove one-time scaffolding
+        run: |
+          git config user.name 'Wayfarer M3 Integration'
+          git config user.email 'wayfarer-m3@users.noreply.github.com'
+          git rm .wayfarer/m3_engine_binding.trigger
+          git rm .github/workflows/wayfarer-m3-engine-binding.yml
+          git rm persona_engine/tools/_wayfarer_m3_engine_patch.py
+          git add persona_engine/core/engine.py
+          git commit -m 'Bind engine persistence to canonical continuity ledger'
+          git push origin HEAD:wayfarer
