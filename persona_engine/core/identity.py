@@ -6,11 +6,10 @@ User attempts to overwrite identity are detected before planning.
 Wayfarer rule: execution substrate is not identity. ``model_name`` remains only
 as a deprecated constructor InitVar so pre-Wayfarer callers do not break. It is
 not stored in CoreIdentity, does not participate in equality/serialization, and
-its supplied value cannot select a renderer. Host/session renderer control owns
-that decision.
+is never consulted by InteriorEngine or renderer selection. Host/session
+renderer control owns that decision.
 """
 
-import re
 import time
 from dataclasses import InitVar, dataclass, field
 from typing import Tuple, Dict, List, Optional
@@ -27,10 +26,9 @@ class CoreIdentity:
     # Character-scoped self-model conflicts. These are authored facts about
     # this individual, never universal ontology imposed by the engine.
     forbidden_self_claims: Tuple[str, ...] = ()
-    # Transitional compatibility only. InitVar accepts legacy constructor calls
-    # but is not a stored dataclass field. The default keeps the old engine
-    # bootstrap on its deterministic offline path until InteriorEngine receives
-    # an explicit host/session renderer configuration object.
+    # Transitional constructor compatibility only. InitVar accepts legacy
+    # callers while remaining absent from stored identity state. Remove this
+    # shim during an explicit schema/API migration, not as an incidental edit.
     model_name: InitVar[str] = "missing-model-for-mock"
 
 
@@ -104,6 +102,7 @@ def detect_identity_violations(
                 )
             )
     return violations
+
 
 def classify_user_identity_command(user_text: str, prohibited: Tuple[str, ...] = ()) -> Optional[IdentityViolation]:
     lowered = user_text.lower()
