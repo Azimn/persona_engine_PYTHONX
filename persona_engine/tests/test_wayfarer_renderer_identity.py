@@ -112,6 +112,29 @@ def test_cartridge_cannot_select_runtime_renderer(tmp_path):
     assert status["model_name"] == "missing-model-for-mock"
 
 
+def test_engine_bootstrap_does_not_read_identity_model_name(tmp_path, monkeypatch):
+    identity = CoreIdentity(
+        name="NoRendererInIdentity",
+        core_beliefs=("I persist across renderers",),
+        temperament="steady",
+        model_name="legacy-value-must-not-be-read",
+    )
+
+    # The compatibility InitVar is not stored on the instance. Removing
+    # its class default makes any accidental engine read fail immediately.
+    monkeypatch.delattr(CoreIdentity, "model_name", raising=False)
+    agent = CharacterAgent(
+        identity,
+        user_id="no_identity_renderer_read",
+        db_path=str(tmp_path / "state.db"),
+    )
+
+    status = agent.engine.renderer_status()
+    assert status["requested_provider"] == "offline"
+    assert status["actual_provider"] == "offline"
+    assert status["model_name"] == "missing-model-for-mock"
+
+
 def test_host_can_replace_renderer_without_changing_identity(tmp_path):
     agent = CharacterAgent(
         cartridge_path=str(NEUTRAL),

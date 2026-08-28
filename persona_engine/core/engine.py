@@ -118,7 +118,9 @@ class InteriorEngine:
         self.interpreter = InterpretationEngine()
         self._idle_thread = None
         self._idle_stop = threading.Event()
-        self.renderer = LocalLLMRenderer(model_name=identity.model_name)
+        # Renderer bootstrap is host/runtime policy, not character identity.
+        # Start deterministically offline until an approved host/session replaces it.
+        self.renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
         self.validator = OutputValidator()
         self.persistence = Persistence(db_path)
         self.deception_ledger = DeceptionLedger()
