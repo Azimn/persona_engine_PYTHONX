@@ -1,17 +1,22 @@
 {
-  "all_simulators_passed": false,
-  "captured_at_utc": "2026-08-28T13:23:28.940738+00:00",
+  "all_simulators_passed": true,
+  "captured_at_utc": "2026-08-28T20:19:15.884416+00:00",
   "evidence_schema": "wayfarer-m0-evidence-manifest-v1",
   "files": [
     {
-      "bytes": 72064,
+      "bytes": 1504,
+      "path": "persona_engine/evidence/wayfarer_m0/README.md",
+      "sha256": "80e6b605dc54fc690243243e8e119a3f59b79a800f8ff50774575f67425c79e3"
+    },
+    {
+      "bytes": 72059,
       "path": "persona_engine/evidence/wayfarer_m0/pretorius_deterministic_session.json",
-      "sha256": "173316b194da54e7fb23a46da7eb93d913012a4206ee23a26edde48164ca7229"
+      "sha256": "a7200a2f06c0e706dbd434147dc27fe3985eaca3660c82e94a6e92ded89bebc9"
     },
     {
       "bytes": 134,
       "path": "persona_engine/evidence/wayfarer_m0/simulator_results.tsv",
-      "sha256": "0f2fac3761cc978b38d210a0330fa78207de95459ac559f894b88a7a07d0271c"
+      "sha256": "ec3292658f053636543a3b4b41819a857ac4a06ede6adfe734f3df03fc6a5490"
     },
     {
       "bytes": 260,
@@ -19,9 +24,9 @@
       "sha256": "ecba89edcc0584eb0de781360701307bc652a0439dee01448fdcade41915d6cb"
     },
     {
-      "bytes": 7915,
+      "bytes": 287,
       "path": "persona_engine/evidence/wayfarer_m0/simulators/interpretation_basic.txt",
-      "sha256": "e7152b49d3801df28bb0f65e3bc334de1c33d51749731f86e5936a90980b136b"
+      "sha256": "0a111ee749c433a4862d9f337c7e274e1e887177ce7b77bb7c6067788a74609c"
     },
     {
       "bytes": 242,
@@ -44,10 +49,10 @@
   "python": "3.11.16",
   "simulator_exit_codes": {
     "interpretation_anchored_misread": 0,
-    "interpretation_basic": 1,
+    "interpretation_basic": 0,
     "organism_basic": 0,
     "personaconsole_v6_compat": 0,
     "pretorius_basic": 0
   },
-  "source_commit_before_evidence_commit": "2d0a7caef9aaa5ec795af0353f7f11d0650249f0"
+  "source_commit_before_evidence_commit": "599947db93e840e58b272f93dba50c26e809e1ff"
 }
