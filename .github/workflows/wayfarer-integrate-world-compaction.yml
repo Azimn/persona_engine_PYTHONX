@@ -1,0 +1,104 @@
+name: Wayfarer integrate WorldAuthority compaction
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Integrate semantics-preserving compaction
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          world_path = Path('persona_engine/core/world_authority.py')
+          world = world_path.read_text(encoding='utf-8')
+          anchor = '''    def apply_host_event(self, payload: dict[str, Any], source: str = "host", visible: bool = True) -> WorldResolution:\n'''
+          if 'def compact_dominated(' not in world:
+              insertion = '''    @staticmethod\n    def _potential_winner_ids(facts: list[WorldFact], now: float) -> set[str]:\n        """Return active facts that may still become latest-surviving truth.\n\n        Facts are evaluated in insertion order because that is the existing\n        WorldAuthority precedence contract. An older expiring fact matters only\n        when it can outlive every newer candidate. The first older non-expiring\n        fact is a permanent fallback and makes all still-older facts unreachable.\n        """\n\n        keep: set[str] = set()\n        max_newer_expiry = now\n        for fact in reversed(facts):\n            if fact.expires_at is not None and fact.expires_at <= now:\n                continue\n            if fact.expires_at is None:\n                keep.add(fact.id)\n                break\n            expiry = float(fact.expires_at)\n            if expiry > max_newer_expiry:\n                keep.add(fact.id)\n                max_newer_expiry = expiry\n        return keep\n\n    def compact_dominated(self, now: float | None = None) -> int:\n        """Discard active fact history that cannot affect present or future truth.\n\n        Server truth and character-visible truth are separate projections, so a\n        hidden newer fact cannot erase an older visible fallback. Expiring\n        overrides retain any older fact that can legitimately re-emerge later.\n        Canonical continuity, not this current-state authority, owns historical\n        event retention. Returns the number of facts removed.\n        """\n\n        now = time.time() if now is None else float(now)\n        self.expire_old(now=now)\n        by_key: dict[str, list[WorldFact]] = {}\n        for fact in self.facts.values():\n            by_key.setdefault(fact.key, []).append(fact)\n\n        keep: set[str] = set()\n        for facts in by_key.values():\n            keep.update(self._potential_winner_ids(facts, now))\n            visible_facts = [fact for fact in facts if fact.visible_to_character]\n            keep.update(self._potential_winner_ids(visible_facts, now))\n\n        before = len(self.facts)\n        self.facts = {\n            fact_id: fact\n            for fact_id, fact in self.facts.items()\n            if fact_id in keep\n        }\n        return before - len(self.facts)\n\n'''
+              if anchor not in world:
+                  raise SystemExit('WorldAuthority insertion anchor not found')
+              world = world.replace(anchor, insertion + anchor, 1)
+          old_recent = '''    def recent_facts(self, limit: int = 20) -> list[WorldFact]:\n        self.expire_old()\n        return sorted(self.facts.values(), key=lambda f: f.created_at, reverse=True)[:limit]\n'''
+          new_recent = '''    def recent_facts(self, limit: int = 20) -> list[WorldFact]:\n        """Return recent active fact contenders, not an authoritative history.\n\n        ``compact_dominated`` may discard superseded facts that can never affect\n        truth again. Historical world events belong to canonical continuity.\n        """\n\n        self.expire_old()\n        return sorted(self.facts.values(), key=lambda f: f.created_at, reverse=True)[:limit]\n'''
+          if old_recent in world:
+              world = world.replace(old_recent, new_recent, 1)
+          world_path.write_text(world, encoding='utf-8')
+
+          engine_path = Path('persona_engine/core/engine.py')
+          engine = engine_path.read_text(encoding='utf-8')
+          old_persist = '''    def _persist(self):\n        state = self._serialize_state()\n'''
+          new_persist = '''    def _persist(self):\n        # WorldAuthority is the current objective-state authority. Canonical\n        # continuity owns world history, so facts that can never again affect\n        # server or visible truth are compacted before snapshot persistence.\n        self.world_authority.compact_dominated()\n        state = self._serialize_state()\n'''
+          if old_persist not in engine and 'self.world_authority.compact_dominated()' not in engine:
+              raise SystemExit('Engine persistence anchor not found')
+          if old_persist in engine:
+              engine = engine.replace(old_persist, new_persist, 1)
+          engine_path.write_text(engine, encoding='utf-8')
+
+          test_path = Path('persona_engine/tests/test_v10_world_sensory.py')
+          tests = test_path.read_text(encoding='utf-8')
+          marker = 'def test_world_authority_compaction_removes_permanently_dominated_facts():'
+          if marker not in tests:
+              tests += '''\n\ndef test_world_authority_compaction_removes_permanently_dominated_facts():\n    authority = WorldAuthority()\n    authority.add_fact("zone", "A", source="test", created_at=100.0)\n    authority.add_fact("zone", "B", source="test", created_at=200.0)\n    authority.add_fact("zone", "C", source="test", created_at=300.0)\n\n    removed = authority.compact_dominated(now=1000.0)\n\n    assert removed == 2\n    assert len(authority.facts) == 1\n    assert next(iter(authority.facts.values())).value == "C"\n    assert [fact.value for fact in authority.recent_facts()] == ["C"]\n\n\ndef test_world_authority_compaction_preserves_expiring_fallback():\n    authority = WorldAuthority()\n    authority.add_fact("weather", "clear", source="test", created_at=100.0)\n    authority.add_fact("weather", "storm", source="test", created_at=200.0, expires_at=1200.0)\n\n    assert authority.compact_dominated(now=1000.0) == 0\n    assert {fact.key: fact.value for fact in authority.facts.values()}["weather"] == "storm"\n\n    authority.expire_old(now=1300.0)\n    assert {fact.key: fact.value for fact in authority.facts.values()}["weather"] == "clear"\n\n\ndef test_world_authority_compaction_preserves_visible_truth_under_hidden_override():\n    authority = WorldAuthority()\n    authority.add_fact("note", "visible_base", source="test", visible_to_character=True, created_at=100.0)\n    authority.add_fact("note", "hidden_override", source="test", visible_to_character=False, created_at=200.0)\n\n    assert authority.compact_dominated(now=1000.0) == 0\n    server = {fact.key: fact.value for fact in authority.facts.values()}\n    visible = {fact.key: fact.value for fact in authority.facts.values() if fact.visible_to_character}\n    assert server["note"] == "hidden_override"\n    assert visible["note"] == "visible_base"\n\n\ndef test_engine_persistence_compacts_world_authority_and_preserves_canonical_inputs():\n    with tempfile.TemporaryDirectory() as d:\n        agent = _agent(d)\n        agent.say("First location update.", server_truth={"zone": "A"})\n        agent.say("Second location update.", server_truth={"zone": "B"})\n        active_zone = [fact for fact in agent.engine.world_authority.facts.values() if fact.key == "zone"]\n        assert len(active_zone) == 1\n        assert active_zone[0].value == "B"\n\n        events = agent.engine.persistence.load_subject_continuity_events(\n            agent.engine.identity.name,\n            agent.engine.user_id,\n            event_type="input",\n        )\n        zone_values = [\n            (event.get("payload") or {}).get("server_truth", {}).get("zone")\n            for event in events\n        ]\n        assert "A" in zone_values\n        assert "B" in zone_values\n\n        restarted = _agent(d)\n        restarted_zone = [fact for fact in restarted.engine.world_authority.facts.values() if fact.key == "zone"]\n        assert len(restarted_zone) == 1\n        assert restarted_zone[0].value == "B"\n'''
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+      - name: Run focused world and continuity tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_v10_world_sensory.py \
+            persona_engine/tests/test_continuity_ledger.py \
+            persona_engine/tests/test_continuity_replay.py -q
+      - name: Re-run semantic compaction evidence
+        run: |
+          python tools/world_authority_semantic_compaction_probe.py \
+            --json persona_engine/evidence/mvi/world_authority_semantic_compaction.json \
+            --markdown persona_engine/evidence/mvi/WORLD_AUTHORITY_SEMANTIC_COMPACTION.md
+      - name: Verify production world state stays bounded
+        run: |
+          python - <<'PY'
+          import tempfile
+          from pathlib import Path
+          from persona_engine.agent import CharacterAgent
+
+          cart = Path('persona_engine/cartridges/pretorius.snp')
+          with tempfile.TemporaryDirectory() as d:
+              agent = CharacterAgent(cartridge_path=str(cart), user_id='alice', db_path=str(Path(d) / 'state.db'))
+              for i in range(1000):
+                  agent.say(f'Routine world update {i}.', server_truth={'zone': f'zone_{i}'})
+              zones = [fact for fact in agent.engine.world_authority.facts.values() if fact.key == 'zone']
+              user_texts = [fact for fact in agent.engine.world_authority.facts.values() if fact.key == 'user_text']
+              assert len(zones) == 1 and zones[0].value == 'zone_999'
+              assert len(user_texts) == 1
+              assert len(agent.engine.world_authority.facts) <= 2
+          PY
+      - name: Run full deterministic suite
+        run: python -m pytest persona_engine/tests -q
+      - name: Commit production integration and remove one-time workflow
+        run: |
+          rm -f .github/workflows/wayfarer-integrate-world-compaction.yml
+          git config user.name 'Wayfarer WorldAuthority Integration'
+          git config user.email 'wayfarer-world-integration@users.noreply.github.com'
+          git add -A
+          git commit -m 'Bound active WorldAuthority without losing fallback semantics'
+          git push origin HEAD:wayfarer
