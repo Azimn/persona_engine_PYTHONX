@@ -1,0 +1,23 @@
+{
+  "cold_candidate_count": 1,
+  "cold_candidates": [
+    {
+      "content": "I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "created_at": 1788032961.8579328,
+      "memory_id": "cold_9e4a4436-1828-4073-a79a-77430f312d39",
+      "source": "user_told",
+      "tags": [
+        "canonical_user_statement",
+        "cold_biography"
+      ]
+    }
+  ],
+  "false_recall_demonstrated": true,
+  "interpretation": "The read-through path accepts a merely similar canonical event as grounded recall for a detail that never occurred. A fail-closed relevance admission rule is required before performance work.",
+  "nearest_known_memory_returned": true,
+  "probe": "cold-biography-false-recall-v1",
+  "query": "Do you remember the brass telescope serial number I told you?",
+  "renderer_asserted_memory": true,
+  "requested_detail_absent_from_canonical_history": true,
+  "response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter."
+}
