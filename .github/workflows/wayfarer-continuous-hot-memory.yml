@@ -1,0 +1,48 @@
+name: Wayfarer continuous hot-memory compaction
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Verify hot-cold recall contract
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_cold_biography.py \
+            persona_engine/tests/test_history_decision_evidence.py \
+            persona_engine/tests/test_commitment_constraint.py -q
+      - name: Run continuous compact-history probe
+        run: |
+          python tools/continuous_hot_memory_probe.py \
+            --json persona_engine/evidence/mvi/continuous_hot_memory.json \
+            --markdown persona_engine/evidence/mvi/CONTINUOUS_HOT_MEMORY.md
+      - name: Commit evidence and remove one-time workflow
+        run: |
+          rm -f .github/workflows/wayfarer-continuous-hot-memory.yml
+          git config user.name 'Wayfarer Continuous Hot Memory Probe'
+          git config user.email 'wayfarer-continuous-hot@users.noreply.github.com'
+          git add -A
+          git commit -m 'Measure continuous compact autobiographical working sets'
+          git push origin HEAD:wayfarer
