@@ -1,0 +1,92 @@
+{
+  "all_grounded": true,
+  "interpretation": "This benchmark measures the current intentionally simple O(n) cold-reader. It is evidence about latency and transient allocation on the CI Python runtime, not a direct C99 hardware claim.",
+  "lookup_strategy": "sequential_sqlite_stream_plus_fixed_heap",
+  "measurements": [
+    {
+      "canonical_input_events": 100,
+      "database_bytes": 135168,
+      "events_scanned_per_second_at_median": 56643.84108679068,
+      "first_lookup_ms": 2.021513000016739,
+      "median_repeat_lookup_ms": 1.7654170000014346,
+      "repeat_lookup_ms": [
+        1.7654170000014346,
+        1.7807499999946685,
+        1.7734089999805747,
+        1.7279099999996106,
+        1.720389000013256
+      ],
+      "returned_candidates": 1,
+      "seed_seconds": 0.011899925999983907,
+      "target_found": true,
+      "tracemalloc_retained_delta_bytes": 795,
+      "tracemalloc_transient_peak_bytes": 23911
+    },
+    {
+      "canonical_input_events": 1000,
+      "database_bytes": 614400,
+      "events_scanned_per_second_at_median": 79500.03382738568,
+      "first_lookup_ms": 12.800285999986727,
+      "median_repeat_lookup_ms": 12.57861099998081,
+      "repeat_lookup_ms": [
+        12.652974000019412,
+        12.57861099998081,
+        12.533133000005137,
+        12.585070999989512,
+        12.559333000012884
+      ],
+      "returned_candidates": 1,
+      "seed_seconds": 0.11005128700000455,
+      "target_found": true,
+      "tracemalloc_retained_delta_bytes": 731,
+      "tracemalloc_transient_peak_bytes": 23911
+    },
+    {
+      "canonical_input_events": 5000,
+      "database_bytes": 2838528,
+      "events_scanned_per_second_at_median": 81284.7027765715,
+      "first_lookup_ms": 61.85233200000084,
+      "median_repeat_lookup_ms": 61.51218899998412,
+      "repeat_lookup_ms": [
+        61.60213500001532,
+        61.42661000001226,
+        61.64099299999748,
+        61.51218899998412,
+        61.35391000000823
+      ],
+      "returned_candidates": 1,
+      "seed_seconds": 2.0341361370000186,
+      "target_found": true,
+      "tracemalloc_retained_delta_bytes": 699,
+      "tracemalloc_transient_peak_bytes": 23911
+    },
+    {
+      "canonical_input_events": 10000,
+      "database_bytes": 5623808,
+      "events_scanned_per_second_at_median": 81803.76182287312,
+      "first_lookup_ms": 120.92626700001574,
+      "median_repeat_lookup_ms": 122.24376700001471,
+      "repeat_lookup_ms": [
+        127.01156099998911,
+        121.54012400000624,
+        121.96614799998429,
+        122.24376700001471,
+        122.307563999982
+      ],
+      "returned_candidates": 1,
+      "seed_seconds": 9.757151700999998,
+      "target_found": true,
+      "tracemalloc_retained_delta_bytes": 699,
+      "tracemalloc_transient_peak_bytes": 23911
+    }
+  ],
+  "peak_allocation_growth_ratio": 1.0,
+  "probe": "cold-biography-latency-scaling-v1",
+  "query": "Do you remember the observatory code word I told you?",
+  "sizes": [
+    100,
+    1000,
+    5000,
+    10000
+  ]
+}
