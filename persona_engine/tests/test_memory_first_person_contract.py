@@ -1,7 +1,9 @@
-"""Memory wording contract.
+"""Memory wording and rehearsal contracts.
 
 Memories are character-side records. They should read as first-person lived
-history, while renderer speech remains noncanonical event evidence.
+history, while renderer speech remains noncanonical event evidence. Merely being
+ranked as a resident top-k candidate must not strengthen a memory when the
+current query has zero semantic relevance.
 """
 
 from pathlib import Path
@@ -44,6 +46,28 @@ def test_memory_store_normalizes_legacy_content_on_add():
     store.add(MemoryUnit("User mentioned a chair", created_at=1.0))
 
     assert store.memories[0].content == "I heard you mention a chair"
+
+
+def test_zero_relevance_top_candidate_is_not_rehearsed():
+    store = MemoryStore()
+    memory = MemoryUnit("I heard you say: you lied to me and damaged my trust.", created_at=1.0)
+    store.add(memory)
+
+    retrieved = store.retrieve("Routine catalog note: ordinary shelf marker.", now=10.0, top_k=4)
+
+    assert memory in retrieved
+    assert memory.recall_times == []
+
+
+def test_relevant_retrieval_still_records_rehearsal():
+    store = MemoryStore()
+    memory = MemoryUnit("I heard you say: you lied to me and damaged my trust.", created_at=1.0)
+    store.add(memory)
+
+    retrieved = store.retrieve("Can you trust me after I lied and damaged your trust?", now=10.0, top_k=4)
+
+    assert memory in retrieved
+    assert memory.recall_times == [10.0]
 
 
 def test_persisted_memory_reloads_as_first_person(tmp_path):
