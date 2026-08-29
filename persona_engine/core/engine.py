@@ -75,6 +75,11 @@ def _suppression_trace(gate: str, action: str, reason: str, severity: str = "inf
 LEGACY_IDLE_STEP_SECONDS = 5.0
 LEGACY_CATCHUP_DYNAMICS_BUDGET_SECONDS = 1000.0
 
+# Explicit snapshot ownership. Only experimentally demonstrated subject-owned
+# families belong here. Everything else keeps its existing interlocutor scope
+# until a separate longitudinal failure earns a different ownership rule.
+SUBJECT_OWNED_SNAPSHOT_KEYS = frozenset({"continuity_clock", "earned_traits"})
+
 
 @dataclass
 class ReflectionCandidate:
@@ -218,7 +223,10 @@ class InteriorEngine:
         self.energy = meta.get("energy", self.energy)
         self.restlessness = meta.get("restlessness", self.restlessness)
         self.timestep = meta.get("timestep", self.timestep)
-        clock_state = self.persistence.load(cid, uid, "continuity_clock")
+        clock_state = self.persistence.load_subject(cid, uid, "continuity_clock", None)
+        if clock_state is None:
+            # Legacy fallback for databases created before explicit state scope.
+            clock_state = self.persistence.load(cid, uid, "continuity_clock")
         if clock_state:
             self.clock = ContinuityClock.from_dict(clock_state)
         else:
@@ -264,7 +272,12 @@ class InteriorEngine:
             self.symbols.add(SharedSymbol(**s))
         for h in self.persistence.load(cid, uid, "habits", []):
             self.habits.habits[h["name"]] = Habit(**h)
-        for t in self.persistence.load(cid, uid, "earned_traits", []):
+        trait_state = self.persistence.load_subject(cid, uid, "earned_traits", None)
+        if trait_state is None:
+            # Legacy fallback for the active stream only. Cross-stream merging is
+            # intentionally not guessed because old snapshots may disagree.
+            trait_state = self.persistence.load(cid, uid, "earned_traits", [])
+        for t in trait_state:
             self.ledger.earned_traits[t["name"]] = EarnedTrait(**t)
         self.ledger.per_relationship_beliefs = self.persistence.load(cid, uid, "relationship_beliefs", {})
         belief_state = self.persistence.load(cid, uid, "belief_ledger")
@@ -410,7 +423,14 @@ class InteriorEngine:
 
     def _persist(self):
         state = self._serialize_state()
+        # Preserve the full legacy/interlocutor snapshot for compatibility, then
+        # write only explicitly earned subject-owned families to UUID scope.
         self.persistence.save_many(self.identity.name, self.user_id, state)
+        self.persistence.save_subject_many(
+            self.identity.name,
+            self.user_id,
+            {key: state[key] for key in SUBJECT_OWNED_SNAPSHOT_KEYS},
+        )
         self.persistence.record_checkpoint(self.identity.name, self.user_id, state)
 
     # ---------------- idle and silent processing ----------------

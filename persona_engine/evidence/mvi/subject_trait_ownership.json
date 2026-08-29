@@ -13,9 +13,15 @@
     ],
     "strength": 0.05
   },
-  "bob_trait_on_same_subject": null,
-  "cross_interlocutor_trait_preserved": false,
-  "diagnosis": "earned_character_development_partitioned_by_interlocutor",
+  "bob_trait_on_same_subject": {
+    "name": "deliberate_caution",
+    "source_memory_ids": [
+      "trait-ownership-probe-evidence"
+    ],
+    "strength": 0.05
+  },
+  "cross_interlocutor_trait_preserved": true,
+  "diagnosis": "earned_character_development_is_subject_owned",
   "expected_minimum_property": "Slow evidence-backed character development should remain attached to the continuing subject when the active interlocutor changes.",
   "probe": "subject-earned-trait-ownership-v1",
   "same_interlocutor_restart_preserved": true,

@@ -38,6 +38,13 @@ CREATE TABLE IF NOT EXISTS state (
     updated_at REAL NOT NULL,
     PRIMARY KEY (character_id, user_id, key)
 );
+CREATE TABLE IF NOT EXISTS subject_state (
+    subject_uuid TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    updated_at REAL NOT NULL,
+    PRIMARY KEY (subject_uuid, key)
+);
 CREATE TABLE IF NOT EXISTS event_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     character_id TEXT NOT NULL,
@@ -256,6 +263,45 @@ class Persistence:
             )
             row = cur.fetchone()
         return json.loads(row[0]) if row else default
+
+    def save_subject(self, character_id: str, user_id: str, key: str, value) -> None:
+        """Persist one explicitly subject-owned snapshot value.
+
+        This table is a current-state cache, not canonical event authority. The
+        engine decides which semantic families are allowed to use subject scope.
+        """
+
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT INTO subject_state(subject_uuid,key,value,updated_at) VALUES(?,?,?,?) "
+                "ON CONFLICT(subject_uuid,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (subject_uuid, key, json.dumps(value, ensure_ascii=False), time.time()),
+            )
+
+    def load_subject(self, character_id: str, user_id: str, key: str, default=None):
+        """Load one explicitly subject-owned snapshot value by permanent UUID."""
+
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT value FROM subject_state WHERE subject_uuid=? AND key=?",
+                (subject_uuid, key),
+            ).fetchone()
+        return json.loads(row[0]) if row else default
+
+    def save_subject_many(self, character_id: str, user_id: str, items: dict) -> None:
+        """Persist a small explicit set of subject-owned snapshot values."""
+
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        now = time.time()
+        with self._connection() as conn:
+            for key, value in items.items():
+                conn.execute(
+                    "INSERT INTO subject_state(subject_uuid,key,value,updated_at) VALUES(?,?,?,?) "
+                    "ON CONFLICT(subject_uuid,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                    (subject_uuid, key, json.dumps(value, ensure_ascii=False), now),
+                )
 
     def save_deception_ledger(self, character_id: str, user_id: str, ledger: DeceptionLedger):
         self.save(character_id, user_id, "deception_ledger", ledger.to_state())
