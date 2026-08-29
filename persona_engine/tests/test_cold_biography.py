@@ -1,10 +1,11 @@
-"""Cold biography should restore explicit recall without becoming hot state."""
+"""Cold biography should restore grounded recall without becoming hot state."""
 
 import os
 import tempfile
 from pathlib import Path
 
 from persona_engine.agent import CharacterAgent
+from persona_engine.core.cold_biography import grounded_recall_match, recall_focus_tokens
 
 ROOT = Path(__file__).resolve().parents[2]
 CART = ROOT / "persona_engine" / "cartridges" / "pretorius.snp"
@@ -36,6 +37,18 @@ def _project_one(agent: CharacterAgent) -> None:
     agent.engine.memory.memories = kept
 
 
+def test_recall_focus_uses_topic_not_retrieval_scaffolding():
+    assert recall_focus_tokens(QUERY) == {"observatory", "code", "word"}
+    assert grounded_recall_match(
+        QUERY,
+        "Please remember this neutral detail: the old observatory code word is amber-otter.",
+    ) is True
+    assert grounded_recall_match(
+        "Do you remember the brass telescope serial number I told you?",
+        "Please remember this neutral detail: the old observatory code word is amber-otter.",
+    ) is False
+
+
 def test_explicit_recall_reads_cold_biography_without_rehydrating_resident_cache():
     with tempfile.TemporaryDirectory() as d:
         db = os.path.join(d, "state.db")
@@ -52,6 +65,33 @@ def test_explicit_recall_reads_cold_biography_without_rehydrating_resident_cache
             for item in result["retrieved_memory_trace"]
         )
         assert all(TARGET not in memory.content.lower() for memory in agent.engine.memory.memories)
+
+
+def test_nonexistent_explicit_recall_fails_closed_instead_of_using_nearest_memory():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "state.db")
+        _make_history(db)
+        agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        _project_one(agent)
+
+        result = agent.say("Do you remember the brass telescope serial number I told you?")
+
+        assert result["retrieved_memory_trace"] == []
+        assert TARGET not in result["response"].lower()
+        assert "grounded memory" in result["response"].lower()
+
+
+def test_anchorless_explicit_recall_fails_closed():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "state.db")
+        _make_history(db)
+        agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        _project_one(agent)
+
+        result = agent.say("Do you remember what I told you?")
+
+        assert result["retrieved_memory_trace"] == []
+        assert "grounded memory" in result["response"].lower()
 
 
 def test_cold_recall_does_not_cross_interlocutor_boundary():
