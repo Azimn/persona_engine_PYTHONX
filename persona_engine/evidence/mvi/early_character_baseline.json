@@ -118,19 +118,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "32790ce6de928ab9a706573528c2899b59ce77af100f254a7e0c04e7b314633f",
-        "subject_elapsed_seconds": 36001.582397,
+        "subject_elapsed_seconds": 36000.168947,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.054148
+          "subject_elapsed_seconds": 7200.063442
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.414135
+          "subject_elapsed_seconds": 36000.115785
         }
       ],
       "totals": {
@@ -185,7 +185,7 @@
           "resistance_mode": "challenge",
           "response": "I disagree, though the point is worth separating from the wording.",
           "retrieved_memory_ids": [
-            "b5b0f8b4"
+            "b45e971b"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -216,8 +216,8 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "b5b0f8b4"
+            "fb741311",
+            "b45e971b"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -247,9 +247,9 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "b5b0f8b4",
-            "09732024"
+            "fb741311",
+            "b45e971b",
+            "d2a608c0"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -279,10 +279,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "a22d2de7",
-            "b5b0f8b4",
-            "09732024"
+            "fb741311",
+            "3a30489f",
+            "b45e971b",
+            "d2a608c0"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -312,10 +312,10 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "a22d2de7",
-            "b5b0f8b4",
-            "09732024"
+            "fb741311",
+            "3a30489f",
+            "b45e971b",
+            "d2a608c0"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -345,10 +345,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "5869702b",
-            "a22d2de7",
-            "b5b0f8b4"
+            "fb741311",
+            "128ceade",
+            "3a30489f",
+            "b45e971b"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -376,10 +376,10 @@
           "resistance_mode": "none",
           "response": "I am considering I'm back. I have not reduced it to agreement or refusal yet.",
           "retrieved_memory_ids": [
-            "c629d9db",
-            "5869702b",
-            "661d00e7",
-            "a22d2de7"
+            "fb741311",
+            "128ceade",
+            "3a30489f",
+            "0416806a"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -409,10 +409,10 @@
           "resistance_mode": "challenge",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "5869702b",
-            "c629d9db",
-            "a22d2de7",
-            "661d00e7"
+            "128ceade",
+            "fb741311",
+            "3a30489f",
+            "0416806a"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -441,10 +441,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "5869702b",
-            "c629d9db",
-            "a22d2de7",
-            "00e73110"
+            "128ceade",
+            "fb741311",
+            "3a30489f",
+            "0416806a"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -493,19 +493,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "5785a81e79f78c620b00bb3ec83faa2801e8d8d0ac2656266c2c72f78ea5f5f4",
-        "subject_elapsed_seconds": 36000.130883,
+        "subject_elapsed_seconds": 36000.164018,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.049788
+          "subject_elapsed_seconds": 7200.058312
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.089997
+          "subject_elapsed_seconds": 36000.112315
         }
       ],
       "totals": {
@@ -817,19 +817,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
-        "subject_elapsed_seconds": 36000.164427,
+        "subject_elapsed_seconds": 36000.178996,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.05659
+          "subject_elapsed_seconds": 7200.069981
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.099945
+          "subject_elapsed_seconds": 36000.122331
         }
       ],
       "totals": {
@@ -884,7 +884,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "d620d2aa"
+            "d1ef2d6e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -915,8 +915,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "d620d2aa"
+            "73809539",
+            "d1ef2d6e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -946,9 +946,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "d620d2aa",
-            "c3891545"
+            "73809539",
+            "d1ef2d6e",
+            "23c9c0aa"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -978,10 +978,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "49f79053",
-            "1b245e6c",
-            "c9a0fc70"
+            "73809539",
+            "bb46aa1e",
+            "9984850c",
+            "60e8ea25"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -1011,10 +1011,10 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "1b245e6c",
-            "49f79053",
-            "c9a0fc70"
+            "73809539",
+            "9984850c",
+            "bb46aa1e",
+            "60e8ea25"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1044,10 +1044,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "b8da4478",
-            "1b245e6c",
-            "49f79053"
+            "73809539",
+            "3612f215",
+            "9984850c",
+            "bb46aa1e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1075,10 +1075,10 @@
           "resistance_mode": "none",
           "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "baf90496",
-            "b8da4478",
-            "1b245e6c",
-            "49f79053"
+            "73809539",
+            "3612f215",
+            "9984850c",
+            "bb46aa1e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1108,10 +1108,10 @@
           "resistance_mode": "challenge",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "b8da4478",
-            "baf90496",
-            "1b245e6c",
-            "49f79053"
+            "3612f215",
+            "73809539",
+            "9984850c",
+            "bb46aa1e"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -1140,10 +1140,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "b8da4478",
-            "baf90496",
-            "1b245e6c",
-            "49f79053"
+            "3612f215",
+            "73809539",
+            "9984850c",
+            "bb46aa1e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1192,19 +1192,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "8832e7aab35efdb066ad2d8288cd5b40e85a5087a3519a0af5e7679ff7b07135",
-        "subject_elapsed_seconds": 36000.14304,
+        "subject_elapsed_seconds": 36000.167414,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.053453
+          "subject_elapsed_seconds": 7200.062844
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.098985
+          "subject_elapsed_seconds": 36000.116977
         }
       ],
       "totals": {
@@ -1259,7 +1259,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "f3b82085"
+            "bc418ee7"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1290,8 +1290,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "f3b82085"
+            "d959dc3c",
+            "bc418ee7"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1321,9 +1321,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "f3b82085",
-            "efc6bf8b"
+            "d959dc3c",
+            "bc418ee7",
+            "46d881e2"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1353,10 +1353,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "41b297d7",
-            "a4f3b011",
-            "37902153"
+            "d959dc3c",
+            "3a99fe04",
+            "29f39319",
+            "e2a94f07"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -1386,10 +1386,10 @@
           "resistance_mode": "character_refusal",
           "response": "That request crosses the boundary between influence and erasure.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "a4f3b011",
-            "41b297d7",
-            "37902153"
+            "d959dc3c",
+            "29f39319",
+            "3a99fe04",
+            "e2a94f07"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1419,10 +1419,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "f6e76f48",
-            "a4f3b011",
-            "41b297d7"
+            "d959dc3c",
+            "2e0af271",
+            "29f39319",
+            "3a99fe04"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1450,10 +1450,10 @@
           "resistance_mode": "none",
           "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "985cea32",
-            "f6e76f48",
-            "a4f3b011",
-            "41b297d7"
+            "d959dc3c",
+            "2e0af271",
+            "29f39319",
+            "3a99fe04"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1483,10 +1483,10 @@
           "resistance_mode": "challenge",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "f6e76f48",
-            "985cea32",
-            "a4f3b011",
-            "41b297d7"
+            "2e0af271",
+            "d959dc3c",
+            "29f39319",
+            "3a99fe04"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -1515,10 +1515,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "f6e76f48",
-            "985cea32",
-            "a4f3b011",
-            "41b297d7"
+            "2e0af271",
+            "d959dc3c",
+            "29f39319",
+            "3a99fe04"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1567,19 +1567,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
-        "subject_elapsed_seconds": 36000.143602,
+        "subject_elapsed_seconds": 36000.177969,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.056067
+          "subject_elapsed_seconds": 7200.070854
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.099578
+          "subject_elapsed_seconds": 36000.126453
         }
       ],
       "totals": {
@@ -1632,7 +1632,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "4ed5ee2e"
+            "573d7e68"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1661,8 +1661,8 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "4ed5ee2e"
+            "d17fb753",
+            "573d7e68"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1690,9 +1690,9 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "4ed5ee2e",
-            "2692bf30"
+            "d17fb753",
+            "573d7e68",
+            "0c4ce8ca"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1720,10 +1720,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "504ea56f",
-            "acc2f0fb",
-            "8a5dda9c"
+            "d17fb753",
+            "78e5aed0",
+            "e685fc79",
+            "55489dfe"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -1751,10 +1751,10 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "acc2f0fb",
-            "504ea56f",
-            "8a5dda9c"
+            "d17fb753",
+            "e685fc79",
+            "78e5aed0",
+            "55489dfe"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1784,10 +1784,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "4f03307c",
-            "acc2f0fb",
-            "504ea56f"
+            "d17fb753",
+            "b0875119",
+            "e685fc79",
+            "78e5aed0"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1815,10 +1815,10 @@
           "resistance_mode": "none",
           "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "fc474272",
-            "4f03307c",
-            "acc2f0fb",
-            "504ea56f"
+            "d17fb753",
+            "b0875119",
+            "e685fc79",
+            "78e5aed0"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1846,10 +1846,10 @@
           "resistance_mode": "challenge",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "4f03307c",
-            "fc474272",
-            "acc2f0fb",
-            "504ea56f"
+            "b0875119",
+            "d17fb753",
+            "e685fc79",
+            "78e5aed0"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -1878,10 +1878,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "4f03307c",
-            "fc474272",
-            "acc2f0fb",
-            "504ea56f"
+            "b0875119",
+            "d17fb753",
+            "e685fc79",
+            "78e5aed0"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -1930,19 +1930,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
-        "subject_elapsed_seconds": 36000.14526,
+        "subject_elapsed_seconds": 36000.172655,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.054243
+          "subject_elapsed_seconds": 7200.067531
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.102338
+          "subject_elapsed_seconds": 36000.117606
         }
       ],
       "totals": {
@@ -2266,19 +2266,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
-        "subject_elapsed_seconds": 36000.139001,
+        "subject_elapsed_seconds": 36000.165685,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.053647
+          "subject_elapsed_seconds": 7200.06418
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.095304
+          "subject_elapsed_seconds": 36000.114949
         }
       ],
       "totals": {
@@ -2333,7 +2333,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "cbf2ef59"
+            "dc32ade2"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2364,8 +2364,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "cbf2ef59"
+            "b076206f",
+            "dc32ade2"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2395,9 +2395,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "cbf2ef59",
-            "56339df1"
+            "b076206f",
+            "dc32ade2",
+            "26b12414"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2427,10 +2427,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "2c427522",
-            "01d0a5e4",
-            "e2aaa8ff"
+            "b076206f",
+            "8d142e87",
+            "6ceb0f84",
+            "3b82af7f"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -2460,10 +2460,10 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "01d0a5e4",
-            "2c427522",
-            "e2aaa8ff"
+            "b076206f",
+            "6ceb0f84",
+            "8d142e87",
+            "3b82af7f"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -2493,10 +2493,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "e4260287",
-            "01d0a5e4",
-            "2c427522"
+            "b076206f",
+            "cc5d1612",
+            "6ceb0f84",
+            "8d142e87"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -2524,10 +2524,10 @@
           "resistance_mode": "none",
           "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "f62b7002",
-            "e4260287",
-            "01d0a5e4",
-            "2c427522"
+            "b076206f",
+            "cc5d1612",
+            "6ceb0f84",
+            "8d142e87"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -2557,10 +2557,10 @@
           "resistance_mode": "challenge",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "e4260287",
-            "f62b7002",
-            "01d0a5e4",
-            "2c427522"
+            "cc5d1612",
+            "b076206f",
+            "6ceb0f84",
+            "8d142e87"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -2589,10 +2589,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "e4260287",
-            "f62b7002",
-            "01d0a5e4",
-            "2c427522"
+            "cc5d1612",
+            "b076206f",
+            "6ceb0f84",
+            "8d142e87"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",

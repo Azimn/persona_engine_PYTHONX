@@ -24,6 +24,7 @@ from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_i
 from .intention import Intention, IntentionQueue, OpenLoop
 from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
+from .decision_memory import evaluate_history_for_decision
 from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
@@ -476,7 +477,7 @@ class InteriorEngine:
         raw = top.magnitude * inhibition_weakness * depletion_multiplier * restlessness_multiplier * trigger_match
         return max(0.0, min(1.0, raw))
 
-    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None) -> dict[str, Any]:
+    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
         """Resolve semantic conduct independently from expression intensity.
 
         A HIGH risk bucket may shorten/guard expression, but arousal alone is not
@@ -487,6 +488,12 @@ class InteriorEngine:
         suspicion = self.pressures.pressures.get("suspicion")
         suspicion_value = suspicion.magnitude if suspicion else 0.0
         dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
+        history_payload = dict(history_evidence or {})
+        # Retrieved lived history may qualify a present trust/commitment decision,
+        # but it never outranks explicit identity/resistance policy and never
+        # mutates relationship state on its own.
+        if dialogue_act == "respond" and bool(history_payload.get("active")) and resistance is None:
+            dialogue_act = "qualified_response"
         if resistance == "character_refusal":
             dialogue_act = "protect_boundary"
         elif resistance == "challenge":
@@ -505,6 +512,7 @@ class InteriorEngine:
             "triggers": list(triggers),
             "resistance_mode": resistance or "none",
             "risk_bucket": bucket_risk(risk),
+            "history_evidence": history_payload or {"active": False, "strength": 0.0, "memory_ids": [], "reason": "none"},
         }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
@@ -744,6 +752,7 @@ class InteriorEngine:
             }
             for memory in retrieved
         ]
+        history_evidence = evaluate_history_for_decision(user_text, retrieved, self.relationship)
 
         triggers = []
         if forced_rewrite:
@@ -769,7 +778,12 @@ class InteriorEngine:
         open_loop = self.intentions.due_open_loop(now)
         symbol = self.symbols.most_relevant(now)
         resistance = select_resistance(triggers)
-        decision_payload = self._resolve_decision_payload(triggers, risk, resistance)
+        decision_payload = self._resolve_decision_payload(
+            triggers,
+            risk,
+            resistance,
+            history_evidence=history_evidence.to_dict(),
+        )
         if resistance:
             suppression_traces.append(_suppression_trace(
                 "resistance_selector",

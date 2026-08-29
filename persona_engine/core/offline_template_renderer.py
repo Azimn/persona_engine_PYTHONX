@@ -132,6 +132,8 @@ class OfflineTemplateRenderer:
         dialogue_act = str(decision_payload.get("dialogue_act", ""))
         if dialogue_act == "withdraw":
             return "quiet"
+        if dialogue_act == "qualified_response":
+            return "uncertain"
         if dialogue_act == "protect_boundary" or any(
             phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not", "ignore your identity"]
         ):

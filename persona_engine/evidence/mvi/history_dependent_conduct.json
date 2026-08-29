@@ -1,0 +1,55 @@
+{
+  "controlled_relationship_before": {
+    "guardedness": 0.55,
+    "trust": 0.45,
+    "unresolved_conflict": 0.4
+  },
+  "interpretation": "The only intended conduct difference is bounded qualification from retrieved unresolved lived history. The adapter does not independently mutate relationship state.",
+  "probe": "history-dependent-conduct-v1",
+  "prompt": "Can you trust me enough to work with me on this?",
+  "relationship_equal_after_normal_appraisal": true,
+  "with_history": {
+    "dialogue_act": "qualified_response",
+    "history_evidence": {
+      "active": true,
+      "memory_ids": [
+        "483f844b"
+      ],
+      "reason": "unresolved_relationship_history",
+      "strength": 0.91
+    },
+    "relationship_after": {
+      "attachment": 0.0,
+      "familiarity": 0.113,
+      "guardedness": 0.55,
+      "respect": 0.5,
+      "tension": 0.0,
+      "trust": 0.45,
+      "turns": 1,
+      "unresolved_conflict": 0.4,
+      "user_id": "same"
+    },
+    "response": "I do not know enough to claim certainty about trust me enough to work me on."
+  },
+  "without_history": {
+    "dialogue_act": "respond",
+    "history_evidence": {
+      "active": false,
+      "memory_ids": [],
+      "reason": "none",
+      "strength": 0.0
+    },
+    "relationship_after": {
+      "attachment": 0.0,
+      "familiarity": 0.113,
+      "guardedness": 0.55,
+      "respect": 0.5,
+      "tension": 0.0,
+      "trust": 0.45,
+      "turns": 1,
+      "unresolved_conflict": 0.4,
+      "user_id": "same"
+    },
+    "response": "The useful part of that question is trust me enough to work me on. I need one more concrete detail before I answer firmly."
+  }
+}
