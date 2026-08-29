@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS continuity_checkpoint (
     state_schema TEXT NOT NULL,
     state_digest TEXT NOT NULL,
     created_at REAL NOT NULL,
-    UNIQUE(subject_uuid, user_id, continuity_epoch, sequence)
+    UNIQUE(subject_uuid, user_id, continuity_epoch,sequence)
 );
 """
 
@@ -326,6 +326,16 @@ class Persistence:
         )
         return event
 
+    @staticmethod
+    def _continuity_row_to_dict(row) -> dict[str, Any]:
+        return {
+            "event_uuid": row[0], "subject_uuid": row[1], "character_id": row[2], "user_id": row[3],
+            "sequence": row[4], "continuity_epoch": row[5], "subject_time": row[6], "wall_time": row[7],
+            "source_actor": row[8], "source_class": row[9], "authority_class": row[10], "event_type": row[11],
+            "visibility": row[12], "canonicality": row[13], "causal_parents": json.loads(row[14]),
+            "payload_schema": row[15], "payload": json.loads(row[16]), "legacy_event_id": row[17],
+        }
+
     def load_continuity_events(
         self,
         character_id: str,
@@ -342,16 +352,43 @@ class Persistence:
                 "FROM continuity_event WHERE subject_uuid=? AND user_id=? AND continuity_epoch=? AND sequence>? ORDER BY sequence",
                 (subject_uuid, user_id, epoch, int(after_sequence)),
             ).fetchall()
-        result = []
-        for row in rows:
-            result.append({
-                "event_uuid": row[0], "subject_uuid": row[1], "character_id": row[2], "user_id": row[3],
-                "sequence": row[4], "continuity_epoch": row[5], "subject_time": row[6], "wall_time": row[7],
-                "source_actor": row[8], "source_class": row[9], "authority_class": row[10], "event_type": row[11],
-                "visibility": row[12], "canonicality": row[13], "causal_parents": json.loads(row[14]),
-                "payload_schema": row[15], "payload": json.loads(row[16]), "legacy_event_id": row[17],
-            })
-        return result
+        return [self._continuity_row_to_dict(row) for row in rows]
+
+    def load_subject_continuity_events(
+        self,
+        character_id: str,
+        user_id: str,
+        *,
+        continuity_epoch: int | None = None,
+        event_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Read canonical events owned by the subject across interlocutor views.
+
+        ``user_id`` is used only to resolve the permanent subject binding. It is
+        intentionally not part of the event filter. The event's own ``user_id``
+        remains available as provenance so relationship/social meaning can stay
+        actor-specific.
+
+        This reader does not redefine sequence semantics. Current M3 streams are
+        still sequenced per interlocutor, so cross-interlocutor results are ordered
+        by wall time then insertion id. Global subject ordering is a separate
+        property that must be tested before changing the ledger contract.
+        """
+
+        subject_uuid, bound_epoch = self._resolve_subject(character_id, user_id)
+        epoch = bound_epoch if continuity_epoch is None else int(continuity_epoch)
+        query = (
+            "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
+            "FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=?"
+        )
+        params: list[Any] = [subject_uuid, epoch]
+        if event_type is not None:
+            query += " AND event_type=?"
+            params.append(str(event_type))
+        query += " ORDER BY wall_time,id"
+        with self._connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+        return [self._continuity_row_to_dict(row) for row in rows]
 
     def validate_continuity(self, character_id: str, user_id: str, continuity_epoch: int | None = None) -> ContinuityIntegrityReport:
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
@@ -524,69 +561,12 @@ class Persistence:
             "subject_uuid": subject_uuid,
             "continuity_epoch": epoch,
             "sequence": int(row[0]),
-            "state_schema": row[1],
-            "state_digest": row[2],
+            "state_schema": str(row[1]),
+            "state_digest": str(row[2]),
             "created_at": float(row[3]),
         }
 
-    # ---------------- legacy event-log readers ----------------
-    def event_counts_since(self, character_id: str, user_id: str, since: float) -> dict[str, int]:
-        """Count evidence types logged after the supplied wall-clock timestamp."""
-        conn = self._connect()
-        cur = conn.execute(
-            "SELECT event_type, payload FROM event_log WHERE character_id=? AND user_id=? AND created_at>?",
-            (character_id, user_id, since),
-        )
-        counts: dict[str, int] = {}
-        try:
-            for event_type, payload_text in cur.fetchall():
-                try:
-                    payload = json.loads(payload_text)
-                except json.JSONDecodeError:
-                    payload = {}
-                types = []
-                if isinstance(payload, dict):
-                    if payload.get("trigger_memory_type"):
-                        types.append(str(payload["trigger_memory_type"]))
-                    for item in payload.get("memory_types", []) or []:
-                        types.append(str(item))
-                if not types:
-                    types.append(str(event_type))
-                for item in types:
-                    counts[item] = counts.get(item, 0) + 1
-            return counts
-        finally:
-            conn.close()
-
-    def load_events_since(self, character_id: str, user_id: str, since: float, event_type: str | None = None) -> list[dict]:
-        """Load diagnostic event-log payloads created after a wall-clock timestamp."""
-        conn = self._connect()
-        if event_type is None:
-            cur = conn.execute(
-                "SELECT id,timestep,event_type,payload,created_at FROM event_log WHERE character_id=? AND user_id=? AND created_at>? ORDER BY created_at",
-                (character_id, user_id, since),
-            )
-        else:
-            cur = conn.execute(
-                "SELECT id,timestep,event_type,payload,created_at FROM event_log WHERE character_id=? AND user_id=? AND created_at>? AND event_type=? ORDER BY created_at",
-                (character_id, user_id, since, event_type),
-            )
-        rows = []
-        try:
-            for event_id, timestep, ev_type, payload_text, created_at in cur.fetchall():
-                try:
-                    payload = json.loads(payload_text)
-                except json.JSONDecodeError:
-                    payload = {}
-                rows.append({"id": event_id, "timestep": timestep, "event_type": ev_type, "payload": payload, "created_at": created_at})
-            return rows
-        finally:
-            conn.close()
-
-    def sqlite_integrity_check(self) -> str:
+    def integrity_check(self) -> str:
         with self._connection() as conn:
             row = conn.execute("PRAGMA integrity_check").fetchone()
         return str(row[0]) if row else "unknown"
-
-    def close(self):
-        return None
