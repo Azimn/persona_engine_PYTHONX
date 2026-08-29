@@ -1,0 +1,25 @@
+{
+  "alice_trait_after_learning": {
+    "name": "deliberate_caution",
+    "source_memory_ids": [
+      "trait-ownership-probe-evidence"
+    ],
+    "strength": 0.05
+  },
+  "alice_trait_after_restart": {
+    "name": "deliberate_caution",
+    "source_memory_ids": [
+      "trait-ownership-probe-evidence"
+    ],
+    "strength": 0.05
+  },
+  "bob_trait_on_same_subject": null,
+  "cross_interlocutor_trait_preserved": false,
+  "diagnosis": "earned_character_development_partitioned_by_interlocutor",
+  "expected_minimum_property": "Slow evidence-backed character development should remain attached to the continuing subject when the active interlocutor changes.",
+  "probe": "subject-earned-trait-ownership-v1",
+  "same_interlocutor_restart_preserved": true,
+  "same_subject_uuid": true,
+  "scope_note": "This probe tests IdentityLedger.earned_traits only. It does not claim that relationship beliefs, pressures, memories, body state, world state, or symbols share the same ownership semantics.",
+  "trait_name": "deliberate_caution"
+}
