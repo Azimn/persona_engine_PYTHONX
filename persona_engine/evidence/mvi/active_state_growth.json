@@ -4,36 +4,32 @@
   "family_growth_10_to_250_bytes": {
     "belief_ledger": 0,
     "body": -1,
-    "continuity_clock": 1,
+    "continuity_clock": -1,
     "deception_ledger": 0,
     "earned_traits": 0,
     "habits": 0,
     "intentions": 0,
-    "interface": 3495,
-    "memories": 4492,
-    "meta": 3,
+    "interface": 3500,
+    "memories": 0,
+    "meta": 1,
     "open_loops": 0,
     "pressures": 262,
     "relationship": -14,
     "relationship_beliefs": 0,
-    "sensorium": 305,
+    "sensorium": 303,
     "symbols": 0,
     "world": 0,
-    "world_authority": 6
+    "world_authority": 5
   },
   "interpretation": "After known history-like collections are experimentally bounded, remaining state-family deltas identify the next actual sources of active-state growth. This probe changes no production compaction policy.",
   "largest_growth_families": [
     {
-      "family": "memories",
-      "growth_bytes": 4492
-    },
-    {
       "family": "interface",
-      "growth_bytes": 3495
+      "growth_bytes": 3500
     },
     {
       "family": "sensorium",
-      "growth_bytes": 305
+      "growth_bytes": 303
     },
     {
       "family": "pressures",
@@ -41,18 +37,22 @@
     },
     {
       "family": "world_authority",
-      "growth_bytes": 6
+      "growth_bytes": 5
     },
     {
       "family": "meta",
-      "growth_bytes": 3
-    },
-    {
-      "family": "continuity_clock",
       "growth_bytes": 1
     },
     {
       "family": "belief_ledger",
+      "growth_bytes": 0
+    },
+    {
+      "family": "deception_ledger",
+      "growth_bytes": 0
+    },
+    {
+      "family": "earned_traits",
       "growth_bytes": 0
     }
   ],
@@ -62,14 +62,14 @@
       "family_bytes": {
         "belief_ledger": 447,
         "body": 228,
-        "continuity_clock": 128,
+        "continuity_clock": 129,
         "deception_ledger": 2,
         "earned_traits": 2,
-        "habits": 199,
+        "habits": 198,
         "intentions": 468,
-        "interface": 2021,
-        "memories": 519,
-        "meta": 108,
+        "interface": 2018,
+        "memories": 332,
+        "meta": 110,
         "open_loops": 250,
         "pressures": 444,
         "relationship": 168,
@@ -77,30 +77,30 @@
         "sensorium": 2,
         "symbols": 2,
         "world": 210,
-        "world_authority": 267
+        "world_authority": 268
       },
       "hot_memory_count": 1,
       "hot_world_fact_count": 1,
       "routine_turns": 10,
-      "serialized_state_bytes": 5726
+      "serialized_state_bytes": 5539
     },
     {
       "family_bytes": {
         "belief_ledger": 447,
         "body": 227,
-        "continuity_clock": 128,
+        "continuity_clock": 127,
         "deception_ledger": 2,
         "earned_traits": 2,
-        "habits": 199,
+        "habits": 198,
         "intentions": 468,
-        "interface": 5441,
-        "memories": 1269,
+        "interface": 5438,
+        "memories": 332,
         "meta": 109,
         "open_loops": 250,
         "pressures": 706,
         "relationship": 168,
         "relationship_beliefs": 2,
-        "sensorium": 307,
+        "sensorium": 305,
         "symbols": 2,
         "world": 210,
         "world_authority": 271
@@ -108,7 +108,7 @@
       "hot_memory_count": 1,
       "hot_world_fact_count": 1,
       "routine_turns": 50,
-      "serialized_state_bytes": 10467
+      "serialized_state_bytes": 9523
     },
     {
       "family_bytes": {
@@ -117,16 +117,16 @@
         "continuity_clock": 128,
         "deception_ledger": 2,
         "earned_traits": 2,
-        "habits": 199,
+        "habits": 198,
         "intentions": 468,
-        "interface": 5439,
-        "memories": 2206,
-        "meta": 110,
+        "interface": 5441,
+        "memories": 332,
+        "meta": 111,
         "open_loops": 250,
         "pressures": 706,
         "relationship": 154,
         "relationship_beliefs": 2,
-        "sensorium": 307,
+        "sensorium": 305,
         "symbols": 2,
         "world": 210,
         "world_authority": 271
@@ -134,25 +134,25 @@
       "hot_memory_count": 1,
       "hot_world_fact_count": 1,
       "routine_turns": 100,
-      "serialized_state_bytes": 11389
+      "serialized_state_bytes": 9515
     },
     {
       "family_bytes": {
         "belief_ledger": 447,
         "body": 227,
-        "continuity_clock": 129,
+        "continuity_clock": 128,
         "deception_ledger": 2,
         "earned_traits": 2,
-        "habits": 199,
+        "habits": 198,
         "intentions": 468,
-        "interface": 5516,
-        "memories": 5011,
+        "interface": 5518,
+        "memories": 332,
         "meta": 111,
         "open_loops": 250,
         "pressures": 706,
         "relationship": 154,
         "relationship_beliefs": 2,
-        "sensorium": 307,
+        "sensorium": 305,
         "symbols": 2,
         "world": 210,
         "world_authority": 273
@@ -160,7 +160,7 @@
       "hot_memory_count": 1,
       "hot_world_fact_count": 1,
       "routine_turns": 250,
-      "serialized_state_bytes": 14275
+      "serialized_state_bytes": 9594
     }
   ],
   "world_projection_preserved_current_context_every_turn": true

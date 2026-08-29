@@ -22,24 +22,24 @@
       "snapshots": [
         {
           "hot_memories": 1,
-          "memory_bytes": 520,
+          "memory_bytes": 332,
           "routine_turns": 10,
-          "serialized_state_bytes": 8704,
-          "world_authority_bytes": 3236
+          "serialized_state_bytes": 8511,
+          "world_authority_bytes": 3234
         },
         {
           "hot_memories": 1,
-          "memory_bytes": 1265,
+          "memory_bytes": 332,
           "routine_turns": 50,
-          "serialized_state_bytes": 24208,
-          "world_authority_bytes": 14024
+          "serialized_state_bytes": 23287,
+          "world_authority_bytes": 14025
         },
         {
           "hot_memories": 1,
-          "memory_bytes": 2208,
+          "memory_bytes": 332,
           "routine_turns": 100,
-          "serialized_state_bytes": 38637,
-          "world_authority_bytes": 27511
+          "serialized_state_bytes": 36761,
+          "world_authority_bytes": 27514
         }
       ],
       "target_canonical": true,
@@ -60,24 +60,24 @@
       "snapshots": [
         {
           "hot_memories": 2,
-          "memory_bytes": 876,
+          "memory_bytes": 693,
           "routine_turns": 10,
-          "serialized_state_bytes": 9052,
-          "world_authority_bytes": 3236
+          "serialized_state_bytes": 8869,
+          "world_authority_bytes": 3235
         },
         {
           "hot_memories": 2,
-          "memory_bytes": 1628,
+          "memory_bytes": 695,
           "routine_turns": 50,
-          "serialized_state_bytes": 24576,
-          "world_authority_bytes": 14022
+          "serialized_state_bytes": 23648,
+          "world_authority_bytes": 14025
         },
         {
           "hot_memories": 2,
-          "memory_bytes": 2567,
+          "memory_bytes": 695,
           "routine_turns": 100,
-          "serialized_state_bytes": 38991,
-          "world_authority_bytes": 27509
+          "serialized_state_bytes": 37117,
+          "world_authority_bytes": 27510
         }
       ],
       "target_canonical": true,
@@ -98,24 +98,24 @@
       "snapshots": [
         {
           "hot_memories": 4,
-          "memory_bytes": 1656,
+          "memory_bytes": 1465,
           "routine_turns": 10,
-          "serialized_state_bytes": 9837,
+          "serialized_state_bytes": 9632,
           "world_authority_bytes": 3237
         },
         {
           "hot_memories": 4,
-          "memory_bytes": 2407,
+          "memory_bytes": 1475,
           "routine_turns": 50,
-          "serialized_state_bytes": 25356,
-          "world_authority_bytes": 14025
+          "serialized_state_bytes": 24425,
+          "world_authority_bytes": 14027
         },
         {
           "hot_memories": 4,
-          "memory_bytes": 3352,
+          "memory_bytes": 1475,
           "routine_turns": 100,
-          "serialized_state_bytes": 39780,
-          "world_authority_bytes": 27510
+          "serialized_state_bytes": 37903,
+          "world_authority_bytes": 27512
         }
       ],
       "target_canonical": true,
@@ -136,24 +136,24 @@
       "snapshots": [
         {
           "hot_memories": 8,
-          "memory_bytes": 3158,
+          "memory_bytes": 2999,
           "routine_turns": 10,
-          "serialized_state_bytes": 11340,
+          "serialized_state_bytes": 11175,
           "world_authority_bytes": 3237
         },
         {
           "hot_memories": 8,
-          "memory_bytes": 3928,
+          "memory_bytes": 3136,
           "routine_turns": 50,
-          "serialized_state_bytes": 26868,
-          "world_authority_bytes": 14023
+          "serialized_state_bytes": 26092,
+          "world_authority_bytes": 14029
         },
         {
           "hot_memories": 8,
-          "memory_bytes": 4794,
+          "memory_bytes": 3077,
           "routine_turns": 100,
-          "serialized_state_bytes": 41216,
-          "world_authority_bytes": 27506
+          "serialized_state_bytes": 39496,
+          "world_authority_bytes": 27511
         }
       ],
       "target_canonical": true,
