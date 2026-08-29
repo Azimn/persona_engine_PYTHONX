@@ -26,15 +26,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e '.[test]'
-      - name: Apply subject-owned commitment restoration
-        run: python tools/apply_subject_commitment_restore.py
+      - name: Restore persistence compatibility and apply ownership repair
+        run: |
+          python tools/repair_persistence_compat.py
+          python tools/apply_subject_commitment_restore.py
       - name: Run focused ownership and commitment tests
         run: |
           python -m pytest \
             persona_engine/tests/test_interlocutor_subject_state.py \
             persona_engine/tests/test_commitment_constraint.py \
             persona_engine/tests/test_history_decision_evidence.py \
-            persona_engine/tests/test_continuity_replay.py -q
+            persona_engine/tests/test_continuity_replay.py \
+            persona_engine/tests/test_continuity_ledger.py \
+            persona_engine/tests/test_dream_engine.py -q
       - name: Regenerate interlocutor continuity evidence
         run: |
           python tools/interlocutor_continuity_probe.py \
@@ -44,7 +48,10 @@ jobs:
         run: python -m pytest persona_engine/tests -q
       - name: Commit integrated repair and evidence
         run: |
-          rm -f tools/apply_subject_commitment_restore.py .github/workflows/wayfarer-subject-commitment-restore.yml
+          rm -f \
+            tools/apply_subject_commitment_restore.py \
+            tools/repair_persistence_compat.py \
+            .github/workflows/wayfarer-subject-commitment-restore.yml
           git config user.name 'Wayfarer Subject Ownership Integration'
           git config user.email 'wayfarer-subject@users.noreply.github.com'
           git add -A
