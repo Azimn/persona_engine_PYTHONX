@@ -81,17 +81,20 @@ def evaluate_history_for_decision(
         return HistoryDecisionEvidence()
 
     scored = sorted(
-        (
-            min(
-                1.0,
-                max(0.0, float(memory.emotional_intensity))
-                * max(0.0, float(memory.relationship_relevance))
-                + min(0.25, unresolved_conflict * 0.25),
-            ),
-            memory,
-        )
-        for memory in candidates
-    , key=lambda item: (item[0], float(item[1].created_at), str(item[1].id)))
+        [
+            (
+                min(
+                    1.0,
+                    max(0.0, float(memory.emotional_intensity))
+                    * max(0.0, float(memory.relationship_relevance))
+                    + min(0.25, unresolved_conflict * 0.25),
+                ),
+                memory,
+            )
+            for memory in candidates
+        ],
+        key=lambda item: (item[0], float(item[1].created_at), str(item[1].id)),
+    )
     strength = scored[-1][0]
     if strength < 0.30:
         return HistoryDecisionEvidence()
