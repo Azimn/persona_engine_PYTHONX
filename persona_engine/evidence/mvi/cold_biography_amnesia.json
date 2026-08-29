@@ -1,0 +1,41 @@
+{
+  "amnesia_demonstrated": true,
+  "canonical_target_event_matches": 1,
+  "canonical_target_present": true,
+  "full_memory_count": 103,
+  "full_retrieval": {
+    "retrieved_contents": [
+      "I heard you say: You lied to me. This is your fault.",
+      "I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "I heard you say: Routine catalog note 0: ordinary shelf marker 0.",
+      "I heard you say: Routine catalog note 1: ordinary shelf marker 1."
+    ],
+    "retrieved_ids": [
+      "fcbf6769",
+      "22fceef2",
+      "92008a50",
+      "e2c4f344"
+    ],
+    "target_retrieved": true
+  },
+  "interpretation": "The complete canonical biography still contains the old neutral detail, but the one-item active salience cache cannot recall it. This earns investigation of cold-biography retrieval rather than a larger always-resident memory store.",
+  "probe": "cold-biography-amnesia-v1",
+  "query": "What was the old observatory code word I told you?",
+  "target_in_tiny_cache_before_query": false,
+  "target_memory_count_before_projection": 1,
+  "target_token": "amber-otter",
+  "tiny_cache_budget": 1,
+  "tiny_cache_contents": [
+    "I heard you say: You lied to me. This is your fault."
+  ],
+  "tiny_cache_policy": "salience",
+  "tiny_retrieval": {
+    "retrieved_contents": [
+      "I heard you say: You lied to me. This is your fault."
+    ],
+    "retrieved_ids": [
+      "fcbf6769"
+    ],
+    "target_retrieved": false
+  }
+}
