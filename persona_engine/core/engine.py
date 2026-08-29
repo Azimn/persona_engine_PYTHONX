@@ -148,6 +148,7 @@ class InteriorEngine:
         self.last_reflection_time = 0.0
 
         self._load_state()
+        self._restore_subject_owned_clock()
         self._restore_subject_owned_commitments()
 
     def set_renderer(self, renderer) -> None:
@@ -285,6 +286,35 @@ class InteriorEngine:
         self.world = WorldState.from_dict(self.persistence.load(cid, uid, "world"), self.world_profile)
         self.sensorium = SensoriumProcessor.from_list(self.persistence.load(cid, uid, "sensorium", []))
         self.world_authority = WorldAuthority.from_list(self.persistence.load(cid, uid, "world_authority", []))
+
+    def _restore_subject_owned_clock(self) -> None:
+        """Reconcile interlocutor-scoped clock snapshots with subject history.
+
+        ``ContinuityClock`` is character-owned state. Existing snapshots remain
+        keyed by interlocutor for compatibility, but a newly opened relationship
+        must not fork the subject onto an earlier timeline. Canonical time roots
+        already carry the subject's accumulated elapsed time, so only an upward
+        reconciliation is required here. No psychological meaning is inferred.
+        """
+
+        events = self.persistence.load_subject_continuity_events(
+            self.identity.name,
+            self.user_id,
+            event_type="time_advance",
+        )
+        if not events:
+            return
+        payload = events[-1].get("payload") or {}
+        try:
+            canonical_elapsed = max(0.0, float(payload.get("subject_elapsed_seconds", 0.0)))
+        except (TypeError, ValueError):
+            return
+        if canonical_elapsed <= self.clock.subject_elapsed_seconds:
+            return
+        self.clock.subject_elapsed_seconds = canonical_elapsed
+        observed_wall = payload.get("observed_wall_time")
+        if isinstance(observed_wall, (int, float)):
+            self.clock.last_wall_time = float(observed_wall)
 
     def _restore_subject_owned_commitments(self) -> None:
         """Restore self-owned commitments from canonical subject history.

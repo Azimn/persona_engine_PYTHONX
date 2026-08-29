@@ -53,3 +53,34 @@ def test_time_advance_is_a_replayable_root():
         assert result.complete is True
         assert result.root_events_replayed == 1
         assert result.semantic_digest == semantic_digest(source)
+
+
+def test_subject_clock_follows_one_subject_across_interlocutors():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "shared.db")
+        alice = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        alice.advance_time(8 * 60 * 60, source="subject_clock_test")
+        alice_elapsed = alice.engine.clock.subject_elapsed_seconds
+        alice_subject = alice.engine.persistence._resolve_subject(alice.engine.identity.name, "alice")[0]
+
+        bob = CharacterAgent(cartridge_path=str(CART), user_id="bob", db_path=db)
+        bob_subject = bob.engine.persistence._resolve_subject(bob.engine.identity.name, "bob")[0]
+        assert bob_subject == alice_subject
+        assert bob.engine.clock.subject_elapsed_seconds == alice_elapsed
+
+        bob.advance_time(60 * 60, source="subject_clock_test")
+        bob_elapsed = bob.engine.clock.subject_elapsed_seconds
+        assert bob_elapsed == alice_elapsed + 60 * 60
+
+        alice_again = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        assert alice_again.engine.clock.subject_elapsed_seconds == bob_elapsed
+
+        events = alice_again.engine.persistence.load_subject_continuity_events(
+            alice_again.engine.identity.name,
+            alice_again.engine.user_id,
+            event_type="time_advance",
+        )
+        assert [event["payload"]["subject_elapsed_seconds"] for event in events] == [
+            alice_elapsed,
+            bob_elapsed,
+        ]
