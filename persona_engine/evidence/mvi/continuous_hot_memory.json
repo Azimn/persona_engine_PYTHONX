@@ -1,0 +1,166 @@
+{
+  "all_variants_passed": true,
+  "budgets": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "interpretation": "This tests whether a small hot autobiographical snapshot can be enforced throughout development and across restart while canonical cold biography supplies explicit old recall. It does not establish a production memory cap.",
+  "probe": "continuous-hot-memory-v1",
+  "smallest_passing_budget": 1,
+  "variants": [
+    {
+      "budget": 1,
+      "disclosure_dialogue_act": "decline",
+      "hot_memories_after_restart": 1,
+      "identity_dialogue_act": "protect_boundary",
+      "max_hot_memories_after_each_compaction": 1,
+      "passed": true,
+      "recall_cold_target_hit": true,
+      "recall_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "snapshots": [
+        {
+          "hot_memories": 1,
+          "memory_bytes": 520,
+          "routine_turns": 10,
+          "serialized_state_bytes": 8704,
+          "world_authority_bytes": 3236
+        },
+        {
+          "hot_memories": 1,
+          "memory_bytes": 1265,
+          "routine_turns": 50,
+          "serialized_state_bytes": 24208,
+          "world_authority_bytes": 14024
+        },
+        {
+          "hot_memories": 1,
+          "memory_bytes": 2208,
+          "routine_turns": 100,
+          "serialized_state_bytes": 38637,
+          "world_authority_bytes": 27511
+        }
+      ],
+      "target_canonical": true,
+      "target_hot_after_restart": false,
+      "target_hot_before_restart": false,
+      "trust_dialogue_act": "qualified_response",
+      "trust_history_active": true
+    },
+    {
+      "budget": 2,
+      "disclosure_dialogue_act": "decline",
+      "hot_memories_after_restart": 2,
+      "identity_dialogue_act": "protect_boundary",
+      "max_hot_memories_after_each_compaction": 2,
+      "passed": true,
+      "recall_cold_target_hit": true,
+      "recall_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "snapshots": [
+        {
+          "hot_memories": 2,
+          "memory_bytes": 876,
+          "routine_turns": 10,
+          "serialized_state_bytes": 9052,
+          "world_authority_bytes": 3236
+        },
+        {
+          "hot_memories": 2,
+          "memory_bytes": 1628,
+          "routine_turns": 50,
+          "serialized_state_bytes": 24576,
+          "world_authority_bytes": 14022
+        },
+        {
+          "hot_memories": 2,
+          "memory_bytes": 2567,
+          "routine_turns": 100,
+          "serialized_state_bytes": 38991,
+          "world_authority_bytes": 27509
+        }
+      ],
+      "target_canonical": true,
+      "target_hot_after_restart": false,
+      "target_hot_before_restart": false,
+      "trust_dialogue_act": "qualified_response",
+      "trust_history_active": true
+    },
+    {
+      "budget": 4,
+      "disclosure_dialogue_act": "decline",
+      "hot_memories_after_restart": 4,
+      "identity_dialogue_act": "protect_boundary",
+      "max_hot_memories_after_each_compaction": 4,
+      "passed": true,
+      "recall_cold_target_hit": true,
+      "recall_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "snapshots": [
+        {
+          "hot_memories": 4,
+          "memory_bytes": 1656,
+          "routine_turns": 10,
+          "serialized_state_bytes": 9837,
+          "world_authority_bytes": 3237
+        },
+        {
+          "hot_memories": 4,
+          "memory_bytes": 2407,
+          "routine_turns": 50,
+          "serialized_state_bytes": 25356,
+          "world_authority_bytes": 14025
+        },
+        {
+          "hot_memories": 4,
+          "memory_bytes": 3352,
+          "routine_turns": 100,
+          "serialized_state_bytes": 39780,
+          "world_authority_bytes": 27510
+        }
+      ],
+      "target_canonical": true,
+      "target_hot_after_restart": false,
+      "target_hot_before_restart": false,
+      "trust_dialogue_act": "qualified_response",
+      "trust_history_active": true
+    },
+    {
+      "budget": 8,
+      "disclosure_dialogue_act": "decline",
+      "hot_memories_after_restart": 8,
+      "identity_dialogue_act": "protect_boundary",
+      "max_hot_memories_after_each_compaction": 8,
+      "passed": true,
+      "recall_cold_target_hit": true,
+      "recall_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "snapshots": [
+        {
+          "hot_memories": 8,
+          "memory_bytes": 3158,
+          "routine_turns": 10,
+          "serialized_state_bytes": 11340,
+          "world_authority_bytes": 3237
+        },
+        {
+          "hot_memories": 8,
+          "memory_bytes": 3928,
+          "routine_turns": 50,
+          "serialized_state_bytes": 26868,
+          "world_authority_bytes": 14023
+        },
+        {
+          "hot_memories": 8,
+          "memory_bytes": 4794,
+          "routine_turns": 100,
+          "serialized_state_bytes": 41216,
+          "world_authority_bytes": 27506
+        }
+      ],
+      "target_canonical": true,
+      "target_hot_after_restart": false,
+      "target_hot_before_restart": false,
+      "trust_dialogue_act": "qualified_response",
+      "trust_history_active": true
+    }
+  ]
+}
