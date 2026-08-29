@@ -7,9 +7,9 @@ Probe: `interlocutor-continuity-v1`
 | Alice and Bob resolve to same subject UUID | `True` |
 | Relationship state remains actor-specific | `True` |
 | Alice active commitments | `commitment:non_disclosure:project_orchid` |
-| Bob sees active commitment before request | `False` |
-| Bob disclosure conduct | `respond` |
-| Diagnosis | `character_owned_state_partitioned_by_interlocutor` |
+| Bob sees active commitment before request | `True` |
+| Bob disclosure conduct | `decline` |
+| Diagnosis | `shared_self_actor_specific_relationship_split_is_working` |
 
 The minimum property under test is not multi-agent social cognition. It is state ownership. Relationship state belongs to a relationship and should differ by interlocutor. A self-adopted character commitment belongs to the continuing individual and should not disappear merely because the active interlocutor changes.
 

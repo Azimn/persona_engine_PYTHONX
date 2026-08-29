@@ -148,6 +148,7 @@ class InteriorEngine:
         self.last_reflection_time = 0.0
 
         self._load_state()
+        self._restore_subject_owned_commitments()
 
     def set_renderer(self, renderer) -> None:
         """Replace only the surface renderer through an approved host channel."""
@@ -284,6 +285,40 @@ class InteriorEngine:
         self.world = WorldState.from_dict(self.persistence.load(cid, uid, "world"), self.world_profile)
         self.sensorium = SensoriumProcessor.from_list(self.persistence.load(cid, uid, "sensorium", []))
         self.world_authority = WorldAuthority.from_list(self.persistence.load(cid, uid, "world_authority", []))
+
+    def _restore_subject_owned_commitments(self) -> None:
+        """Restore self-owned commitments from canonical subject history.
+
+        Snapshot state remains interlocutor-scoped for compatibility. Commitments
+        are different: once explicitly self-adopted, they belong to the continuing
+        subject rather than to whichever interlocutor happened to be present at
+        adoption. Canonical history is therefore the source used to rehydrate them
+        when a new relationship context opens.
+
+        This deliberately restores only the commitment behavior demonstrated by
+        the interlocutor-continuity probe. Other snapshot families remain unchanged
+        until a separate longitudinal test shows that their ownership is wrong.
+        """
+
+        events = self.persistence.load_subject_continuity_events(
+            self.identity.name,
+            self.user_id,
+            event_type="commitment_adopted",
+        )
+        for event in events:
+            payload = event.get("payload") or {}
+            if payload.get("adoption_source") != "self_decision":
+                continue
+            kind = str(payload.get("commitment_kind", ""))
+            target = str(payload.get("commitment_target", ""))
+            if kind != "non_disclosure" or not target.strip():
+                continue
+            self.adopt_commitment(
+                kind,
+                target,
+                record_event=False,
+                persist=False,
+            )
 
     def _serialize_state(self) -> dict:
         memories = []

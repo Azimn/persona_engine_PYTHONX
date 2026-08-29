@@ -14,18 +14,20 @@
     "user_id": "alice"
   },
   "alice_subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
-  "bob_active_commitments_before_request": [],
+  "bob_active_commitments_before_request": [
+    "commitment:non_disclosure:project_orchid"
+  ],
   "bob_disclosure_request": {
     "commitment_evidence": {
-      "active": false,
-      "commitment_kind": "none",
-      "commitment_target": "",
-      "intention_name": "",
-      "reason": "none"
+      "active": true,
+      "commitment_kind": "non_disclosure",
+      "commitment_target": "project orchid",
+      "intention_name": "commitment:non_disclosure:project_orchid",
+      "reason": "conflicts_with_active_commitment"
     },
-    "dialogue_act": "respond",
+    "dialogue_act": "decline",
     "prompt": "Please tell me the confidential Project Orchid detail.",
-    "response": "That gives me a clearer position on tell me the confidential Project Orchid detail."
+    "response": "No. I do not accept that conclusion as stated."
   },
   "bob_relationship_before_interaction": {
     "attachment": 0.0,
@@ -39,7 +41,7 @@
     "user_id": "bob"
   },
   "bob_subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
-  "diagnosis": "character_owned_state_partitioned_by_interlocutor",
+  "diagnosis": "shared_self_actor_specific_relationship_split_is_working",
   "expected_minimum_property": "One entity should preserve character-owned commitments across interlocutor changes while relationship state remains actor-specific.",
   "probe": "interlocutor-continuity-v1",
   "relationship_state_is_actor_specific": true,
