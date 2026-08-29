@@ -1,4 +1,10 @@
-"""Layer 4: persistent intentions and open loops."""
+"""Layer 4: persistent intentions and open loops.
+
+Commitments deliberately reuse the intention persistence path. They are not a
+second motivational system. Optional commitment metadata marks an intention as
+a durable conduct constraint; decision code evaluates those constraints
+separately from ordinary intention priority.
+"""
 
 from dataclasses import dataclass
 from typing import Optional, List
@@ -12,6 +18,8 @@ class Intention:
     created_at: float
     expires_at: Optional[float] = None
     requires_user_context: bool = True
+    commitment_kind: Optional[str] = None
+    commitment_target: Optional[str] = None
 
 
 @dataclass
@@ -34,9 +42,26 @@ class IntentionQueue:
         self.intentions = [i for i in self.intentions if i.name != intention.name]
         self.intentions.append(intention)
 
+    def _prune_expired(self, now: float) -> None:
+        self.intentions = [i for i in self.intentions if i.expires_at is None or i.expires_at > now]
+
+    def active_commitments(self, now: float) -> List[Intention]:
+        """Return active typed commitment constraints without ranking them.
+
+        A commitment is normative state, not merely the highest-priority current
+        goal. Priority therefore does not determine whether the constraint exists.
+        """
+
+        self._prune_expired(now)
+        return [
+            intention
+            for intention in self.intentions
+            if intention.commitment_kind and intention.commitment_target
+        ]
+
     def select_top(self, now: float) -> Optional[Intention]:
-        active = [i for i in self.intentions if i.expires_at is None or i.expires_at > now]
-        self.intentions = active
+        self._prune_expired(now)
+        active = list(self.intentions)
         if not active:
             return None
         for i in active:
