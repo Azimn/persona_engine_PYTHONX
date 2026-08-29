@@ -19,6 +19,14 @@ _RECALL_PATTERNS = (
     re.compile(r"\bwhat was\b.*\b(i told you|i said)\b", re.IGNORECASE),
 )
 
+# Recall scaffolding describes the retrieval act rather than the remembered
+# subject. It must not be allowed to ground an autobiographical match by itself.
+_RECALL_SCAFFOLD = {
+    "a", "about", "an", "and", "did", "do", "i", "me", "my", "old", "please",
+    "recall", "remember", "said", "say", "tell", "the", "this", "that", "told",
+    "was", "what", "when", "you", "your",
+}
+
 
 def explicit_recall_request(text: str) -> bool:
     value = str(text or "")
@@ -29,8 +37,31 @@ def _normalized(text: str) -> str:
     return " ".join(str(text or "").lower().split())
 
 
+def _tokens(text: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9']+", str(text or "").lower()))
+
+
+def recall_focus_tokens(query: str) -> set[str]:
+    """Return lexical anchors that describe what is being recalled.
+
+    V1 intentionally prefers a grounded miss over a semantically plausible false
+    memory. Every remaining topical query token must occur in a candidate before
+    semantic similarity is allowed to rank it. If the question provides no
+    topical anchor, cold recall fails closed until a richer index is justified.
+    """
+
+    return {token for token in _tokens(query) if token not in _RECALL_SCAFFOLD and len(token) > 1}
+
+
+def grounded_recall_match(query: str, candidate_text: str) -> bool:
+    focus = recall_focus_tokens(query)
+    if not focus:
+        return False
+    return focus.issubset(_tokens(candidate_text))
+
+
 def retrieve_cold_biography(persistence, character_id: str, user_id: str, query: str, *, top_k: int = 4) -> list[MemoryUnit]:
-    """Return a bounded set of transient candidates from canonical input history."""
+    """Return a bounded set of grounded transient candidates from canonical input history."""
 
     if top_k <= 0 or not explicit_recall_request(query):
         return []
@@ -41,9 +72,9 @@ def retrieve_cold_biography(persistence, character_id: str, user_id: str, query:
         user_text = str(payload.get("user_text", "")).strip()
         if not user_text or _normalized(user_text) == query_norm:
             continue
-        score = float(semantic_similarity(query, user_text))
-        if score <= 0.0:
+        if not grounded_recall_match(query, user_text):
             continue
+        score = float(semantic_similarity(query, user_text))
         event_uuid = str(event.get("event_uuid", ""))
         candidate = MemoryUnit(
             content=f"I heard you say: {user_text}",
@@ -61,10 +92,12 @@ def retrieve_cold_biography(persistence, character_id: str, user_id: str, query:
 
 
 def merge_recall_candidates(query: str, live: Iterable[MemoryUnit], cold: Iterable[MemoryUnit], *, top_k: int = 4) -> list[MemoryUnit]:
-    """Deduplicate by semantic content and rank explicit recall by relevance."""
+    """Admit only grounded recall evidence, then deduplicate and rank it."""
 
     unique: dict[str, MemoryUnit] = {}
     for memory in [*list(live), *list(cold)]:
+        if not grounded_recall_match(query, memory.content):
+            continue
         key = _normalized(memory.content)
         if key not in unique or "cold_biography" not in memory.tags:
             unique[key] = memory
