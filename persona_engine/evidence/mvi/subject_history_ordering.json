@@ -1,37 +1,56 @@
 {
-  "diagnosis": "canonical_sequence_partitioned_by_interlocutor",
-  "interpretation": "Wall time and SQLite insertion order may provide a practical sort, but the canonical sequence field should itself be an unambiguous order for one continuing subject if Wayfarer claims one canonical lived history.",
-  "probe": "subject-history-ordering-v1",
+  "all_subject_sequence_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "diagnosis": "subject_canonical_order_is_unambiguous",
+  "interpretation": "Per-interlocutor sequence remains available for v1 replay compatibility, while subject_sequence provides the single explicit canonical order for the continuing individual.",
+  "probe": "subject-history-ordering-v2",
   "roots": [
     {
-      "event_uuid": "8c2478f9-8597-42be-844e-d09d8ee6b391",
+      "event_uuid": "ee8dcfc5-3570-47a2-8581-baae5dd7f476",
       "sequence": 1,
+      "subject_sequence": 1,
       "user_id": "alice",
       "user_text": "Alice first canonical turn.",
-      "wall_time": 1788009936.1231802
+      "wall_time": 1788017484.7471104
     },
     {
-      "event_uuid": "070df16f-f1c3-4332-80d7-bd438b56380e",
+      "event_uuid": "de1da272-25b0-4add-a4ba-d6c2fe09d621",
       "sequence": 1,
+      "subject_sequence": 4,
       "user_id": "bob",
       "user_text": "Bob canonical turn.",
-      "wall_time": 1788009936.1532097
+      "wall_time": 1788017484.7766533
     },
     {
-      "event_uuid": "5d8a8600-48a3-49ef-be4c-06d531ec5d4a",
+      "event_uuid": "380b46ca-296e-4d90-94ae-e0bd1ec68ed8",
       "sequence": 4,
+      "subject_sequence": 7,
       "user_id": "alice",
       "user_text": "Alice second canonical turn.",
-      "wall_time": 1788009936.1841428
+      "wall_time": 1788017484.807986
     }
   ],
   "same_subject_uuid": true,
-  "sequence_contiguous_subject_wide": false,
-  "sequence_strictly_increasing_subject_wide": false,
-  "sequence_unique_subject_wide": false,
-  "sequence_values": [
+  "stream_sequence_values": [
     1,
     1,
     4
+  ],
+  "subject_sequence_contiguous_across_all_canonical_events": true,
+  "subject_sequence_strictly_increasing_across_interlocutors": true,
+  "subject_sequence_unique_across_interlocutors": true,
+  "subject_sequence_values": [
+    1,
+    4,
+    7
   ]
 }

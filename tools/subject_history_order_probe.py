@@ -27,72 +27,79 @@ def run() -> dict:
         alice2 = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
         alice2.say("Alice second canonical turn.")
 
-        events = alice2.engine.persistence.load_subject_continuity_events(
+        persistence = alice2.engine.persistence
+        events = persistence.load_subject_continuity_events(
             alice2.engine.identity.name,
             alice2.engine.user_id,
             event_type="input",
+        )
+        all_events = persistence.load_subject_continuity_events(
+            alice2.engine.identity.name,
+            alice2.engine.user_id,
         )
         roots = [
             {
                 "user_id": event["user_id"],
                 "sequence": int(event["sequence"]),
+                "subject_sequence": int(event["subject_sequence"]),
                 "wall_time": float(event["wall_time"]),
                 "event_uuid": event["event_uuid"],
                 "user_text": (event.get("payload") or {}).get("user_text"),
             }
             for event in events
         ]
-        sequences = [item["sequence"] for item in roots]
-        unique = len(sequences) == len(set(sequences))
-        strictly_increasing = all(b > a for a, b in zip(sequences, sequences[1:]))
-        contiguous = sequences == list(range(sequences[0], sequences[0] + len(sequences))) if sequences else True
-        same_subject = len({event["subject_uuid"] for event in events}) <= 1
+        stream_sequences = [item["sequence"] for item in roots]
+        subject_sequences = [item["subject_sequence"] for item in roots]
+        all_subject_sequences = [int(event["subject_sequence"]) for event in all_events]
+        unique = len(subject_sequences) == len(set(subject_sequences))
+        strictly_increasing = all(b > a for a, b in zip(subject_sequences, subject_sequences[1:]))
+        all_contiguous = all_subject_sequences == list(range(1, len(all_subject_sequences) + 1))
+        same_subject = len({event["subject_uuid"] for event in all_events}) <= 1
 
         if not same_subject:
             diagnosis = "subject_identity_split"
-        elif unique and strictly_increasing and contiguous:
+        elif unique and strictly_increasing and all_contiguous:
             diagnosis = "subject_canonical_order_is_unambiguous"
         else:
-            diagnosis = "canonical_sequence_partitioned_by_interlocutor"
+            diagnosis = "subject_canonical_order_still_ambiguous"
 
         return {
-            "probe": "subject-history-ordering-v1",
+            "probe": "subject-history-ordering-v2",
             "roots": roots,
-            "sequence_values": sequences,
+            "stream_sequence_values": stream_sequences,
+            "subject_sequence_values": subject_sequences,
+            "all_subject_sequence_values": all_subject_sequences,
             "same_subject_uuid": same_subject,
-            "sequence_unique_subject_wide": unique,
-            "sequence_strictly_increasing_subject_wide": strictly_increasing,
-            "sequence_contiguous_subject_wide": contiguous,
+            "subject_sequence_unique_across_interlocutors": unique,
+            "subject_sequence_strictly_increasing_across_interlocutors": strictly_increasing,
+            "subject_sequence_contiguous_across_all_canonical_events": all_contiguous,
             "diagnosis": diagnosis,
             "interpretation": (
-                "Wall time and SQLite insertion order may provide a practical sort, but the canonical sequence field "
-                "should itself be an unambiguous order for one continuing subject if Wayfarer claims one canonical lived history."
+                "Per-interlocutor sequence remains available for v1 replay compatibility, while subject_sequence provides the single explicit canonical order for the continuing individual."
             ),
         }
 
 
 def markdown(result: dict) -> str:
     rows = "\n".join(
-        f"| {index + 1} | `{item['user_id']}` | `{item['sequence']}` | `{item['user_text']}` |"
+        f"| {index + 1} | `{item['user_id']}` | `{item['sequence']}` | `{item['subject_sequence']}` | `{item['user_text']}` |"
         for index, item in enumerate(result["roots"])
     )
     return f"""# Subject-Wide Canonical Ordering Probe
 
 Probe: `{result['probe']}`
 
-| Subject order by recorded wall time | Interlocutor | Stored sequence | Canonical input |
-| ---: | --- | ---: | --- |
+| Subject encounter order | Interlocutor | Existing stream sequence | Subject sequence | Canonical input |
+| ---: | --- | ---: | ---: | --- |
 {rows}
 
 Subject UUID remains shared: `{result['same_subject_uuid']}`  
-Sequence values are unique subject-wide: `{result['sequence_unique_subject_wide']}`  
-Sequence values are strictly increasing subject-wide: `{result['sequence_strictly_increasing_subject_wide']}`  
-Sequence values are contiguous subject-wide: `{result['sequence_contiguous_subject_wide']}`  
+Subject ordinals are unique across interlocutors: `{result['subject_sequence_unique_across_interlocutors']}`  
+Subject ordinals are strictly increasing across interlocutors: `{result['subject_sequence_strictly_increasing_across_interlocutors']}`  
+Subject ordinals are contiguous across all canonical events: `{result['subject_sequence_contiguous_across_all_canonical_events']}`  
 Diagnosis: `{result['diagnosis']}`
 
-This probe distinguishes an ordering property from the interlocutor-ownership property. Relationship views may remain actor-specific, but a single individual's canonical biography should not require `(user_id, sequence)` to determine which of two events was "sequence 1." Wall time is retained as evidence, but it is not a substitute for an explicit canonical order when the architecture claims a monotonic event sequence.
-
-No sequence schema is changed by this probe.
+The existing `sequence` field remains the v1 per-interlocutor replay/export stream and is intentionally allowed to repeat across different interlocutors. The additive `subject_sequence` field is the minimum subject-owned ordering primitive. It gives one continuing individual one explicit canonical biography without turning relationship state into global state or replacing the established replay contract.
 """
 
 

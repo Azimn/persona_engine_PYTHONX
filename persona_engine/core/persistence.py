@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS continuity_event (
     character_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
     sequence INTEGER NOT NULL,
+    subject_sequence INTEGER,
     continuity_epoch INTEGER NOT NULL DEFAULT 0,
     subject_time REAL NOT NULL,
     wall_time REAL NOT NULL,
@@ -104,6 +105,57 @@ class Persistence:
         self._subject_bindings: dict[tuple[str, str], tuple[str, int]] = {}
         with self._connection() as conn:
             conn.executescript(SCHEMA)
+            self._ensure_subject_sequence_schema_conn(conn)
+
+    def _ensure_subject_sequence_schema_conn(self, conn) -> None:
+        """Add/backfill the subject-owned ordinal without changing stream sequence.
+
+        Existing databases predate ``subject_sequence``. Their canonical rows
+        are deterministically ordered by recorded wall time then insertion id
+        for the one-time migration. New events allocate the next ordinal inside
+        the same SQLite transaction as the canonical insert.
+        """
+
+        columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(continuity_event)").fetchall()}
+        if "subject_sequence" not in columns:
+            conn.execute("ALTER TABLE continuity_event ADD COLUMN subject_sequence INTEGER")
+            groups = conn.execute(
+                "SELECT DISTINCT subject_uuid,continuity_epoch FROM continuity_event ORDER BY subject_uuid,continuity_epoch"
+            ).fetchall()
+            for subject_uuid, epoch in groups:
+                rows = conn.execute(
+                    "SELECT id FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=? ORDER BY wall_time,id",
+                    (subject_uuid, epoch),
+                ).fetchall()
+                for ordinal, (row_id,) in enumerate(rows, start=1):
+                    conn.execute(
+                        "UPDATE continuity_event SET subject_sequence=? WHERE id=?",
+                        (ordinal, row_id),
+                    )
+        else:
+            groups = conn.execute(
+                "SELECT DISTINCT subject_uuid,continuity_epoch FROM continuity_event WHERE subject_sequence IS NULL ORDER BY subject_uuid,continuity_epoch"
+            ).fetchall()
+            for subject_uuid, epoch in groups:
+                row = conn.execute(
+                    "SELECT COALESCE(MAX(subject_sequence),0) FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=?",
+                    (subject_uuid, epoch),
+                ).fetchone()
+                next_ordinal = int(row[0] or 0) + 1
+                rows = conn.execute(
+                    "SELECT id FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=? AND subject_sequence IS NULL ORDER BY wall_time,id",
+                    (subject_uuid, epoch),
+                ).fetchall()
+                for offset, (row_id,) in enumerate(rows):
+                    conn.execute(
+                        "UPDATE continuity_event SET subject_sequence=? WHERE id=?",
+                        (next_ordinal + offset, row_id),
+                    )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_continuity_subject_global_sequence "
+            "ON continuity_event(subject_uuid,continuity_epoch,subject_sequence) "
+            "WHERE subject_sequence IS NOT NULL"
+        )
 
     def _connect(self):
         conn = sqlite3.connect(self.path, check_same_thread=False)
@@ -252,6 +304,13 @@ class Persistence:
         ).fetchone()
         return int(row[0] or 0) + 1
 
+    def _next_subject_sequence_conn(self, conn, subject_uuid: str, continuity_epoch: int) -> int:
+        row = conn.execute(
+            "SELECT COALESCE(MAX(subject_sequence),0) FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=?",
+            (subject_uuid, continuity_epoch),
+        ).fetchone()
+        return int(row[0] or 0) + 1
+
     def _append_continuity_event_conn(
         self,
         conn,
@@ -276,6 +335,7 @@ class Persistence:
         subject_uuid, bound_epoch = self._resolve_subject(character_id, user_id)
         epoch = bound_epoch if continuity_epoch is None else max(0, int(continuity_epoch))
         sequence = sequence or self._next_sequence_conn(conn, subject_uuid, user_id, epoch)
+        subject_sequence = self._next_subject_sequence_conn(conn, subject_uuid, epoch)
         authority = event_authority(event_type, payload)
         event_uuid = event_uuid or str(uuid.uuid4())
         parents = tuple(str(item) for item in (causal_parents if causal_parents is not None else payload.get("causal_parents", ())) if str(item))
@@ -301,14 +361,15 @@ class Persistence:
             legacy_event_id=legacy_event_id,
         )
         conn.execute(
-            "INSERT INTO continuity_event(event_uuid,subject_uuid,character_id,user_id,sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id) "
-            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO continuity_event(event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 event.event_uuid,
                 event.subject_uuid,
                 event.character_id,
                 event.user_id,
                 event.sequence,
+                subject_sequence,
                 event.continuity_epoch,
                 event.subject_time,
                 event.wall_time,
@@ -330,10 +391,10 @@ class Persistence:
     def _continuity_row_to_dict(row) -> dict[str, Any]:
         return {
             "event_uuid": row[0], "subject_uuid": row[1], "character_id": row[2], "user_id": row[3],
-            "sequence": row[4], "continuity_epoch": row[5], "subject_time": row[6], "wall_time": row[7],
-            "source_actor": row[8], "source_class": row[9], "authority_class": row[10], "event_type": row[11],
-            "visibility": row[12], "canonicality": row[13], "causal_parents": json.loads(row[14]),
-            "payload_schema": row[15], "payload": json.loads(row[16]), "legacy_event_id": row[17],
+            "sequence": row[4], "subject_sequence": row[5], "continuity_epoch": row[6], "subject_time": row[7], "wall_time": row[8],
+            "source_actor": row[9], "source_class": row[10], "authority_class": row[11], "event_type": row[12],
+            "visibility": row[13], "canonicality": row[14], "causal_parents": json.loads(row[15]),
+            "payload_schema": row[16], "payload": json.loads(row[17]), "legacy_event_id": row[18],
         }
 
     def load_continuity_events(
@@ -348,7 +409,7 @@ class Persistence:
         epoch = bound_epoch if continuity_epoch is None else int(continuity_epoch)
         with self._connection() as conn:
             rows = conn.execute(
-                "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
+                "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
                 "FROM continuity_event WHERE subject_uuid=? AND user_id=? AND continuity_epoch=? AND sequence>? ORDER BY sequence",
                 (subject_uuid, user_id, epoch, int(after_sequence)),
             ).fetchall()
@@ -369,23 +430,22 @@ class Persistence:
         remains available as provenance so relationship/social meaning can stay
         actor-specific.
 
-        This reader does not redefine sequence semantics. Current M3 streams are
-        still sequenced per interlocutor, so cross-interlocutor results are ordered
-        by wall time then insertion id. Global subject ordering is a separate
-        property that must be tested before changing the ledger contract.
+        The existing ``sequence`` remains a per-interlocutor compatibility stream.
+        ``subject_sequence`` is the additive subject-owned canonical ordinal and is
+        therefore the ordering key for this cross-interlocutor reader.
         """
 
         subject_uuid, bound_epoch = self._resolve_subject(character_id, user_id)
         epoch = bound_epoch if continuity_epoch is None else int(continuity_epoch)
         query = (
-            "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
+            "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
             "FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=?"
         )
         params: list[Any] = [subject_uuid, epoch]
         if event_type is not None:
             query += " AND event_type=?"
             params.append(str(event_type))
-        query += " ORDER BY wall_time,id"
+        query += " ORDER BY subject_sequence"
         with self._connection() as conn:
             rows = conn.execute(query, tuple(params)).fetchall()
         return [self._continuity_row_to_dict(row) for row in rows]
@@ -417,6 +477,11 @@ class Persistence:
 
     def export_continuity_tail(self, character_id: str, user_id: str, after_sequence: int = 0) -> dict[str, Any]:
         subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        events = self.load_continuity_events(character_id, user_id, after_sequence=int(after_sequence), continuity_epoch=epoch)
+        # v1 interchange remains the established per-interlocutor stream contract.
+        # The additive subject ordinal stays local until a subject-wide transfer
+        # experiment earns a versioned portable representation for it.
+        export_events = [{key: value for key, value in event.items() if key != "subject_sequence"} for event in events]
         return {
             "schema_version": CONTINUITY_SCHEMA_VERSION,
             "subject_uuid": subject_uuid,
@@ -424,7 +489,7 @@ class Persistence:
             "user_id": user_id,
             "continuity_epoch": epoch,
             "after_sequence": int(after_sequence),
-            "events": self.load_continuity_events(character_id, user_id, after_sequence=int(after_sequence), continuity_epoch=epoch),
+            "events": export_events,
             "checkpoint": self.latest_checkpoint(character_id, user_id),
         }
 

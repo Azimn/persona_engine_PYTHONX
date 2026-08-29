@@ -1,19 +1,17 @@
 # Subject-Wide Canonical Ordering Probe
 
-Probe: `subject-history-ordering-v1`
+Probe: `subject-history-ordering-v2`
 
-| Subject order by recorded wall time | Interlocutor | Stored sequence | Canonical input |
-| ---: | --- | ---: | --- |
-| 1 | `alice` | `1` | `Alice first canonical turn.` |
-| 2 | `bob` | `1` | `Bob canonical turn.` |
-| 3 | `alice` | `4` | `Alice second canonical turn.` |
+| Subject encounter order | Interlocutor | Existing stream sequence | Subject sequence | Canonical input |
+| ---: | --- | ---: | ---: | --- |
+| 1 | `alice` | `1` | `1` | `Alice first canonical turn.` |
+| 2 | `bob` | `1` | `4` | `Bob canonical turn.` |
+| 3 | `alice` | `4` | `7` | `Alice second canonical turn.` |
 
 Subject UUID remains shared: `True`  
-Sequence values are unique subject-wide: `False`  
-Sequence values are strictly increasing subject-wide: `False`  
-Sequence values are contiguous subject-wide: `False`  
-Diagnosis: `canonical_sequence_partitioned_by_interlocutor`
+Subject ordinals are unique across interlocutors: `True`  
+Subject ordinals are strictly increasing across interlocutors: `True`  
+Subject ordinals are contiguous across all canonical events: `True`  
+Diagnosis: `subject_canonical_order_is_unambiguous`
 
-This probe distinguishes an ordering property from the interlocutor-ownership property. Relationship views may remain actor-specific, but a single individual's canonical biography should not require `(user_id, sequence)` to determine which of two events was "sequence 1." Wall time is retained as evidence, but it is not a substitute for an explicit canonical order when the architecture claims a monotonic event sequence.
-
-No sequence schema is changed by this probe.
+The existing `sequence` field remains the v1 per-interlocutor replay/export stream and is intentionally allowed to repeat across different interlocutors. The additive `subject_sequence` field is the minimum subject-owned ordering primitive. It gives one continuing individual one explicit canonical biography without turning relationship state into global state or replacing the established replay contract.
