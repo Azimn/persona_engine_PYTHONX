@@ -1,0 +1,14 @@
+{
+  "alice_elapsed_after_seconds": 28800.0,
+  "alice_elapsed_before_seconds": 0.0,
+  "alice_restart_elapsed_seconds": 28800.0,
+  "alice_restart_preserved": true,
+  "bob_elapsed_seconds": 0.0,
+  "bob_matches_canonical_subject_time": false,
+  "canonical_time_event_count": 1,
+  "diagnosis": "subject_clock_partitioned_by_interlocutor",
+  "expected_minimum_property": "Changing interlocutors must not fork the continuing individual's elapsed subject time.",
+  "latest_canonical_subject_elapsed_seconds": 28800.0,
+  "probe": "subject-clock-ownership-v1",
+  "same_subject_uuid": true
+}
