@@ -48,6 +48,7 @@ from .vision_sensor import VisionObservation
 from .voice import VoiceProfile, VoicePlanner
 from .avatar import AvatarProfile, AvatarProjector
 from .suppression import SuppressionTrace
+from .continuity_clock import ClockAdvance, ContinuityClock
 
 
 def bucket_risk(risk: float) -> str:
@@ -64,6 +65,13 @@ def _enum_value(value: Any) -> Any:
 
 def _suppression_trace(gate: str, action: str, reason: str, severity: str = "info") -> SuppressionTrace:
     return SuppressionTrace(gate=gate, action=action, reason=reason, severity=severity)
+
+
+# Compatibility budget for pre-M4 per-five-second dynamics. Full elapsed subject
+# time is never truncated. These 1,000 seconds only bound legacy body/pressure
+# integration until those rates are empirically calibrated against real duration.
+LEGACY_IDLE_STEP_SECONDS = 5.0
+LEGACY_CATCHUP_DYNAMICS_BUDGET_SECONDS = 1000.0
 
 
 @dataclass
@@ -134,7 +142,7 @@ class InteriorEngine:
         self.energy = 0.8
         self.restlessness = 0.2
         self.timestep = 0
-        self.last_wall_time = time.time()
+        self.clock = ContinuityClock(last_wall_time=time.time())
         self.last_reflection_time = 0.0
 
         self._load_state()
@@ -150,6 +158,15 @@ class InteriorEngine:
             return status()
         return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
 
+    @property
+    def last_wall_time(self) -> float:
+        """Compatibility alias for pre-M4 callers; ContinuityClock owns time."""
+        return self.clock.last_wall_time
+
+    @last_wall_time.setter
+    def last_wall_time(self, value: float) -> None:
+        self.clock.last_wall_time = float(value)
+
     # ---------------- persistence ----------------
     def _load_state(self):
         cid, uid = self.identity.name, self.user_id
@@ -157,7 +174,13 @@ class InteriorEngine:
         self.energy = meta.get("energy", self.energy)
         self.restlessness = meta.get("restlessness", self.restlessness)
         self.timestep = meta.get("timestep", self.timestep)
-        self.last_wall_time = meta.get("last_wall_time", self.last_wall_time)
+        clock_state = self.persistence.load(cid, uid, "continuity_clock")
+        if clock_state:
+            self.clock = ContinuityClock.from_dict(clock_state)
+        else:
+            # v1 compatibility: preserve the old wall anchor, but do not invent
+            # historical elapsed subject time that was never recorded.
+            self.clock.last_wall_time = float(meta.get("last_wall_time", self.clock.last_wall_time))
         self.last_reflection_time = meta.get("last_reflection_time", self.last_reflection_time)
 
         rel = self.persistence.load(cid, uid, "relationship")
@@ -271,6 +294,7 @@ class InteriorEngine:
             "interface": interface,
             "body": self.body.to_dict(),
             "world": self.world.to_dict(),
+            "continuity_clock": self.clock.to_dict(),
             "sensorium": self.sensorium.to_dict(),
             "belief_ledger": self.belief_ledger.to_state(),
             "world_authority": self.world_authority.to_list(),
@@ -284,21 +308,51 @@ class InteriorEngine:
 
     # ---------------- idle and silent processing ----------------
     def _catch_up_idle(self):
-        now = time.time()
-        elapsed = max(0.0, now - self.last_wall_time)
-        self.last_wall_time = now
-        steps = min(int(elapsed / 5.0), 200)
-        for _ in range(steps):
-            self._run_single_idle_cycle(elapsed_seconds=5.0)
+        advance = self.clock.observe_wall(time.time(), source="wall_clock_catchup")
+        self._apply_clock_advance(advance, record_event=True, persist=False)
+
+    def advance_time(self, elapsed_seconds: float, *, source: str = "explicit", record_event: bool = True, persist: bool = True) -> dict:
+        """Advance linear subject time and apply only explicitly bounded dynamics.
+
+        Full elapsed time is preserved in ContinuityClock and the canonical
+        ``time_advance`` root. Legacy five-second body/pressure mechanics receive
+        at most the compatibility budget until those coefficients are calibrated.
+        """
+        advance = self.clock.advance_by(elapsed_seconds, observed_wall_time=time.time(), source=source)
+        return self._apply_clock_advance(advance, record_event=record_event, persist=persist)
+
+    def _apply_clock_advance(self, advance: ClockAdvance, *, record_event: bool, persist: bool) -> dict:
+        elapsed = max(0.0, float(advance.elapsed_seconds))
+        dynamics_seconds = min(elapsed, LEGACY_CATCHUP_DYNAMICS_BUDGET_SECONDS)
+        steps = int(dynamics_seconds / LEGACY_IDLE_STEP_SECONDS)
+        for index in range(steps):
+            self._run_single_idle_cycle(
+                elapsed_seconds=LEGACY_IDLE_STEP_SECONDS,
+                world_elapsed_seconds=elapsed if index == 0 else 0.0,
+            )
         self.timestep += steps
+        payload = advance.to_payload()
+        payload.update({
+            "dynamics_seconds": round(steps * LEGACY_IDLE_STEP_SECONDS, 6),
+            "dynamics_steps": steps,
+            "dynamics_profile": "legacy_bounded_v1",
+            "memory_types": ["time_advance"],
+        })
+        # Ordinary sub-step wall gaps update the clock but do not create a
+        # standalone canonical stopwatch event. They have no current dynamics
+        # effect and the next canonical experience still carries wall time.
+        # Explicit advances can request their own event even below this quantum.
+        should_record_time = (elapsed >= LEGACY_IDLE_STEP_SECONDS or advance.backward_correction_seconds > 0.0 or advance.source != "wall_clock_catchup")
+        if record_event and should_record_time:
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "time_advance", payload)
+        if persist:
+            self._persist()
+        return payload
 
     def run_idle_cycle(self):
-        self._run_single_idle_cycle(elapsed_seconds=5.0)
-        self.timestep += 1
-        self.last_wall_time = time.time()
-        self._persist()
+        return self.advance_time(LEGACY_IDLE_STEP_SECONDS, source="manual_idle", record_event=True, persist=True)
 
-    def _run_single_idle_cycle(self, elapsed_seconds: float = 5.0):
+    def _run_single_idle_cycle(self, elapsed_seconds: float = 5.0, *, world_elapsed_seconds: float | None = None):
         now = time.time()
         total_pressure = sum(p.magnitude for p in self.pressures.pressures.values())
         self.energy = max(0.1, self.energy - total_pressure * 0.01)
@@ -306,6 +360,7 @@ class InteriorEngine:
         self.pressures.decay_all()
         self.organism_tick.idle(
             elapsed_seconds=elapsed_seconds,
+            world_elapsed_seconds=world_elapsed_seconds,
             now=now,
             world=self.world,
             body=self.body,
@@ -359,7 +414,7 @@ class InteriorEngine:
 
         def _loop():
             while not self._idle_stop.wait(interval_seconds):
-                self.run_idle_cycle()
+                self.advance_time(interval_seconds, source="background_idle", record_event=True, persist=True)
 
         self._idle_thread = threading.Thread(target=_loop, daemon=True)
         self._idle_thread.start()

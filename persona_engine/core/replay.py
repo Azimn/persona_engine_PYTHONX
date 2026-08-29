@@ -168,6 +168,7 @@ def replay_from_continuity_bundle(
     """Replay supported exogenous canonical events through public interfaces.
 
     Current replay roots:
+    - ``time_advance`` through the canonical subject-time API;
     - ``input`` / ``user_statement`` through ``CharacterAgent.say``;
     - bounded ``sensor_observation`` through audio/vision observation APIs.
 
@@ -189,6 +190,13 @@ def replay_from_continuity_bundle(
     for event in events:
         event_type = str(event["event_type"])
         payload = event["payload"]
+        if event_type == "time_advance":
+            elapsed = payload.get("elapsed_seconds")
+            if not isinstance(elapsed, (int, float)) or elapsed < 0.0:
+                raise ReplayContractError("time_advance lacks non-negative elapsed_seconds")
+            agent.advance_time(float(elapsed), source="continuity_replay", record_event=False)
+            replayed += 1
+            continue
         if event_type in {"input", "user_statement"}:
             user_text = payload.get("user_text") or payload.get("text")
             if not isinstance(user_text, str):

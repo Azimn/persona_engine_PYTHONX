@@ -28,8 +28,12 @@ class OrganismTick:
         self.world_profile = world_profile
         self.body_profile = body_profile
 
-    def idle(self, *, elapsed_seconds: float, now: float, world, body, sensorium, pressures, memory, intentions) -> OrganismTickResult:
-        world_events = world.idle_events(elapsed_seconds, self.world_profile, now)
+    def idle(self, *, elapsed_seconds: float, now: float, world, body, sensorium, pressures, memory, intentions, world_elapsed_seconds: float | None = None) -> OrganismTickResult:
+        # World duration and legacy body dynamics are deliberately separable.
+        # M4 preserves full elapsed subject time without pretending old per-tick
+        # body coefficients are validated real-time physiology.
+        world_elapsed = elapsed_seconds if world_elapsed_seconds is None else max(0.0, float(world_elapsed_seconds))
+        world_events = world.idle_events(world_elapsed, self.world_profile, now)
         sensory_delta = sum(getattr(ev, "intensity", 0.0) for ev in world_events if getattr(ev, "kind", "") in {"sensory_load", "ambient_event", "noise_change"})
         body.apply_idle(elapsed_seconds, self.body_profile, sensory_delta=sensory_delta)
         made = sensorium.extend_from_world_events(world_events)

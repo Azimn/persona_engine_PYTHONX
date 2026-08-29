@@ -80,6 +80,10 @@ class CharacterAgent:
     def idle(self):
         self.engine.run_idle_cycle()
 
+    def advance_time(self, elapsed_seconds: float, *, source: str = "explicit", record_event: bool = True) -> dict:
+        """Advance canonical subject time without requiring a wall-clock wait."""
+        return self.engine.advance_time(elapsed_seconds, source=source, record_event=record_event)
+
     def start_background_idle(self, interval_seconds: float = 30.0):
         self.engine.start_background_idle(interval_seconds)
 
