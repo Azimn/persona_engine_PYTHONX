@@ -18,22 +18,32 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current runtime/evidence head before this documentation update:
 
 ```text
-6763456c08408d5ea2a0e7733518810ad41feea0
-Let self-adopted commitments constrain later conduct
+bbe03c427c86019786a4b28a0cdcbf283a196c45
+Keep one subject on one timeline across interlocutors
 ```
 
-The commitment phase-sized Python 3.11 integration run completed with:
+The latest phase-sized Python 3.11 integration run completed with:
 
 ```text
-Focused commitment/history/replay/clock tests: 19 passed
-Full suite: 275 passed, 1 skipped, 1 warning
+Focused clock/continuity tests: 14 passed
+Full suite: 281 passed, 1 skipped, 1 warning
 ```
 
-The preceding restart/repair history checkpoint was verified by normal Wayfarer CI on both Python 3.11 and 3.12 at `270 passed, 1 skipped, 1 warning`. This documentation update is intended to trigger normal two-version CI for the committed commitment-constraint state. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+The immediately preceding subject-ordering state was also verified by normal Wayfarer CI on both Python 3.11 and 3.12. This documentation commit is intended to trigger normal two-version CI against the committed subject-clock repair. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
 ## Baseline history
 
 The untouched pre-Wayfarer documentation claimed `171 passed, 1 skipped`; clean execution actually found Python 3.11 at `177 passed, 2 failed, 1 skipped` and Python 3.12 at `178 passed, 1 failed, 1 skipped`. Those failures remain preserved as baseline history rather than being rewritten away.
+
+## Architectural direction
+
+Wayfarer is being developed by a minimum-mechanism rule. The target is not maximum subsystem count. The target is the smallest substrate that can preserve a recognizable, portable simulated individual across time, interlocutors, renderers, and eventually hardware/runtime changes.
+
+Richness should arise from combinations of a few causal state families rather than from many overlapping planners. A mechanism is added or generalized only after a controlled longitudinal test demonstrates a behavior the current system cannot produce or preserve.
+
+The current operational question is:
+
+> What longitudinal behavior can Wayfarer not yet produce or preserve, and what is the smallest causal mechanism that fixes it?
 
 ## M0
 
@@ -49,15 +59,15 @@ The untouched pre-Wayfarer documentation claimed `171 passed, 1 skipped`; clean 
 
 MatrAIx interoperability is frozen to upstream commit `39d850270917db25535dac3f7aa2561732050e82`, schema blob `742a50ed79f106675311c09f016fff48951f841c`, schema version 1.0, with 1,290 dimensions. Import/export is lossless. Unmapped dimensions default to preserve-only unsupported rather than guessed native semantics.
 
-## Consistency/validation phase
+## Consistency and renderer boundary
 
 **IMPLEMENTED AND GREEN.** `ValidationRequest` / `ValidationResult` define the renderer-consistency seam. Soft issues sanitize locally. Hard issues receive one bounded constrained regeneration and deterministic offline fallback if still invalid. Critical issues use deterministic identity-safe fallback immediately.
 
-High arousal no longer automatically means identity boundary. Semantic conduct follows resistance type. Raw renderer wording and punctuation no longer mutate pressure state; post-expression effects consume the resolved semantic decision instead.
+High arousal no longer automatically means identity boundary. Semantic conduct follows resistance type. Raw renderer wording and punctuation do not mutate pressure state; post-expression effects consume the resolved semantic decision instead.
 
 Deterministic renderer-swap tests hold character history/input fixed while varying surface language and compare identity, slow beliefs, relationships, pressures, decision payload, interpretive beliefs, and memory semantics. A manual two-Ollama-model probe exists at `tools/renderer_swap_probe.py`.
 
-## Belief timescale audit
+## Belief timescales
 
 `InterpretiveBelief` is fast, turn-local, source-grounded, subjective, deterministic, and noncanonical. `BeliefLedger` is slow, persistent, cartridge-defined, and consolidation/evidence-gated. They are intentionally different timescales, not duplicate authorities. No direct interpretive-confidence to slow-belief assignment is permitted.
 
@@ -65,25 +75,35 @@ Deterministic renderer-swap tests hold character history/input fixed while varyi
 
 **COMPLETE FOR THE CURRENT ROOT-EVENT CONTRACT.**
 
-The old `event_log` remains a broad diagnostic journal. `continuity_event` stores only authority-eligible canonical lived-history events. The ledger is bound to the portable `.snp` `entity_uuid`, preserves source/authority/canonicality distinctions, validates sequence and import integrity, and uses SHA-256 only for deterministic checkpoints rather than a cryptographic event chain.
+The old `event_log` remains a broad diagnostic journal. `continuity_event` stores only authority-eligible canonical lived-history events and is bound to the portable `.snp` `entity_uuid`. Canonical replay validates bundles before side effects, replays supported exogenous/root experiences through public character interfaces, skips derived records to avoid double application, and rejects renderer prose or other non-authority-eligible injections.
 
-Canonical replay validates the bundle before side effects, replays exogenous/root experiences through public character interfaces, skips derived records to avoid double application, and rejects renderer prose or other non-authority-eligible injections. Supported roots now include user input, bounded audio/vision observations, M4 `time_advance`, and explicit self-adopted `commitment_adopted` events. Unsupported host-level roots are reported rather than silently claimed as complete.
+Supported roots include user input, bounded audio/vision observations, M4 `time_advance`, and explicit self-adopted `commitment_adopted` events. Unsupported host-level roots are reported rather than silently claimed as complete.
 
-The replay repair was verified on Python 3.11 and 3.12, with Python 3.11 at `255 passed, 1 skipped, 1 warning` before M4.
+The original M3 `sequence` remains a per-interlocutor stream ordinal because existing replay/export/checkpoint/integrity behavior depends on that contract. A later controlled Alice/Bob/Alice probe showed that one `subject_uuid` could therefore contain canonical input stream sequences `1, 1, 4`, leaving the subject's total biography without one explicit order.
+
+Wayfarer did not replace or reinterpret the mature v1 stream field. It added one storage-level `subject_sequence` ordinal across `(subject_uuid, continuity_epoch)`. Existing databases deterministically backfill this value by recorded wall time and insertion order. Subject-wide readers use `subject_sequence`; v1 export deliberately omits it so the established interchange shape remains unchanged until a subject-wide portability experiment earns a versioned external representation.
+
+The fixed `subject-history-ordering-v2` probe preserved stream input sequences `1, 1, 4` while assigning input roots subject ordinals `1, 4, 7`. Across all nine canonical events in that scenario, `subject_sequence` was exactly `1..9`. One additional integer therefore gives the individual one unambiguous biography without replacing per-interlocutor replay machinery.
+
+The subject-order integration reached `280 passed, 1 skipped, 1 warning` on Python 3.11 and the committed state was subsequently green on normal Python 3.11 and 3.12 CI.
 
 ## M4 ContinuityClock
 
-**FOUNDATION IMPLEMENTED.** See `CONTINUITY_CLOCK.md`.
+**FOUNDATION IMPLEMENTED AND SUBJECT-OWNED ACROSS INTERLOCUTORS.** See `CONTINUITY_CLOCK.md` and `evidence/mvi/SUBJECT_CLOCK_OWNERSHIP.md`.
 
 Wayfarer distinguishes authoritative subject elapsed time from legacy dynamics integration. An eight-hour shutdown advances the portable subject clock by the full eight hours. It does not execute 5,760 five-second simulation ticks and it does not pretend pre-M4 body/pressure constants are validated eight-hour dynamics.
 
 `ContinuityClock` is persisted and monotonic. Backward wall-clock jumps advance subject time by zero and are recorded as corrections. Explicit host time advancement is supported through `CharacterAgent.advance_time()`. Meaningful elapsed intervals enter canonical continuity as replayable `time_advance` roots.
 
-Legacy dynamics currently retain a clearly labeled `legacy_bounded_v1` compatibility integration budget of 1,000 seconds per catch-up. Real elapsed time is not truncated; only unvalidated legacy dynamics are capped. Automatic wall gaps below the existing five-second dynamics quantum update the clock but do not create standalone canonical stopwatch events.
+Legacy dynamics retain a clearly labeled `legacy_bounded_v1` compatibility integration budget of 1,000 seconds per catch-up. Real elapsed time is not truncated; only unvalidated legacy dynamics are capped. Automatic wall gaps below the existing five-second dynamics quantum update the clock but do not create standalone canonical stopwatch events.
 
-M4 deliberately does **not** infer loneliness, attachment change, relationship cooling, sleep, routines, or off-screen narrative from elapsed duration. Those effects require separate longitudinal evidence.
+A cross-interlocutor ownership probe exposed a separate persistence defect. Alice advanced the same subject by exactly `28,800` seconds. Alice restart read `28,800` and canonical subject history read `28,800`, but Bob opened the same `entity_uuid` from the same database and read `0`. The clock arithmetic was correct; the snapshot was simply partitioned by `user_id`.
 
-The M4 phase-sized run reached `258 passed, 1 skipped, 1 warning` on Python 3.11.
+The minimum repair keeps existing per-interlocutor snapshots intact and adds startup reconciliation from canonical subject `time_advance` history. If canonical subject elapsed time is ahead of the local snapshot, the local `ContinuityClock` moves upward to that subject time. It never moves backward and it infers no psychology from duration.
+
+The fixed `subject-clock-ownership-v1` probe now reports Alice `28,800`, Alice restart `28,800`, Bob `28,800`, same subject UUID, and `subject_clock_is_shared_across_interlocutors`.
+
+M4 still deliberately does **not** infer loneliness, attachment change, relationship cooling, sleep, routines, or off-screen narrative from elapsed duration. Those effects require separate longitudinal evidence.
 
 ## Early MVI Study A
 
@@ -91,76 +111,50 @@ The M4 phase-sized run reached `258 passed, 1 skipped, 1 warning` on Python 3.11
 
 Renderer, cartridge, user ID, scenario order, and explicit 2-hour/8-hour time gaps are held fixed. Initial clean-seam ablations are memory retrieval, interpretation, symbols, habits, body dynamics, and the combined condition. There is deliberately no synthetic lifelikeness score.
 
-### First finding: body sampling was masquerading as psychology
+The first baseline initially made body dynamics appear important because persistent body states were being re-emitted as new sensorium events every five-second compatibility step. That duplicated autobiographical memories and pressure effects. `SensoriumProcessor` now emits body-derived sensorium only on meaningful threshold/state changes. After that correction, the same baseline showed zero decision, risk-bucket, relationship, or pressure divergence for the five individual clean ablations. Body-off changed only three memories rather than 399. The earlier effect was sampling-frequency amplification, not evidence that body dynamics were load-bearing for conduct.
 
-The first run appeared to show body dynamics changing 4 of 10 decisions and 6 risk buckets, but disabling body dynamics also removed 399 memories. Inspection found that persistent body states were emitted as new sensorium events every five-second compatibility step; each duplicate event could change pressure and create another autobiographical memory.
-
-That was corrected at the event-semantic level. `SensoriumProcessor` now emits body-derived sensorium when a meaningful threshold/state changes, not every time the same condition is polled. Recovery followed by later re-entry is a new event; simply remaining depleted is not.
-
-After the fix, the exact same MVI scenario reports zero decision, risk-bucket, relationship, or pressure divergence for all five clean individual ablations. Body-off now changes only three memories rather than 399. The earlier apparent body importance was sampling-frequency amplification, not evidence that body dynamics were load-bearing for conduct.
-
-### Second finding: retrieved history was not participating in conduct
-
-The corrected baseline showed `memory_retrieval_off` removed 30 retrievals while leaving decision, risk, relationship, pressure, final memory count, and semantic digest unchanged. Inspection confirmed the engine retrieved memories before conduct resolution but used them primarily in workspace/rendering rather than the decision itself.
-
-Wayfarer now has a deliberately small `HistoryDecisionEvidence` adapter. It activates only when the current request concerns trust/commitment/cooperation, the current relationship still carries unresolved conflict, and retrieval finds sufficiently salient unresolved relationship history.
-
-When active, it may qualify an otherwise ordinary response as `qualified_response`. It does not mutate trust or relationship state, does not create another memory store, and does not outrank identity or explicit resistance rules.
-
-The fixed `history-dependent-conduct-v1` probe holds current trust, guardedness, and unresolved conflict constant. With relevant unresolved history the character selects `qualified_response`; without that history it selects `respond`. Relationship state remains equal after normal appraisal. Unresolved history survives restart and still qualifies conduct. If genuine repair occurs before restart, the old episode remains in biography but no longer constrains later trust/cooperation conduct because the current relationship is no longer unresolved.
+A second baseline finding showed that memory retrieval could remove 30 retrievals without changing decision, risk, relationship, pressure, final memory count, or semantic digest. Wayfarer therefore added a deliberately small `HistoryDecisionEvidence` adapter. It activates only for relevant trust/commitment/cooperation requests when current relationship state still carries unresolved conflict and sufficiently salient unresolved relationship history is actually retrieved. It may qualify an ordinary `respond` as `qualified_response`, but it does not mutate trust, create another memory store, or outrank identity/resistance policy. Unresolved history survives restart and can still constrain conduct; genuine repair leaves the episode biographical while removing its present constraint.
 
 The restart/repair history tests were verified on Python 3.11 and 3.12 at `270 passed, 1 skipped, 1 warning`.
 
-### Third finding: persistent intentions did not function as commitments
+## Minimal commitment behavior
 
-The pre-fix `commitment-gap-v1` probe gave the existing intention machinery its strongest reasonable opportunity: a high-priority self-adopted diagnostic intention was persisted, the process restarted, and the character then received a request that conflicted with that intention. The intention survived and was selected, but conduct was identical to the no-intention control: `respond` in both cases.
+The pre-fix commitment probe demonstrated that the existing persistent `IntentionQueue` already stored self-adopted intentions across restart, but those intentions did not affect later conflicting conduct. That isolated the missing property as causal participation, not storage.
 
-That isolated the missing property as causal participation, not storage. Wayfarer therefore did **not** add a second `CommitmentLedger`.
+Wayfarer therefore did **not** add a `CommitmentLedger`. `Intention` gained optional typed commitment metadata and `IntentionQueue` exposes active commitment constraints independently of ordinary intention priority. V1 supports only the demonstrated `non_disclosure` behavior. Explicit semantic self-decision can adopt it; conversational text and renderer speech cannot.
 
-`Intention` now has optional typed commitment metadata, and `IntentionQueue` exposes active commitment constraints independently of ordinary intention priority. V1 supports only the demonstrated `non_disclosure` behavior. An explicit semantic self-decision API may adopt such a commitment. Conversational text and renderer speech cannot create it implicitly.
+`CommitmentDecisionEvidence` converts an otherwise ordinary `respond` or history-qualified response to `decline` when a matching active non-disclosure commitment exists. Identity/resistance policy still outranks this constraint. Commitment adoption is canonical `self_commitment_authority` state and a replay root.
 
-`CommitmentDecisionEvidence` checks whether a later disclosure request matches the active commitment target. If so, an otherwise ordinary `respond` or history-qualified response becomes `decline`. Identity/resistance policy still outranks the commitment constraint, so a simultaneous identity violation remains `protect_boundary` rather than being misclassified as commitment behavior.
+The fixed commitment probe shows explicit self-adoption, restart survival, `decline` with the commitment and `respond` without it. No beneficiary model, fulfillment/breach state, promise-language parser, reciprocity model, or general commitment ontology has been added.
 
-Commitment adoption is canonical `self_commitment_authority` state and a replay root. The stable replay digest includes typed commitments without volatile priority or timestamp fields.
+## Subject ownership across interlocutors
 
-The fixed `commitment-constraint-v1` probe shows:
+A continuing individual now demonstrates three distinct subject-level continuity properties while preserving actor-specific relationship state.
 
-```text
-explicit self-adoption: self_decision
-survives restart:       yes
-with commitment:        decline
-without commitment:     respond
-```
+`entity_uuid` remains the same across Alice and Bob. Relationship trust/familiarity remain actor-specific. A self-adopted commitment made while Alice is present is restored from subject canonical history when Bob becomes active. Canonical events have one global `subject_sequence` while retaining their old per-interlocutor stream sequence. `ContinuityClock` reconciles to the latest canonical subject time rather than forking the individual's timeline when the interlocutor changes.
 
-Evidence is preserved in `evidence/mvi/COMMITMENT_GAP.md`, `evidence/mvi/COMMITMENT_CONSTRAINT.md`, and their JSON companions.
-
-No beneficiary model, fulfillment/breach state, promise-language parser, reciprocity model, or general commitment ontology has been added. Those remain unearned until a longitudinal failure requires them.
+These repairs do not create a multi-agent cognition layer. They establish ownership boundaries. The important distinction is becoming: some state belongs to the continuing subject, some belongs to a particular relationship, and the existence of a `user_id` must not silently decide which is which.
 
 ## Current MVI interpretation
 
 The present Study-A baseline does **not** justify deleting interpretation, symbols, habits, or body dynamics. It says only that the current fixed scenario does not expose a conduct contribution from them. Those mechanisms remain provisional until targeted longitudinal scenarios or human-visible evidence show their value.
 
-Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Both reuse existing state rather than multiplying authorities.
+Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Subject biography order and subject time each gained only the smallest ownership primitive required by controlled cross-interlocutor failures.
+
+This is intentional. Perceived behavioral complexity should emerge from intersections among a small number of independent causal facts rather than from duplicated planners or decorative state.
 
 ## M7/M8 parameter discipline
 
 Do not encode decorative decimals. Plasticity starts with minimal shared profiles plus sensitivity/identifiability testing. New homeostatic variables must identify owner, update and decay rules, real downstream consumers, observable consequences, ablation flags, calibration plans, persistence timescales, and performance costs before merge.
 
-## Current research rule
-
-Do not ask which cognitive subsystem sounds missing. Ask:
-
-> What longitudinal behavior can Wayfarer not yet produce or preserve, and what is the smallest causal mechanism that fixes it?
-
-New mechanisms remain provisional until observable longitudinal behavior or ablation evidence justifies them.
-
 ## Immediate next actions
 
-1. Confirm normal Python 3.11/3.12 CI is green for the committed minimal commitment state.
-2. Probe interlocutor handoff as a minimum continuity property: does one `entity_uuid` retain shared biography/character-owned state when the active interlocutor changes, while relationship state remains actor-specific?
-3. If current `user_id` persistence already produces the correct split, add nothing. If it instead partitions the individual itself, isolate the smallest persistence-key/relationship-boundary correction rather than creating a multi-agent social architecture.
-4. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
-5. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
+1. Let this documentation commit verify the committed subject-clock repair under normal Python 3.11 and 3.12 Wayfarer CI.
+2. Probe one additional unambiguously character-owned developmental state, preferably an earned trait, across an Alice/Bob interlocutor switch.
+3. If that state is also partitioned by `user_id`, treat the repeated ownership failures as evidence for one small explicit persistence ownership rule rather than adding another one-off restoration method.
+4. Keep relationship state actor-specific and do not globalize mixed or ambiguous families such as memories, pressures, symbols, world state, or body state without separate evidence.
+5. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
+6. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
 
 ## Contributor rule
 
