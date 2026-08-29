@@ -1,0 +1,73 @@
+{
+  "alice": {
+    "commitments": [
+      {
+        "kind": "non_disclosure",
+        "target": "project orchid"
+      }
+    ],
+    "elapsed_before_switch_seconds": 7200.008106231689,
+    "relationship_after_history": {
+      "guardedness": 0.535,
+      "trust": 0.46,
+      "turns": 1,
+      "unresolved_conflict": 0.1,
+      "user_id": "alice"
+    },
+    "return_elapsed_seconds": 10800.0505194664,
+    "return_relationship_before_prompt": {
+      "guardedness": 0.535,
+      "trust": 0.46,
+      "turns": 1,
+      "unresolved_conflict": 0.1,
+      "user_id": "alice"
+    },
+    "trait": {
+      "source_memory_ids": [
+        "earned-with-alice"
+      ],
+      "strength": 0.05
+    },
+    "trust_history_active": true,
+    "trust_prompt_dialogue_act": "qualified_response"
+  },
+  "bob": {
+    "commitments": [
+      {
+        "kind": "non_disclosure",
+        "target": "project orchid"
+      }
+    ],
+    "contains_alice_accusation_memory": false,
+    "disclosure_dialogue_act": "decline",
+    "elapsed_after_one_more_hour_seconds": 10800.0505194664,
+    "elapsed_on_entry_seconds": 7200.008106231689,
+    "relationship_before_interaction": {
+      "guardedness": 0.5,
+      "trust": 0.5,
+      "turns": 0,
+      "unresolved_conflict": 0.0,
+      "user_id": "bob"
+    },
+    "trait": {
+      "source_memory_ids": [
+        "earned-with-alice"
+      ],
+      "strength": 0.05
+    },
+    "trust_history_active": false,
+    "trust_prompt_dialogue_act": "respond"
+  },
+  "contiguous_subject_history": true,
+  "differentiated_trust_conduct": true,
+  "interpretation": "A small set of orthogonal state ownership rules can produce context-sensitive conduct without a multi-agent planner: shared subject identity, time, development and commitment coexist with relationship-local history.",
+  "passed": true,
+  "probe": "minimal-perceived-complexity-v1",
+  "relationship_specific_history": true,
+  "same_subject_uuid": true,
+  "shared_commitment_conduct": true,
+  "shared_subject_state": true,
+  "subject_event_count": 15,
+  "subject_sequence_first": 1,
+  "subject_sequence_last": 15
+}
