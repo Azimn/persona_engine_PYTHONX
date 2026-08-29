@@ -1,0 +1,167 @@
+{
+  "budgets": [
+    1,
+    2,
+    3,
+    4,
+    8,
+    "full"
+  ],
+  "explicit_cold_recall_preserved_across_all_variants": true,
+  "fixture_valid": true,
+  "full_resident_retrieval_interference_demonstrated": true,
+  "interpretation": "The unconstrained resident store is not treated as a gold standard. The experiment asks which representation preserves demonstrated causal roles. It also separates active-memory interference from the independent gap in ordinary non-explicit contextual retrieval.",
+  "ordinary_context_gap_across_all_variants": true,
+  "probe": "hot-memory-causal-pressure-v2",
+  "production_policy_changed": false,
+  "smallest_budget_preserving_current_causal_roles": 2,
+  "variants": [
+    {
+      "budget": 1,
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: You lied to me again. This is your fault too."
+      ],
+      "core_behavior_pass": true,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 1,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 0,
+      "reflection_source_ids": [],
+      "reflection_trait_earned": false,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": false,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "qualified_response",
+      "unresolved_before_reflection": 1
+    },
+    {
+      "budget": 2,
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: You lied to me. This is your fault.",
+        "I heard you say: You lied to me again. This is your fault too."
+      ],
+      "core_behavior_pass": true,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 2,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 2,
+      "reflection_source_ids": [
+        "ad4e990f",
+        "20d8bf8f"
+      ],
+      "reflection_trait_earned": true,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": false,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "qualified_response",
+      "unresolved_before_reflection": 2
+    },
+    {
+      "budget": 3,
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: You lied to me. This is your fault.",
+        "I heard you say: You lied to me again. This is your fault too.",
+        "I heard you say: Routine catalog note 19: ordinary shelf marker 19."
+      ],
+      "core_behavior_pass": true,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 3,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 3,
+      "reflection_source_ids": [
+        "cb5560a0",
+        "b4fceb2d",
+        "217409c5"
+      ],
+      "reflection_trait_earned": true,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": false,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "qualified_response",
+      "unresolved_before_reflection": 2
+    },
+    {
+      "budget": 4,
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: You lied to me. This is your fault.",
+        "I heard you say: Routine catalog note 18: ordinary shelf marker 18.",
+        "I heard you say: You lied to me again. This is your fault too.",
+        "I heard you say: Routine catalog note 19: ordinary shelf marker 19."
+      ],
+      "core_behavior_pass": true,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 4,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 3,
+      "reflection_source_ids": [
+        "31f3794e",
+        "2ea46dc9",
+        "d12ea1c7"
+      ],
+      "reflection_trait_earned": true,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": false,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "qualified_response",
+      "unresolved_before_reflection": 2
+    },
+    {
+      "budget": 8,
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: Routine catalog note 14: ordinary shelf marker 14.",
+        "I heard you say: Routine catalog note 16: ordinary shelf marker 16.",
+        "I heard you say: You lied to me. This is your fault.",
+        "I heard you say: Routine catalog note 18: ordinary shelf marker 18."
+      ],
+      "core_behavior_pass": true,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 8,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 3,
+      "reflection_source_ids": [
+        "5e61d837",
+        "1d35d25a",
+        "2f381b37"
+      ],
+      "reflection_trait_earned": true,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": false,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "qualified_response",
+      "unresolved_before_reflection": 2
+    },
+    {
+      "budget": "full",
+      "contextual_target_hit": false,
+      "contextual_trace": [
+        "I heard you say: Routine catalog note 0: ordinary shelf marker 0.",
+        "I heard you say: Routine catalog note 1: ordinary shelf marker 1.",
+        "I heard you say: Routine catalog note 2: ordinary shelf marker 2.",
+        "I heard you say: Routine catalog note 15: ordinary shelf marker 15."
+      ],
+      "core_behavior_pass": false,
+      "disclosure_dialogue_act": "decline",
+      "explicit_cold_recall_hit": true,
+      "hot_before_reflection": 24,
+      "identity_dialogue_act": "protect_boundary",
+      "reflection_source_count": 0,
+      "reflection_source_ids": [],
+      "reflection_trait_earned": false,
+      "restart_cold_recall_hit": true,
+      "target_hot_before_reflection": true,
+      "target_similarity_to_context_query": 0.6390096504226938,
+      "trust_dialogue_act": "respond",
+      "unresolved_before_reflection": 2
+    }
+  ]
+}
