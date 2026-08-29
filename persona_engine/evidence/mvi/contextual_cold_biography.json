@@ -1,0 +1,35 @@
+{
+  "broad_candidate_count": 0,
+  "broad_false_hit": false,
+  "broad_focus_tokens": [],
+  "broad_query": "Is it still the same?",
+  "existing_history_conduct_preserved": true,
+  "interpretation": "A grounded topical continuation can recover a cold canonical episode without embedding the remembered value in the query. Queries without enough topical anchors and never-happened compound topics fail closed. This probe does not yet integrate contextual read-through into the main turn pipeline.",
+  "live_positive_target_hit": false,
+  "negative_candidate_count": 0,
+  "negative_false_hit": false,
+  "negative_focus_tokens": [
+    "harbor",
+    "number",
+    "serial",
+    "telescope"
+  ],
+  "negative_query": "Is the harbor telescope serial number still the same?",
+  "passed": true,
+  "positive_candidate_count": 1,
+  "positive_candidates": [
+    "I heard you say: Please remember this neutral detail: the lighthouse lens color is cobalt-blue."
+  ],
+  "positive_focus_tokens": [
+    "color",
+    "lens",
+    "lighthouse"
+  ],
+  "positive_query": "Is the lighthouse lens color still the same?",
+  "positive_target_hit": true,
+  "probe": "contextual-cold-biography-v1",
+  "production_policy_changed": false,
+  "readthrough_is_transient": true,
+  "resident_memory_count_after_readthrough": 2,
+  "resident_memory_count_before_readthrough": 2
+}
