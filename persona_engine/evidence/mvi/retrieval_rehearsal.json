@@ -1,0 +1,19 @@
+{
+  "activation_after_unrelated_retrievals": 6.885306760885719,
+  "activation_before": -0.1325241447110943,
+  "activation_delta": 7.0178309055968136,
+  "interpretation": "Top-candidate retrieval is creating rehearsal history on unrelated turns.",
+  "probe": "retrieval-rehearsal-v1",
+  "recall_timestamps_after_unrelated_turns": 100,
+  "relevant_returned": true,
+  "relevant_similarity": 0.7118204209548301,
+  "returned_on_unrelated_turns": 100,
+  "timestamps_after_relevant": 101,
+  "timestamps_before_relevant": 100,
+  "unrelated_rehearsal_demonstrated": true,
+  "unrelated_similarity_max": 0.0,
+  "unrelated_similarity_mean": 0.0,
+  "unrelated_similarity_min": 0.0,
+  "unrelated_turns": 100,
+  "zero_similarity_unrelated_turns": 100
+}
