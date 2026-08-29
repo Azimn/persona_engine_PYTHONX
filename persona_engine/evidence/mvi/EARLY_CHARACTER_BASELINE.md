@@ -8,12 +8,12 @@ This is an early diagnostic Study-A baseline, not a final Minimum Viable Individ
 
 | Condition | Decision turns changed | Risk buckets changed | Relationship L1 | Pressure L1 | Retrieval delta | Interpretation delta | Final memory delta | Digest equal |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
-| memory_retrieval_off | 0 | 0 | 0.000000 | 0.000000 | -30 | 0 | -1 | no |
+| memory_retrieval_off | 0 | 0 | 0.000000 | 0.000000 | -30 | 0 | 0 | yes |
 | interpretation_off | 0 | 0 | 0.000000 | 0.000000 | 0 | -6 | 0 | yes |
 | symbols_off | 0 | 0 | 0.000000 | 0.000000 | 0 | 0 | 0 | yes |
 | habits_off | 0 | 0 | 0.000000 | 0.000000 | 0 | 0 | 0 | no |
-| body_dynamics_off | 4 | 6 | 0.040000 | 1.675000 | 0 | 0 | -399 | no |
-| clean_seams_combined_off | 4 | 6 | 0.040000 | 1.675000 | -30 | -6 | -399 | no |
+| body_dynamics_off | 0 | 0 | 0.000000 | 0.000000 | 0 | 0 | -3 | no |
+| clean_seams_combined_off | 0 | 0 | 0.000000 | 0.000000 | -30 | -6 | -3 | no |
 
 ## Method guardrails
 

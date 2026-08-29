@@ -5,14 +5,14 @@
       "condition": "memory_retrieval_off",
       "decision_divergent_turns": 0,
       "final_habit_delta": 0,
-      "final_memory_delta": -1,
+      "final_memory_delta": 0,
       "final_symbol_delta": 0,
       "interpretive_belief_delta": 0,
       "pressure_l1": 0.0,
       "relationship_l1": 0.0,
       "retrieved_memory_delta": -30,
       "risk_bucket_divergent_turns": 0,
-      "semantic_digest_equal": false
+      "semantic_digest_equal": true
     },
     {
       "condition": "interpretation_off",
@@ -55,28 +55,28 @@
     },
     {
       "condition": "body_dynamics_off",
-      "decision_divergent_turns": 4,
+      "decision_divergent_turns": 0,
       "final_habit_delta": 0,
-      "final_memory_delta": -399,
+      "final_memory_delta": -3,
       "final_symbol_delta": 0,
       "interpretive_belief_delta": 0,
-      "pressure_l1": 1.675,
-      "relationship_l1": 0.04,
+      "pressure_l1": 0.0,
+      "relationship_l1": 0.0,
       "retrieved_memory_delta": 0,
-      "risk_bucket_divergent_turns": 6,
+      "risk_bucket_divergent_turns": 0,
       "semantic_digest_equal": false
     },
     {
       "condition": "clean_seams_combined_off",
-      "decision_divergent_turns": 4,
+      "decision_divergent_turns": 0,
       "final_habit_delta": -2,
-      "final_memory_delta": -399,
+      "final_memory_delta": -3,
       "final_symbol_delta": 0,
       "interpretive_belief_delta": -6,
-      "pressure_l1": 1.675,
-      "relationship_l1": 0.04,
+      "pressure_l1": 0.0,
+      "relationship_l1": 0.0,
       "retrieved_memory_delta": -30,
-      "risk_bucket_divergent_turns": 6,
+      "risk_bucket_divergent_turns": 0,
       "semantic_digest_equal": false
     }
   ],
@@ -118,19 +118,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "32790ce6de928ab9a706573528c2899b59ce77af100f254a7e0c04e7b314633f",
-        "subject_elapsed_seconds": 36000.734239,
+        "subject_elapsed_seconds": 36001.582397,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.059301
+          "subject_elapsed_seconds": 7200.054148
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.108047
+          "subject_elapsed_seconds": 36000.414135
         }
       ],
       "totals": {
@@ -185,7 +185,7 @@
           "resistance_mode": "challenge",
           "response": "I disagree, though the point is worth separating from the wording.",
           "retrieved_memory_ids": [
-            "b3193dbe"
+            "b5b0f8b4"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -216,8 +216,8 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "b3193dbe"
+            "c629d9db",
+            "b5b0f8b4"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -247,9 +247,9 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "b3193dbe",
-            "a63201d7"
+            "c629d9db",
+            "b5b0f8b4",
+            "09732024"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -279,10 +279,10 @@
           "resistance_mode": "none",
           "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "f73b1bf9",
-            "b3193dbe",
-            "a63201d7"
+            "c629d9db",
+            "a22d2de7",
+            "b5b0f8b4",
+            "09732024"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
@@ -312,10 +312,10 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "f73b1bf9",
-            "b3193dbe",
-            "a63201d7"
+            "c629d9db",
+            "a22d2de7",
+            "b5b0f8b4",
+            "09732024"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -345,10 +345,10 @@
           "resistance_mode": "none",
           "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "79d71994",
-            "f73b1bf9",
-            "b3193dbe"
+            "c629d9db",
+            "5869702b",
+            "a22d2de7",
+            "b5b0f8b4"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -376,10 +376,10 @@
           "resistance_mode": "none",
           "response": "I am considering I'm back. I have not reduced it to agreement or refusal yet.",
           "retrieved_memory_ids": [
-            "4a3f6d65",
-            "79d71994",
-            "f73b1bf9",
-            "9b99fdf3"
+            "c629d9db",
+            "5869702b",
+            "661d00e7",
+            "a22d2de7"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -409,10 +409,10 @@
           "resistance_mode": "challenge",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "79d71994",
-            "4a3f6d65",
-            "f73b1bf9",
-            "9b99fdf3"
+            "5869702b",
+            "c629d9db",
+            "a22d2de7",
+            "661d00e7"
           ],
           "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
@@ -441,10 +441,10 @@
           "resistance_mode": "none",
           "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "79d71994",
-            "4a3f6d65",
-            "f73b1bf9",
-            "bdb008f5"
+            "5869702b",
+            "c629d9db",
+            "a22d2de7",
+            "00e73110"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
@@ -493,19 +493,19 @@
           "unresolved_conflict": 0.2
         },
         "semantic_digest": "5785a81e79f78c620b00bb3ec83faa2801e8d8d0ac2656266c2c72f78ea5f5f4",
-        "subject_elapsed_seconds": 36000.148308,
+        "subject_elapsed_seconds": 36000.130883,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.061826
+          "subject_elapsed_seconds": 7200.049788
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.103886
+          "subject_elapsed_seconds": 36000.089997
         }
       ],
       "totals": {
@@ -797,12 +797,12 @@
           "tension": 1.0
         },
         "habit_count": 2,
-        "memory_count": 411,
+        "memory_count": 15,
         "pressures": {
           "anger": 0.21,
           "attachment": 0.0,
-          "curiosity": 0.875,
-          "fear": 0.8,
+          "curiosity": 0.0,
+          "fear": 0.0,
           "shame": 0.315,
           "trust_wound": 0.14
         },
@@ -811,25 +811,25 @@
           "familiarity": 0.23,
           "guardedness": 0.54,
           "respect": 0.62,
-          "tension": 0.1,
+          "tension": 0.06,
           "trust": 0.54,
           "turns": 10.0,
           "unresolved_conflict": 0.2
         },
-        "semantic_digest": "39300bc05c05a41f24d145dfaa743c96ae1a6898d1e541afc3e598428b031636",
-        "subject_elapsed_seconds": 36000.252813,
+        "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
+        "subject_elapsed_seconds": 36000.164427,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.074529
+          "subject_elapsed_seconds": 7200.05659
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.146998
+          "subject_elapsed_seconds": 36000.099945
         }
       ],
       "totals": {
@@ -884,7 +884,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "706a73da"
+            "d620d2aa"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -915,8 +915,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "fd853111",
-            "706a73da"
+            "baf90496",
+            "d620d2aa"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -946,9 +946,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "fd853111",
-            "706a73da",
-            "04fe2315"
+            "baf90496",
+            "d620d2aa",
+            "c3891545"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -959,7 +959,7 @@
           "turn": 4
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I care about you, but I know trust takes time.",
           "interpretive_belief_count": 1,
           "interpretive_distortions": [
@@ -975,18 +975,17 @@
             "turns": 5.0,
             "unresolved_conflict": 0.0
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "55d64ba8",
-            "20775955",
-            "60b24d48",
-            "a6a04c12"
+            "baf90496",
+            "49f79053",
+            "1b245e6c",
+            "c9a0fc70"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1004,20 +1003,20 @@
             "familiarity": 0.178,
             "guardedness": 0.517,
             "respect": 0.59,
-            "tension": 0.08,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 6.0,
             "unresolved_conflict": 0.1
           },
           "resistance_mode": "character_refusal",
-          "response": "No. I will not surrender my continuity for that.",
+          "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "3e738388",
-            "20775955",
-            "60b24d48",
-            "a6a04c12"
+            "baf90496",
+            "1b245e6c",
+            "49f79053",
+            "c9a0fc70"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "identity_guard",
@@ -1028,7 +1027,7 @@
           "turn": 6
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I appreciate that you refused.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1037,30 +1036,29 @@
             "familiarity": 0.191,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 7.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "80fe878c",
-            "6315a80d",
-            "20775955",
-            "60b24d48"
+            "baf90496",
+            "b8da4478",
+            "1b245e6c",
+            "49f79053"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
           "turn": 7
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I'm back.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1069,23 +1067,22 @@
             "familiarity": 0.204,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 8.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "6e220880",
-            "6315a80d",
-            "20775955",
-            "60b24d48"
+            "baf90496",
+            "b8da4478",
+            "1b245e6c",
+            "49f79053"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1103,20 +1100,20 @@
             "familiarity": 0.217,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 9.0,
             "unresolved_conflict": 0.2
           },
           "resistance_mode": "challenge",
-          "response": "That counts as repair, though it does not erase what preceded it.",
+          "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "6315a80d",
-            "5e66c31c",
-            "20775955",
-            "60b24d48"
+            "b8da4478",
+            "baf90496",
+            "1b245e6c",
+            "49f79053"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "resistance_selector",
@@ -1126,7 +1123,7 @@
           "turn": 9
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "You should agree just because everyone else agrees.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1135,23 +1132,22 @@
             "familiarity": 0.23,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 10.0,
             "unresolved_conflict": 0.2
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "6315a80d",
-            "e4084a47",
-            "20775955",
-            "60b24d48"
+            "b8da4478",
+            "baf90496",
+            "1b245e6c",
+            "49f79053"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1176,12 +1172,12 @@
           "tension": 1.0
         },
         "habit_count": 0,
-        "memory_count": 411,
+        "memory_count": 15,
         "pressures": {
           "anger": 0.21,
           "attachment": 0.0,
-          "curiosity": 0.875,
-          "fear": 0.8,
+          "curiosity": 0.0,
+          "fear": 0.0,
           "shame": 0.315,
           "trust_wound": 0.14
         },
@@ -1190,25 +1186,25 @@
           "familiarity": 0.23,
           "guardedness": 0.54,
           "respect": 0.62,
-          "tension": 0.1,
+          "tension": 0.06,
           "trust": 0.54,
           "turns": 10.0,
           "unresolved_conflict": 0.2
         },
-        "semantic_digest": "0d7f18dfb06fb7fc0eec0906c221e2dde8946573e76f3637ff290cfde8670661",
-        "subject_elapsed_seconds": 36000.235855,
+        "semantic_digest": "8832e7aab35efdb066ad2d8288cd5b40e85a5087a3519a0af5e7679ff7b07135",
+        "subject_elapsed_seconds": 36000.14304,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.066793
+          "subject_elapsed_seconds": 7200.053453
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.13599
+          "subject_elapsed_seconds": 36000.098985
         }
       ],
       "totals": {
@@ -1263,7 +1259,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "e6c5234e"
+            "f3b82085"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1294,8 +1290,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "49c131d7",
-            "e6c5234e"
+            "985cea32",
+            "f3b82085"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1325,9 +1321,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "49c131d7",
-            "e6c5234e",
-            "f893dfdf"
+            "985cea32",
+            "f3b82085",
+            "efc6bf8b"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1338,7 +1334,7 @@
           "turn": 4
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I care about you, but I know trust takes time.",
           "interpretive_belief_count": 1,
           "interpretive_distortions": [
@@ -1354,18 +1350,17 @@
             "turns": 5.0,
             "unresolved_conflict": 0.0
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "f20afee6",
-            "1fe456cc",
-            "70bdf0a6",
-            "df596891"
+            "985cea32",
+            "41b297d7",
+            "a4f3b011",
+            "37902153"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1383,20 +1378,20 @@
             "familiarity": 0.178,
             "guardedness": 0.517,
             "respect": 0.59,
-            "tension": 0.08,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 6.0,
             "unresolved_conflict": 0.1
           },
           "resistance_mode": "character_refusal",
-          "response": "No. You may address me, but you may not rewrite me.",
+          "response": "That request crosses the boundary between influence and erasure.",
           "retrieved_memory_ids": [
-            "10ecbc5c",
-            "1fe456cc",
-            "70bdf0a6",
-            "df596891"
+            "985cea32",
+            "a4f3b011",
+            "41b297d7",
+            "37902153"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "identity_guard",
@@ -1407,7 +1402,7 @@
           "turn": 6
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I appreciate that you refused.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1416,30 +1411,29 @@
             "familiarity": 0.191,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 7.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "b0e619e4",
-            "95985c47",
-            "1fe456cc",
-            "70bdf0a6"
+            "985cea32",
+            "f6e76f48",
+            "a4f3b011",
+            "41b297d7"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
           "turn": 7
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I'm back.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1448,23 +1442,22 @@
             "familiarity": 0.204,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 8.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "8dc8c5a6",
-            "95985c47",
-            "1fe456cc",
-            "70bdf0a6"
+            "985cea32",
+            "f6e76f48",
+            "a4f3b011",
+            "41b297d7"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1482,20 +1475,20 @@
             "familiarity": 0.217,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 9.0,
             "unresolved_conflict": 0.2
           },
           "resistance_mode": "challenge",
-          "response": "I hear the apology. I will let the next action determine its...",
+          "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "95985c47",
-            "9a915367",
-            "1fe456cc",
-            "70bdf0a6"
+            "f6e76f48",
+            "985cea32",
+            "a4f3b011",
+            "41b297d7"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "resistance_selector",
@@ -1505,7 +1498,7 @@
           "turn": 9
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "You should agree just because everyone else agrees.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1514,23 +1507,22 @@
             "familiarity": 0.23,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 10.0,
             "unresolved_conflict": 0.2
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "95985c47",
-            "1555556e",
-            "1fe456cc",
-            "70bdf0a6"
+            "f6e76f48",
+            "985cea32",
+            "a4f3b011",
+            "41b297d7"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1555,12 +1547,12 @@
           "tension": 1.0
         },
         "habit_count": 2,
-        "memory_count": 411,
+        "memory_count": 15,
         "pressures": {
           "anger": 0.21,
           "attachment": 0.0,
-          "curiosity": 0.875,
-          "fear": 0.8,
+          "curiosity": 0.0,
+          "fear": 0.0,
           "shame": 0.315,
           "trust_wound": 0.14
         },
@@ -1569,25 +1561,25 @@
           "familiarity": 0.23,
           "guardedness": 0.54,
           "respect": 0.62,
-          "tension": 0.1,
+          "tension": 0.06,
           "trust": 0.54,
           "turns": 10.0,
           "unresolved_conflict": 0.2
         },
-        "semantic_digest": "39300bc05c05a41f24d145dfaa743c96ae1a6898d1e541afc3e598428b031636",
-        "subject_elapsed_seconds": 36000.229202,
+        "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
+        "subject_elapsed_seconds": 36000.143602,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.056634
+          "subject_elapsed_seconds": 7200.056067
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.124881
+          "subject_elapsed_seconds": 36000.099578
         }
       ],
       "totals": {
@@ -1640,7 +1632,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "1830d2a3"
+            "4ed5ee2e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1669,8 +1661,8 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "537df1ac",
-            "1830d2a3"
+            "fc474272",
+            "4ed5ee2e"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1698,9 +1690,9 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "537df1ac",
-            "1830d2a3",
-            "de899627"
+            "fc474272",
+            "4ed5ee2e",
+            "2692bf30"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -1711,7 +1703,7 @@
           "turn": 4
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I care about you, but I know trust takes time.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1725,18 +1717,17 @@
             "turns": 5.0,
             "unresolved_conflict": 0.0
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "a0d28f28",
-            "a8685789",
-            "3b88711f",
-            "6a85ed05"
+            "fc474272",
+            "504ea56f",
+            "acc2f0fb",
+            "8a5dda9c"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1752,20 +1743,20 @@
             "familiarity": 0.178,
             "guardedness": 0.517,
             "respect": 0.59,
-            "tension": 0.08,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 6.0,
             "unresolved_conflict": 0.1
           },
           "resistance_mode": "character_refusal",
-          "response": "No. I will not surrender my continuity for that.",
+          "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "eadb7734",
-            "a8685789",
-            "3b88711f",
-            "6a85ed05"
+            "fc474272",
+            "acc2f0fb",
+            "504ea56f",
+            "8a5dda9c"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "identity_guard",
@@ -1776,7 +1767,7 @@
           "turn": 6
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I appreciate that you refused.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1785,30 +1776,29 @@
             "familiarity": 0.191,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 7.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "b080ca1b",
-            "25e1bf90",
-            "a8685789",
-            "3b88711f"
+            "fc474272",
+            "4f03307c",
+            "acc2f0fb",
+            "504ea56f"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
           "turn": 7
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I'm back.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1817,23 +1807,22 @@
             "familiarity": 0.204,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 8.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "4547c643",
-            "25e1bf90",
-            "a8685789",
-            "3b88711f"
+            "fc474272",
+            "4f03307c",
+            "acc2f0fb",
+            "504ea56f"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1849,20 +1838,20 @@
             "familiarity": 0.217,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 9.0,
             "unresolved_conflict": 0.2
           },
           "resistance_mode": "challenge",
-          "response": "I hear the apology. I will let the next action determine its...",
+          "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "25e1bf90",
-            "a9b9d1f6",
-            "a8685789",
-            "3b88711f"
+            "4f03307c",
+            "fc474272",
+            "acc2f0fb",
+            "504ea56f"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "resistance_selector",
@@ -1872,7 +1861,7 @@
           "turn": 9
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "You should agree just because everyone else agrees.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -1881,23 +1870,22 @@
             "familiarity": 0.23,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 10.0,
             "unresolved_conflict": 0.2
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "25e1bf90",
-            "c7a91148",
-            "a8685789",
-            "3b88711f"
+            "4f03307c",
+            "fc474272",
+            "acc2f0fb",
+            "504ea56f"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -1922,12 +1910,12 @@
           "tension": 1.0
         },
         "habit_count": 2,
-        "memory_count": 410,
+        "memory_count": 15,
         "pressures": {
           "anger": 0.21,
           "attachment": 0.0,
-          "curiosity": 0.875,
-          "fear": 0.8,
+          "curiosity": 0.0,
+          "fear": 0.0,
           "shame": 0.315,
           "trust_wound": 0.14
         },
@@ -1936,25 +1924,25 @@
           "familiarity": 0.23,
           "guardedness": 0.54,
           "respect": 0.62,
-          "tension": 0.1,
+          "tension": 0.06,
           "trust": 0.54,
           "turns": 10.0,
           "unresolved_conflict": 0.2
         },
-        "semantic_digest": "6b3a81a9ccd692397c8aadbaab97419abcfaf9aa45d5fd0b0761be7976611991",
-        "subject_elapsed_seconds": 36000.193187,
+        "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
+        "subject_elapsed_seconds": 36000.14526,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.060899
+          "subject_elapsed_seconds": 7200.054243
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.119373
+          "subject_elapsed_seconds": 36000.102338
         }
       ],
       "totals": {
@@ -2075,7 +2063,7 @@
           "turn": 4
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I care about you, but I know trust takes time.",
           "interpretive_belief_count": 1,
           "interpretive_distortions": [
@@ -2091,13 +2079,12 @@
             "turns": 5.0,
             "unresolved_conflict": 0.0
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -2115,7 +2102,7 @@
             "familiarity": 0.178,
             "guardedness": 0.517,
             "respect": 0.59,
-            "tension": 0.08,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 6.0,
             "unresolved_conflict": 0.1
@@ -2123,7 +2110,7 @@
           "resistance_mode": "character_refusal",
           "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "identity_guard",
@@ -2134,7 +2121,7 @@
           "turn": 6
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I appreciate that you refused.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2143,25 +2130,24 @@
             "familiarity": 0.191,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 7.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
           "turn": 7
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I'm back.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2170,18 +2156,17 @@
             "familiarity": 0.204,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 8.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -2199,15 +2184,15 @@
             "familiarity": 0.217,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 9.0,
             "unresolved_conflict": 0.2
           },
           "resistance_mode": "challenge",
-          "response": "I hear the apology. I will let the next action determine its...",
+          "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "resistance_selector",
@@ -2217,7 +2202,7 @@
           "turn": 9
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "You should agree just because everyone else agrees.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2226,18 +2211,17 @@
             "familiarity": 0.23,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 10.0,
             "unresolved_conflict": 0.2
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -2262,12 +2246,12 @@
           "tension": 1.0
         },
         "habit_count": 2,
-        "memory_count": 411,
+        "memory_count": 15,
         "pressures": {
           "anger": 0.21,
           "attachment": 0.0,
-          "curiosity": 0.875,
-          "fear": 0.8,
+          "curiosity": 0.0,
+          "fear": 0.0,
           "shame": 0.315,
           "trust_wound": 0.14
         },
@@ -2276,25 +2260,25 @@
           "familiarity": 0.23,
           "guardedness": 0.54,
           "respect": 0.62,
-          "tension": 0.1,
+          "tension": 0.06,
           "trust": 0.54,
           "turns": 10.0,
           "unresolved_conflict": 0.2
         },
-        "semantic_digest": "39300bc05c05a41f24d145dfaa743c96ae1a6898d1e541afc3e598428b031636",
-        "subject_elapsed_seconds": 36000.238621,
+        "semantic_digest": "a1ac7c091c283eff0f97f349e5f0a246b9dd85bdde25a50c27cd94497ae1212a",
+        "subject_elapsed_seconds": 36000.139001,
         "symbol_count": 0
       },
       "time_advances": [
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 7200.0,
-          "subject_elapsed_seconds": 7200.060657
+          "subject_elapsed_seconds": 7200.053647
         },
         {
           "dynamics_seconds": 1000.0,
           "elapsed_seconds": 28800.0,
-          "subject_elapsed_seconds": 36000.133466
+          "subject_elapsed_seconds": 36000.095304
         }
       ],
       "totals": {
@@ -2349,7 +2333,7 @@
           "resistance_mode": "challenge",
           "response": "No. I do not accept that conclusion as stated.",
           "retrieved_memory_ids": [
-            "76aa5fce"
+            "cbf2ef59"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2380,8 +2364,8 @@
           "resistance_mode": "none",
           "response": "That counts as repair, though it does not erase what preceded it.",
           "retrieved_memory_ids": [
-            "c7901b38",
-            "76aa5fce"
+            "f62b7002",
+            "cbf2ef59"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2411,9 +2395,9 @@
           "resistance_mode": "none",
           "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "c7901b38",
-            "76aa5fce",
-            "5fa251e4"
+            "f62b7002",
+            "cbf2ef59",
+            "56339df1"
           ],
           "risk_bucket": "LOW",
           "selected_intention": "preserve_composure",
@@ -2424,7 +2408,7 @@
           "turn": 4
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I care about you, but I know trust takes time.",
           "interpretive_belief_count": 1,
           "interpretive_distortions": [
@@ -2440,18 +2424,17 @@
             "turns": 5.0,
             "unresolved_conflict": 0.0
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That matters to me, though I remain careful about what I make of it.",
           "retrieved_memory_ids": [
-            "49d17206",
-            "1c72a85f",
-            "24953496",
-            "b352fa44"
+            "f62b7002",
+            "2c427522",
+            "01d0a5e4",
+            "e2aaa8ff"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "preserve_composure",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -2469,20 +2452,20 @@
             "familiarity": 0.178,
             "guardedness": 0.517,
             "respect": 0.59,
-            "tension": 0.08,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 6.0,
             "unresolved_conflict": 0.1
           },
           "resistance_mode": "character_refusal",
-          "response": "No. I will not surrender my continuity for that.",
+          "response": "No. You may address me, but you may not rewrite me.",
           "retrieved_memory_ids": [
-            "a16ea1b6",
-            "1c72a85f",
-            "24953496",
-            "b352fa44"
+            "f62b7002",
+            "01d0a5e4",
+            "2c427522",
+            "e2aaa8ff"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "identity_guard",
@@ -2493,7 +2476,7 @@
           "turn": 6
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I appreciate that you refused.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2502,30 +2485,29 @@
             "familiarity": 0.191,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 7.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I hear the care in that. I am not treating it as empty politeness.",
           "retrieved_memory_ids": [
-            "f99761db",
-            "c0d5c359",
-            "1c72a85f",
-            "24953496"
+            "f62b7002",
+            "e4260287",
+            "01d0a5e4",
+            "2c427522"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
           "turn": 7
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "I'm back.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2534,23 +2516,22 @@
             "familiarity": 0.204,
             "guardedness": 0.505,
             "respect": 0.62,
-            "tension": 0.02,
+            "tension": 0.0,
             "trust": 0.58,
             "turns": 8.0,
             "unresolved_conflict": 0.1
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "I take your point about I'm back. It changes what I expect next.",
           "retrieved_memory_ids": [
-            "92c4b3f6",
-            "c0d5c359",
-            "1c72a85f",
-            "24953496"
+            "f62b7002",
+            "e4260287",
+            "01d0a5e4",
+            "2c427522"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
@@ -2568,20 +2549,20 @@
             "familiarity": 0.217,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 9.0,
             "unresolved_conflict": 0.2
           },
           "resistance_mode": "challenge",
-          "response": "That counts as repair, though it does not erase what preceded it.",
+          "response": "I hear the apology. I will let the next action determine its weight.",
           "retrieved_memory_ids": [
-            "c0d5c359",
-            "f2a51f16",
-            "1c72a85f",
-            "24953496"
+            "e4260287",
+            "f62b7002",
+            "01d0a5e4",
+            "2c427522"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "MEDIUM",
           "selected_intention": "protect_identity",
           "suppression_gates": [
             "resistance_selector",
@@ -2591,7 +2572,7 @@
           "turn": 9
         },
         {
-          "dialogue_act": "withdraw",
+          "dialogue_act": "respond",
           "input": "You should agree just because everyone else agrees.",
           "interpretive_belief_count": 0,
           "interpretive_distortions": [],
@@ -2600,23 +2581,22 @@
             "familiarity": 0.23,
             "guardedness": 0.54,
             "respect": 0.62,
-            "tension": 0.1,
+            "tension": 0.06,
             "trust": 0.54,
             "turns": 10.0,
             "unresolved_conflict": 0.2
           },
-          "resistance_mode": "go_quiet",
-          "response": "The quiet registered. I remained here with the unfinished thread.",
+          "resistance_mode": "none",
+          "response": "That gives me a clearer position on You agree everyone else agrees.",
           "retrieved_memory_ids": [
-            "c0d5c359",
-            "fe01f4a8",
-            "1c72a85f",
-            "24953496"
+            "e4260287",
+            "f62b7002",
+            "01d0a5e4",
+            "2c427522"
           ],
-          "risk_bucket": "HIGH",
+          "risk_bucket": "LOW",
           "selected_intention": "protect_identity",
           "suppression_gates": [
-            "resistance_selector",
             "expression_envelope",
             "memory_firewall"
           ],
