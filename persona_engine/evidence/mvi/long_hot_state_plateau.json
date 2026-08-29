@@ -1,0 +1,213 @@
+{
+  "behavior_preserved_after_restart": true,
+  "checkpoints": [
+    250,
+    500,
+    1000,
+    2500,
+    5000
+  ],
+  "experimental_policy": "one_salient_hot_memory_plus_latest_world_fact_per_key",
+  "family_growth_250_to_5000_bytes": {
+    "belief_ledger": 0,
+    "body": 0,
+    "continuity_clock": 1,
+    "deception_ledger": 0,
+    "earned_traits": 0,
+    "habits": 0,
+    "intentions": -15,
+    "interface": 82,
+    "memories": 0,
+    "meta": 2,
+    "open_loops": 17,
+    "pressures": 0,
+    "relationship": 1,
+    "relationship_beliefs": 0,
+    "sensorium": 0,
+    "symbols": 0,
+    "world": 0,
+    "world_authority": 2
+  },
+  "growth_bytes_per_1000_turns_250_to_5000": 18.947368421052634,
+  "interpretation": "This diagnostic tests whether experimentally bounded active state remains approximately flat over a 5,000-turn life while cold canonical biography continues to grow. It does not itself establish a production memory or world-state cap.",
+  "largest_growth_families": [
+    {
+      "family": "interface",
+      "growth_bytes": 82
+    },
+    {
+      "family": "open_loops",
+      "growth_bytes": 17
+    },
+    {
+      "family": "meta",
+      "growth_bytes": 2
+    },
+    {
+      "family": "world_authority",
+      "growth_bytes": 2
+    },
+    {
+      "family": "continuity_clock",
+      "growth_bytes": 1
+    },
+    {
+      "family": "relationship",
+      "growth_bytes": 1
+    },
+    {
+      "family": "belief_ledger",
+      "growth_bytes": 0
+    },
+    {
+      "family": "body",
+      "growth_bytes": 0
+    }
+  ],
+  "probe": "long-hot-state-plateau-v1",
+  "production_policy_changed": false,
+  "snapshots": [
+    {
+      "database_bytes": 3416064,
+      "family_bytes": {
+        "belief_ledger": 448,
+        "body": 227,
+        "continuity_clock": 127,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 465,
+        "interface": 5522,
+        "memories": 331,
+        "meta": 110,
+        "open_loops": 248,
+        "pressures": 705,
+        "relationship": 154,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 273
+      },
+      "hot_memory_count": 1,
+      "hot_memory_recall_timestamps": 0,
+      "hot_world_fact_count": 1,
+      "routine_turns": 250,
+      "serialized_state_bytes": 9593
+    },
+    {
+      "database_bytes": 6729728,
+      "family_bytes": {
+        "belief_ledger": 448,
+        "body": 227,
+        "continuity_clock": 127,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 465,
+        "interface": 5521,
+        "memories": 331,
+        "meta": 110,
+        "open_loops": 248,
+        "pressures": 705,
+        "relationship": 154,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 273
+      },
+      "hot_memory_count": 1,
+      "hot_memory_recall_timestamps": 0,
+      "hot_world_fact_count": 1,
+      "routine_turns": 500,
+      "serialized_state_bytes": 9592
+    },
+    {
+      "database_bytes": 13344768,
+      "family_bytes": {
+        "belief_ledger": 448,
+        "body": 227,
+        "continuity_clock": 129,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 465,
+        "interface": 5521,
+        "memories": 331,
+        "meta": 112,
+        "open_loops": 248,
+        "pressures": 705,
+        "relationship": 155,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 273
+      },
+      "hot_memory_count": 1,
+      "hot_memory_recall_timestamps": 0,
+      "hot_world_fact_count": 1,
+      "routine_turns": 1000,
+      "serialized_state_bytes": 9597
+    },
+    {
+      "database_bytes": 33234944,
+      "family_bytes": {
+        "belief_ledger": 448,
+        "body": 227,
+        "continuity_clock": 127,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 465,
+        "interface": 5606,
+        "memories": 331,
+        "meta": 111,
+        "open_loops": 264,
+        "pressures": 705,
+        "relationship": 155,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 274
+      },
+      "hot_memory_count": 1,
+      "hot_memory_recall_timestamps": 0,
+      "hot_world_fact_count": 1,
+      "routine_turns": 2500,
+      "serialized_state_bytes": 9696
+    },
+    {
+      "database_bytes": 66367488,
+      "family_bytes": {
+        "belief_ledger": 448,
+        "body": 227,
+        "continuity_clock": 128,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 450,
+        "interface": 5604,
+        "memories": 331,
+        "meta": 112,
+        "open_loops": 265,
+        "pressures": 705,
+        "relationship": 155,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 275
+      },
+      "hot_memory_count": 1,
+      "hot_memory_recall_timestamps": 0,
+      "hot_world_fact_count": 1,
+      "routine_turns": 5000,
+      "serialized_state_bytes": 9683
+    }
+  ],
+  "total_growth_250_to_5000_bytes": 90,
+  "world_projection_preserved_current_context_every_turn": true
+}
