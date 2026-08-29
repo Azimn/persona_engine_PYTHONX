@@ -1,0 +1,167 @@
+{
+  "behavior_preserved_after_restart": true,
+  "experimental_policy": "one_salient_hot_memory_plus_latest_world_fact_per_key",
+  "family_growth_10_to_250_bytes": {
+    "belief_ledger": 0,
+    "body": -1,
+    "continuity_clock": 1,
+    "deception_ledger": 0,
+    "earned_traits": 0,
+    "habits": 0,
+    "intentions": 0,
+    "interface": 3495,
+    "memories": 4492,
+    "meta": 3,
+    "open_loops": 0,
+    "pressures": 262,
+    "relationship": -14,
+    "relationship_beliefs": 0,
+    "sensorium": 305,
+    "symbols": 0,
+    "world": 0,
+    "world_authority": 6
+  },
+  "interpretation": "After known history-like collections are experimentally bounded, remaining state-family deltas identify the next actual sources of active-state growth. This probe changes no production compaction policy.",
+  "largest_growth_families": [
+    {
+      "family": "memories",
+      "growth_bytes": 4492
+    },
+    {
+      "family": "interface",
+      "growth_bytes": 3495
+    },
+    {
+      "family": "sensorium",
+      "growth_bytes": 305
+    },
+    {
+      "family": "pressures",
+      "growth_bytes": 262
+    },
+    {
+      "family": "world_authority",
+      "growth_bytes": 6
+    },
+    {
+      "family": "meta",
+      "growth_bytes": 3
+    },
+    {
+      "family": "continuity_clock",
+      "growth_bytes": 1
+    },
+    {
+      "family": "belief_ledger",
+      "growth_bytes": 0
+    }
+  ],
+  "probe": "active-state-growth-v1",
+  "snapshots": [
+    {
+      "family_bytes": {
+        "belief_ledger": 447,
+        "body": 228,
+        "continuity_clock": 128,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 468,
+        "interface": 2021,
+        "memories": 519,
+        "meta": 108,
+        "open_loops": 250,
+        "pressures": 444,
+        "relationship": 168,
+        "relationship_beliefs": 2,
+        "sensorium": 2,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 267
+      },
+      "hot_memory_count": 1,
+      "hot_world_fact_count": 1,
+      "routine_turns": 10,
+      "serialized_state_bytes": 5726
+    },
+    {
+      "family_bytes": {
+        "belief_ledger": 447,
+        "body": 227,
+        "continuity_clock": 128,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 468,
+        "interface": 5441,
+        "memories": 1269,
+        "meta": 109,
+        "open_loops": 250,
+        "pressures": 706,
+        "relationship": 168,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 271
+      },
+      "hot_memory_count": 1,
+      "hot_world_fact_count": 1,
+      "routine_turns": 50,
+      "serialized_state_bytes": 10467
+    },
+    {
+      "family_bytes": {
+        "belief_ledger": 447,
+        "body": 227,
+        "continuity_clock": 128,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 468,
+        "interface": 5439,
+        "memories": 2206,
+        "meta": 110,
+        "open_loops": 250,
+        "pressures": 706,
+        "relationship": 154,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 271
+      },
+      "hot_memory_count": 1,
+      "hot_world_fact_count": 1,
+      "routine_turns": 100,
+      "serialized_state_bytes": 11389
+    },
+    {
+      "family_bytes": {
+        "belief_ledger": 447,
+        "body": 227,
+        "continuity_clock": 129,
+        "deception_ledger": 2,
+        "earned_traits": 2,
+        "habits": 199,
+        "intentions": 468,
+        "interface": 5516,
+        "memories": 5011,
+        "meta": 111,
+        "open_loops": 250,
+        "pressures": 706,
+        "relationship": 154,
+        "relationship_beliefs": 2,
+        "sensorium": 307,
+        "symbols": 2,
+        "world": 210,
+        "world_authority": 273
+      },
+      "hot_memory_count": 1,
+      "hot_world_fact_count": 1,
+      "routine_turns": 250,
+      "serialized_state_bytes": 14275
+    }
+  ],
+  "world_projection_preserved_current_context_every_turn": true
+}
