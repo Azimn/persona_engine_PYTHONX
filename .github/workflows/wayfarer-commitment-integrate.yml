@@ -26,8 +26,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e '.[test]'
-      - name: Apply minimal commitment integration
-        run: python tools/apply_minimal_commitment_constraint.py
+      - name: Repair and apply minimal commitment integration
+        run: |
+          python tools/repair_commitment_patch_scaffold.py
+          python tools/apply_minimal_commitment_constraint.py
       - name: Run focused commitment and continuity tests
         run: |
           python -m pytest \
@@ -44,7 +46,7 @@ jobs:
         run: python -m pytest persona_engine/tests -q
       - name: Commit integrated mechanism and evidence
         run: |
-          rm -f tools/apply_minimal_commitment_constraint.py .github/workflows/wayfarer-commitment-integrate.yml
+          rm -f tools/apply_minimal_commitment_constraint.py tools/repair_commitment_patch_scaffold.py .github/workflows/wayfarer-commitment-integrate.yml
           git config user.name 'Wayfarer Commitment Integration'
           git config user.email 'wayfarer-commitment@users.noreply.github.com'
           git add -A
