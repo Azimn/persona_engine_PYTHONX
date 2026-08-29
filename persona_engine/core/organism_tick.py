@@ -35,19 +35,21 @@ class OrganismTick:
         world_elapsed = elapsed_seconds if world_elapsed_seconds is None else max(0.0, float(world_elapsed_seconds))
         world_events = world.idle_events(world_elapsed, self.world_profile, now)
         sensory_delta = sum(getattr(ev, "intensity", 0.0) for ev in world_events if getattr(ev, "kind", "") in {"sensory_load", "ambient_event", "noise_change"})
+        body_before = body.to_dict()
         body.apply_idle(elapsed_seconds, self.body_profile, sensory_delta=sensory_delta)
         made = sensorium.extend_from_world_events(world_events)
-        made.extend(sensorium.derive_from_body(body, now))
+        made.extend(sensorium.derive_from_body(body, now, previous_body_state=body_before))
         self._couple_events(made, pressures, memory, intentions, now)
         return self._as_result(made, world, body)
 
     def interaction(self, *, user_text: str, server_truth: dict[str, Any], visible_context: dict[str, Any], now: float, world, body, sensorium, pressures, memory, intentions) -> OrganismTickResult:
         world_events = world.apply_host_facts(server_truth, visible_context, now)
+        body_before = body.to_dict()
         body.apply_interaction(intensity=0.2 + min(0.8, len(user_text) / 500.0))
         if any(getattr(ev, "kind", "") in {"ambient_event", "noise_change"} for ev in world_events):
             body.apply_ambient_load(0.12)
         made = sensorium.extend_from_world_events(world_events)
-        made.extend(sensorium.derive_from_body(body, now))
+        made.extend(sensorium.derive_from_body(body, now, previous_body_state=body_before))
         self._couple_events(made, pressures, memory, intentions, now)
         return self._as_result(made, world, body)
 
@@ -68,6 +70,8 @@ class OrganismTick:
                     preferred_resolution="notice return without claiming hidden motive",
                 ))
             elif kind in {"ambient_event", "movement_need", "body_state", "sensory_load"}:
+                # These are transition events, so pressure changes represent the
+                # onset/change itself rather than simulation sampling frequency.
                 pressures.ensure("curiosity").magnitude = min(1.0, pressures.ensure("curiosity").magnitude + intensity * 0.10)
                 if kind in {"sensory_load", "body_state"}:
                     pressures.ensure("fear").magnitude = min(1.0, pressures.ensure("fear").magnitude + intensity * 0.05)
