@@ -1,0 +1,277 @@
+{
+  "all_truth_and_visibility_views_preserved": true,
+  "candidate_rule": "Per semantic key, retain the union of facts that can still become latest-surviving server truth and latest-surviving visible truth. A later non-expiring fact permanently dominates older facts in that projection; an older expiring fact is retained only if it outlives every newer candidate and can therefore re-emerge.",
+  "probe": "world-authority-semantic-compaction-v1",
+  "production_policy_changed": false,
+  "random_fixture": {
+    "checks": [
+      {
+        "preserved": true,
+        "time": 1000.0
+      },
+      {
+        "preserved": true,
+        "time": 1050
+      },
+      {
+        "preserved": true,
+        "time": 1100
+      },
+      {
+        "preserved": true,
+        "time": 1250
+      },
+      {
+        "preserved": true,
+        "time": 1500
+      },
+      {
+        "preserved": true,
+        "time": 2000
+      },
+      {
+        "preserved": true,
+        "time": 3500
+      },
+      {
+        "preserved": true,
+        "time": 5000
+      }
+    ],
+    "facts_after": 53,
+    "facts_before": 2000,
+    "facts_removed": 1947,
+    "reduction_fraction": 0.9735
+  },
+  "recent_facts_note": "The probe preserves authoritative server and visible truth, including future expiry fallback. It does not claim historical recent_facts output is preserved; canonical continuity is the intended history authority and this compatibility seam must be reviewed before production integration.",
+  "scenario_results": [
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "zone": "C"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "zone": "C"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "zone": "C"
+          },
+          "time": 2000,
+          "visible_truth": {
+            "zone": "C"
+          }
+        }
+      ],
+      "facts_after": 1,
+      "facts_before": 3,
+      "facts_removed": 2,
+      "name": "permanent_churn"
+    },
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "weather": "storm"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "weather": "storm"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "weather": "storm"
+          },
+          "time": 1100,
+          "visible_truth": {
+            "weather": "storm"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "weather": "clear"
+          },
+          "time": 1300,
+          "visible_truth": {
+            "weather": "clear"
+          }
+        }
+      ],
+      "facts_after": 2,
+      "facts_before": 2,
+      "facts_removed": 0,
+      "name": "temporary_override_fallback"
+    },
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "mode": "top"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "mode": "top"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "mode": "top"
+          },
+          "time": 1100,
+          "visible_truth": {
+            "mode": "top"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "mode": "middle"
+          },
+          "time": 1300,
+          "visible_truth": {
+            "mode": "middle"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "mode": "base"
+          },
+          "time": 1500,
+          "visible_truth": {
+            "mode": "base"
+          }
+        }
+      ],
+      "facts_after": 3,
+      "facts_before": 3,
+      "facts_removed": 0,
+      "name": "nested_expiry"
+    },
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "signal": "newer"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "signal": "newer"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "signal": "newer"
+          },
+          "time": 1100,
+          "visible_truth": {
+            "signal": "newer"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "signal": "newer"
+          },
+          "time": 1300,
+          "visible_truth": {
+            "signal": "newer"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "signal": "base"
+          },
+          "time": 1500,
+          "visible_truth": {
+            "signal": "base"
+          }
+        }
+      ],
+      "facts_after": 2,
+      "facts_before": 3,
+      "facts_removed": 1,
+      "name": "dominated_expiry"
+    },
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "note": "hidden_override"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "note": "visible_base"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "note": "hidden_override"
+          },
+          "time": 2000,
+          "visible_truth": {
+            "note": "visible_base"
+          }
+        }
+      ],
+      "facts_after": 2,
+      "facts_before": 2,
+      "facts_removed": 0,
+      "name": "hidden_permanent_override"
+    },
+    {
+      "checks": [
+        {
+          "preserved": true,
+          "server_truth": {
+            "note": "hidden_temp"
+          },
+          "time": 1000.0,
+          "visible_truth": {
+            "note": "visible_base"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "note": "hidden_temp"
+          },
+          "time": 1100,
+          "visible_truth": {
+            "note": "visible_base"
+          }
+        },
+        {
+          "preserved": true,
+          "server_truth": {
+            "note": "visible_base"
+          },
+          "time": 1300,
+          "visible_truth": {
+            "note": "visible_base"
+          }
+        }
+      ],
+      "facts_after": 2,
+      "facts_before": 2,
+      "facts_removed": 0,
+      "name": "hidden_temporary_override"
+    }
+  ]
+}
