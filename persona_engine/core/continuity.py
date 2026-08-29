@@ -108,6 +108,8 @@ def event_authority(event_type: str, payload: dict[str, Any] | None = None) -> C
         return ContinuityAuthority(explicit_actor or "user", "external_user", "reported_input")
     if event_type == "time_advance":
         return ContinuityAuthority(explicit_actor or "continuity_clock", "internal_clock", "elapsed_time_authority", "private")
+    if event_type == "commitment_adopted":
+        return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "self_commitment_authority", "private")
     if event_type in {"sensorium", "sensor_observation", "world_fact", "manual_authorized_fact", "world_action_resolution"}:
         return ContinuityAuthority(explicit_actor or "host", "host_world", "world_authority")
     if event_type == "dream_consolidation":
@@ -125,6 +127,14 @@ def canonical_continuity_eligible(event_type: str, payload: dict[str, Any] | Non
         elapsed = payload.get("elapsed_seconds")
         subject_elapsed = payload.get("subject_elapsed_seconds")
         return isinstance(elapsed, (int, float)) and elapsed >= 0.0 and isinstance(subject_elapsed, (int, float)) and subject_elapsed >= 0.0
+    if event_type == "commitment_adopted":
+        # Commitment adoption is causal character state and therefore replayable,
+        # but only an explicit self-decision API may create this root. Natural
+        # language and renderer speech do not satisfy this contract.
+        kind = str(payload.get("commitment_kind", ""))
+        target = str(payload.get("commitment_target", "")).strip()
+        adoption_source = str(payload.get("adoption_source", ""))
+        return kind == "non_disclosure" and bool(target) and adoption_source == "self_decision"
     if event_type == "world_action_resolution":
         # WorldAuthority resolution is canonical only when the host actually
         # accepted/resolved the proposal. Rejected proposals remain diagnostics.
