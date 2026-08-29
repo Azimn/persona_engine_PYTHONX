@@ -91,12 +91,14 @@ def evaluate_history_for_decision(
             memory,
         )
         for memory in candidates
-    )
+    , key=lambda item: (item[0], float(item[1].created_at), str(item[1].id)))
     strength = scored[-1][0]
     if strength < 0.30:
         return HistoryDecisionEvidence()
 
-    # Keep only a tiny provenance set. Count must not amplify the signal.
+    # Keep only a tiny deterministic provenance set. Count must not amplify the
+    # signal, and equal-strength candidates must never require comparing
+    # MemoryUnit objects directly.
     selected = tuple(memory.id for _, memory in scored[-2:])
     return HistoryDecisionEvidence(
         active=True,
