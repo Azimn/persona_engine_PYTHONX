@@ -1,0 +1,47 @@
+name: Wayfarer M4 continuity clock integration
+
+on:
+  push:
+    branches: [wayfarer]
+    paths:
+      - 'tools/apply_wayfarer_m4.py'
+      - '.github/workflows/wayfarer-m4-integrate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Apply M4 phase
+        run: python tools/apply_wayfarer_m4.py
+      - name: Run M4 targeted tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_continuity_clock.py \
+            persona_engine/tests/test_long_silence_contract.py \
+            persona_engine/tests/test_continuity_replay.py \
+            persona_engine/tests/test_organism_runtime.py -q
+      - name: Run full deterministic suite
+        run: python -m pytest persona_engine/tests -q
+      - name: Commit integrated M4 phase and remove scaffolding
+        run: |
+          rm -f tools/apply_wayfarer_m4.py .github/workflows/wayfarer-m4-integrate.yml
+          git config user.name 'Wayfarer M4 Integration'
+          git config user.email 'wayfarer-m4@users.noreply.github.com'
+          git add -A
+          git commit -m 'Implement M4 linear continuity clock'
+          git push origin HEAD:wayfarer
