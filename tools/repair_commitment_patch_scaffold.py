@@ -14,34 +14,14 @@ if old_start not in text or old_end not in text:
     raise RuntimeError("expected quoting anchors not found")
 text = text.replace(old_start, new_start, 1).replace(old_end, new_end, 1)
 
-old_renderer_patch = '''        if dialogue_act == "withdraw":
-            return "quiet"
-        if dialogue_act == "protect_boundary" or any(
-'''
-new_renderer_patch = '''        if dialogue_act == "withdraw":
-            return "quiet"
-        if dialogue_act == "qualified_response":
-            return "uncertain"
-        if dialogue_act == "protect_boundary" or any(
-'''
+old_renderer_patch = '        if dialogue_act == "withdraw":\\n            return "quiet"\\n        if dialogue_act == "protect_boundary" or any(\\n'
+new_renderer_patch = '        if dialogue_act == "withdraw":\\n            return "quiet"\\n        if dialogue_act == "qualified_response":\\n            return "uncertain"\\n        if dialogue_act == "protect_boundary" or any(\\n'
 if old_renderer_patch not in text:
     raise RuntimeError("expected stale renderer patch anchor not found")
 text = text.replace(old_renderer_patch, new_renderer_patch, 1)
 
-old_renderer_replacement = '''        if dialogue_act == "withdraw":
-            return "quiet"
-        if dialogue_act == "decline":
-            return "disagreement"
-        if dialogue_act == "protect_boundary" or any(
-'''
-new_renderer_replacement = '''        if dialogue_act == "withdraw":
-            return "quiet"
-        if dialogue_act == "qualified_response":
-            return "uncertain"
-        if dialogue_act == "decline":
-            return "disagreement"
-        if dialogue_act == "protect_boundary" or any(
-'''
+old_renderer_replacement = '        if dialogue_act == "withdraw":\\n            return "quiet"\\n        if dialogue_act == "decline":\\n            return "disagreement"\\n        if dialogue_act == "protect_boundary" or any(\\n'
+new_renderer_replacement = '        if dialogue_act == "withdraw":\\n            return "quiet"\\n        if dialogue_act == "qualified_response":\\n            return "uncertain"\\n        if dialogue_act == "decline":\\n            return "disagreement"\\n        if dialogue_act == "protect_boundary" or any(\\n'
 if old_renderer_replacement not in text:
     raise RuntimeError("expected stale renderer replacement not found")
 text = text.replace(old_renderer_replacement, new_renderer_replacement, 1)
