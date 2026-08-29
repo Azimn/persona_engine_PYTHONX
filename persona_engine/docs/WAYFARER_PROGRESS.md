@@ -15,21 +15,23 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 
 ## Latest implemented checkpoint
 
-Current runtime/evidence head before this documentation update:
+Current production/evidence head before this documentation update:
 
 ```text
-1f0f135
-Make demonstrated character state explicitly subject-owned
+bba9e8474c9bd1900440afcfcc6a26e332b56f7c
+Bound active WorldAuthority without losing fallback semantics
 ```
 
 The latest phase-sized Python 3.11 integration run completed with:
 
 ```text
-Focused state-ownership tests: 18 passed
-Full suite: 285 passed, 1 skipped, 1 warning
+Focused world + continuity tests: 26 passed
+Full suite: 297 passed, 1 skipped, 1 warning
 ```
 
-The committed subject-clock repair immediately preceding this state was verified by normal Wayfarer CI on both Python 3.11 and 3.12. This documentation commit is intended to exercise the same two-version CI path against the new explicit subject-state scope. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+That integration also passed a 1,000-turn production WorldAuthority churn check, a semantics-preserving expiry/visibility compaction probe, and canonical-history preservation checks. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+
+This documentation commit is intended to trigger the ordinary Python 3.11/3.12 Wayfarer CI path against the committed production state because GitHub intentionally does not recursively trigger workflows from the bot-authored integration commit.
 
 ## Baseline history
 
@@ -45,6 +47,10 @@ The current operational question is:
 
 > What longitudinal behavior can Wayfarer not yet produce or preserve, and what is the smallest causal mechanism that fixes it?
 
+A second resource-oriented question is now explicit:
+
+> How small can the character's causally sufficient present become while canonical biography, identity continuity, relationship history, commitments, and useful recall remain intact?
+
 ## M0
 
 **COMPLETE for deterministic/offline evidence.** Durable architecture/handoff docs, two-version CI, simulator evidence, and deterministic Pretorius session/state evidence exist. A local-model transcript remains useful but optional.
@@ -58,6 +64,8 @@ The current operational question is:
 **ARCHITECTURAL FOUNDATION COMPLETE.** Wayfarer has permanent `entity_uuid`, deterministic versioned v1-to-v2 normalization, structured substrate-neutral self-model claims, authored phenotype namespaces separated from lived state, unknown-field preservation, progressive fidelity levels 1 through 5, and a machine-readable v2 schema companion.
 
 MatrAIx interoperability is frozen to upstream commit `39d850270917db25535dac3f7aa2561732050e82`, schema blob `742a50ed79f106675311c09f016fff48951f841c`, schema version 1.0, with 1,290 dimensions. Import/export is lossless. Unmapped dimensions default to preserve-only unsupported rather than guessed native semantics.
+
+The interoperability phenotype is descriptive initialization/interchange state, not permission to make all 1,290 fields live runtime state. A future low-resource compiler/profile may preserve the rich portable description while materializing only behaviorally active state required by the target runtime.
 
 ## Consistency and renderer boundary
 
@@ -142,17 +150,97 @@ earned_traits
 
 No other snapshot family was promoted. The legacy per-interlocutor snapshot is still written for compatibility. Subject-owned keys are additionally written to UUID scope. On load, those two families prefer subject state and fall back to the active legacy stream when no subject snapshot exists. Clock state is still reconciled upward against canonical `time_advance` history.
 
-The fixed earned-trait probe now shows `deliberate_caution(0.05)` with identical evidence provenance for Alice, Alice after restart, and Bob on the same subject. The ownership regression also sets Alice trust to `0.81` and verifies Bob does **not** inherit that relationship value. This is the intended asymmetry: development belongs to the individual; trust belongs to the relationship.
+The fixed earned-trait probe shows `deliberate_caution(0.05)` with identical evidence provenance for Alice, Alice after restart, and Bob on the same subject. The ownership regression also sets Alice trust to `0.81` and verifies Bob does **not** inherit that relationship value. This is the intended asymmetry: development belongs to the individual; trust belongs to the relationship.
 
-The explicit subject-state integration reached `18` focused tests and `285 passed, 1 skipped, 1 warning` overall on Python 3.11.
+Commitments remain canonical-history-owned rather than being duplicated into `subject_state`. Relationship state remains keyed by interlocutor. Memories, pressures, body, symbols, beliefs, habits, interface state, and other mixed/ambiguous families remain unchanged until separate evidence establishes their correct ownership.
 
-Commitments remain canonical-history-owned rather than being duplicated into `subject_state`. Relationship state remains keyed by interlocutor. Memories, pressures, body, world, symbols, beliefs, habits, interface state, and other mixed/ambiguous families remain unchanged until separate evidence establishes their correct ownership.
+## Hot self and cold biography
+
+**BOUNDED COLD READ-THROUGH IMPLEMENTED. HOT-MEMORY CAP REMAINS EXPERIMENTAL.**
+
+A controlled amnesia experiment established the failure condition before paging was added. A neutral old fact remained present in canonical input history and was still retrievable with a full resident memory store after 100 later turns, but a one-item salience working set lost access to it. That earned one narrow mechanism rather than a general paging subsystem.
+
+Explicit recall requests may now consult canonical cold biography for the active interlocutor and receive transient recall candidates for the current turn. Cold candidates do not automatically write themselves into identity, slow beliefs, earned traits, commitments, or the hot autobiographical cache. Canonical continuity remains authoritative history.
+
+A false-recall adversarial probe initially showed that nonzero generic similarity could make a real but unrelated memory answer a question about something that never happened. Recall admission now requires a topical lexical anchor after removing generic recall scaffolding. Semantic similarity ranks only candidates that pass that grounding gate. A nonexistent brass-telescope memory therefore fails closed rather than returning the nearest unrelated memory.
+
+The current intentionally simple reader is a sequential SQLite stream plus fixed-size candidate heap. On the Python 3.11 CI runner, median repeat lookup was approximately `1.8 ms` at 100 canonical inputs, `12.6 ms` at 1,000, `61.5 ms` at 5,000, and `122.2 ms` at 10,000. The 10,000-event database was approximately `5.62 MB`. `tracemalloc` transient peak allocation was `23,911 B` at every tested archive size, so history growth translated into disk and lookup time rather than archive-sized working-memory allocation. This does not claim the same numbers for a future C99 implementation.
+
+No cold-history index has been added because the measured sequential reader remains interactive at the tested scale. An index should be earned by a demonstrated latency requirement rather than assumed.
+
+## Retrieval is not rehearsal
+
+A one-memory working-set experiment exposed a causal bookkeeping defect. `MemoryStore.retrieve()` previously treated every top-K candidate as a successful recall and appended a rehearsal timestamp even when semantic similarity was exactly zero. In a controlled fixture, 100 unrelated turns therefore created 100 false rehearsals and raised later activation by roughly `+7.02`.
+
+The production correction preserves candidate retrieval but records rehearsal only when semantic relevance is greater than zero. The corrected diagnostic still returned the resident memory as optional background context on 100 unrelated turns, but added zero rehearsal timestamps. A genuinely related query with similarity around `0.712` added one timestamp. No timestamp cap, rolling buffer, or replacement activation formula was needed.
+
+This distinction is now part of the minimum-mechanism rule: ranking into a workspace is not itself evidence that the character meaningfully recalled or rehearsed the memory.
+
+## Long-horizon active-state plateau experiment
+
+**STRONG LOWER-BOUND EVIDENCE, NOT A PRODUCTION MEMORY CAP.**
+
+The earlier continuous compaction probe showed that experimental hot-memory budgets of 1, 2, 4, and 8 all preserved the demonstrated 100-turn/restart behavior: unresolved-history conduct, explicit cold recall of the old observatory code word, the Project Orchid non-disclosure commitment, and identity-boundary protection.
+
+After the false rehearsal defect was removed, the one-memory active-state projection was extended to 5,000 routine turns. The same probe also projected WorldAuthority to current semantic facts after each turn while leaving canonical continuity complete. Results were:
+
+```text
+turn 250:  active serialized state   9,593 B | database  3,416,064 B
+turn 500:  active serialized state   9,592 B | database  6,729,728 B
+turn 1000: active serialized state   9,597 B | database 13,344,768 B
+turn 2500: active serialized state   9,696 B | database 33,234,944 B
+turn 5000: active serialized state   9,683 B | database 66,367,488 B
+```
+
+From turn 250 to 5,000, experimental active state grew only `90 B`, approximately `18.95 B` per 1,000 turns, while canonical/diagnostic persistence grew by roughly `63 MB`. The retained hot memory stayed at one item with zero unrelated rehearsal timestamps. Behavior remained intact after restart.
+
+This is strong evidence for the architectural proposition that the size of a character's life does not need to determine the size of the character's causally sufficient present. It is **not** evidence that production Wayfarer should retain exactly one hot memory. The current scenario has not yet tested multiple simultaneous unresolved relationships, obligations, active goals, conflicting evidence chains, or other cases that may require a larger active autobiographical set.
+
+## Bounded WorldAuthority
+
+**PRODUCTION MECHANISM IMPLEMENTED AND GREEN.**
+
+The 5,000-turn resource work showed that objective world state had the same historical-accumulation problem as autobiography: old facts were already preserved canonically, yet `WorldAuthority` also retained every prior active fact object.
+
+A naive latest-fact-per-key replacement was rejected because it breaks temporary overrides. If a newer `storm` fact expires, an older `clear` fact may legitimately become current truth again. Hidden and visible world projections also differ: a newer hidden server fact must not erase an older visible fact that still defines what the character can observe.
+
+`WorldAuthority.compact_dominated()` therefore removes only facts that can never again become a winning value for either server truth or character-visible truth. Per semantic key, it retains the union of potential latest-surviving server facts and potential latest-surviving visible facts. Expiring fallbacks remain resident when they can re-emerge. Historical world events remain in canonical continuity.
+
+The pre-integration semantic probe covered permanent churn, temporary override fallback, nested expiry, dominated expiry, hidden permanent override, and hidden temporary override. A deterministic mixed 2,000-fact fixture compacted to 53 active contenders, removing `97.35%` of redundant active facts while preserving server and visible truth at every tested future time.
+
+Production compaction runs at the engine persistence boundary, after accepted input/world roots have already been written to canonical continuity. `recent_facts()` is now explicitly an active-contender view, not an authoritative historical API.
+
+A 1,000-turn production churn test repeatedly replaced `zone` and `user_text`. At the end, WorldAuthority retained exactly the current `zone`, exactly the current `user_text`, and no historical duplicates. Canonical input history still retained the old values, and restart restored the current active state correctly.
+
+The production integration completed at `297 passed, 1 skipped, 1 warning` on Python 3.11.
+
+## Current resource interpretation
+
+Wayfarer now has evidence for a useful architectural separation:
+
+```text
+portable identity / phenotype
+          |
+          v
+small causal present  <---- selective read-through ----  cold canonical biography
+          |
+          v
+replaceable cognition / renderer
+```
+
+Cold biography is production-capable. WorldAuthority active-history compaction is production. Relevance-gated rehearsal is production. The exact hot autobiographical working-set size remains experimental.
+
+The 5,000-turn `~9.7 KB` active serialized state is therefore a **measured experimental lower-bound/reference state**, not a claim about current production RAM use and not yet a minimum C99 hardware requirement. Python object overhead, runtime/library overhead, SQLite pages, renderer requirements, and still-unbounded production autobiographical retention are separate questions.
+
+The current evidence nevertheless supports a stronger C99 direction than the earlier rough hardware guesses: port the causally sufficient present, not the entire biography. Rich phenotype/interchange data and long-lived canonical history can remain portable/cold while a small deterministic kernel carries identity invariants, current development, relationship state, commitments, active memory, current world contenders, and bounded decision state.
 
 ## Current MVI interpretation
 
 The present Study-A baseline does **not** justify deleting interpretation, symbols, habits, or body dynamics. It says only that the current fixed scenario does not expose a conduct contribution from them. Those mechanisms remain provisional until targeted longitudinal scenarios or human-visible evidence show their value.
 
 Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Subject biography order and subject time each gained only the smallest ownership primitive required by controlled cross-interlocutor failures. Repeated ownership failures then earned one small reusable state-scope abstraction.
+
+The resource experiments add another rule: do not retain historical copies in the active self merely because the old implementation did so. If canonical history already owns the past, active state should retain only information that can still cause future behavior. This rule earned production WorldAuthority compaction and exposed false memory rehearsal without requiring a new memory subsystem.
 
 This is intentional. Perceived behavioral complexity should emerge from intersections among a small number of independent causal facts rather than from duplicated planners or decorative state.
 
@@ -162,13 +250,13 @@ Do not encode decorative decimals. Plasticity starts with minimal shared profile
 
 ## Immediate next actions
 
-1. Let this documentation commit verify the committed explicit subject-state scope under normal Python 3.11 and 3.12 Wayfarer CI.
-2. Build one integrated cross-interlocutor MVI that combines existing subject-global and relationship-local facts without adding another planner: shared identity, subject sequence, elapsed time, earned development and commitment, with actor-specific relationship history.
-3. Use that combined probe to test whether a small number of orthogonal state rules already produce differentiated, history-sensitive conduct across Alice/Bob/Alice context switches.
-4. Add nothing if the combined behavior already holds. If it fails, isolate the first causal boundary that breaks rather than expanding all ambiguous state families at once.
-5. Keep memories, pressures, symbols, world state, body state, beliefs and habits at their current scope until a dedicated longitudinal test establishes otherwise.
-6. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
-7. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
+1. Verify this documentation commit and the committed `bba9e847...` WorldAuthority integration through ordinary Wayfarer CI on Python 3.11 and 3.12.
+2. Do **not** promote the one-memory experimental projection directly into production.
+3. Design a hot-memory admission/eviction stress probe with several simultaneously causal memories, including unresolved relationship history, an active commitment-related episode, a neutral explicitly recallable fact, and competing salient recent events. Determine the smallest policy that preserves all demonstrated conduct and recall without choosing a fixed capacity by convenience.
+4. Keep cold canonical biography authoritative and require evicted autobiographical material to remain explicitly recoverable without automatic promotion back into identity, slow beliefs, traits, or commitments.
+5. Once a production hot-memory policy is earned, repeat the long-horizon active-state plateau measurement with no experimental compaction helpers. That will be the first defensible production resident-state measurement.
+6. Only after that production measurement, translate the state families into a C99-oriented fixed/compact layout and estimate the character-kernel hardware floor separately from the optional language-generation floor.
+7. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
 
 ## Contributor rule
 
