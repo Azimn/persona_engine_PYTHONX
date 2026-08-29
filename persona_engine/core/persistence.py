@@ -461,6 +461,41 @@ class Persistence:
             ).fetchall()
         return [self._continuity_row_to_dict(row) for row in rows]
 
+    def iter_continuity_events(
+        self,
+        character_id: str,
+        user_id: str,
+        *,
+        after_sequence: int = 0,
+        continuity_epoch: int | None = None,
+        event_type: str | None = None,
+    ):
+        """Stream one interlocutor's canonical history without materializing it.
+
+        This is the low-memory archive read seam. The permanent subject binding
+        still anchors the stream, while ``user_id`` remains an explicit provenance
+        boundary so cold recall cannot leak another interlocutor's private history.
+        """
+
+        subject_uuid, bound_epoch = self._resolve_subject(character_id, user_id)
+        epoch = bound_epoch if continuity_epoch is None else int(continuity_epoch)
+        query = (
+            "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
+            "FROM continuity_event WHERE subject_uuid=? AND user_id=? AND continuity_epoch=? AND sequence>?"
+        )
+        params: list[Any] = [subject_uuid, user_id, epoch, int(after_sequence)]
+        if event_type is not None:
+            query += " AND event_type=?"
+            params.append(str(event_type))
+        query += " ORDER BY sequence"
+        conn = self._connect()
+        try:
+            cursor = conn.execute(query, tuple(params))
+            for row in cursor:
+                yield self._continuity_row_to_dict(row)
+        finally:
+            conn.close()
+
     def load_subject_continuity_events(
         self,
         character_id: str,

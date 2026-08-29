@@ -1,0 +1,33 @@
+{
+  "canonical_target_present": true,
+  "cold_trace_target_hit": true,
+  "hot_memory_count_before_recall": 1,
+  "interpretation": "A one-item resident cache can answer an explicit old neutral recall by transiently reading canonical cold biography, without promoting the archived fact back into hot memory.",
+  "passed": true,
+  "probe": "cold-biography-readthrough-v1",
+  "response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+  "retrieved_memory_trace": [
+    {
+      "content": "I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "created_at": 1788032786.813212,
+      "memory_id": "cold_6628919c-21ab-4bb7-a4a2-8e7ab1e37edb",
+      "source": "user_told",
+      "tags": [
+        "canonical_user_statement",
+        "cold_biography"
+      ]
+    },
+    {
+      "content": "I heard you say: You lied to me. This is your fault.",
+      "created_at": 1788032787.003418,
+      "memory_id": "6c80b9a6",
+      "source": "user_told",
+      "tags": [
+        "canonical_user_statement"
+      ]
+    }
+  ],
+  "target_in_response": true,
+  "target_resident_after_recall": false,
+  "target_resident_before_recall": false
+}

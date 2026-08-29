@@ -24,6 +24,7 @@ from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_i
 from .intention import Intention, IntentionQueue, OpenLoop
 from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
+from .cold_biography import explicit_recall_request, merge_recall_candidates, retrieve_cold_biography
 from .decision_memory import evaluate_history_for_decision
 from .decision_commitment import evaluate_commitments_for_decision
 from .persistence import Persistence
@@ -875,6 +876,15 @@ class InteriorEngine:
         top_for_match = self.pressures.top()
         affect_match = (top_for_match.magnitude * 0.1) if top_for_match else 0.0
         retrieved = self.memory.retrieve(user_text, now, top_k=4, emotional_state_match=affect_match)
+        if explicit_recall_request(user_text):
+            cold_candidates = retrieve_cold_biography(
+                self.persistence,
+                self.identity.name,
+                self.user_id,
+                user_text,
+                top_k=4,
+            )
+            retrieved = merge_recall_candidates(user_text, retrieved, cold_candidates, top_k=4)
         retrieved_memory_trace = [
             {
                 "memory_id": memory.id,
