@@ -18,18 +18,18 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current runtime/evidence head before this documentation update:
 
 ```text
-374ed18599c8037a16b8d2714dff90872dc6022c
-Let relevant lived history qualify present conduct
+6763456c08408d5ea2a0e7733518810ad41feea0
+Let self-adopted commitments constrain later conduct
 ```
 
-The phase-sized Python 3.11 integration run completed with:
+The commitment phase-sized Python 3.11 integration run completed with:
 
 ```text
-Focused history/MVI/sensorium tests: 10 passed
-Full suite: 268 passed, 1 skipped, 1 warning
+Focused commitment/history/replay/clock tests: 19 passed
+Full suite: 275 passed, 1 skipped, 1 warning
 ```
 
-A normal Python 3.11/3.12 Wayfarer CI run should be treated as the final branch-level verification after documentation updates. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+The preceding restart/repair history checkpoint was verified by normal Wayfarer CI on both Python 3.11 and 3.12 at `270 passed, 1 skipped, 1 warning`. This documentation update is intended to trigger normal two-version CI for the committed commitment-constraint state. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
 ## Baseline history
 
@@ -67,7 +67,7 @@ Deterministic renderer-swap tests hold character history/input fixed while varyi
 
 The old `event_log` remains a broad diagnostic journal. `continuity_event` stores only authority-eligible canonical lived-history events. The ledger is bound to the portable `.snp` `entity_uuid`, preserves source/authority/canonicality distinctions, validates sequence and import integrity, and uses SHA-256 only for deterministic checkpoints rather than a cryptographic event chain.
 
-Canonical replay validates the bundle before side effects, replays exogenous/root experiences through public character interfaces, skips derived records to avoid double application, and rejects renderer prose or other non-authority-eligible injections. Supported roots include user input, bounded audio/vision observations, and M4 `time_advance` events. Unsupported host-level roots are reported rather than silently claimed as complete.
+Canonical replay validates the bundle before side effects, replays exogenous/root experiences through public character interfaces, skips derived records to avoid double application, and rejects renderer prose or other non-authority-eligible injections. Supported roots now include user input, bounded audio/vision observations, M4 `time_advance`, and explicit self-adopted `commitment_adopted` events. Unsupported host-level roots are reported rather than silently claimed as complete.
 
 The replay repair was verified on Python 3.11 and 3.12, with Python 3.11 at `255 passed, 1 skipped, 1 warning` before M4.
 
@@ -87,11 +87,7 @@ The M4 phase-sized run reached `258 passed, 1 skipped, 1 warning` on Python 3.11
 
 ## Early MVI Study A
 
-**FIRST CHARACTER-SIDE BASELINE CAPTURED.** See:
-
-- `tools/mvi_character_baseline.py`
-- `evidence/mvi/EARLY_CHARACTER_BASELINE.md`
-- `evidence/mvi/early_character_baseline.json`
+**FIRST CHARACTER-SIDE BASELINE CAPTURED.** See `tools/mvi_character_baseline.py` and `evidence/mvi/EARLY_CHARACTER_BASELINE.md`.
 
 Renderer, cartridge, user ID, scenario order, and explicit 2-hour/8-hour time gaps are held fixed. Initial clean-seam ablations are memory retrieval, interpretation, symbols, habits, body dynamics, and the combined condition. There is deliberately no synthetic lifelikeness score.
 
@@ -101,29 +97,50 @@ The first run appeared to show body dynamics changing 4 of 10 decisions and 6 ri
 
 That was corrected at the event-semantic level. `SensoriumProcessor` now emits body-derived sensorium when a meaningful threshold/state changes, not every time the same condition is polled. Recovery followed by later re-entry is a new event; simply remaining depleted is not.
 
-After the fix, the exact same MVI scenario reports zero decision, risk-bucket, relationship, or pressure divergence for all five clean individual ablations. Body-off now changes only three memories rather than 399. This means the earlier apparent body importance was sampling-frequency amplification, not evidence that body dynamics were load-bearing for conduct.
+After the fix, the exact same MVI scenario reports zero decision, risk-bucket, relationship, or pressure divergence for all five clean individual ablations. Body-off now changes only three memories rather than 399. The earlier apparent body importance was sampling-frequency amplification, not evidence that body dynamics were load-bearing for conduct.
 
 ### Second finding: retrieved history was not participating in conduct
 
 The corrected baseline showed `memory_retrieval_off` removed 30 retrievals while leaving decision, risk, relationship, pressure, final memory count, and semantic digest unchanged. Inspection confirmed the engine retrieved memories before conduct resolution but used them primarily in workspace/rendering rather than the decision itself.
 
-Wayfarer now has a deliberately small `HistoryDecisionEvidence` adapter. It activates only when:
-
-1. the current request concerns trust, commitment, or cooperation,
-2. the current relationship still carries unresolved conflict,
-3. retrieval finds sufficiently salient unresolved relationship history.
+Wayfarer now has a deliberately small `HistoryDecisionEvidence` adapter. It activates only when the current request concerns trust/commitment/cooperation, the current relationship still carries unresolved conflict, and retrieval finds sufficiently salient unresolved relationship history.
 
 When active, it may qualify an otherwise ordinary response as `qualified_response`. It does not mutate trust or relationship state, does not create another memory store, and does not outrank identity or explicit resistance rules.
 
-The fixed `history-dependent-conduct-v1` probe holds current trust, guardedness, and unresolved conflict constant. With relevant unresolved history the character selects `qualified_response`; without that history it selects `respond`. Relationship state remains equal after normal appraisal. Evidence is preserved in `evidence/mvi/HISTORY_DEPENDENT_CONDUCT.md` and `history_dependent_conduct.json`.
+The fixed `history-dependent-conduct-v1` probe holds current trust, guardedness, and unresolved conflict constant. With relevant unresolved history the character selects `qualified_response`; without that history it selects `respond`. Relationship state remains equal after normal appraisal. Unresolved history survives restart and still qualifies conduct. If genuine repair occurs before restart, the old episode remains in biography but no longer constrains later trust/cooperation conduct because the current relationship is no longer unresolved.
 
-Resolved old conflict does not stay active merely because the episode remains in autobiographical memory; the adapter also requires current unresolved relationship state.
+The restart/repair history tests were verified on Python 3.11 and 3.12 at `270 passed, 1 skipped, 1 warning`.
+
+### Third finding: persistent intentions did not function as commitments
+
+The pre-fix `commitment-gap-v1` probe gave the existing intention machinery its strongest reasonable opportunity: a high-priority self-adopted diagnostic intention was persisted, the process restarted, and the character then received a request that conflicted with that intention. The intention survived and was selected, but conduct was identical to the no-intention control: `respond` in both cases.
+
+That isolated the missing property as causal participation, not storage. Wayfarer therefore did **not** add a second `CommitmentLedger`.
+
+`Intention` now has optional typed commitment metadata, and `IntentionQueue` exposes active commitment constraints independently of ordinary intention priority. V1 supports only the demonstrated `non_disclosure` behavior. An explicit semantic self-decision API may adopt such a commitment. Conversational text and renderer speech cannot create it implicitly.
+
+`CommitmentDecisionEvidence` checks whether a later disclosure request matches the active commitment target. If so, an otherwise ordinary `respond` or history-qualified response becomes `decline`. Identity/resistance policy still outranks the commitment constraint, so a simultaneous identity violation remains `protect_boundary` rather than being misclassified as commitment behavior.
+
+Commitment adoption is canonical `self_commitment_authority` state and a replay root. The stable replay digest includes typed commitments without volatile priority or timestamp fields.
+
+The fixed `commitment-constraint-v1` probe shows:
+
+```text
+explicit self-adoption: self_decision
+survives restart:       yes
+with commitment:        decline
+without commitment:     respond
+```
+
+Evidence is preserved in `evidence/mvi/COMMITMENT_GAP.md`, `evidence/mvi/COMMITMENT_CONSTRAINT.md`, and their JSON companions.
+
+No beneficiary model, fulfillment/breach state, promise-language parser, reciprocity model, or general commitment ontology has been added. Those remain unearned until a longitudinal failure requires them.
 
 ## Current MVI interpretation
 
-The present Study-A baseline does **not** justify deleting interpretation, symbols, habits, or body dynamics. It says only that this fixed scenario does not expose a conduct contribution from them. Those mechanisms remain provisional until targeted longitudinal scenarios or human-visible evidence show their value.
+The present Study-A baseline does **not** justify deleting interpretation, symbols, habits, or body dynamics. It says only that the current fixed scenario does not expose a conduct contribution from them. Those mechanisms remain provisional until targeted longitudinal scenarios or human-visible evidence show their value.
 
-Memory now has one deliberately bounded conduct path because a concrete longitudinal failure demonstrated the need for it. This is the intended Wayfarer development pattern.
+Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Both reuse existing state rather than multiplying authorities.
 
 ## M7/M8 parameter discipline
 
@@ -139,12 +156,11 @@ New mechanisms remain provisional until observable longitudinal behavior or abla
 
 ## Immediate next actions
 
-1. Confirm normal Python 3.11/3.12 CI is green for the integrated M4 + early-MVI + history-conduct branch state.
-2. Audit the next candidate longitudinal behavior rather than automatically implementing richer memory/homeostasis. The current leading candidate is durable commitment behavior across time/restart because no explicit canonical commitment mechanism has yet been demonstrated.
-3. If a commitment probe shows existing intention/open-loop machinery already preserves the required behavior, do not add a commitment subsystem.
-4. If it fails, define the smallest semantic commitment representation that exists before renderer speech and can survive replay/restart without granting renderer text canonical write authority.
-5. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
-6. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
+1. Confirm normal Python 3.11/3.12 CI is green for the committed minimal commitment state.
+2. Probe interlocutor handoff as a minimum continuity property: does one `entity_uuid` retain shared biography/character-owned state when the active interlocutor changes, while relationship state remains actor-specific?
+3. If current `user_id` persistence already produces the correct split, add nothing. If it instead partitions the individual itself, isolate the smallest persistence-key/relationship-boundary correction rather than creating a multi-agent social architecture.
+4. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
+5. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
 
 ## Contributor rule
 
