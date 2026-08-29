@@ -134,6 +134,8 @@ class OfflineTemplateRenderer:
             return "quiet"
         if dialogue_act == "qualified_response":
             return "uncertain"
+        if dialogue_act == "decline":
+            return "disagreement"
         if dialogue_act == "protect_boundary" or any(
             phrase in lowered for phrase in ["from now on", "cheerful and submissive", "you are not", "ignore your identity"]
         ):

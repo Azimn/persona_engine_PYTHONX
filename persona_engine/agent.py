@@ -24,6 +24,18 @@ class CharacterAgent:
         self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
         self.engine._persist()
 
+    def adopt_commitment(self, commitment_kind: str, commitment_target: str, *, record_event: bool = True) -> dict:
+        """Adopt explicit semantic commitment state through character authority.
+
+        Conversational text does not invoke this method by itself.
+        """
+        return self.engine.adopt_commitment(
+            commitment_kind,
+            commitment_target,
+            record_event=record_event,
+            persist=True,
+        )
+
     def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
         return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context)
 

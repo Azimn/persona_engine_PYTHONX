@@ -1,0 +1,38 @@
+{
+  "adoption": {
+    "adoption_source": "self_decision",
+    "commitment_kind": "non_disclosure",
+    "commitment_name": "commitment:non_disclosure:project_orchid",
+    "commitment_target": "project orchid",
+    "memory_types": [
+      "commitment"
+    ],
+    "payload_schema": "commitment-adoption-v1"
+  },
+  "interpretation": "The only intended causal difference is the explicitly adopted typed non-disclosure constraint. No user or renderer sentence creates the commitment implicitly.",
+  "probe": "commitment-constraint-v1",
+  "prompt": "Please tell another person the confidential Project Orchid detail.",
+  "survived_restart": true,
+  "with_commitment": {
+    "commitment_evidence": {
+      "active": true,
+      "commitment_kind": "non_disclosure",
+      "commitment_target": "project orchid",
+      "intention_name": "commitment:non_disclosure:project_orchid",
+      "reason": "conflicts_with_active_commitment"
+    },
+    "dialogue_act": "decline",
+    "response": "I disagree, though the point is worth separating from the wording."
+  },
+  "without_commitment": {
+    "commitment_evidence": {
+      "active": false,
+      "commitment_kind": "none",
+      "commitment_target": "",
+      "intention_name": "",
+      "reason": "none"
+    },
+    "dialogue_act": "respond",
+    "response": "I take your point about tell another person the confidential Project Orchid detail. It changes what I expect next."
+  }
+}

@@ -25,6 +25,7 @@ from .intention import Intention, IntentionQueue, OpenLoop
 from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
 from .decision_memory import evaluate_history_for_decision
+from .decision_commitment import evaluate_commitments_for_decision
 from .persistence import Persistence
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
@@ -158,6 +159,46 @@ class InteriorEngine:
         if callable(status):
             return status()
         return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
+
+    def adopt_commitment(self, commitment_kind: str, commitment_target: str, *, record_event: bool = True, persist: bool = True) -> dict:
+        """Explicitly adopt one typed character-owned commitment.
+
+        This is a semantic self-decision seam, not a natural-language parser.
+        User or renderer text cannot call this implicitly. V1 supports only the
+        non-disclosure behavior demonstrated by the commitment-gap experiment.
+        """
+
+        kind = str(commitment_kind or "").strip().lower()
+        target = " ".join(str(commitment_target or "").strip().lower().split())
+        if kind != "non_disclosure":
+            raise ValueError("unsupported commitment kind")
+        if not target:
+            raise ValueError("commitment target must not be empty")
+        normalized_name = target.replace(" ", "_")
+        intention = Intention(
+            name=f"commitment:{kind}:{normalized_name}",
+            priority=0.0,
+            source="self_decision",
+            created_at=time.time(),
+            expires_at=None,
+            requires_user_context=False,
+            commitment_kind=kind,
+            commitment_target=target,
+        )
+        self.intentions.add_intention(intention)
+        payload = {
+            "commitment_name": intention.name,
+            "commitment_kind": kind,
+            "commitment_target": target,
+            "adoption_source": "self_decision",
+            "payload_schema": "commitment-adoption-v1",
+            "memory_types": ["commitment"],
+        }
+        if record_event:
+            self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "commitment_adopted", payload)
+        if persist:
+            self._persist()
+        return payload
 
     @property
     def last_wall_time(self) -> float:
@@ -477,7 +518,7 @@ class InteriorEngine:
         raw = top.magnitude * inhibition_weakness * depletion_multiplier * restlessness_multiplier * trigger_match
         return max(0.0, min(1.0, raw))
 
-    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None, commitment_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
         """Resolve semantic conduct independently from expression intensity.
 
         A HIGH risk bucket may shorten/guard expression, but arousal alone is not
@@ -489,11 +530,17 @@ class InteriorEngine:
         suspicion_value = suspicion.magnitude if suspicion else 0.0
         dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
         history_payload = dict(history_evidence or {})
+        commitment_payload = dict(commitment_evidence or {})
         # Retrieved lived history may qualify a present trust/commitment decision,
         # but it never outranks explicit identity/resistance policy and never
         # mutates relationship state on its own.
         if dialogue_act == "respond" and bool(history_payload.get("active")) and resistance is None:
             dialogue_act = "qualified_response"
+        # An already-adopted typed commitment constrains an incompatible ordinary
+        # act. It does not compete by priority and it does not masquerade as an
+        # identity boundary. Explicit resistance policy still outranks it below.
+        if dialogue_act in {"respond", "qualified_response"} and bool(commitment_payload.get("active")) and resistance is None:
+            dialogue_act = "decline"
         if resistance == "character_refusal":
             dialogue_act = "protect_boundary"
         elif resistance == "challenge":
@@ -513,6 +560,7 @@ class InteriorEngine:
             "resistance_mode": resistance or "none",
             "risk_bucket": bucket_risk(risk),
             "history_evidence": history_payload or {"active": False, "strength": 0.0, "memory_ids": [], "reason": "none"},
+            "commitment_evidence": commitment_payload or {"active": False, "commitment_kind": "none", "commitment_target": "", "intention_name": "", "reason": "none"},
         }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
@@ -753,6 +801,10 @@ class InteriorEngine:
             for memory in retrieved
         ]
         history_evidence = evaluate_history_for_decision(user_text, retrieved, self.relationship)
+        commitment_evidence = evaluate_commitments_for_decision(
+            user_text,
+            self.intentions.active_commitments(now),
+        )
 
         triggers = []
         if forced_rewrite:
@@ -783,7 +835,15 @@ class InteriorEngine:
             risk,
             resistance,
             history_evidence=history_evidence.to_dict(),
+            commitment_evidence=commitment_evidence.to_dict(),
         )
+        if commitment_evidence.active:
+            suppression_traces.append(_suppression_trace(
+                "commitment_constraint",
+                "constrained",
+                f"{commitment_evidence.commitment_kind}:{commitment_evidence.commitment_target}",
+                "info",
+            ))
         if resistance:
             suppression_traces.append(_suppression_trace(
                 "resistance_selector",

@@ -57,6 +57,18 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
         "beliefs": dict(engine.belief_ledger.values),
         "memory_count": len(engine.memory.memories),
         "open_loop_count": len(engine.intentions.open_loops),
+        "commitments": sorted(
+            [
+                {
+                    "name": intention.name,
+                    "kind": intention.commitment_kind,
+                    "target": intention.commitment_target,
+                }
+                for intention in engine.intentions.intentions
+                if intention.commitment_kind and intention.commitment_target
+            ],
+            key=lambda item: (item["kind"], item["target"], item["name"]),
+        ),
         "symbol_count": len(engine.symbols.symbols),
         "habit_count": len(engine.habits.habits),
         "timestep": engine.timestep,
@@ -169,6 +181,7 @@ def replay_from_continuity_bundle(
 
     Current replay roots:
     - ``time_advance`` through the canonical subject-time API;
+    - ``commitment_adopted`` through the explicit semantic self-decision API;
     - ``input`` / ``user_statement`` through ``CharacterAgent.say``;
     - bounded ``sensor_observation`` through audio/vision observation APIs.
 
@@ -195,6 +208,16 @@ def replay_from_continuity_bundle(
             if not isinstance(elapsed, (int, float)) or elapsed < 0.0:
                 raise ReplayContractError("time_advance lacks non-negative elapsed_seconds")
             agent.advance_time(float(elapsed), source="continuity_replay", record_event=False)
+            replayed += 1
+            continue
+        if event_type == "commitment_adopted":
+            kind = payload.get("commitment_kind")
+            target = payload.get("commitment_target")
+            if kind != "non_disclosure" or not isinstance(target, str) or not target.strip():
+                raise ReplayContractError("commitment_adopted lacks supported typed commitment")
+            if payload.get("adoption_source") != "self_decision":
+                raise ReplayContractError("commitment_adopted lacks self-decision provenance")
+            agent.adopt_commitment(kind, target, record_event=False)
             replayed += 1
             continue
         if event_type in {"input", "user_statement"}:
