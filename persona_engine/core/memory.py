@@ -169,12 +169,17 @@ class MemoryStore:
         for mem in self.memories:
             sem = semantic_similarity(query, mem.content)
             score = activation(mem, now, sem, emotional_state_match)
-            scored.append((score, mem))
+            scored.append((score, sem, mem))
         scored.sort(key=lambda x: x[0], reverse=True)
-        top = [m for _, m in scored[:top_k]]
-        for m in top:
-            m.recall_times.append(now)
-        return top
+        top = [(sem, mem) for _, sem, mem in scored[:top_k]]
+        # Being ranked into the workspace is not itself evidence that a memory
+        # was meaningfully recalled. Zero-relevance candidates may remain useful
+        # as background context, but they must not gain rehearsal strength merely
+        # because they were resident and happened to occupy a top-k slot.
+        for sem, mem in top:
+            if sem > 0.0:
+                mem.recall_times.append(now)
+        return [mem for _, mem in top]
 
     def compress_old(self, now: float, age_threshold: float = 86400 * 30):
         for mem in self.memories:
