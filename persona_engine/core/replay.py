@@ -40,7 +40,12 @@ class ReplayResult:
 
 
 def state_digest(agent: CharacterAgent) -> dict[str, Any]:
-    """Return a compact deterministic semantic projection of runtime state."""
+    """Return a compact deterministic semantic projection of runtime state.
+
+    Only stable, behaviorally meaningful fields belong here. Volatile timestamps,
+    event UUIDs, renderer details, and host implementation details are excluded so
+    two causally equivalent replays can be compared directly.
+    """
 
     engine = agent.engine
     body = engine.body.to_dict()
@@ -60,16 +65,16 @@ def state_digest(agent: CharacterAgent) -> dict[str, Any]:
             "fatigue": round(float(body.get("fatigue", 0.0)), 6),
             "tension": round(float(body.get("tension", 0.0)), 6),
             "need_for_movement": round(float(body.get("need_for_movement", 0.0)), 6),
-            "recovery": body.get("recovery"),
+            "recovery_state": body.get("recovery_state"),
         },
         "world": {
             "time_of_day": world.get("time_of_day"),
-            "location": world.get("location"),
+            "zone": world.get("zone"),
             "user_presence": world.get("user_presence"),
             "noise_level": world.get("noise_level"),
             "light_level": world.get("light_level"),
         },
-        "sensorium_count": len(engine.sensorium.observations),
+        "sensorium_count": len(engine.sensorium.events),
     }
 
 
