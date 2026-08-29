@@ -56,6 +56,39 @@ def test_unrelated_current_request_does_not_activate_old_conflict():
         assert evidence.active is False
 
 
+def test_equal_strength_history_candidates_use_deterministic_tiebreaker():
+    with tempfile.TemporaryDirectory() as d:
+        agent = CharacterAgent(cartridge_path=str(CART), user_id="history", db_path=os.path.join(d, "state.db"))
+        agent.engine.relationship.unresolved_conflict = 0.5
+        older = MemoryUnit(
+            content="I heard you say: first unresolved accusation.",
+            created_at=100.0,
+            id="memory-a",
+            emotional_intensity=0.9,
+            relationship_relevance=0.9,
+            unresolved=True,
+            source=KnowledgeSource.USER_TOLD,
+        )
+        newer = MemoryUnit(
+            content="I heard you say: second unresolved accusation.",
+            created_at=200.0,
+            id="memory-b",
+            emotional_intensity=0.9,
+            relationship_relevance=0.9,
+            unresolved=True,
+            source=KnowledgeSource.USER_TOLD,
+        )
+
+        evidence = evaluate_history_for_decision(
+            "Can you trust me enough to work with me on this?",
+            [newer, older],
+            agent.engine.relationship,
+        )
+
+        assert evidence.active is True
+        assert evidence.memory_ids == ("memory-a", "memory-b")
+
+
 def test_retrieved_unresolved_history_changes_conduct_without_mutating_relationship_again():
     with tempfile.TemporaryDirectory() as d:
         with_history = CharacterAgent(cartridge_path=str(CART), user_id="same", db_path=os.path.join(d, "history.db"))
