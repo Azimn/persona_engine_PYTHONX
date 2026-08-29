@@ -1,7 +1,8 @@
 """Sensorium conversion layer.
 
-Sensorium events are the character's ongoing input stream. They are generated
-from world/body changes and remain separate from rendered dialogue.
+Sensorium events are changes the character can notice, not a sample of the same
+persistent condition on every simulation tick. This distinction matters because
+sensorium events can influence pressure and autobiographical memory.
 """
 
 from __future__ import annotations
@@ -24,7 +25,12 @@ class SensoriumEvent:
 
 
 class SensoriumProcessor:
-    """Converts world/body state changes into bounded organism facts."""
+    """Converts world/body changes into bounded organism facts.
+
+    Body-derived events are transition based. Remaining in the same strained or
+    high-load state is state, not a new experience. Re-entering that state after
+    recovery is a new event and can therefore influence pressure or memory again.
+    """
 
     def __init__(self):
         self.events: list[SensoriumEvent] = []
@@ -41,13 +47,20 @@ class SensoriumProcessor:
             made.append(item)
         return made
 
-    def derive_from_body(self, body_state, now: float) -> list[SensoriumEvent]:
+    def derive_from_body(self, body_state, now: float, previous_body_state: dict[str, Any] | None = None) -> list[SensoriumEvent]:
+        """Emit body events only when the meaningful threshold/state changes."""
+
+        previous = dict(previous_body_state or {})
+        previous_sensory = float(previous.get("sensory_load", 0.0) or 0.0)
+        previous_movement = float(previous.get("need_for_movement", 0.0) or 0.0)
+        previous_recovery = str(previous.get("recovery_state", "stable") or "stable")
+
         made: list[SensoriumEvent] = []
-        if body_state.sensory_load >= 0.70:
+        if body_state.sensory_load >= 0.70 and previous_sensory < 0.70:
             made.append(SensoriumEvent("sensory_load", "sensory load is high", body_state.sensory_load, now, True, "body"))
-        if body_state.need_for_movement >= 0.70:
+        if body_state.need_for_movement >= 0.70 and previous_movement < 0.70:
             made.append(SensoriumEvent("movement_need", "stillness is becoming uncomfortable", body_state.need_for_movement, now, True, "body"))
-        if body_state.recovery_state in {"strained", "depleted", "restless"}:
+        if body_state.recovery_state in {"strained", "depleted", "restless"} and body_state.recovery_state != previous_recovery:
             made.append(SensoriumEvent("body_state", f"body is {body_state.recovery_state}", max(body_state.tension, body_state.fatigue, body_state.need_for_movement), now, True, "body"))
         for item in made:
             self.add(item)
