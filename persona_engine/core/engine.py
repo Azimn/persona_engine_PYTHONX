@@ -423,6 +423,10 @@ class InteriorEngine:
         }
 
     def _persist(self):
+        # WorldAuthority is the current objective-state authority. Canonical
+        # continuity owns world history, so facts that can never again affect
+        # server or visible truth are compacted before snapshot persistence.
+        self.world_authority.compact_dominated()
         state = self._serialize_state()
         # Preserve the full legacy/interlocutor snapshot for compatibility, then
         # write only explicitly earned subject-owned families to UUID scope.

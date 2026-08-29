@@ -105,6 +105,60 @@ class WorldAuthority:
         for fact_id in expired:
             del self.facts[fact_id]
 
+    @staticmethod
+    def _potential_winner_ids(facts: list[WorldFact], now: float) -> set[str]:
+        """Return active facts that may still become latest-surviving truth.
+
+        Facts are evaluated in insertion order because that is the existing
+        WorldAuthority precedence contract. An older expiring fact matters only
+        when it can outlive every newer candidate. The first older non-expiring
+        fact is a permanent fallback and makes all still-older facts unreachable.
+        """
+
+        keep: set[str] = set()
+        max_newer_expiry = now
+        for fact in reversed(facts):
+            if fact.expires_at is not None and fact.expires_at <= now:
+                continue
+            if fact.expires_at is None:
+                keep.add(fact.id)
+                break
+            expiry = float(fact.expires_at)
+            if expiry > max_newer_expiry:
+                keep.add(fact.id)
+                max_newer_expiry = expiry
+        return keep
+
+    def compact_dominated(self, now: float | None = None) -> int:
+        """Discard active fact history that cannot affect present or future truth.
+
+        Server truth and character-visible truth are separate projections, so a
+        hidden newer fact cannot erase an older visible fallback. Expiring
+        overrides retain any older fact that can legitimately re-emerge later.
+        Canonical continuity, not this current-state authority, owns historical
+        event retention. Returns the number of facts removed.
+        """
+
+        now = time.time() if now is None else float(now)
+        self.expire_old(now=now)
+        by_key: dict[str, list[WorldFact]] = {}
+        for fact in self.facts.values():
+            by_key.setdefault(fact.key, []).append(fact)
+
+        keep: set[str] = set()
+        for facts in by_key.values():
+            keep.update(self._potential_winner_ids(facts, now))
+            visible_facts = [fact for fact in facts if fact.visible_to_character]
+            keep.update(self._potential_winner_ids(visible_facts, now))
+
+        before = len(self.facts)
+        self.facts = {
+            fact_id: fact
+            for fact_id, fact in self.facts.items()
+            if fact_id in keep
+        }
+        return before - len(self.facts)
+
     def apply_host_event(self, payload: dict[str, Any], source: str = "host", visible: bool = True) -> WorldResolution:
         facts: list[WorldFact] = []
         for key, value in (payload or {}).items():
@@ -156,5 +210,11 @@ class WorldAuthority:
         return {fact.key: fact.value for fact in self.facts.values() if fact.visible_to_character}
 
     def recent_facts(self, limit: int = 20) -> list[WorldFact]:
+        """Return recent active fact contenders, not an authoritative history.
+
+        ``compact_dominated`` may discard superseded facts that can never affect
+        truth again. Historical world events belong to canonical continuity.
+        """
+
         self.expire_old()
         return sorted(self.facts.values(), key=lambda f: f.created_at, reverse=True)[:limit]

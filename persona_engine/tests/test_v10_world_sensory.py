@@ -105,3 +105,68 @@ def test_mock_audio_and_microphone_adapter_contract():
         assert "No microphone backend" in str(exc)
     else:
         raise AssertionError("MicrophoneAdapter must not pretend to be configured")
+
+
+def test_world_authority_compaction_removes_permanently_dominated_facts():
+    authority = WorldAuthority()
+    authority.add_fact("zone", "A", source="test", created_at=100.0)
+    authority.add_fact("zone", "B", source="test", created_at=200.0)
+    authority.add_fact("zone", "C", source="test", created_at=300.0)
+
+    removed = authority.compact_dominated(now=1000.0)
+
+    assert removed == 2
+    assert len(authority.facts) == 1
+    assert next(iter(authority.facts.values())).value == "C"
+    assert [fact.value for fact in authority.recent_facts()] == ["C"]
+
+
+def test_world_authority_compaction_preserves_expiring_fallback():
+    authority = WorldAuthority()
+    authority.add_fact("weather", "clear", source="test", created_at=100.0)
+    authority.add_fact("weather", "storm", source="test", created_at=200.0, expires_at=1200.0)
+
+    assert authority.compact_dominated(now=1000.0) == 0
+    assert {fact.key: fact.value for fact in authority.facts.values()}["weather"] == "storm"
+
+    authority.expire_old(now=1300.0)
+    assert {fact.key: fact.value for fact in authority.facts.values()}["weather"] == "clear"
+
+
+def test_world_authority_compaction_preserves_visible_truth_under_hidden_override():
+    authority = WorldAuthority()
+    authority.add_fact("note", "visible_base", source="test", visible_to_character=True, created_at=100.0)
+    authority.add_fact("note", "hidden_override", source="test", visible_to_character=False, created_at=200.0)
+
+    assert authority.compact_dominated(now=1000.0) == 0
+    server = {fact.key: fact.value for fact in authority.facts.values()}
+    visible = {fact.key: fact.value for fact in authority.facts.values() if fact.visible_to_character}
+    assert server["note"] == "hidden_override"
+    assert visible["note"] == "visible_base"
+
+
+def test_engine_persistence_compacts_world_authority_and_preserves_canonical_inputs():
+    with tempfile.TemporaryDirectory() as d:
+        agent = _agent(d)
+        agent.say("First location update.", server_truth={"zone": "A"})
+        agent.say("Second location update.", server_truth={"zone": "B"})
+        active_zone = [fact for fact in agent.engine.world_authority.facts.values() if fact.key == "zone"]
+        assert len(active_zone) == 1
+        assert active_zone[0].value == "B"
+
+        events = agent.engine.persistence.load_subject_continuity_events(
+            agent.engine.identity.name,
+            agent.engine.user_id,
+            event_type="input",
+        )
+        zone_values = [
+            (event.get("payload") or {}).get("server_truth", {}).get("zone")
+            for event in events
+        ]
+        assert "A" in zone_values
+        assert "B" in zone_values
+
+        restarted = _agent(d)
+        restarted_zone = [fact for fact in restarted.engine.world_authority.facts.values() if fact.key == "zone"]
+        assert len(restarted_zone) == 1
+        assert restarted_zone[0].value == "B"
