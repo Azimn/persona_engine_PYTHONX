@@ -18,18 +18,18 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current runtime/evidence head before this documentation update:
 
 ```text
-bbe03c427c86019786a4b28a0cdcbf283a196c45
-Keep one subject on one timeline across interlocutors
+1f0f135
+Make demonstrated character state explicitly subject-owned
 ```
 
 The latest phase-sized Python 3.11 integration run completed with:
 
 ```text
-Focused clock/continuity tests: 14 passed
-Full suite: 281 passed, 1 skipped, 1 warning
+Focused state-ownership tests: 18 passed
+Full suite: 285 passed, 1 skipped, 1 warning
 ```
 
-The immediately preceding subject-ordering state was also verified by normal Wayfarer CI on both Python 3.11 and 3.12. This documentation commit is intended to trigger normal two-version CI against the committed subject-clock repair. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+The committed subject-clock repair immediately preceding this state was verified by normal Wayfarer CI on both Python 3.11 and 3.12. This documentation commit is intended to exercise the same two-version CI path against the new explicit subject-state scope. The remaining known warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
 ## Baseline history
 
@@ -79,7 +79,7 @@ The old `event_log` remains a broad diagnostic journal. `continuity_event` store
 
 Supported roots include user input, bounded audio/vision observations, M4 `time_advance`, and explicit self-adopted `commitment_adopted` events. Unsupported host-level roots are reported rather than silently claimed as complete.
 
-The original M3 `sequence` remains a per-interlocutor stream ordinal because existing replay/export/checkpoint/integrity behavior depends on that contract. A later controlled Alice/Bob/Alice probe showed that one `subject_uuid` could therefore contain canonical input stream sequences `1, 1, 4`, leaving the subject's total biography without one explicit order.
+The original M3 `sequence` remains a per-interlocutor stream ordinal because existing replay/export/checkpoint/integrity behavior depends on that contract. A controlled Alice/Bob/Alice probe showed that one `subject_uuid` could therefore contain canonical input stream sequences `1, 1, 4`, leaving the total biography without one explicit order.
 
 Wayfarer did not replace or reinterpret the mature v1 stream field. It added one storage-level `subject_sequence` ordinal across `(subject_uuid, continuity_epoch)`. Existing databases deterministically backfill this value by recorded wall time and insertion order. Subject-wide readers use `subject_sequence`; v1 export deliberately omits it so the established interchange shape remains unchanged until a subject-wide portability experiment earns a versioned external representation.
 
@@ -97,11 +97,9 @@ Wayfarer distinguishes authoritative subject elapsed time from legacy dynamics i
 
 Legacy dynamics retain a clearly labeled `legacy_bounded_v1` compatibility integration budget of 1,000 seconds per catch-up. Real elapsed time is not truncated; only unvalidated legacy dynamics are capped. Automatic wall gaps below the existing five-second dynamics quantum update the clock but do not create standalone canonical stopwatch events.
 
-A cross-interlocutor ownership probe exposed a separate persistence defect. Alice advanced the same subject by exactly `28,800` seconds. Alice restart read `28,800` and canonical subject history read `28,800`, but Bob opened the same `entity_uuid` from the same database and read `0`. The clock arithmetic was correct; the snapshot was simply partitioned by `user_id`.
+The pre-fix cross-interlocutor probe showed Alice at `28,800` seconds, Alice restart at `28,800`, canonical subject history at `28,800`, and Bob on the same subject UUID at `0`. This isolated an ownership defect rather than a clock defect. Startup reconciliation from canonical subject `time_advance` history fixed the behavior without changing clock arithmetic.
 
-The minimum repair keeps existing per-interlocutor snapshots intact and adds startup reconciliation from canonical subject `time_advance` history. If canonical subject elapsed time is ahead of the local snapshot, the local `ContinuityClock` moves upward to that subject time. It never moves backward and it infers no psychology from duration.
-
-The fixed `subject-clock-ownership-v1` probe now reports Alice `28,800`, Alice restart `28,800`, Bob `28,800`, same subject UUID, and `subject_clock_is_shared_across_interlocutors`.
+The newer explicit subject-state scope now also stores `continuity_clock` directly by permanent subject UUID while retaining canonical-time reconciliation as an authority/integrity backstop. The fixed probe reports Alice `28,800`, Alice restart `28,800`, Bob `28,800`, same subject UUID, and `subject_clock_is_shared_across_interlocutors`.
 
 M4 still deliberately does **not** infer loneliness, attachment change, relationship cooling, sleep, routines, or off-screen narrative from elapsed duration. Those effects require separate longitudinal evidence.
 
@@ -127,19 +125,34 @@ Wayfarer therefore did **not** add a `CommitmentLedger`. `Intention` gained opti
 
 The fixed commitment probe shows explicit self-adoption, restart survival, `decline` with the commitment and `respond` without it. No beneficiary model, fulfillment/breach state, promise-language parser, reciprocity model, or general commitment ontology has been added.
 
-## Subject ownership across interlocutors
+## Explicit state ownership
 
-A continuing individual now demonstrates three distinct subject-level continuity properties while preserving actor-specific relationship state.
+Three independent cross-interlocutor experiments exposed the same persistence-modeling error. A self-adopted commitment disappeared when the active interlocutor changed. Subject elapsed time forked to zero for a new interlocutor. An evidence-backed earned trait survived Alice restart but disappeared for Bob despite both contexts resolving to the same permanent subject UUID.
 
-`entity_uuid` remains the same across Alice and Bob. Relationship trust/familiarity remain actor-specific. A self-adopted commitment made while Alice is present is restored from subject canonical history when Bob becomes active. Canonical events have one global `subject_sequence` while retaining their old per-interlocutor stream sequence. `ContinuityClock` reconciles to the latest canonical subject time rather than forking the individual's timeline when the interlocutor changes.
+The third failure earned a generalization. Adding another `_restore_subject_owned_*()` method would have been more complicated than fixing the abstraction.
 
-These repairs do not create a multi-agent cognition layer. They establish ownership boundaries. The important distinction is becoming: some state belongs to the continuing subject, some belongs to a particular relationship, and the existence of a `user_id` must not silently decide which is which.
+Persistence now has a generic `subject_state` snapshot table keyed by permanent `subject_uuid`, with small `save_subject`, `load_subject`, and `save_subject_many` operations. This table is explicitly a current-state snapshot/cache, not canonical event authority. The engine owns the semantic scope through `SUBJECT_OWNED_SNAPSHOT_KEYS`.
+
+That whitelist currently contains exactly:
+
+```text
+continuity_clock
+earned_traits
+```
+
+No other snapshot family was promoted. The legacy per-interlocutor snapshot is still written for compatibility. Subject-owned keys are additionally written to UUID scope. On load, those two families prefer subject state and fall back to the active legacy stream when no subject snapshot exists. Clock state is still reconciled upward against canonical `time_advance` history.
+
+The fixed earned-trait probe now shows `deliberate_caution(0.05)` with identical evidence provenance for Alice, Alice after restart, and Bob on the same subject. The ownership regression also sets Alice trust to `0.81` and verifies Bob does **not** inherit that relationship value. This is the intended asymmetry: development belongs to the individual; trust belongs to the relationship.
+
+The explicit subject-state integration reached `18` focused tests and `285 passed, 1 skipped, 1 warning` overall on Python 3.11.
+
+Commitments remain canonical-history-owned rather than being duplicated into `subject_state`. Relationship state remains keyed by interlocutor. Memories, pressures, body, world, symbols, beliefs, habits, interface state, and other mixed/ambiguous families remain unchanged until separate evidence establishes their correct ownership.
 
 ## Current MVI interpretation
 
 The present Study-A baseline does **not** justify deleting interpretation, symbols, habits, or body dynamics. It says only that the current fixed scenario does not expose a conduct contribution from them. Those mechanisms remain provisional until targeted longitudinal scenarios or human-visible evidence show their value.
 
-Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Subject biography order and subject time each gained only the smallest ownership primitive required by controlled cross-interlocutor failures.
+Memory has one bounded conduct path because a concrete failure demonstrated the need. Commitment has one bounded conduct path because a separate concrete failure demonstrated the need. Subject biography order and subject time each gained only the smallest ownership primitive required by controlled cross-interlocutor failures. Repeated ownership failures then earned one small reusable state-scope abstraction.
 
 This is intentional. Perceived behavioral complexity should emerge from intersections among a small number of independent causal facts rather than from duplicated planners or decorative state.
 
@@ -149,12 +162,13 @@ Do not encode decorative decimals. Plasticity starts with minimal shared profile
 
 ## Immediate next actions
 
-1. Let this documentation commit verify the committed subject-clock repair under normal Python 3.11 and 3.12 Wayfarer CI.
-2. Probe one additional unambiguously character-owned developmental state, preferably an earned trait, across an Alice/Bob interlocutor switch.
-3. If that state is also partitioned by `user_id`, treat the repeated ownership failures as evidence for one small explicit persistence ownership rule rather than adding another one-off restoration method.
-4. Keep relationship state actor-specific and do not globalize mixed or ambiguous families such as memories, pressures, symbols, world state, or body state without separate evidence.
-5. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
-6. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
+1. Let this documentation commit verify the committed explicit subject-state scope under normal Python 3.11 and 3.12 Wayfarer CI.
+2. Build one integrated cross-interlocutor MVI that combines existing subject-global and relationship-local facts without adding another planner: shared identity, subject sequence, elapsed time, earned development and commitment, with actor-specific relationship history.
+3. Use that combined probe to test whether a small number of orthogonal state rules already produce differentiated, history-sensitive conduct across Alice/Bob/Alice context switches.
+4. Add nothing if the combined behavior already holds. If it fails, isolate the first causal boundary that breaks rather than expanding all ambiguous state families at once.
+5. Keep memories, pressures, symbols, world state, body state, beliefs and habits at their current scope until a dedicated longitudinal test establishes otherwise.
+6. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
+7. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
 
 ## Contributor rule
 
