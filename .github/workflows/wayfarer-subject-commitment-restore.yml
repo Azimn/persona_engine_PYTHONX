@@ -1,0 +1,52 @@
+name: Wayfarer subject-owned commitment restoration
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Apply subject-owned commitment restoration
+        run: python tools/apply_subject_commitment_restore.py
+      - name: Run focused ownership and commitment tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_interlocutor_subject_state.py \
+            persona_engine/tests/test_commitment_constraint.py \
+            persona_engine/tests/test_history_decision_evidence.py \
+            persona_engine/tests/test_continuity_replay.py -q
+      - name: Regenerate interlocutor continuity evidence
+        run: |
+          python tools/interlocutor_continuity_probe.py \
+            --json persona_engine/evidence/mvi/interlocutor_continuity_gap.json \
+            --markdown persona_engine/evidence/mvi/INTERLOCUTOR_CONTINUITY_GAP.md
+      - name: Run full deterministic suite
+        run: python -m pytest persona_engine/tests -q
+      - name: Commit integrated repair and evidence
+        run: |
+          rm -f tools/apply_subject_commitment_restore.py .github/workflows/wayfarer-subject-commitment-restore.yml
+          git config user.name 'Wayfarer Subject Ownership Integration'
+          git config user.email 'wayfarer-subject@users.noreply.github.com'
+          git add -A
+          git commit -m 'Restore subject-owned commitments across interlocutors'
+          git push origin HEAD:wayfarer
