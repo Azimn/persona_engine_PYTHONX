@@ -1,0 +1,58 @@
+name: Wayfarer memory recoverability audit
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Verify current experience guards
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_memory_experience_guards.py \
+            persona_engine/tests/test_cold_biography.py \
+            persona_engine/tests/test_history_decision_evidence.py -q
+      - name: Run recoverability audit
+        run: |
+          python tools/memory_recoverability_audit.py \
+            --json persona_engine/evidence/mvi/memory_recoverability_audit.json \
+            --markdown persona_engine/evidence/mvi/MEMORY_RECOVERABILITY_AUDIT.md
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('persona_engine/evidence/mvi/memory_recoverability_audit.json').read_text())
+          assert result['blanket_eviction_is_safe'] is False
+          assert result['user_statement_content_recoverable_but_causal_metadata_not_recoverable'] is True
+          assert 'reflection' in result['unsafe_to_blanket_evict_active_sources']
+          assert 'observed' in result['unsafe_to_blanket_evict_active_sources']
+          assert not result['unknown_active_sources']
+          PY
+      - name: Commit audit evidence and remove one-time workflow
+        run: |
+          rm -f .github/workflows/wayfarer-memory-recoverability.yml
+          git config user.name 'Wayfarer Memory Recoverability Audit'
+          git config user.email 'wayfarer-memory-recoverability@users.noreply.github.com'
+          git add -A
+          git commit -m 'Audit autobiographical memory recoverability'
+          git push origin HEAD:wayfarer
