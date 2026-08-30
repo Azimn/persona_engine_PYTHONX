@@ -14,9 +14,11 @@ When working on the `wayfarer` branch, read these files before making changes, i
 6. `persona_engine/docs/ARCHITECTURE_LOCK.md`
 7. `persona_engine/docs/WAYFARER_BASELINE.md`
 8. `persona_engine/docs/CURRENT_STATUS.md`
-9. Relevant tests for the subsystem being modified
+9. Relevant tests and evidence for the subsystem being modified
 
 `WAYFARER_MASTER_PLAN.md` is the detailed roadmap. `WAYFARER_PROGRESS.md` is the short-form live operational record and must be updated after substantive work. Important implementation status, test results, architectural decisions, blockers, and next actions must be written back to repository documentation. Do not leave required project memory only in a chat, coding-agent session, commit message, or hidden reasoning trace.
+
+At the end of a substantive Wayfarer phase, synchronize this `AGENTS.md` status/verification section whenever a new agent could otherwise anchor on obsolete test counts, completed gaps, experimental numbers, or superseded next actions.
 
 For non-Wayfarer work, also read:
 
@@ -58,7 +60,7 @@ Do not add a subsystem merely because another agent framework has one or because
 - Voice and avatar layers perform state only.
 - Memory creation must pass through canonicality/firewall rules.
 - Interpretive beliefs are subjective, noncanonical, and support-traced.
-- Dream/reflection may consolidate patterns only through evidence-backed rules.
+- Slow `BeliefLedger` development is evidence-gated and path-dependent. Rule-relevant consolidation boundaries are causal history, including demonstrated no-change threshold passes.
 - Natural-language social input is evidence/experience, not a direct authority token.
 - A peer message, consensus claim, or model suggestion may not directly become an executable goal.
 - Character willingness and host capability/permission are separate gates.
@@ -81,6 +83,36 @@ Behavior-changing work must preserve the causal chain linking:
 Not every stage must mutate state. A valid result may be restraint, uncertainty, failed action, no disclosure, or null consolidation. The requirement is that consequences are represented honestly and remain available to condition later experience.
 
 Memory retrieval alone does not establish continuity. Prior events must be capable of altering later appraisal, interpretation, intention, expression, inhibition, expectation, relationship position, or governed consolidation.
+
+## Current live semantic status
+
+### Developmental continuity
+
+The former slow-`BeliefLedger` replay gap is **closed for the current demonstrated belief-rule contract**.
+
+Production commit `268739c` introduced the compact canonical `belief_consolidation` root. Every executed pass that consumes evidence relevant to the active belief rules is causal history, including a threshold miss that changes no belief value. Empty passes with no rule-relevant evidence remain noncanonical housekeeping.
+
+Replay regenerates evidence from preceding causal roots, verifies the active rule digest and pre-belief digest, executes consolidation at the recorded boundary without creating a duplicate root, then verifies changed belief IDs and the post-belief digest. A rule mismatch requires explicit migration rather than silently rebuilding the subject under different developmental rules.
+
+Do not reopen this gap merely because older progress notes describe it as pending. See `persona_engine/evidence/mvi/DEVELOPMENTAL_CONTINUITY.md` and `DEVELOPMENTAL_CONTINUITY_FIXED.md` before modifying this contract.
+
+### Hot-memory policy
+
+The **global hot-memory admission/eviction policy remains experimental**. Do not infer or productionize a universal resident-memory limit from any one probe.
+
+Current production has only a narrow recoverability-backed `USER_TOLD` working-set compactor. It preserves the widths required by demonstrated consumers while canonically recoverable old autobiography can be read transiently from cold biography. Non-`USER_TOLD` memory families remain pinned until a reconstruction contract is demonstrated. Contextual cold-biography candidates are retrieval evidence for the current turn and are not automatically promoted back into hot state.
+
+The 2026-08-30 refresh changed the interpretation of older evidence. In the current causal-pressure fixture, the no-extra-projection production path carried 7 resident memories and passed the demonstrated causal/contextual roles. The old historical 24-item unconstrained-interference result is therefore not a measurement of current production behavior.
+
+Experimental projections remain deliberately non-normative and disagree by procedure: the refreshed role/pressure study can preserve its demonstrated roles with a 2-item projection, while the continuous-budget experiment passes 1, 2, and 4 but fails its tested 8-budget condition. This is evidence to design around **semantic consumer role and recoverability**, not to choose a global integer `N`.
+
+See `HOT_MEMORY_CAUSAL_PRESSURE.md`, `MEMORY_CONSUMER_ROLE.md`, `CONTINUOUS_HOT_MEMORY.md`, and `DEVELOPMENTAL_PERSISTENCE_COST.md` before changing admission or eviction behavior.
+
+### Intentionally deferred work
+
+Cross-host single-writer handoff/lease/branch semantics and full typed social-influence authority are intentionally deferred. They are not missing by oversight. Do not pull them into a memory or developmental-continuity task merely because they appear later in the roadmap.
+
+Divergent lived histories remain branches/descendants. Silent merge is prohibited until explicit merge semantics are designed and approved.
 
 ## Hard Boundaries
 
@@ -108,6 +140,8 @@ Do not add cryptographic machinery merely because an ordinary append-only local 
 
 Do not proliferate per-trait plasticity constants without an experimental validation plan. Numerical parameters must produce identifiable observable effects, survive sensitivity/holdout testing, and be versioned with their evidence.
 
+Do not impose a global hot-memory count from a single 1/2/4/8 or similar probe. A production admission/eviction rule must be justified by demonstrated consumer roles, recoverability, multiple histories/distractor structures, repair state, restart behavior, and the relevant ablations.
+
 ## Where Things Belong
 
 - Authored character identity, temperament, values, voice constraints, phenotype, world/body profile, interpretation bias, belief schema, lore, plasticity profiles, and initial dispositions: `.snp` portable character source.
@@ -123,15 +157,18 @@ Do not proliferate per-trait plasticity constants without an experimental valida
 ## Safe Work Pattern
 
 1. Inspect the relevant files before editing.
-2. Check the current Wayfarer milestone and `WAYFARER_PROGRESS.md` immediate next action.
+2. Check the current Wayfarer milestone, `WAYFARER_PROGRESS.md`, and current evidence before assuming an older stated gap still exists.
 3. Keep changes narrowly scoped to the active task.
 4. Search callers before altering public interfaces.
 5. Preserve package installability and command-line entry points.
 6. Add or update tests when behavior or contracts change.
-7. For continuity changes, test that an earlier interpretation or action changes a later subject state.
+7. For continuity changes, test that an earlier interpretation or action changes a later subject state and survives the relevant restart/export/replay boundary.
 8. Run the most relevant tests before finishing.
 9. Update `WAYFARER_PROGRESS.md` and the master plan/status documentation as appropriate.
-10. Clearly report commands run, results, files changed, migrations, and unresolved risks.
+10. Synchronize this `AGENTS.md` current-status/verification block when substantive work changes what a fresh agent should assume.
+11. Clearly report commands run, results, files changed, migrations, and unresolved risks.
+
+Prefer one tested phase commit for implementation/evidence/documentation when practical. If GitHub Actions must be used as a write/test bridge, avoid long `Stage` / `Trigger` / `Retrigger` commit chains. Prefer a one-shot self-triggering temporary workflow or another mechanism that leaves one meaningful phase commit after cleanup. Failed tooling attempts are not architecture and should not become the main project narrative.
 
 For documentation-only changes, do not modify runtime code solely to satisfy style preferences.
 
@@ -155,15 +192,31 @@ The expected full test command is:
 python -m pytest persona_engine/tests -q
 ```
 
-The original pre-Wayfarer baseline and its known failures are recorded in `persona_engine/docs/WAYFARER_BASELINE.md`.
+The original pre-Wayfarer baseline and its known failures are recorded in `persona_engine/docs/WAYFARER_BASELINE.md`. Do not replace that frozen baseline with later green results.
 
-Latest completed green Wayfarer CI before this instruction update:
+Current phase/evidence head before this instruction sync:
 
-- Run: `33111704143`
-- Commit: `fcaf4fd9af2f5c8e6e32b7ab5225ce133cb6c67e`
-- Python 3.11: `194 passed, 1 skipped, 1 warning in 3.46s`
-- Python 3.12: successful
+- Phase commit: `01b0a9524db37b98c4debc101f63b490a77fa9ed` (`Refresh hot-memory and developmental persistence evidence`)
+- Phase integration run: `33337114891`
+- Python 3.11 integration suite: `330 passed, 1 skipped, 1 warning in 43.39s`
+- The warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-Check GitHub Actions for any newer head before quoting a newer result.
+Latest completed normal two-version Wayfarer CI before this instruction sync:
 
-Do not replace the frozen pre-Wayfarer baseline with later green results. Keep both the original baseline evidence and the current branch status.
+- Run: `33337114880`
+- Tested commit: `3c1232fc721fadcdaafebfb2f9d8c61fba96018e`
+- Python 3.11.16: `330 passed, 1 skipped, 1 warning in 35.49s`
+- Python 3.12.14: `330 passed, 1 skipped, 1 warning in 27.93s`
+
+The phase commit differs from that CI-tested staging commit by the generated evidence/tool/docs and cleanup of the temporary evidence workflow; the phase integration itself ran the full Python 3.11 suite successfully before committing those results. Check GitHub Actions for any newer branch head before quoting a newer result.
+
+## Current evidence checkpoint
+
+- Slow-belief developmental replay: closed for the demonstrated current rule contract.
+- Hot-memory global capacity: experimental; no universal `N` approved.
+- Current pressure-fixture production resident count: 7, scenario-specific and not a limit.
+- Developmental storage probe: 20 `belief_consolidation` roots added 9,254 canonical payload bytes while consuming 7,508 stale consolidation-evidence rows; the developmental database was 761,856 B smaller than the same 1,000 inputs without executed consolidation.
+- Cross-host handoff/branching: intentionally deferred.
+- Full typed social-influence authority: intentionally deferred.
+
+Do not anchor on older test totals, old unresolved-gap language, or historical experimental memory counts when newer code/evidence exists.
