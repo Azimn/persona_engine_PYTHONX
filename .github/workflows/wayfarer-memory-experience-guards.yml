@@ -1,0 +1,69 @@
+name: Wayfarer memory experience guards
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Apply exact experience-guard patch
+        run: python tools/_integrate_memory_experience_guards.py
+      - name: Run focused memory experience tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_memory_experience_guards.py \
+            persona_engine/tests/test_history_decision_evidence.py \
+            persona_engine/tests/test_cold_biography.py \
+            persona_engine/tests/test_offline_template_renderer.py -q
+      - name: Re-run role probe against corrected behavior
+        run: |
+          python tools/memory_consumer_role_probe.py \
+            --json persona_engine/evidence/mvi/memory_consumer_role.json \
+            --markdown persona_engine/evidence/mvi/MEMORY_CONSUMER_ROLE.md
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('persona_engine/evidence/mvi/memory_consumer_role.json').read_text())
+          assert result['post_repair_reflection_bug_detected'] is False
+          assert result['visible_mundane_continuity_missing_in_all_variants'] is False
+          candidate = next(row for row in result['variants'] if row['name'] == 'causal2_recent1')
+          assert candidate['reflection_earned'] is True
+          assert candidate['trust_act'] == 'qualified_response'
+          assert candidate['workshop_trace_hit'] is True
+          assert candidate['workshop_visible_hit'] is True
+          assert candidate['lighthouse_visible_hit'] is True
+          assert candidate['disclosure_act'] == 'decline'
+          assert candidate['identity_act'] == 'protect_boundary'
+          PY
+      - name: Run full deterministic suite
+        run: python -m pytest -q
+      - name: Commit integrated experience guards
+        run: |
+          rm -f tools/_integrate_memory_experience_guards.py
+          rm -f .github/workflows/wayfarer-memory-experience-guards.yml
+          git config user.name 'Wayfarer Memory Experience Guards'
+          git config user.email 'wayfarer-memory-experience@users.noreply.github.com'
+          git add -A
+          git commit -m 'Guard repair semantics and visible memory continuity'
+          git push origin HEAD:wayfarer
