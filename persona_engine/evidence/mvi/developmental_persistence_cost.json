@@ -1,0 +1,63 @@
+{
+  "control": {
+    "belief_consolidation_payload_bytes": 0,
+    "belief_consolidation_roots": 0,
+    "changed_passes": 0,
+    "consolidation_evidence_bytes": 132184,
+    "consolidation_evidence_rows": 8020,
+    "consolidation_interval": 50,
+    "continuity_by_type": {
+      "input": {
+        "payload_bytes": 75106,
+        "rows": 1000
+      }
+    },
+    "continuity_payload_bytes": 75106,
+    "continuity_rows": 1000,
+    "developmental": false,
+    "executed_passes": 0,
+    "file_bytes": 2330624,
+    "live_trust_user": 0.0,
+    "restart_preserved": true,
+    "restart_trust_user": 0.0,
+    "turns": 1000
+  },
+  "delta": {
+    "average_consolidation_root_payload_bytes": 462.7,
+    "consolidation_evidence_bytes": -123704,
+    "consolidation_evidence_rows": -7508,
+    "continuity_payload_bytes": 9254,
+    "continuity_rows": 20,
+    "file_bytes": -761856
+  },
+  "developmental": {
+    "belief_consolidation_payload_bytes": 9254,
+    "belief_consolidation_roots": 20,
+    "changed_passes": 5,
+    "consolidation_evidence_bytes": 8480,
+    "consolidation_evidence_rows": 512,
+    "consolidation_interval": 50,
+    "continuity_by_type": {
+      "belief_consolidation": {
+        "payload_bytes": 9254,
+        "rows": 20
+      },
+      "input": {
+        "payload_bytes": 75106,
+        "rows": 1000
+      }
+    },
+    "continuity_payload_bytes": 84360,
+    "continuity_rows": 1020,
+    "developmental": true,
+    "executed_passes": 20,
+    "file_bytes": 1568768,
+    "live_trust_user": -1.0,
+    "restart_preserved": true,
+    "restart_trust_user": -1.0,
+    "turns": 1000
+  },
+  "interpretation": "The same input history is measured with and without executed developmental boundaries. The result is a storage-cost observation only; it does not validate belief thresholds or deltas.",
+  "probe": "developmental-persistence-cost-v1",
+  "production_policy_changed": false
+}

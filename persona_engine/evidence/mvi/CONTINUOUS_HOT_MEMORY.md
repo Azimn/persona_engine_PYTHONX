@@ -7,7 +7,7 @@ Probe: `continuous-hot-memory-v1`
 | 1 | True | 1 | qualified_response | True | decline | protect_boundary |
 | 2 | True | 2 | qualified_response | True | decline | protect_boundary |
 | 4 | True | 4 | qualified_response | True | decline | protect_boundary |
-| 8 | True | 8 | qualified_response | True | decline | protect_boundary |
+| 8 | False | 6 | respond | True | decline | protect_boundary |
 
 Smallest passing experimental budget: `1`.
 

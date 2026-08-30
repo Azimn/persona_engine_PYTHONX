@@ -1,5 +1,5 @@
 {
-  "all_variants_passed": true,
+  "all_variants_passed": false,
   "budgets": [
     1,
     2,
@@ -24,22 +24,22 @@
           "hot_memories": 1,
           "memory_bytes": 332,
           "routine_turns": 10,
-          "serialized_state_bytes": 8511,
-          "world_authority_bytes": 3234
+          "serialized_state_bytes": 5578,
+          "world_authority_bytes": 269
         },
         {
           "hot_memories": 1,
           "memory_bytes": 332,
           "routine_turns": 50,
-          "serialized_state_bytes": 23287,
-          "world_authority_bytes": 14025
+          "serialized_state_bytes": 9557,
+          "world_authority_bytes": 271
         },
         {
           "hot_memories": 1,
           "memory_bytes": 332,
           "routine_turns": 100,
-          "serialized_state_bytes": 36761,
-          "world_authority_bytes": 27514
+          "serialized_state_bytes": 9551,
+          "world_authority_bytes": 271
         }
       ],
       "target_canonical": true,
@@ -62,22 +62,22 @@
           "hot_memories": 2,
           "memory_bytes": 693,
           "routine_turns": 10,
-          "serialized_state_bytes": 8869,
-          "world_authority_bytes": 3235
+          "serialized_state_bytes": 5939,
+          "world_authority_bytes": 269
         },
         {
           "hot_memories": 2,
           "memory_bytes": 695,
           "routine_turns": 50,
-          "serialized_state_bytes": 23648,
-          "world_authority_bytes": 14025
+          "serialized_state_bytes": 9926,
+          "world_authority_bytes": 271
         },
         {
           "hot_memories": 2,
           "memory_bytes": 695,
           "routine_turns": 100,
-          "serialized_state_bytes": 37117,
-          "world_authority_bytes": 27510
+          "serialized_state_bytes": 9910,
+          "world_authority_bytes": 271
         }
       ],
       "target_canonical": true,
@@ -98,24 +98,24 @@
       "snapshots": [
         {
           "hot_memories": 4,
-          "memory_bytes": 1465,
+          "memory_bytes": 1470,
           "routine_turns": 10,
-          "serialized_state_bytes": 9632,
-          "world_authority_bytes": 3237
+          "serialized_state_bytes": 6716,
+          "world_authority_bytes": 269
         },
         {
           "hot_memories": 4,
           "memory_bytes": 1475,
           "routine_turns": 50,
-          "serialized_state_bytes": 24425,
-          "world_authority_bytes": 14027
+          "serialized_state_bytes": 10707,
+          "world_authority_bytes": 271
         },
         {
           "hot_memories": 4,
-          "memory_bytes": 1475,
+          "memory_bytes": 1476,
           "routine_turns": 100,
-          "serialized_state_bytes": 37903,
-          "world_authority_bytes": 27512
+          "serialized_state_bytes": 10695,
+          "world_authority_bytes": 271
         }
       ],
       "target_canonical": true,
@@ -127,40 +127,40 @@
     {
       "budget": 8,
       "disclosure_dialogue_act": "decline",
-      "hot_memories_after_restart": 8,
+      "hot_memories_after_restart": 6,
       "identity_dialogue_act": "protect_boundary",
-      "max_hot_memories_after_each_compaction": 8,
-      "passed": true,
+      "max_hot_memories_after_each_compaction": 6,
+      "passed": false,
       "recall_cold_target_hit": true,
       "recall_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
       "snapshots": [
         {
-          "hot_memories": 8,
-          "memory_bytes": 2999,
+          "hot_memories": 5,
+          "memory_bytes": 1882,
           "routine_turns": 10,
-          "serialized_state_bytes": 11175,
-          "world_authority_bytes": 3237
+          "serialized_state_bytes": 7128,
+          "world_authority_bytes": 268
         },
         {
-          "hot_memories": 8,
-          "memory_bytes": 3136,
+          "hot_memories": 6,
+          "memory_bytes": 2224,
           "routine_turns": 50,
-          "serialized_state_bytes": 26092,
-          "world_authority_bytes": 14029
+          "serialized_state_bytes": 11455,
+          "world_authority_bytes": 271
         },
         {
-          "hot_memories": 8,
-          "memory_bytes": 3077,
+          "hot_memories": 6,
+          "memory_bytes": 2227,
           "routine_turns": 100,
-          "serialized_state_bytes": 39496,
-          "world_authority_bytes": 27511
+          "serialized_state_bytes": 11439,
+          "world_authority_bytes": 271
         }
       ],
       "target_canonical": true,
       "target_hot_after_restart": false,
       "target_hot_before_restart": false,
-      "trust_dialogue_act": "qualified_response",
-      "trust_history_active": true
+      "trust_dialogue_act": "respond",
+      "trust_history_active": false
     }
   ]
 }
