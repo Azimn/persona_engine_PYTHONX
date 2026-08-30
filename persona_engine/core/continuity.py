@@ -19,6 +19,20 @@ CONTINUITY_SCHEMA_VERSION = "1.0"
 STATE_DIGEST_SCHEMA_VERSION = "1.0"
 SUBJECT_TIME_SEMANTICS = "engine_timestep"
 
+# New runtime writes retain causal roots only. Historical v1 ledgers may still
+# contain derived canonical verification records; canonical_continuity_eligible
+# remains the compatibility validator for those older streams.
+CANONICAL_CONTINUITY_ROOT_EVENT_TYPES = frozenset({
+    "input",
+    "user_statement",
+    "time_advance",
+    "commitment_adopted",
+    "sensor_observation",
+    "world_fact",
+    "manual_authorized_fact",
+    "world_action_resolution",
+})
+
 
 @dataclass(frozen=True)
 class ContinuityAuthority:
@@ -144,6 +158,18 @@ def canonical_continuity_eligible(event_type: str, payload: dict[str, Any] | Non
         # converted host observation into safe observation/fact structures.
         return isinstance(payload.get("observation"), dict) and payload.get("sensor_type") in {"audio", "vision"}
     return can_promote_to_canonical_memory(event_type, payload)
+
+
+def canonical_continuity_root_eligible(event_type: str, payload: dict[str, Any] | None = None) -> bool:
+    """Return whether a new runtime event belongs in durable causal history.
+
+    This is intentionally narrower than ``canonical_continuity_eligible``. The
+    latter accepts historical v1 derived records for migration/replay. This
+    predicate governs new writes and fails closed for unknown event families.
+    """
+
+    event_type = str(event_type)
+    return event_type in CANONICAL_CONTINUITY_ROOT_EVENT_TYPES and canonical_continuity_eligible(event_type, payload)
 
 
 def canonical_json(value: Any) -> str:

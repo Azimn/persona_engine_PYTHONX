@@ -27,8 +27,8 @@ def test_only_canonical_authority_eligible_events_enter_continuity():
         p.log_event("Character", "user", 1, "state_transition", {"relationship_after": {"trust": 0.2}})
 
         events = p.load_continuity_events("Character", "user")
-        assert [event["event_type"] for event in events] == ["input", "state_transition"]
-        assert [event["sequence"] for event in events] == [1, 2]
+        assert [event["event_type"] for event in events] == ["input"]
+        assert [event["sequence"] for event in events] == [1]
         assert all(event["subject_uuid"] == subject_uuid for event in events)
         assert events[0]["authority_class"] == "reported_input"
         assert events[0]["authority_class"] != "world_authority"
@@ -70,7 +70,7 @@ def test_export_import_round_trip_preserves_order_provenance_and_unknown_payload
     with tempfile.TemporaryDirectory() as d:
         source, subject_uuid = _store(os.path.join(d, "source.db"))
         source.log_event("Character", "user", 1, "input", {"text": "hello", "future_field": {"x": 1}})
-        source.log_event("Character", "user", 2, "state_transition", {"pressure_after": {"fear": 0.2}})
+        source.log_event("Character", "user", 2, "input", {"text": "second root"})
         source.record_checkpoint("Character", "user", {"state": "source"})
         bundle = source.export_continuity_tail("Character", "user")
 
@@ -123,7 +123,7 @@ def test_integrity_report_detects_missing_sequence():
     with tempfile.TemporaryDirectory() as d:
         p, subject_uuid = _store(os.path.join(d, "state.db"))
         p.log_event("Character", "user", 1, "input", {"text": "one"})
-        p.log_event("Character", "user", 2, "state_transition", {"x": 2})
+        p.log_event("Character", "user", 2, "input", {"text": "two"})
         conn = p.conn
         try:
             conn.execute("DELETE FROM continuity_event WHERE subject_uuid=? AND user_id=? AND sequence=1", (subject_uuid, "user"))
@@ -147,6 +147,10 @@ def test_legacy_backfill_is_idempotent_and_ignores_noncanonical_rows():
             conn.execute(
                 "INSERT INTO event_log(character_id,user_id,timestep,event_type,payload,created_at) VALUES(?,?,?,?,?,?)",
                 ("Character", "user", 1, "renderer_output", json.dumps({"text": "not biography"}), 1.1),
+            )
+            conn.execute(
+                "INSERT INTO event_log(character_id,user_id,timestep,event_type,payload,created_at) VALUES(?,?,?,?,?,?)",
+                ("Character", "user", 1, "state_transition", json.dumps({"relationship_after": {"trust": 0.2}}), 1.2),
             )
             conn.commit()
         finally:

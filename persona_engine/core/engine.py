@@ -760,7 +760,8 @@ class InteriorEngine:
         self._catch_up_idle()
         self.timestep += 1
         now = time.time()
-        server_truth = dict(server_truth or {})
+        submitted_server_truth = dict(server_truth or {})
+        server_truth = dict(submitted_server_truth)
         visible_context = dict(visible_context or {})
         submitted_visible_context = dict(visible_context)
         server_truth.setdefault("user_text", user_text)
@@ -791,7 +792,20 @@ class InteriorEngine:
         input_classification = self.event_classifier.classify("input", input_payload, event_id=f"turn_{self.timestep}_input")
         input_payload["classification"] = input_classification.__dict__
         input_payload["canonical_truth"] = can_promote_to_canonical_memory("input", input_payload)
-        self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "input", input_payload)
+        input_root_payload = {"user_text": user_text}
+        if submitted_server_truth:
+            input_root_payload["server_truth"] = submitted_server_truth
+        if submitted_visible_context:
+            input_root_payload["visible_context"] = submitted_visible_context
+        self.persistence.log_event(
+            self.identity.name,
+            self.user_id,
+            self.timestep,
+            "input",
+            input_payload,
+            continuity_payload=input_root_payload,
+            continuity_payload_schema="input-root-v2",
+        )
         if organism_result.server_truth or organism_result.visible_context:
             self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "sensorium", {
                 "server_truth": organism_result.server_truth,

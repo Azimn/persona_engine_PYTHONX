@@ -18,7 +18,7 @@ def test_subject_sequence_orders_one_biography_without_replacing_stream_sequence
 
         p.log_event("Character", "alice", 1, "input", {"text": "alice one"})
         p.log_event("Character", "bob", 2, "input", {"text": "bob one"})
-        p.log_event("Character", "alice", 3, "state_transition", {"x": 1})
+        p.log_event("Character", "alice", 3, "input", {"text": "alice two"})
 
         events = p.load_subject_continuity_events("Character", "alice")
         assert [event["subject_sequence"] for event in events] == [1, 2, 3]

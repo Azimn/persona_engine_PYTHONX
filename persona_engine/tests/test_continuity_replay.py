@@ -35,7 +35,9 @@ def test_canonical_input_replay_regenerates_derived_state_without_double_applyin
         assert result.complete is True
         assert result.turns_replayed == 2
         assert result.root_events_replayed == 2
-        assert result.derived_events_skipped >= 2
+        # New production histories store causal roots only. Legacy derived
+        # rows are covered separately by test_root_only_continuity.py.
+        assert result.derived_events_skipped == 0
         assert result.semantic_digest == semantic_digest(source)
 
 

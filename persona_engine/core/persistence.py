@@ -23,6 +23,7 @@ from .continuity import (
     ContinuityEvent,
     ContinuityIntegrityReport,
     canonical_continuity_eligible,
+    canonical_continuity_root_eligible,
     event_authority,
     state_digest,
 )
@@ -430,11 +431,28 @@ class Persistence:
             )
             return max(0, int(cur.rowcount or 0))
 
-    def log_event(self, character_id: str, user_id: str, timestep: int, event_type: str, payload: dict):
-        """Write the broad diagnostic log and, when eligible, canonical continuity."""
+    def log_event(
+        self,
+        character_id: str,
+        user_id: str,
+        timestep: int,
+        event_type: str,
+        payload: dict,
+        *,
+        continuity_payload: dict[str, Any] | None = None,
+        continuity_payload_schema: str | None = None,
+    ):
+        """Write diagnostics plus the minimum-sufficient durable causal root.
+
+        ``payload`` remains the rich recent diagnostic packet. New canonical
+        history is intentionally narrower and may receive a separate exogenous
+        root payload. Historical v1 readers remain able to consume older derived
+        canonical rows.
+        """
 
         now = time.time()
         payload = dict(payload or {})
+        root_payload = dict(continuity_payload) if continuity_payload is not None else dict(payload)
         with self._connection() as conn:
             cur = conn.execute(
                 "INSERT INTO event_log (character_id,user_id,timestep,event_type,payload,created_at) VALUES (?,?,?,?,?,?)",
@@ -446,16 +464,17 @@ class Persistence:
                 "(legacy_event_id,character_id,user_id,evidence_types,created_at) VALUES(?,?,?,?,?)",
                 (legacy_id, character_id, user_id, json.dumps(_extract_evidence_types(event_type, payload), ensure_ascii=False), now),
             )
-            if canonical_continuity_eligible(event_type, payload):
+            if canonical_continuity_root_eligible(event_type, root_payload):
                 self._append_continuity_event_conn(
                     conn,
                     character_id=character_id,
                     user_id=user_id,
                     timestep=timestep,
                     event_type=event_type,
-                    payload=payload,
+                    payload=root_payload,
                     wall_time=now,
                     legacy_event_id=legacy_id,
+                    payload_schema=continuity_payload_schema,
                 )
             if self.diagnostic_event_limit is not None:
                 key = (str(character_id), str(user_id))
@@ -772,7 +791,11 @@ class Persistence:
                     payload = json.loads(payload_text)
                 except json.JSONDecodeError:
                     continue
-                if not isinstance(payload, dict) or not canonical_continuity_eligible(str(event_type), payload):
+                # Legacy diagnostic migration keeps only causal roots. Older
+                # continuity tables that already contain derived v1 rows remain
+                # readable; this prevents a fresh migration from recreating the
+                # redundancy that root-only persistence removes.
+                if not isinstance(payload, dict) or not canonical_continuity_root_eligible(str(event_type), payload):
                     continue
                 deterministic_uuid = str(uuid.uuid5(
                     uuid.NAMESPACE_URL,

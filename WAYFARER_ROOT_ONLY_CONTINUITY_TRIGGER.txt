@@ -1,1 +1,0 @@
-trigger 2026-08-30 root-only integration retry after subject-sequence fixture alignment
