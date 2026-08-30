@@ -335,7 +335,11 @@ Measured production evidence:
 - 1,000-turn production: 1.004 canonical rows/turn, 2,486,272 B SQLite file, 75.75 B average canonical input payload;
 - 5,000-turn production: 8,581,120 B SQLite file, approximately 12.8 KB active state, all restart/history/recall/commitment/identity/repair contracts green.
 
-This does not close all M3 semantics. Slow belief consolidation remains the important uncovered causal family. Before further persistence compression, establish whether consolidation should be an explicit internal root or be deterministically regenerated from another durable evidence contract.
+A follow-up developmental-continuity experiment closed the slow-belief gap for the current rule system. Inputs alone were insufficient: two identity violations consolidated at separate boundaries produced `trust_user=-0.4`, while replay without boundaries produced `0.0` and one consolidation at the end produced only `-0.2`. A threshold-miss control also proved that a no-change pass can be causal because it partitions the evidence window.
+
+Production therefore adds one compact internal root, `belief_consolidation`, only for executed passes that consumed evidence relevant to the active belief rules. The root records rule/belief digests, relevant evidence counts, changed belief IDs, and changed before/after values. It does not restore verbose per-turn state snapshots. Replay regenerates evidence from preceding roots, executes the pass at the recorded boundary, and verifies rule plus belief digests. Empty irrelevant passes remain noncanonical housekeeping. The belief snapshot, canonical root, and evidence pruning commit atomically. Legacy `dream_consolidation` remains a readable derived compatibility family.
+
+Evidence: `evidence/mvi/DEVELOPMENTAL_CONTINUITY.md` (pre-fix failure) and `evidence/mvi/DEVELOPMENTAL_CONTINUITY_FIXED.md` (production verification).
 
 ## Design decision
 
@@ -367,8 +371,9 @@ Tasks:
 - [x] Make snapshots explicit caches rather than the only continuity authority for demonstrated subject-owned families.
 - [x] Detect missing/reordered/duplicated sequence entries.
 - [x] Add deterministic state digest comparison.
-- [x] Expand replay beyond user `input` to demonstrated time, commitment, and bounded sensor roots.
-- [ ] Replay time, world, sensor, social, action, consolidation, migration, and authorized state transitions.
+- [x] Expand replay beyond user `input` to demonstrated time, commitment, bounded sensor, and slow-belief consolidation roots.
+- [x] Preserve demonstrated slow-belief developmental history with typed `belief_consolidation` boundaries and digest-verified replay.
+- [ ] Replay the remaining world, social, action, migration, and authorized state-transition families as their contracts are demonstrated.
 - [x] Add validated event-tail export/import for the current v1 stream contract.
 - [x] Add v1 migration/backfill and old-derived-row compatibility tests.
 - [x] Add ordinary local continuity integrity/gap validation tests.

@@ -129,8 +129,6 @@ def event_authority(event_type: str, payload: dict[str, Any] | None = None) -> C
         return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "consolidation_authority", "private")
     if event_type in {"sensorium", "sensor_observation", "world_fact", "manual_authorized_fact", "world_action_resolution"}:
         return ContinuityAuthority(explicit_actor or "host", "host_world", "world_authority")
-    if event_type == "dream_consolidation":
-        return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "consolidation_authority", "private")
     if event_type == "state_transition":
         return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "character_state_authority", "private")
     return ContinuityAuthority(explicit_actor or "unknown", "unspecified", "canonical_event")

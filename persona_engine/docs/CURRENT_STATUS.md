@@ -11,22 +11,15 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 Latest production commit:
 
 ```text
-71790eb
-Persist minimum-sufficient causal continuity roots
+268739c
+Preserve slow belief development in canonical continuity
 ```
 
-Latest documentation checkpoint before this status refresh:
+The phase-sized Python 3.11 developmental integration gate completed with:
 
 ```text
-84bb1ba
-Document root-only continuity production contract
-```
-
-The phase-sized Python 3.11 integration gate completed with:
-
-```text
-Focused root/continuity/replay/persistence tests: 36 passed
-Full deterministic suite: 326 passed, 1 skipped, 1 warning
+Focused developmental/continuity/replay tests: 18 passed
+Full deterministic suite: 330 passed, 1 skipped, 1 warning
 ```
 
 The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
@@ -49,7 +42,7 @@ The detailed operational record remains `WAYFARER_PROGRESS.md`; the roadmap rema
 
 New runtime continuity is **causal-root-only**.
 
-`canonical_continuity_root_eligible()` governs new durable writes. Current root families include user input/user statement, authoritative time advance, explicit self-adopted commitments, bounded sensor observations, authorized world facts/manual facts, and accepted world-action resolutions.
+`canonical_continuity_root_eligible()` governs new durable writes. Current root families include user input/user statement, authoritative time advance, explicit self-adopted commitments, rule-relevant slow-belief consolidation boundaries, bounded sensor observations, authorized world facts/manual facts, and accepted world-action resolutions.
 
 Routine `state_transition` and `sensorium` records remain rich bounded diagnostic evidence but are no longer duplicated into new permanent biography. Replay regenerates those consequences from their causal roots.
 
@@ -106,15 +99,24 @@ Evidence files:
 
 The current 1,000-turn storage profile shows that canonical continuity is no longer the dominant persistent object. Consolidation evidence plus its index and the bounded diagnostic window are now larger than the durable continuity table.
 
-## Important open continuity gap
+## Developmental continuity contract
 
-Slow `BeliefLedger` consolidation is persistent, but its causal replay semantics are not yet established as a first-class continuity root.
+The pre-fix developmental probe forced a real slow `BeliefLedger` trajectory. Two identity violations consolidated separately moved `trust_user` from `0.0` to `-0.2` to `-0.4`, and ordinary restart preserved `-0.4`. The root-only canonical export contained only the two input events, so current replay reconstructed `0.0`. Replaying both inputs and consolidating only once at the end reconstructed only `-0.2`.
 
-Do not declare developmental continuity complete merely because conversational, sensory, commitment, and temporal roots replay correctly. A replay that loses consolidated long-term belief change would fail the project definition even if ordinary dialogue state reconstructs correctly.
+The threshold control was more decisive: one repair followed by a consolidation pass, repeated twice, stayed at `0.0` because each pass consumed a sub-threshold evidence window. The same two repairs grouped before one consolidation reached `+0.15`. A no-change consolidation boundary can therefore alter later development and is genuine causal history.
 
-The next evidence-driven continuity experiment should force an actual slow-belief change, restart it, export it, replay it from canonical history, and determine the smallest valid causal contract. The likely alternatives are an explicit typed internal consolidation root or deterministic regeneration from another durable evidence contract. The experiment should decide between them rather than assuming either design.
+Production commit `268739c` adds the minimum mechanism supported by that result. An executed pass becomes a compact `belief_consolidation` root only when it consumed evidence relevant to the active belief rules. Threshold misses are recorded; empty irrelevant passes are not. The payload records a rule digest, before/after belief digests, relevant evidence counts, changed IDs, and before/after values for changed beliefs. It is verification/causal metadata, not a full state dump.
 
-Only after that semantic contract is established should Wayfarer consider further reducing or restructuring the `consolidation_evidence` stream.
+Replay regenerates the preceding evidence, verifies the active rule digest and pre-belief digest, executes consolidation at the recorded boundary without writing a duplicate root, then verifies changed IDs and the post-belief digest. Rule mismatch requires explicit migration rather than silently replaying development under different rules. Persistence atomically commits the belief snapshot, canonical consolidation root, and pruning of the consumed evidence window.
+
+Post-fix evidence reproduces `trust_user=-0.4` across live state, restart, and canonical replay. Two separate no-change repair boundaries also reproduce `0.0` in canonical replay. Legacy `dream_consolidation` remains a derived compatibility family.
+
+Evidence:
+
+- `evidence/mvi/DEVELOPMENTAL_CONTINUITY.md`
+- `evidence/mvi/developmental_continuity.json`
+- `evidence/mvi/DEVELOPMENTAL_CONTINUITY_FIXED.md`
+- `evidence/mvi/developmental_continuity_fixed.json`
 
 ## Other known limitations
 
@@ -128,10 +130,10 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Verify the normal Python 3.11/3.12 CI matrix on this final branch state.
-2. Run a controlled slow-belief developmental continuity experiment that forces a real `BeliefLedger` change and tests restart/export/replay.
-3. Promote only the minimum causal consolidation mechanism supported by that experiment.
-4. Re-measure persistence after the developmental replay contract is fixed before optimizing the compact evidence stream further.
+1. Verify the normal Python 3.11/3.12 CI matrix on the final developmental-continuity branch state.
+2. Re-measure persistence with `belief_consolidation` roots active before changing the compact evidence stream further.
+3. Use the next controlled longitudinal failure to choose between broader world/action replay, cross-host single-writer handoff, or another minimum-individual requirement; do not add all three speculatively.
+4. Keep M7 plasticity calibration separate from this continuity result: replay correctness does not validate the psychological values of belief deltas or thresholds.
 
 ## Required reading
 

@@ -18,15 +18,22 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current production/evidence head before this documentation update:
 
 ```text
-71790eb
-Persist minimum-sufficient causal continuity roots
+268739c
+Preserve slow belief development in canonical continuity
 ```
 
-The production integration gate completed with:
+The developmental-continuity production gate completed with:
 
 ```text
-Focused root/continuity/replay/persistence tests: 36 passed
-Full Python 3.11 deterministic suite: 326 passed, 1 skipped, 1 warning
+Focused developmental/continuity/replay tests: 18 passed
+Full Python 3.11 deterministic suite: 330 passed, 1 skipped, 1 warning
+Changed slow belief: live -0.4, restart -0.4, canonical replay -0.4
+Separated no-change repair boundaries: live 0.0, canonical replay 0.0
+```
+
+The prior root-only storage evidence remains the current persistence-size baseline:
+
+```text
 1,000-turn SQLite file: 2,486,272 B
 5,000-turn SQLite file: 8,581,120 B
 5,000-turn active serialized state: 12,758 B
@@ -40,7 +47,9 @@ The 1,000-turn production storage probe reduced durable continuity from approxim
 
 The 5,000-turn production plateau remained behaviorally green. Resident memory remained seven objects, the same subject survived restart, unresolved history continued to qualify trust, cold lighthouse recall worked, the non-disclosure commitment still declined disclosure, identity rewrite still produced `protect_boundary`, and genuine repair returned relationship conflict to zero. Active state changed only +205 B between turn 250 and turn 5,000. Database growth over that interval was 7,438,336 B instead of the pre-persistence-cleanup 62,939,136 B.
 
-Outstanding continuity issue: slow `BeliefLedger` consolidation is persistent but its causal replay semantics are not yet established as a first-class root. Do not call M3 semantically complete for developmental history until an explicit consolidation/replay experiment closes that gap.
+The slow-belief developmental continuity gap is now closed for the demonstrated `BeliefLedger` rule contract. Pre-fix evidence showed two separately consolidated identity violations reached `trust_user=-0.4`, survived restart, but replayed from input roots alone as `0.0`; consolidating once only at replay end reached merely `-0.2`. It also showed that two one-repair threshold misses separated by consolidation stayed at `0.0`, while grouping the same two repairs before one pass reached `+0.15`. Consolidation boundaries are therefore causal even when no belief value changes.
+
+Production now records a compact `belief_consolidation` root whenever an executed pass consumes evidence relevant to the active belief rules, including threshold misses. Empty passes with no rule-relevant evidence remain housekeeping. Replay regenerates evidence from prior roots, checks the cartridge rule digest and pre-belief digest, executes the pass at the recorded boundary, and checks changed-belief IDs plus the post-belief digest. The belief snapshot, canonical boundary, and evidence-window pruning are committed atomically. Evidence: `evidence/mvi/DEVELOPMENTAL_CONTINUITY.md` and `evidence/mvi/DEVELOPMENTAL_CONTINUITY_FIXED.md`.
 
 ## Baseline history
 
@@ -102,13 +111,15 @@ Evidence:
 
 The representation change kept `CONTINUITY_SCHEMA_VERSION = 1.0` because old and new streams remain mutually readable at the interchange level. This is a narrower write policy and payload schema refinement, not an incompatible bundle format change.
 
-**Next semantic gap:** explicitly test and define slow belief-consolidation continuity/replay. A replay that reconstructs conversational and sensory roots but loses consolidated developmental change is not sufficient for the project goal.
+**Developmental replay refinement:** slow belief consolidation is now a demonstrated causal root. A `belief_consolidation` root records rule-relevant pass boundaries, including no-change threshold misses, without restoring verbose state-transition history. Legacy `dream_consolidation` rows remain readable as derived v1 compatibility records.
+
+**Next evidence target:** re-measure persistence with developmental roots active, then choose the next semantic gap from actual longitudinal failure rather than adding another subsystem speculatively. Cross-host single-writer handoff and broader authorized world/action replay remain major roadmap gaps.
 
 **COMPLETE FOR THE CURRENT ROOT-EVENT CONTRACT.**
 
 The old `event_log` remains a broad diagnostic journal. `continuity_event` stores only authority-eligible canonical lived-history events and is bound to the portable `.snp` `entity_uuid`. Canonical replay validates bundles before side effects, replays supported exogenous/root experiences through public character interfaces, skips derived records to avoid double application, and rejects renderer prose or other non-authority-eligible injections.
 
-Supported roots include user input, bounded audio/vision observations, M4 `time_advance`, and explicit self-adopted `commitment_adopted` events. Unsupported host-level roots are reported rather than silently claimed as complete.
+Supported roots include user input, bounded audio/vision observations, M4 `time_advance`, explicit self-adopted `commitment_adopted` events, and evidence-gated `belief_consolidation` boundaries. Unsupported host-level roots are reported rather than silently claimed as complete.
 
 The original M3 `sequence` remains a per-interlocutor stream ordinal because existing replay/export/checkpoint/integrity behavior depends on that contract. A controlled Alice/Bob/Alice probe showed that one `subject_uuid` could therefore contain canonical input stream sequences `1, 1, 4`, leaving the total biography without one explicit order.
 
