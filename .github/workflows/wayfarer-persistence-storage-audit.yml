@@ -1,0 +1,51 @@
+name: Wayfarer persistence storage audit
+
+on:
+  push:
+    branches: [wayfarer]
+    paths:
+      - 'WAYFARER_STORAGE_AUDIT_TRIGGER.txt'
+      - '.github/workflows/wayfarer-persistence-storage-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Verify persistence and continuity contracts
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_continuity_ledger.py \
+            persona_engine/tests/test_continuity_replay.py \
+            persona_engine/tests/test_dream_engine.py \
+            persona_engine/tests/test_bounded_rehearsal_trace.py -q
+      - name: Run 1000-turn storage audit
+        run: |
+          python tools/persistence_storage_probe.py --turns 1000 \
+            --json persona_engine/evidence/mvi/persistence_storage_probe.json \
+            --markdown persona_engine/evidence/mvi/PERSISTENCE_STORAGE_PROBE.md
+      - name: Commit evidence and clean audit scaffolding
+        run: |
+          rm -f .github/workflows/wayfarer-persistence-storage-audit.yml
+          rm -f WAYFARER_STORAGE_AUDIT_TRIGGER.txt
+          git config user.name 'Wayfarer Storage Audit'
+          git config user.email 'wayfarer-storage-audit@users.noreply.github.com'
+          git add -A
+          git commit -m 'Measure Wayfarer persistence storage ownership'
+          git push origin HEAD:wayfarer
