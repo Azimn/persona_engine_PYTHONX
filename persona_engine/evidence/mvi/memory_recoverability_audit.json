@@ -1,0 +1,113 @@
+{
+  "active_sources": [
+    "observed",
+    "reflection",
+    "user_told"
+  ],
+  "blanket_eviction_is_safe": false,
+  "canonical_event_counts": {
+    "input": 28,
+    "sensorium": 28,
+    "state_transition": 28
+  },
+  "contracts": {
+    "core_identity": {
+      "canonical_source": "authored identity rather than autobiography",
+      "causal_metadata_recoverable": true,
+      "cold_reader_supported": false,
+      "content_recoverable": true,
+      "experience_recoverable": false,
+      "producer": "no current production constructor found",
+      "reason": "KnowledgeSource exists but current production code does not materialize core identity as MemoryUnit records.",
+      "safe_eviction_rule": "unused as autobiographical memory; identity remains owned by cartridge/ledger"
+    },
+    "inferred": {
+      "canonical_source": null,
+      "causal_metadata_recoverable": false,
+      "cold_reader_supported": false,
+      "content_recoverable": false,
+      "experience_recoverable": false,
+      "producer": "no current production constructor found",
+      "reason": "KnowledgeSource exists but current production code does not create inferred MemoryUnit records.",
+      "safe_eviction_rule": "unused; fail closed if introduced without an archive contract"
+    },
+    "observed": {
+      "canonical_source": "mixed: sensor_observation roots, derived sensorium, replayable roots",
+      "causal_metadata_recoverable": false,
+      "cold_reader_supported": false,
+      "content_recoverable": false,
+      "experience_recoverable": false,
+      "producer": "OrganismTick/sensor routes",
+      "reason": "Some observations have canonical sensor roots and some are derived body/world transitions, but the live cold reader does not reconstruct first-person observed MemoryUnit records or their salience metadata.",
+      "safe_eviction_rule": "pin until a typed autobiographical reconstruction path is demonstrated"
+    },
+    "reflection": {
+      "canonical_source": "derived consequence stored as earned trait / relationship belief, memory wording snapshot-only",
+      "causal_metadata_recoverable": false,
+      "cold_reader_supported": false,
+      "content_recoverable": false,
+      "experience_recoverable": false,
+      "producer": "_trigger_reflection",
+      "reason": "The developmental consequence can survive separately, but the autobiographical fact that the subject formed the reflection is not currently a cold-retrievable experience.",
+      "safe_eviction_rule": "pin until reflection experience is either canonically represented or proven behaviorally redundant"
+    },
+    "user_told": {
+      "canonical_source": "input",
+      "causal_metadata_recoverable": false,
+      "cold_reader_supported": true,
+      "content_recoverable": true,
+      "experience_recoverable": true,
+      "producer": "receive_input",
+      "reason": "Canonical input preserves the user's statement and actor scope. Current cold read-through can rebuild first-person content, but does not reconstruct original unresolved/emotional/relevance fields.",
+      "safe_eviction_rule": "only when no current consumer requires original causal metadata"
+    }
+  },
+  "interpretation": "Cold storage is not one property. User-statement wording is recoverable today, but current cold candidates do not recreate the original causal metadata needed by unresolved-history consumers. Observed and reflection memories do not yet have a direct first-person cold reconstruction path. A production hot-set policy must therefore evict by recoverability and current role, never by age or count alone.",
+  "probe": "memory-recoverability-audit-v1",
+  "production_policy_changed": false,
+  "runtime_examples": {
+    "observed": {
+      "content": "I felt sensory load: sensory load is high",
+      "emotional_intensity": 0.7053,
+      "identity_relevance": 0.2,
+      "relationship_relevance": 0.1,
+      "tags": [
+        "sensorium",
+        "sensory_load"
+      ],
+      "unresolved": false
+    },
+    "reflection": {
+      "content": "I formed a reflection: The relationship tends to become guarded after unresolved accusations.",
+      "emotional_intensity": 0.35,
+      "identity_relevance": 0.5,
+      "relationship_relevance": 0.7,
+      "tags": [
+        "reflection"
+      ],
+      "unresolved": false
+    },
+    "user_told": {
+      "content": "I heard you say: Please remember this neutral detail: the archive lantern is violet.",
+      "emotional_intensity": 0.0,
+      "identity_relevance": 0.2,
+      "relationship_relevance": 0.6,
+      "tags": [
+        "canonical_user_statement"
+      ],
+      "unresolved": false
+    }
+  },
+  "runtime_memory_count": 30,
+  "runtime_source_counts": {
+    "observed": 1,
+    "reflection": 1,
+    "user_told": 28
+  },
+  "unknown_active_sources": [],
+  "unsafe_to_blanket_evict_active_sources": [
+    "observed",
+    "reflection"
+  ],
+  "user_statement_content_recoverable_but_causal_metadata_not_recoverable": true
+}
