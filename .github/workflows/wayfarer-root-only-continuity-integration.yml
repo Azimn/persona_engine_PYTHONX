@@ -29,6 +29,7 @@ jobs:
       - name: Apply root-only continuity policy
         run: |
           python tools/_integrate_root_only_continuity.py
+          python tools/_fix_root_only_test_expectations.py
           python -m compileall -q persona_engine tools
       - name: Run focused continuity contracts
         run: |
@@ -54,6 +55,7 @@ jobs:
       - name: Commit runtime policy and evidence
         run: |
           rm -f tools/_integrate_root_only_continuity.py
+          rm -f tools/_fix_root_only_test_expectations.py
           rm -f .github/workflows/wayfarer-root-only-continuity-integration.yml
           rm -f WAYFARER_ROOT_ONLY_CONTINUITY_TRIGGER.txt
           git config user.name 'Wayfarer Root-Only Continuity'
