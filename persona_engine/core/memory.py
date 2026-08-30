@@ -37,6 +37,24 @@ class MemoryUnit:
     tags: Set[str] = field(default_factory=set)
     compressed: bool = False
 
+    def __post_init__(self):
+        # V1 stored every recall timestamp forever. Long-horizon tests showed
+        # that seven resident memories could therefore occupy hundreds of KB.
+        # Keep only the recent rehearsal trace required by activation. This is
+        # an engineering saturation bound, not a claim about human memory span.
+        cleaned = []
+        for value in self.recall_times[-REHEARSAL_TRACE_WIDTH:]:
+            try:
+                cleaned.append(float(value))
+            except (TypeError, ValueError):
+                continue
+        self.recall_times = cleaned
+
+    def record_recall(self, now: float) -> None:
+        self.recall_times.append(float(now))
+        if len(self.recall_times) > REHEARSAL_TRACE_WIDTH:
+            del self.recall_times[:-REHEARSAL_TRACE_WIDTH]
+
 
 def first_person_memory_content(content: str) -> str:
     """Return memory text in the character's first-person record style."""
@@ -155,6 +173,10 @@ def simple_similarity(query: str, content: str) -> float:
 
 TURN_RETRIEVAL_WIDTH = 4
 REFLECTION_RETRIEVAL_WIDTH = 3
+# Rehearsal is a bounded working-state trace, not a second autobiography.
+# Use one ordinary retrieval-workspace width so repeated recall can strengthen
+# a memory but cannot make its resident representation grow with lifetime.
+REHEARSAL_TRACE_WIDTH = TURN_RETRIEVAL_WIDTH
 
 
 class MemoryStore:
@@ -242,7 +264,7 @@ class MemoryStore:
         # because they were resident and happened to occupy a top-k slot.
         for sem, mem in top:
             if sem > 0.0:
-                mem.recall_times.append(now)
+                mem.record_recall(now)
         return [mem for _, mem in top]
 
     def compress_old(self, now: float, age_threshold: float = 86400 * 30):
