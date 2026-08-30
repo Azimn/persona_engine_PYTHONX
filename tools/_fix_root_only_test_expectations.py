@@ -29,4 +29,11 @@ replace_once(
     '        # New production histories store causal roots only. Legacy derived\n        # rows are covered separately by test_root_only_continuity.py.\n        assert result.derived_events_skipped == 0\n',
 )
 
+subject_sequence = ROOT / "persona_engine/tests/test_subject_sequence.py"
+replace_once(
+    subject_sequence,
+    '        p.log_event("Character", "alice", 3, "state_transition", {"x": 1})\n',
+    '        p.log_event("Character", "alice", 3, "input", {"text": "alice two"})\n',
+)
+
 print("root-only test expectations aligned with causal-root writer")
