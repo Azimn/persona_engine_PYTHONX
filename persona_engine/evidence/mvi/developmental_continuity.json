@@ -1,0 +1,70 @@
+{
+  "belief_id": "trust_user",
+  "canonical_export": {
+    "contains_consolidation_boundary": false,
+    "event_count": 2,
+    "event_types": [
+      "input",
+      "input"
+    ]
+  },
+  "findings": {
+    "current_canonical_replay_loses_slow_belief": true,
+    "even_no_change_consolidation_boundaries_are_causal": true,
+    "one_end_of_replay_consolidation_is_insufficient": true,
+    "recorded_consolidation_boundaries_are_sufficient_under_same_rules": true,
+    "restart_snapshot_preserves_slow_belief": true
+  },
+  "live_development": {
+    "after_first": -0.2,
+    "after_restart": -0.4,
+    "after_second": -0.4,
+    "first_consolidation_changed": [
+      "trust_user"
+    ],
+    "initial": 0.0,
+    "restart_preserved": true,
+    "second_consolidation_changed": [
+      "trust_user"
+    ]
+  },
+  "no_change_boundary": {
+    "boundary_is_causal": true,
+    "grouped_after": 0.15,
+    "grouped_changed": [
+      "trust_user"
+    ],
+    "separated_after_first": 0.0,
+    "separated_after_second": 0.0,
+    "separated_first_changed": [],
+    "separated_second_changed": []
+  },
+  "passed": true,
+  "probe": "developmental-continuity-v1",
+  "recommended_minimum_contract": {
+    "reason": "consolidation timing partitions evidence windows; inputs alone do not determine how many deltas were committed, and a no-change pass can still alter later development",
+    "record_every_executed_pass": true,
+    "replay_behavior": "regenerate evidence from prior causal roots, execute consolidation at the recorded boundary, and verify the committed post-belief state/digest",
+    "root_type": "belief_consolidation"
+  },
+  "replay": {
+    "boundary_replay_belief": -0.4,
+    "boundary_replay_equivalent": true,
+    "boundary_replay_passes": [
+      [
+        "trust_user"
+      ],
+      [
+        "trust_user"
+      ]
+    ],
+    "current_root_only_belief": 0.0,
+    "current_root_only_complete": true,
+    "single_end_consolidation_belief": -0.2,
+    "single_end_consolidation_passes": [
+      [
+        "trust_user"
+      ]
+    ]
+  }
+}
