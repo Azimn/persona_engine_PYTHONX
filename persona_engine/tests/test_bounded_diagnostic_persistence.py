@@ -99,3 +99,16 @@ def test_character_runtime_uses_explicit_bounded_telemetry_profile():
         cart = os.path.join(os.path.dirname(__file__), "..", "cartridges", "pretorius.snp")
         agent = CharacterAgent(cartridge_path=cart, user_id="u", db_path=os.path.join(d, "state.db"))
         assert agent.engine.persistence.diagnostic_event_limit == DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT == 512
+
+
+def test_normal_runtime_pruning_is_amortized_but_stays_inside_operational_slack():
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "state.db")
+        p = Persistence(path, diagnostic_event_limit=512)
+        p.bind_subject("K", "u", str(uuid.uuid4()))
+        for index in range(2000):
+            p.log_event("K", "u", index, "diagnostic", {"memory_types": ["neutral"]})
+        retained = _count(path, "event_log")
+        assert 512 <= retained < 512 + 128
+        assert p._diagnostic_prune_stride() == 128
+        assert _count(path, "consolidation_evidence") == 2000

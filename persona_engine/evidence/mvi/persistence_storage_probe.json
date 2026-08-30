@@ -1,9 +1,9 @@
 {
   "canonical_diagnostic_duplication": {
-    "canonical_payload_bytes_for_linked_rows": 181199,
-    "diagnostic_payload_bytes_for_linked_rows": 181199,
-    "exact_duplicate_payload_bytes": 181199,
-    "linked_canonical_rows": 192
+    "canonical_payload_bytes_for_linked_rows": 212340,
+    "diagnostic_payload_bytes_for_linked_rows": 212340,
+    "exact_duplicate_payload_bytes": 212340,
+    "linked_canonical_rows": 225
   },
   "continuity_event_by_type": [
     {
@@ -32,21 +32,21 @@
     }
   ],
   "database": {
-    "allocated_bytes": 6692864,
+    "allocated_bytes": 6782976,
     "dbstat_available": true,
-    "file_bytes": 6692864,
-    "freelist_bytes": 4096,
-    "freelist_pages": 1,
+    "file_bytes": 6782976,
+    "freelist_bytes": 0,
+    "freelist_pages": 0,
     "journal_mode": "wal",
-    "logical_text_bytes_across_measured_columns": 4299690,
-    "page_count": 1634,
+    "logical_text_bytes_across_measured_columns": 4379652,
+    "page_count": 1656,
     "page_size": 4096,
     "physical_bytes_by_object": {
       "consolidation_evidence": 495616,
       "continuity_checkpoint": 163840,
       "continuity_event": 4120576,
       "continuity_subject": 4096,
-      "event_log": 532480,
+      "event_log": 626688,
       "idx_consolidation_evidence_stream_time": 364544,
       "idx_continuity_subject_global_sequence": 167936,
       "idx_continuity_subject_sequence": 217088,
@@ -67,62 +67,62 @@
   "derived": {
     "checkpoint_rows_per_exercised_turn": 1.004,
     "consolidation_evidence_rows_per_exercised_turn": 8.027,
-    "continuity_payload_fraction_of_file": 0.4243,
+    "continuity_payload_fraction_of_file": 0.4187,
     "continuity_rows_per_exercised_turn": 3.01,
-    "event_log_payload_fraction_of_file": 0.0644,
-    "event_log_rows_per_exercised_turn": 0.512,
-    "exact_duplicate_payload_fraction_of_file": 0.0271,
-    "file_bytes_per_exercised_turn": 6692.86,
+    "event_log_payload_fraction_of_file": 0.0749,
+    "event_log_rows_per_exercised_turn": 0.603,
+    "exact_duplicate_payload_fraction_of_file": 0.0313,
+    "file_bytes_per_exercised_turn": 6782.98,
     "runtime_diagnostic_event_limit": 512
   },
   "event_log_by_type": [
     {
-      "average_payload_bytes": 2623.69,
+      "average_payload_bytes": 2622.66,
       "event_type": "turn",
-      "payload_bytes": 167916,
-      "rows": 64
+      "payload_bytes": 199322,
+      "rows": 76
     },
     {
-      "average_payload_bytes": 1051.11,
+      "average_payload_bytes": 1051.09,
       "event_type": "state_transition",
-      "payload_bytes": 67271,
-      "rows": 64
+      "payload_bytes": 78832,
+      "rows": 75
     },
     {
-      "average_payload_bytes": 922.12,
+      "average_payload_bytes": 922.11,
       "event_type": "input",
-      "payload_bytes": 59016,
-      "rows": 64
+      "payload_bytes": 69158,
+      "rows": 75
     },
     {
       "average_payload_bytes": 858.0,
       "event_type": "sensorium",
-      "payload_bytes": 54912,
-      "rows": 64
+      "payload_bytes": 64350,
+      "rows": 75
     },
     {
-      "average_payload_bytes": 476.45,
+      "average_payload_bytes": 476.19,
       "event_type": "speech",
-      "payload_bytes": 30493,
-      "rows": 64
+      "payload_bytes": 35714,
+      "rows": 75
     },
     {
       "average_payload_bytes": 330.0,
       "event_type": "private_cognition",
-      "payload_bytes": 21120,
-      "rows": 64
+      "payload_bytes": 24750,
+      "rows": 75
     },
     {
-      "average_payload_bytes": 293.45,
+      "average_payload_bytes": 293.38,
       "event_type": "voice_plan",
-      "payload_bytes": 18781,
-      "rows": 64
+      "payload_bytes": 22297,
+      "rows": 76
     },
     {
       "average_payload_bytes": 181.0,
       "event_type": "avatar_state",
-      "payload_bytes": 11584,
-      "rows": 64
+      "payload_bytes": 13756,
+      "rows": 76
     }
   ],
   "interpretation": "This probe measures storage ownership, not a proposed retention policy. The broad diagnostic journal, canonical continuity ledger, current snapshots, and digest checkpoints are reported separately so any future persistence optimization can preserve the semantic consumer that justified each byte.",
@@ -178,32 +178,32 @@
       }
     },
     "event_log": {
-      "logical_text_bytes": 447413,
-      "rows": 512,
+      "logical_text_bytes": 527396,
+      "rows": 603,
       "text_column_bytes": {
-        "character_id": 4608,
-        "event_type": 5056,
-        "payload": 431093,
-        "user_id": 6656
+        "character_id": 5427,
+        "event_type": 5951,
+        "payload": 508179,
+        "user_id": 7839
       }
     },
     "state": {
-      "logical_text_bytes": 13647,
+      "logical_text_bytes": 13628,
       "rows": 18,
       "text_column_bytes": {
         "character_id": 162,
         "key": 186,
         "user_id": 234,
-        "value": 13065
+        "value": 13046
       }
     },
     "subject_state": {
-      "logical_text_bytes": 239,
+      "logical_text_bytes": 237,
       "rows": 2,
       "text_column_bytes": {
         "key": 29,
         "subject_uuid": 72,
-        "value": 138
+        "value": 136
       }
     }
   },

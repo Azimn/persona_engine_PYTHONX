@@ -141,6 +141,10 @@ class Persistence:
     def __init__(self, path: str = "persona_state.db", diagnostic_event_limit: int | None = None):
         self.path = path
         self.diagnostic_event_limit = None if diagnostic_event_limit is None else max(1, int(diagnostic_event_limit))
+        # Operational hysteresis: avoid a SELECT/DELETE maintenance cycle on
+        # every logged event. Small limits still prune every event; the normal
+        # 512-row runtime window amortizes maintenance across 128 writes.
+        self._diagnostic_writes_since_prune: dict[tuple[str, str], int] = {}
         self._subject_bindings: dict[tuple[str, str], tuple[str, int]] = {}
         with self._connection() as conn:
             conn.executescript(SCHEMA)
@@ -402,11 +406,19 @@ class Persistence:
         )
         return max(0, int(cur.rowcount or 0))
 
+    def _diagnostic_prune_stride(self) -> int:
+        limit = self.diagnostic_event_limit
+        if limit is None:
+            return 0
+        return max(1, min(128, max(1, int(limit) // 4)))
+
     def prune_diagnostic_events(self, character_id: str, user_id: str) -> int:
         """Bound recent operational telemetry without touching lived history."""
 
         with self._connection() as conn:
-            return self._prune_diagnostic_events_conn(conn, character_id, user_id)
+            removed = self._prune_diagnostic_events_conn(conn, character_id, user_id)
+        self._diagnostic_writes_since_prune[(str(character_id), str(user_id))] = 0
+        return removed
 
     def prune_consolidation_evidence(self, character_id: str, user_id: str, through: float) -> int:
         """Discard semantic evidence already committed into the belief ledger."""
@@ -445,7 +457,14 @@ class Persistence:
                     wall_time=now,
                     legacy_event_id=legacy_id,
                 )
-            self._prune_diagnostic_events_conn(conn, character_id, user_id)
+            if self.diagnostic_event_limit is not None:
+                key = (str(character_id), str(user_id))
+                writes = self._diagnostic_writes_since_prune.get(key, 0) + 1
+                stride = self._diagnostic_prune_stride()
+                if writes >= stride:
+                    self._prune_diagnostic_events_conn(conn, character_id, user_id)
+                    writes = 0
+                self._diagnostic_writes_since_prune[key] = writes
 
     def _next_sequence_conn(self, conn, subject_uuid: str, user_id: str, continuity_epoch: int) -> int:
         row = conn.execute(
