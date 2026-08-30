@@ -4,125 +4,134 @@ Project Wayfarer is the active development line of `Azimn/persona_engine_PYTHONX
 
 The frozen pre-Wayfarer comparison point remains `main` at commit `65df9144e7f0876b6e61e28d6446c50f283f9db4`. Do not use `main` documentation as current Wayfarer status.
 
-PythonX remains the reference implementation and experimental laboratory. The long-term objective is not to make Python the minimum runtime. The objective is to discover and validate the minimum semantics required to preserve one portable, believable individual, then project those stabilized contracts into lower-resource runtimes including a future P99/C99-compatible implementation.
+PythonX is the reference implementation and experimental laboratory. The long-term objective is to discover and validate the minimum semantics required to preserve one portable, believable simulated individual, then project those stabilized contracts into lower-resource runtimes including a future P99/C99-compatible implementation.
+
+## Current production checkpoint
+
+Latest production commit:
+
+```text
+71790eb
+Persist minimum-sufficient causal continuity roots
+```
+
+Latest documentation checkpoint before this status refresh:
+
+```text
+84bb1ba
+Document root-only continuity production contract
+```
+
+The phase-sized Python 3.11 integration gate completed with:
+
+```text
+Focused root/continuity/replay/persistence tests: 36 passed
+Full deterministic suite: 326 passed, 1 skipped, 1 warning
+```
+
+The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+
+This status commit is intentionally made through the normal repository write path so the standard Python 3.11/3.12 Wayfarer CI matrix verifies the final documented branch state.
 
 ## Project definition
 
-Wayfarer is a portable synthetic-individual architecture.
+The authoritative character is not the LLM. Authored identity plus lived continuity state constitute the individual. A language model may provide interpretation, proposals, reasoning bandwidth, or linguistic realization, but renderer replacement must not silently replace identity, biography, commitments, relationships, or developmental trajectory.
 
-The authoritative character is not the LLM. The individual is represented by authored character data plus lived continuity state, including identity constraints, biography, relationships, memories, commitments, beliefs, affective state, developmental history, time, and causally traceable consequences.
+Natural language is evidence, not write authority. Objective world facts require World Authority. Character-owned commitments require an explicit semantic self-decision path. Renderer/private-cognition/UI/avatar/voice output is noncanonical.
 
-A language model may provide semantic interpretation, proposal generation, or linguistic realization, but model replacement must not silently replace the individual's identity or lived trajectory.
+## Implemented foundation
 
-The same individual is intended eventually to inhabit multiple hosts and renderer tiers, including deterministic/no-model rendering, small local models, larger local models, frontier models, games, phone/edge interfaces, and constrained runtimes.
+M0 deterministic/offline evidence and repository handoff infrastructure are established. M1 ownership/authority repair is complete. M2 has permanent entity UUID, structured self-model/ontology foundations, progressive fidelity, and lossless MatrAIx phenotype interoperability. M4 ContinuityClock and demonstrated subject-owned clock state are implemented. Explicit commitment behavior, subject-wide canonical ordering, grounded cold biography, bounded resident memory behavior, and renderer-independent semantic decision paths have been exercised through deterministic tests and longitudinal probes.
 
-## Current verification state
+The detailed operational record remains `WAYFARER_PROGRESS.md`; the roadmap remains `WAYFARER_MASTER_PLAN.md`.
 
-The ordered M1 runtime pass completed successfully in GitHub Actions run `33174272164` and pushed the two runtime commits only after compilation, targeted tests, and the complete Python 3.11 suite passed.
+## Current M3 continuity contract
 
-```text
-Renderer/identity targeted tests: 7 passed
-M1 ontology + renderer + engine targeted tests: 21 passed
-Full Python 3.11 suite: 198 passed, 1 skipped, 1 warning in 3.47s
-```
+New runtime continuity is **causal-root-only**.
 
-The normal Wayfarer CI matrix on Python 3.11 and 3.12 remains the branch-level verification authority. Check the most recent run after the current documentation/cleanup commits before quoting a newer exact result.
+`canonical_continuity_root_eligible()` governs new durable writes. Current root families include user input/user statement, authoritative time advance, explicit self-adopted commitments, bounded sensor observations, authorized world facts/manual facts, and accepted world-action resolutions.
 
-The standard local command is:
+Routine `state_transition` and `sensorium` records remain rich bounded diagnostic evidence but are no longer duplicated into new permanent biography. Replay regenerates those consequences from their causal roots.
 
-```bash
-python -m pytest persona_engine/tests -q
-```
+Historical v1 ledgers containing derived canonical `state_transition` and `sensorium` rows remain valid, importable, and replayable. The broader historical canonical validator therefore remains separate from the narrower new-write root policy. `CONTINUITY_SCHEMA_VERSION` remains `1.0` because this is a compatible write-policy/payload refinement rather than an incompatible interchange change.
 
-## Frozen baseline finding
+Production input roots use payload schema `input-root-v2` and preserve the user text plus only host context actually submitted at the boundary. Derived classifier output, canonicality flags, memory-type metadata, and internally generated body/world context are not stored in the durable input root.
 
-Historical documentation said `171 passed, 1 skipped`, but the untouched pre-Wayfarer code contained more tests.
+## Root-projection and production evidence
 
-Clean GitHub Actions runs of the frozen baseline found:
+The controlled canonical-root projection reduced a mixed history from 21 canonical events to 9 causal roots while preserving the exact semantic replay digest, cold biography, submitted host context, commitment continuity, subject time, and bounded sensory replay.
 
-- Python 3.11: `177 passed, 2 failed, 1 skipped, 1 warning`
-- Python 3.12: `178 passed, 1 failed, 1 skipped, 1 warning`
+Measured projection reduction:
 
-The shared failure was a stale validator test seam: the test patched `renderer.generate`, while active expression routing had moved to `renderer.generate_expression`. Wayfarer corrected the test so invalid output is injected through the live production path.
+- serialized event bytes: 29,685 -> 7,934, a 73.27% reduction;
+- payload bytes: 18,794 -> 3,245, an 82.73% reduction.
 
-The detailed frozen record is in `WAYFARER_BASELINE.md`.
+Production 1,000-turn storage after root-only integration:
 
-## Completed Wayfarer foundation
+- SQLite file: `2,486,272 B`;
+- canonical continuity rows: `1,004`, or `1.004` per exercised turn;
+- canonical continuity physical allocation: `319,488 B`;
+- canonical input payload average: `75.75 B`;
+- exact canonical/diagnostic duplicated payload bytes: `0`.
 
-- Dedicated `wayfarer` development branch.
-- GitHub Actions CI on Python 3.11 and 3.12.
-- `WAYFARER_MASTER_PLAN.md` detailed roadmap.
-- `WAYFARER_PROGRESS.md` live operational tracker.
-- `WAYFARER_CHARTER.md` project definition.
-- `AI_DEVELOPER_HANDOFF.md` multi-agent/multi-developer handoff rules.
-- `AUTHORITY_MATRIX.md` state-ownership rules.
-- `WAYFARER_BASELINE.md` frozen before-state and verification evidence.
-- Root `AGENTS.md` instructions for Codex and other AI coding tools.
+The comparable database measurement immediately before root-only continuity was approximately `6.78 MB`, after diagnostic/biography separation. Before persistence cleanup began, the 1,000-turn database was approximately `13.44 MB`.
 
-## M1 ownership and authority repair: runtime complete
+Production 5,000-turn plateau after root-only integration:
 
-### Production-path validator coverage
+- probe passed;
+- turn-5,000 database: `8,581,120 B`;
+- database growth from turn 250 to 5,000: `7,438,336 B`;
+- turn-5,000 active serialized state: `12,758 B`;
+- active-state growth from turn 250 to 5,000: `+205 B`;
+- resident memories: `7`;
+- canonical input count: `5,003`.
 
-`test_output_validator_and_sanitizer_are_traced` now patches the real `generate_expression()` seam rather than the obsolete `generate()` path.
+Restart and behavioral contracts remained green: same permanent subject UUID, unresolved history still qualified trust, cold lighthouse recall remained visible, the Project Orchid non-disclosure commitment still produced `decline`, identity rewrite still produced `protect_boundary`, and genuine repair returned relationship conflict to zero without stale unresolved-tension loops.
 
-### Fail-closed canonicality
+Evidence files:
 
-Explicit noncanonical markers veto promotion. `interpretive_belief`, `private_cognition`, renderer output, UI state, avatar state, voice plans, and other structurally noncanonical event families cannot be promoted merely by caller-supplied truth flags.
+- `evidence/mvi/CANONICAL_ROOT_PROJECTION.md`
+- `evidence/mvi/ROOT_ONLY_CONTINUITY_STORAGE.md`
+- `evidence/mvi/ROOT_ONLY_PRODUCTION_PLATEAU.md`
 
-### Renderer selection is not identity
+## Persistence ownership after this phase
 
-Legacy `[identity].model_name` is no longer required by the cartridge schema. Old v1 cartridges containing it remain loadable for compatibility, but the field is ignored for renderer selection and produces a migration warning.
+`continuity_event` owns durable causal biography.
 
-Bundled cartridges no longer contain renderer hints. `CoreIdentity.model_name` remains only as an unstored constructor `InitVar` compatibility shim. `InteriorEngine` no longer reads it and now bootstraps its deterministic offline renderer from runtime policy only.
+`state` and the explicitly whitelisted `subject_state` entries are current-state snapshots/caches, not substitutes for event authority.
 
-The compatibility InitVar should be removed only through an explicit future schema/API migration so older direct constructor callers are not broken accidentally.
+`event_log` is bounded recent operational telemetry. It is intentionally not part of the minimum permanent person.
 
-### Ontology is character-scoped
+`consolidation_evidence` is the compact semantic evidence stream currently used by slow belief consolidation. Consumed evidence can be pruned after its consolidation watermark is persisted.
 
-The generic engine no longer assumes that saying `I am an AI`, `as an AI`, or `language model` is universally out of character.
+The current 1,000-turn storage profile shows that canonical continuity is no longer the dominant persistent object. Consolidation evidence plus its index and the bounded diagnostic window are now larger than the durable continuity table.
 
-Wayfarer now supports character-scoped `forbidden_self_claims`. Workspace prompts, output validation, and sanitization consult the current character's self-model constraints rather than a universal AI/human ontology rule.
+## Important open continuity gap
 
-The bundled existing characters explicitly carry their historical self-model restrictions so behavior remains preserved while ownership moves into character data.
+Slow `BeliefLedger` consolidation is persistent, but its causal replay semantics are not yet established as a first-class continuity root.
 
-Regression tests now prove that the same generic engine can host:
+Do not declare developmental continuity complete merely because conversational, sensory, commitment, and temporal roots replay correctly. A replay that loses consolidated long-term belief change would fail the project definition even if ordinary dialogue state reconstructs correctly.
 
-- a human-self character that rejects `I am an AI`, and
-- an artificial-self character that may truthfully produce `I am an AI`.
+The next evidence-driven continuity experiment should force an actual slow-belief change, restart it, export it, replay it from canonical history, and determine the smallest valid causal contract. The likely alternatives are an explicit typed internal consolidation root or deterministic regeneration from another durable evidence contract. The experiment should decide between them rather than assuming either design.
 
-The regression also verifies that character self-model constraints survive renderer replacement.
+Only after that semantic contract is established should Wayfarer consider further reducing or restructuring the `consolidation_evidence` stream.
 
-The current literal `forbidden_self_claims` mechanism is intentionally modest. M2 `.snp` v2 should introduce a more structured self-model/ontology representation rather than expanding this into a large phrase blacklist.
+## Other known limitations
 
-## Architecture features inherited from PythonX
+Replay does not yet cover every future authoritative host/world/action family. Cross-host single-writer lease and handoff semantics remain future work. Social influence/collaboration authority is not yet fully typed. The default zero-model renderer remains linguistically limited. There is no production microphone, camera, TTS, avatar engine, or mobile-native host. Offscreen life remains limited compared with the planned event-based autonomy layer. The minimum viable individual has not yet been established through the complete ablation program.
 
-The branch currently contains deterministic or bounded implementations for strict `.snp` cartridge loading, local SQLite persistence, relationship state, emotional pressure state, body state, world state, memory, intentions/open loops, habits, shared symbols, belief ledger, source-traced noncanonical interpretation, World Authority, deterministic Tide idle drift, evidence-backed consolidation hooks, replay/debug utilities, mock-safe audio/vision observations, voice plans, avatar-safe state projection, proactive proposals, optional local Ollama rendering, and deterministic offline rendering.
+## Standing design decisions
 
-## Known limitations
+The local single-owner default does not require a per-event cryptographic previous-hash chain. Add adversarial tamper evidence only if the threat model expands to hostile hosts, untrusted synchronization, remote custody, or multi-party administrative control.
 
-The default offline expression path remains linguistically limited compared with a capable generative model. There is no real microphone, camera, TTS, avatar engine, or mobile-native host yet. Local-HF provider support remains scaffolding. Autonomous behavior is limited to existing idle/offscreen hooks rather than the planned event-based life scheduler. Replay does not yet reconstruct every future authoritative event family. There is not yet a formal continuity clock or cross-host single-writer handoff protocol. Social influence and collaboration authority are not yet formally typed. The MatrAIx interoperability phenotype layer is planned, not implemented. The minimum viable individual has not yet been established through ablation.
-
-## Current design decisions
-
-### Continuity ledger
-
-Do not require a per-event cryptographic hash chain for the local single-owner prototype. M3 targets an append-only, sequence-numbered, transactional ledger with event IDs, continuity epochs, schema validation, state digests/checkpoints, causal references where useful, and export/import integrity checks.
-
-Cryptographic tamper evidence is an optional future profile only if the threat model expands to untrusted synchronization, hostile hosts, remote custody, or multi-party administrative boundaries.
-
-### Personality plasticity
-
-Do not introduce large tables of hand-tuned per-trait decimals and treat them as validated psychology. M7 begins with a calibration/identifiability gate: use a small number of shared profiles, define observable consequences, sensitivity-test them, remove unidentifiable parameters, use held-out scenarios, version calibrated parameter sets, and require evidence before adding trait-specific overrides.
+Developmental/plasticity parameters must earn their existence through observable behavioral effects, sensitivity analysis, identifiability checks, held-out scenarios, simpler baselines, and versioned experiment provenance. Numerical precision is not evidence of psychological validity.
 
 ## Immediate next work
 
-M1 runtime ownership repair is complete. Before beginning `.snp` v2 implementation:
-
-1. Capture the documented deterministic simulator runs as durable artifacts with commands and outputs.
-2. Capture a repeatable deterministic Pretorius transcript package including event/state evidence and renderer status.
-3. Confirm the normal Python 3.11/3.12 Wayfarer CI after the M1 code and cleanup/documentation commits.
-4. Update `WAYFARER_BASELINE.md` with the evidence locations while preserving the frozen baseline reference.
-5. Begin M2 `.snp` v2 design: permanent entity identity, structured self-model/ontology, phenotype namespaces, progressive-fidelity rules, and MatrAIx interoperability planning.
+1. Verify the normal Python 3.11/3.12 CI matrix on this final branch state.
+2. Run a controlled slow-belief developmental continuity experiment that forces a real `BeliefLedger` change and tests restart/export/replay.
+3. Promote only the minimum causal consolidation mechanism supported by that experiment.
+4. Re-measure persistence after the developmental replay contract is fixed before optimizing the compact evidence stream further.
 
 ## Required reading
 
@@ -136,6 +145,6 @@ Before modifying Wayfarer behavior, read in this order:
 6. `ARCHITECTURE_LOCK.md`
 7. `WAYFARER_BASELINE.md`
 8. this file
-9. relevant tests
+9. relevant tests and evidence
 
-Repository documentation is part of the implementation contract. If documentation and code disagree, establish live behavior through code, history, and tests, then update the documentation in the same work pass.
+Repository documentation is part of the implementation contract. If documentation and code disagree, establish live behavior through code, history, tests, and evidence, then update documentation in the same work pass.
