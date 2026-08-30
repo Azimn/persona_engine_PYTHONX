@@ -1,0 +1,57 @@
+{
+  "cold_biography_hit": true,
+  "interpretation": "This is an experimental projection, not a new ledger schema. Passing means current replay, cold biography, host-context replay, commitment continuity, subject time, and bounded sensory roots do not require routine derived state_transition/sensorium rows or derived metadata embedded in input roots for this mixed scenario.",
+  "original": {
+    "event_bytes": 29685,
+    "event_type_counts": {
+      "commitment_adopted": 1,
+      "input": 6,
+      "sensor_observation": 1,
+      "sensorium": 6,
+      "state_transition": 6,
+      "time_advance": 1
+    },
+    "events": 21,
+    "payload_bytes": 18794,
+    "payload_bytes_by_type": {
+      "commitment_adopted": 240,
+      "input": 5605,
+      "sensor_observation": 2166,
+      "sensorium": 5555,
+      "state_transition": 4883,
+      "time_advance": 345
+    }
+  },
+  "passed": true,
+  "probe": "canonical-root-projection-v1",
+  "production_policy_changed": false,
+  "projected_replay_semantic_digest": "e6a350da896ad2fae5b951f7ead413c55ea1906ec1a418494446d8d5c0855d5a",
+  "reduction": {
+    "event_bytes": 21751,
+    "event_count": 12,
+    "event_percent": 73.27,
+    "payload_bytes": 15549,
+    "payload_percent": 82.73
+  },
+  "root_only_projection": {
+    "event_bytes": 7934,
+    "event_type_counts": {
+      "commitment_adopted": 1,
+      "input": 6,
+      "sensor_observation": 1,
+      "time_advance": 1
+    },
+    "events": 9,
+    "imported_events": 9,
+    "payload_bytes": 3245,
+    "payload_bytes_by_type": {
+      "commitment_adopted": 240,
+      "input": 494,
+      "sensor_observation": 2166,
+      "time_advance": 345
+    }
+  },
+  "semantic_replay_equal": true,
+  "source_semantic_digest": "e6a350da896ad2fae5b951f7ead413c55ea1906ec1a418494446d8d5c0855d5a",
+  "submitted_host_context_preserved": true
+}
