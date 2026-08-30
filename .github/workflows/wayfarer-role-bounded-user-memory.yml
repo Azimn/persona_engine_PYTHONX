@@ -1,0 +1,55 @@
+name: Wayfarer role-bounded user memory
+
+on:
+  push:
+    branches: [wayfarer]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Apply exact role-residency patch
+        run: python tools/_integrate_role_bounded_user_memory.py
+      - name: Run focused residency and experience tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_role_bounded_user_memory.py \
+            persona_engine/tests/test_memory_experience_guards.py \
+            persona_engine/tests/test_history_decision_evidence.py \
+            persona_engine/tests/test_cold_biography.py \
+            persona_engine/tests/test_offline_template_renderer.py -q
+      - name: Run existing MVI role probe
+        run: |
+          python tools/memory_consumer_role_probe.py \
+            --json persona_engine/evidence/mvi/memory_consumer_role.json \
+            --markdown persona_engine/evidence/mvi/MEMORY_CONSUMER_ROLE.md
+      - name: Run full deterministic suite
+        run: python -m pytest -q
+      - name: Commit production residency policy
+        run: |
+          rm -f tools/_integrate_role_bounded_user_memory.py
+          rm -f .github/workflows/wayfarer-role-bounded-user-memory.yml
+          git config user.name 'Wayfarer Role Bounded Memory'
+          git config user.email 'wayfarer-role-memory@users.noreply.github.com'
+          git add -A
+          git commit -m 'Bound user autobiography by causal roles'
+          git push origin HEAD:wayfarer
