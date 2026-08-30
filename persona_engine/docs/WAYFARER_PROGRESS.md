@@ -18,18 +18,18 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current production/evidence head before this documentation update:
 
 ```text
-bba9e8474c9bd1900440afcfcc6a26e332b56f7c
-Bound active WorldAuthority without losing fallback semantics
+46110470b756c1cb893407b13c019aa094162fa2
+Integrate grounded contextual cold biography
 ```
 
 The latest phase-sized Python 3.11 integration run completed with:
 
 ```text
-Focused world + continuity tests: 26 passed
-Full suite: 297 passed, 1 skipped, 1 warning
+Focused contextual/history/offline-renderer tests: 27 passed
+Full suite: 302 passed, 1 skipped, 1 warning
 ```
 
-That integration also passed a 1,000-turn production WorldAuthority churn check, a semantics-preserving expiry/visibility compaction probe, and canonical-history preservation checks. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+The integration makes grounded contextual cold-biography read-through observable in the deterministic renderer while keeping the recovered episode transient and interlocutor-scoped. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
 This documentation commit is intended to trigger the ordinary Python 3.11/3.12 Wayfarer CI path against the committed production state because GitHub intentionally does not recursively trigger workflows from the bot-authored integration commit.
 
@@ -160,9 +160,13 @@ Commitments remain canonical-history-owned rather than being duplicated into `su
 
 A controlled amnesia experiment established the failure condition before paging was added. A neutral old fact remained present in canonical input history and was still retrievable with a full resident memory store after 100 later turns, but a one-item salience working set lost access to it. That earned one narrow mechanism rather than a general paging subsystem.
 
-Explicit recall requests may now consult canonical cold biography for the active interlocutor and receive transient recall candidates for the current turn. Cold candidates do not automatically write themselves into identity, slow beliefs, earned traits, commitments, or the hot autobiographical cache. Canonical continuity remains authoritative history.
+Explicit recall requests may consult canonical cold biography for the active interlocutor and receive transient recall candidates for the current turn. Cold candidates do not automatically write themselves into identity, slow beliefs, earned traits, commitments, or the hot autobiographical cache. Canonical continuity remains authoritative history.
 
-A false-recall adversarial probe initially showed that nonzero generic similarity could make a real but unrelated memory answer a question about something that never happened. Recall admission now requires a topical lexical anchor after removing generic recall scaffolding. Semantic similarity ranks only candidates that pass that grounding gate. A nonexistent brass-telescope memory therefore fails closed rather than returning the nearest unrelated memory.
+A second experiment established a separate ordinary-context gap. After an old lighthouse fact was pushed out of an experimental hot set, the question `Is the lighthouse lens color still the same?` could not recover it through live top-K memory even though the old canonical input remained intact. A grounded contextual reader recovered `cobalt-blue` using only the topical anchors `lighthouse`, `lens`, and `color`. A never-happened harbor/telescope/serial-number query returned no candidate, and the anchorless `Is it still the same?` query failed closed.
+
+That result earned a narrow production contextual read-through. It runs only for non-explicit questions with a continuation cue and at least two substantive topical anchors. All anchors must occur in the old canonical statement. At most one contextual cold candidate is admitted, one retrieval slot is reserved for it while the other slots remain live evidence, and the candidate is tagged `contextual_readthrough` without being rehydrated into resident memory. The deterministic offline renderer now exposes that grounded memory instead of hiding successful recollection behind a generic question fallback. Contextual cold access remains scoped to the active interlocutor.
+
+A false-recall adversarial probe initially showed that nonzero generic similarity could make a real but unrelated memory answer a question about something that never happened. Recall admission now requires topical lexical grounding after removing generic retrieval scaffolding. Semantic similarity ranks only candidates that pass that grounding gate. A nonexistent brass-telescope memory therefore fails closed rather than returning the nearest unrelated memory.
 
 The current intentionally simple reader is a sequential SQLite stream plus fixed-size candidate heap. On the Python 3.11 CI runner, median repeat lookup was approximately `1.8 ms` at 100 canonical inputs, `12.6 ms` at 1,000, `61.5 ms` at 5,000, and `122.2 ms` at 10,000. The 10,000-event database was approximately `5.62 MB`. `tracemalloc` transient peak allocation was `23,911 B` at every tested archive size, so history growth translated into disk and lookup time rather than archive-sized working-memory allocation. This does not claim the same numbers for a future C99 implementation.
 
@@ -194,7 +198,11 @@ turn 5000: active serialized state   9,683 B | database 66,367,488 B
 
 From turn 250 to 5,000, experimental active state grew only `90 B`, approximately `18.95 B` per 1,000 turns, while canonical/diagnostic persistence grew by roughly `63 MB`. The retained hot memory stayed at one item with zero unrelated rehearsal timestamps. Behavior remained intact after restart.
 
-This is strong evidence for the architectural proposition that the size of a character's life does not need to determine the size of the character's causally sufficient present. It is **not** evidence that production Wayfarer should retain exactly one hot memory. The current scenario has not yet tested multiple simultaneous unresolved relationships, obligations, active goals, conflicting evidence chains, or other cases that may require a larger active autobiographical set.
+This is strong evidence for the architectural proposition that the size of a character's life does not need to determine the size of the character's causally sufficient present. It is **not** evidence that production Wayfarer should retain exactly one hot memory.
+
+A subsequent causal-pressure probe demonstrated why. With one hot memory, unresolved-history conduct survived but the existing reflection mechanism lost a real two-memory consolidation effect. Budgets 2, 3, 4, and 8 preserved both effects in that fixture. More surprisingly, an unconstrained 24-memory resident store performed worse: routine catalog memories occupied the top-K retrieval set, causing both trust qualification and reflection to miss unresolved memories that were physically present. The experiment also exposed and fixed an equal-strength `MemoryUnit` ordering defect that only appears with multiple equally scored memories.
+
+The conclusion is therefore not that `2` is the correct capacity. It is that active autobiography is an attentional/causal working set, and unlimited resident history is not a valid gold standard. Production admission/eviction must be derived from the evidence demands of actual consumers rather than from an arbitrary item count.
 
 ## Bounded WorldAuthority
 
@@ -228,7 +236,7 @@ small causal present  <---- selective read-through ----  cold canonical biograph
 replaceable cognition / renderer
 ```
 
-Cold biography is production-capable. WorldAuthority active-history compaction is production. Relevance-gated rehearsal is production. The exact hot autobiographical working-set size remains experimental.
+Explicit cold recall and grounded contextual cold-biography read-through are production-capable. WorldAuthority active-history compaction is production. Relevance-gated rehearsal is production. The exact hot autobiographical working-set admission/eviction policy remains experimental.
 
 The 5,000-turn `~9.7 KB` active serialized state is therefore a **measured experimental lower-bound/reference state**, not a claim about current production RAM use and not yet a minimum C99 hardware requirement. Python object overhead, runtime/library overhead, SQLite pages, renderer requirements, and still-unbounded production autobiographical retention are separate questions.
 
@@ -250,13 +258,13 @@ Do not encode decorative decimals. Plasticity starts with minimal shared profile
 
 ## Immediate next actions
 
-1. Verify this documentation commit and the committed `bba9e847...` WorldAuthority integration through ordinary Wayfarer CI on Python 3.11 and 3.12.
-2. Do **not** promote the one-memory experimental projection directly into production.
-3. Design a hot-memory admission/eviction stress probe with several simultaneously causal memories, including unresolved relationship history, an active commitment-related episode, a neutral explicitly recallable fact, and competing salient recent events. Determine the smallest policy that preserves all demonstrated conduct and recall without choosing a fixed capacity by convenience.
-4. Keep cold canonical biography authoritative and require evicted autobiographical material to remain explicitly recoverable without automatic promotion back into identity, slow beliefs, traits, or commitments.
-5. Once a production hot-memory policy is earned, repeat the long-horizon active-state plateau measurement with no experimental compaction helpers. That will be the first defensible production resident-state measurement.
-6. Only after that production measurement, translate the state families into a C99-oriented fixed/compact layout and estimate the character-kernel hardware floor separately from the optional language-generation floor.
-7. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain. Run the manual two-Ollama-model renderer-swap probe when suitable local models are available; do not make local-model availability a CI dependency.
+1. Verify this documentation commit and the committed `46110470...` contextual cold-biography integration through ordinary Wayfarer CI on Python 3.11 and 3.12.
+2. Do **not** turn the pressure fixture's smallest passing budget (`2`) into a production capacity constant.
+3. Audit every active consumer of autobiographical memory and derive the minimum evidence each can use: ordinary turn retrieval, `HistoryDecisionEvidence`, reflection/consolidation, renderer grounding, and any other current reader.
+4. Design a production hot-memory admission/eviction candidate from those consumer contracts. It should protect currently causal unresolved/evidence-bearing memories, prevent routine history from crowding them out, and rely on canonical cold biography plus grounded transient read-through for inactive history.
+5. Stress that candidate with several distinct simultaneous causal roles rather than duplicate copies of one event type. Preserve repair semantics, unresolved-history conduct, explicit recall, contextual continuation, identity protection, commitments, restart, and cross-interlocutor boundaries.
+6. If and only if that policy passes, integrate it and repeat the 5,000-turn plateau measurement with no experimental compaction helper. That will be the first defensible production resident-state measurement.
+7. After the production measurement, translate the surviving state families into a C99-oriented compact layout and estimate the character-kernel hardware floor separately from the optional language-generation floor. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
 
 ## Contributor rule
 

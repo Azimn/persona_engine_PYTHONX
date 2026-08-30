@@ -429,6 +429,14 @@ A memory record should be able to preserve:
 - later reinterpretations,
 - causal event IDs.
 
+Current implementation evidence:
+
+- [x] Canonical input continuity can serve as cold biography without rehydrating the whole archive into active autobiographical state.
+- [x] Explicit recall has grounded, fail-closed cold read-through for the active interlocutor.
+- [x] Narrow contextual continuation can transiently recover one grounded cold episode without embedding the remembered value in the query or promoting the episode into resident memory.
+- [x] Multi-memory pressure testing demonstrated that unlimited resident autobiography can degrade bounded top-K cognition through retrieval interference.
+- [ ] Derive the production hot-memory admission/eviction policy from actual memory-consumer evidence contracts rather than a convenient fixed item count.
+
 Tasks:
 
 - [ ] Separate claims from facts.
