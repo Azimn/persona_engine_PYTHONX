@@ -36,6 +36,7 @@ _CONTEXT_SCAFFOLD = {
 _CONTEXT_CONTINUATION_PATTERNS = (
     re.compile(r"\b(still|same|again|earlier|before|previously)\b", re.IGNORECASE),
     re.compile(r"\blast time\b", re.IGNORECASE),
+    re.compile(r"\bwhat about\b", re.IGNORECASE),
 )
 
 

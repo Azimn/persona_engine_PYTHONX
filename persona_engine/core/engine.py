@@ -434,6 +434,7 @@ class InteriorEngine:
         # continuity owns world history, so facts that can never again affect
         # server or visible truth are compacted before snapshot persistence.
         self.world_authority.compact_dominated()
+        self.memory.compact_user_told_working_set(self.relationship)
         state = self._serialize_state()
         # Preserve the full legacy/interlocutor snapshot for compatibility, then
         # write only explicitly earned subject-owned families to UUID scope.
@@ -524,9 +525,16 @@ class InteriorEngine:
         # Reflection must therefore combine historical evidence with current
         # relationship state, matching the conduct gate's repair semantics.
         relationship_unresolved_now = self.relationship.unresolved_conflict > 0.0
-        unresolved = [m for m in top_mems if m.unresolved] if relationship_unresolved_now else []
-        ids = [m.id for m in top_mems]
-        confidence = min(0.9, 0.45 + 0.15 * len(unresolved) + sum(m.identity_relevance for m in top_mems) / 10.0)
+        resolution_cutoff = float(getattr(self.relationship, "last_conflict_resolved_at", 0.0) or 0.0)
+        unresolved = [
+            memory for memory in top_mems
+            if relationship_unresolved_now
+            and memory.unresolved
+            and float(memory.created_at) > resolution_cutoff
+        ]
+        evidence_mems = unresolved if unresolved else top_mems
+        ids = [m.id for m in evidence_mems]
+        confidence = min(0.9, 0.45 + 0.15 * len(unresolved) + sum(m.identity_relevance for m in evidence_mems) / 10.0)
         claim = "The relationship tends to become guarded after unresolved accusations." if unresolved else "Recent exchanges are forming a stable interaction pattern."
         candidate = ReflectionCandidate(claim=claim, confidence=confidence, source_memory_ids=ids, scope="relationship")
         if candidate.commit_allowed:
@@ -812,6 +820,17 @@ class InteriorEngine:
         relationship_before = dict(vars(self.relationship))
         pressure_before = {name: p.magnitude for name, p in self.pressures.pressures.items()}
         apply_appraisal(self.relationship, appraisal)
+        conflict_before = float(relationship_before.get("unresolved_conflict", 0.0) or 0.0)
+        conflict_after = float(self.relationship.unresolved_conflict)
+        if conflict_before > 0.0 and conflict_after <= 0.0:
+            self.relationship.last_conflict_resolved_at = now
+            # Open loops are current unfinished concerns, not immutable biography.
+            # Once this scalar relationship model says conflict is fully repaired,
+            # stale tension loops must not resurface the repaired episode later.
+            self.intentions.open_loops = [
+                loop for loop in self.intentions.open_loops
+                if not str(loop.topic).startswith("unresolved tension from:")
+            ]
         self.pressures.apply_appraisal(appraisal, self.relationship.trust)
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "state_transition", {
             "appraisal": vars(appraisal),

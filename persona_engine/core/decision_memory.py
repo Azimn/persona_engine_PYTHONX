@@ -71,10 +71,12 @@ def evaluate_history_for_decision(
     if unresolved_conflict <= 0.0:
         return HistoryDecisionEvidence()
 
+    resolution_cutoff = float(getattr(relationship, "last_conflict_resolved_at", 0.0) or 0.0)
     candidates = [
         memory
         for memory in retrieved_memories
         if bool(getattr(memory, "unresolved", False))
+        and float(getattr(memory, "created_at", 0.0) or 0.0) > resolution_cutoff
         and float(getattr(memory, "relationship_relevance", 0.0) or 0.0) >= 0.40
     ]
     if not candidates:

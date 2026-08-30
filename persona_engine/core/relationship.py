@@ -26,6 +26,10 @@ class RelationshipState:
     respect: float = 0.5
     guardedness: float = 0.5
     unresolved_conflict: float = 0.0
+    # Derived boundary for the current relationship episode. Historical
+    # memories keep their original unresolved-at-the-time semantics; this
+    # timestamp marks the latest point at which conflict fully returned to zero.
+    last_conflict_resolved_at: float = 0.0
     turns: int = 0
 
 

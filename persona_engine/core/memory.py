@@ -153,9 +153,73 @@ def simple_similarity(query: str, content: str) -> float:
     return semantic_similarity(query, content)
 
 
+TURN_RETRIEVAL_WIDTH = 4
+REFLECTION_RETRIEVAL_WIDTH = 3
+
+
 class MemoryStore:
     def __init__(self):
         self.memories: List[MemoryUnit] = []
+
+    def compact_user_told_working_set(self, relationship) -> dict:
+        """Bound only canonically recoverable user-statement autobiography.
+
+        Non-USER_TOLD memories remain pinned until their first-person/causal
+        reconstruction contracts are demonstrated. User statements retain
+        two current roles: active unresolved evidence for the widest consumer
+        (reflection, top 3) and recent conversational context for ordinary
+        retrieval (top 4). Cold canonical biography owns older wording.
+        """
+        user_memories = [m for m in self.memories if m.source == KnowledgeSource.USER_TOLD]
+        if not user_memories:
+            return {"before": len(self.memories), "after": len(self.memories), "evicted_user_told": 0}
+
+        keep_ids: set[str] = set()
+        cutoff = float(getattr(relationship, "last_conflict_resolved_at", 0.0) or 0.0)
+        relationship_unresolved = float(getattr(relationship, "unresolved_conflict", 0.0) or 0.0) > 0.0
+        if relationship_unresolved:
+            active_unresolved = [
+                m for m in user_memories
+                if m.unresolved and float(m.created_at) > cutoff
+            ]
+            active_unresolved.sort(
+                key=lambda m: (
+                    float(m.relationship_relevance),
+                    float(m.emotional_intensity),
+                    float(m.identity_relevance),
+                    float(m.created_at),
+                    str(m.id),
+                ),
+                reverse=True,
+            )
+            keep_ids.update(m.id for m in active_unresolved[:REFLECTION_RETRIEVAL_WIDTH])
+
+        recent = sorted(user_memories, key=lambda m: (float(m.created_at), str(m.id)), reverse=True)
+        recent_added = 0
+        for memory in recent:
+            if memory.id in keep_ids:
+                continue
+            keep_ids.add(memory.id)
+            recent_added += 1
+            if recent_added >= TURN_RETRIEVAL_WIDTH:
+                break
+
+        before = len(self.memories)
+        user_before = len(user_memories)
+        self.memories = [
+            memory for memory in self.memories
+            if memory.source != KnowledgeSource.USER_TOLD or memory.id in keep_ids
+        ]
+        user_after = sum(1 for memory in self.memories if memory.source == KnowledgeSource.USER_TOLD)
+        return {
+            "before": before,
+            "after": len(self.memories),
+            "user_told_before": user_before,
+            "user_told_after": user_after,
+            "evicted_user_told": user_before - user_after,
+            "active_unresolved_slots": REFLECTION_RETRIEVAL_WIDTH,
+            "recent_context_slots": TURN_RETRIEVAL_WIDTH,
+        }
 
     def add(self, mem: MemoryUnit):
         mem.content = first_person_memory_content(mem.content)
