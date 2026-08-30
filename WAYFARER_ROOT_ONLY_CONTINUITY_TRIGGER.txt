@@ -1,1 +1,1 @@
-trigger 2026-08-30 root-only integration retry after causal-root test alignment
+trigger 2026-08-30 root-only integration retry after subject-sequence fixture alignment
