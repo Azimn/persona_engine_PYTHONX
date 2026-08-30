@@ -1,0 +1,37 @@
+{
+  "changed_boundary_path": {
+    "canonical_types": [
+      "input",
+      "belief_consolidation",
+      "input",
+      "belief_consolidation"
+    ],
+    "consolidation_root_count": 2,
+    "first_changed": [
+      "trust_user"
+    ],
+    "live_belief": -0.4,
+    "replay_belief": -0.4,
+    "replay_complete": true,
+    "restart_belief": -0.4,
+    "second_changed": [
+      "trust_user"
+    ]
+  },
+  "contract": {
+    "empty_irrelevant_passes_are_canonical": false,
+    "legacy_dream_consolidation_remains_derived_compatibility": true,
+    "records_rule_relevant_threshold_misses": true,
+    "replay_regenerates_then_verifies_digest": true,
+    "root_type": "belief_consolidation"
+  },
+  "no_change_boundary_path": {
+    "consolidation_root_count": 2,
+    "first_changed": [],
+    "live_belief": 0.0,
+    "replay_belief": 0.0,
+    "second_changed": []
+  },
+  "passed": true,
+  "probe": "developmental-continuity-production-v2"
+}

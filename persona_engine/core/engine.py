@@ -59,6 +59,7 @@ from .voice import VoiceProfile, VoicePlanner
 from .avatar import AvatarProfile, AvatarProjector
 from .suppression import SuppressionTrace
 from .continuity_clock import ClockAdvance, ContinuityClock
+from .continuity import state_digest as continuity_state_digest
 
 
 def bucket_risk(risk: float) -> str:
@@ -602,8 +603,68 @@ class InteriorEngine:
         )]
 
     # ---------------- slow consolidation ----------------
-    def dream(self, min_interval_seconds: int = 3600) -> list[str]:
-        changed = self.dream_engine.run_idle_pass(self.identity.name, self.user_id, self.belief_rules, min_interval_seconds)
+    def dream(self, min_interval_seconds: int = 3600, *, record_event: bool = True) -> list[str]:
+        """Run one slow-belief pass and preserve causally relevant boundaries.
+
+        A threshold-miss can still be causal because it consumes evidence that
+        would otherwise combine with later evidence. Therefore any executed pass
+        with rule-relevant evidence becomes a compact character-owned root even
+        when ``changed_beliefs`` is empty. Passes containing no evidence consumed
+        by the active rule set remain noncanonical housekeeping.
+        """
+
+        result = self.dream_engine.prepare_idle_pass(
+            self.identity.name,
+            self.user_id,
+            self.belief_rules,
+            min_interval_seconds,
+        )
+        if result is None:
+            return []
+
+        trigger_types = {
+            str(rule.get("trigger_memory_type"))
+            for rule in self.belief_rules
+            if str(rule.get("trigger_memory_type", "")).strip()
+        }
+        relevant_counts = {
+            key: int(value)
+            for key, value in result.evidence_counts.items()
+            if key in trigger_types and int(value) > 0
+        }
+        changed = list(result.changed_beliefs)
+
+        if record_event and relevant_counts:
+            changes = {
+                belief_id: {
+                    "before": float(result.before_values[belief_id]),
+                    "after": float(result.after_values[belief_id]),
+                }
+                for belief_id in changed
+            }
+            payload = {
+                "payload_schema": "belief-consolidation-v1",
+                "consolidation_source": "dream_engine",
+                "relevant_evidence_counts": relevant_counts,
+                "changed_beliefs": changed,
+                "changes": changes,
+                "before_beliefs_digest": continuity_state_digest(result.before_values),
+                "after_beliefs_digest": continuity_state_digest(result.after_values),
+                "rules_digest": continuity_state_digest(self.belief_rules),
+            }
+            self.persistence.commit_belief_consolidation(
+                self.identity.name,
+                self.user_id,
+                self.timestep,
+                belief_state=self.belief_ledger.to_state(),
+                evidence_through=result.watermark,
+                payload=payload,
+            )
+        else:
+            # Replay suppresses root creation but must consume the same evidence
+            # window so later recorded boundaries see the same partition.
+            self.dream_engine.persist_prepared(self.identity.name, self.user_id, result)
+
         self._persist()
         return changed
 

@@ -27,6 +27,7 @@ CANONICAL_CONTINUITY_ROOT_EVENT_TYPES = frozenset({
     "user_statement",
     "time_advance",
     "commitment_adopted",
+    "belief_consolidation",
     "sensor_observation",
     "world_fact",
     "manual_authorized_fact",
@@ -124,6 +125,8 @@ def event_authority(event_type: str, payload: dict[str, Any] | None = None) -> C
         return ContinuityAuthority(explicit_actor or "continuity_clock", "internal_clock", "elapsed_time_authority", "private")
     if event_type == "commitment_adopted":
         return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "self_commitment_authority", "private")
+    if event_type in {"belief_consolidation", "dream_consolidation"}:
+        return ContinuityAuthority(explicit_actor or "character_core", "internal_core", "consolidation_authority", "private")
     if event_type in {"sensorium", "sensor_observation", "world_fact", "manual_authorized_fact", "world_action_resolution"}:
         return ContinuityAuthority(explicit_actor or "host", "host_world", "world_authority")
     if event_type == "dream_consolidation":
@@ -149,6 +152,31 @@ def canonical_continuity_eligible(event_type: str, payload: dict[str, Any] | Non
         target = str(payload.get("commitment_target", "")).strip()
         adoption_source = str(payload.get("adoption_source", ""))
         return kind == "non_disclosure" and bool(target) and adoption_source == "self_decision"
+    if event_type == "belief_consolidation":
+        if payload.get("payload_schema") != "belief-consolidation-v1":
+            return False
+        if payload.get("consolidation_source") != "dream_engine":
+            return False
+        digests = [payload.get("before_beliefs_digest"), payload.get("after_beliefs_digest"), payload.get("rules_digest")]
+        if not all(isinstance(value, str) and len(value) == 64 for value in digests):
+            return False
+        changed = payload.get("changed_beliefs")
+        if not isinstance(changed, list) or not all(isinstance(item, str) and item for item in changed):
+            return False
+        counts = payload.get("relevant_evidence_counts")
+        if not isinstance(counts, dict) or not counts:
+            return False
+        if not all(isinstance(key, str) and key and type(value) is int and value > 0 for key, value in counts.items()):
+            return False
+        changes = payload.get("changes")
+        if not isinstance(changes, dict):
+            return False
+        for belief_id, delta in changes.items():
+            if not isinstance(belief_id, str) or not isinstance(delta, dict):
+                return False
+            if not isinstance(delta.get("before"), (int, float)) or not isinstance(delta.get("after"), (int, float)):
+                return False
+        return True
     if event_type == "world_action_resolution":
         # WorldAuthority resolution is canonical only when the host actually
         # accepted/resolved the proposal. Rejected proposals remain diagnostics.

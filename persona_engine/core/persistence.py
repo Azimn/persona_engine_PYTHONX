@@ -431,6 +431,57 @@ class Persistence:
             )
             return max(0, int(cur.rowcount or 0))
 
+    def commit_belief_consolidation(
+        self,
+        character_id: str,
+        user_id: str,
+        timestep: int,
+        *,
+        belief_state: dict[str, Any],
+        evidence_through: float,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Atomically commit one causally relevant slow-belief boundary.
+
+        The belief snapshot, canonical boundary, and evidence-window consumption
+        are one SQLite transaction. The boundary is diagnostic/canonical history,
+        not fresh evidence for the next belief pass.
+        """
+
+        payload = dict(payload or {})
+        if not canonical_continuity_root_eligible("belief_consolidation", payload):
+            raise ValueError("invalid belief_consolidation causal root")
+        now = time.time()
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT INTO state (character_id,user_id,key,value,updated_at) VALUES(?,?,?,?,?) "
+                "ON CONFLICT(character_id,user_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (character_id, user_id, "belief_ledger", json.dumps(belief_state, ensure_ascii=False), now),
+            )
+            cur = conn.execute(
+                "INSERT INTO event_log (character_id,user_id,timestep,event_type,payload,created_at) VALUES (?,?,?,?,?,?)",
+                (character_id, user_id, timestep, "belief_consolidation", json.dumps(payload, ensure_ascii=False), now),
+            )
+            event = self._append_continuity_event_conn(
+                conn,
+                character_id=character_id,
+                user_id=user_id,
+                timestep=timestep,
+                event_type="belief_consolidation",
+                payload=payload,
+                wall_time=now,
+                legacy_event_id=int(cur.lastrowid),
+                payload_schema="belief-consolidation-v1",
+            )
+            conn.execute(
+                "DELETE FROM consolidation_evidence WHERE character_id=? AND user_id=? AND created_at<=?",
+                (character_id, user_id, float(evidence_through)),
+            )
+            if self.diagnostic_event_limit is not None:
+                self._prune_diagnostic_events_conn(conn, character_id, user_id)
+                self._diagnostic_writes_since_prune[(str(character_id), str(user_id))] = 0
+        return event.to_dict()
+
     def log_event(
         self,
         character_id: str,

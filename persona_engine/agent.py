@@ -40,8 +40,8 @@ class CharacterAgent:
     def say(self, text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
         return self.engine.receive_input(text, server_truth=server_truth, visible_context=visible_context)
 
-    def dream(self, min_interval_seconds: int = 3600) -> list[str]:
-        return self.engine.dream(min_interval_seconds=min_interval_seconds)
+    def dream(self, min_interval_seconds: int = 3600, *, record_event: bool = True) -> list[str]:
+        return self.engine.dream(min_interval_seconds=min_interval_seconds, record_event=record_event)
 
     def export_snapshot(self):
         return self.engine.export_session_snapshot()

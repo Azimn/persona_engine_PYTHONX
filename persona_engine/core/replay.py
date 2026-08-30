@@ -182,6 +182,8 @@ def replay_from_continuity_bundle(
     Current replay roots:
     - ``time_advance`` through the canonical subject-time API;
     - ``commitment_adopted`` through the explicit semantic self-decision API;
+    - ``belief_consolidation`` by regenerating evidence at the recorded boundary
+      and verifying its committed belief digest;
     - ``input`` / ``user_statement`` through ``CharacterAgent.say``;
     - bounded ``sensor_observation`` through audio/vision observation APIs.
 
@@ -218,6 +220,22 @@ def replay_from_continuity_bundle(
             if payload.get("adoption_source") != "self_decision":
                 raise ReplayContractError("commitment_adopted lacks self-decision provenance")
             agent.adopt_commitment(kind, target, record_event=False)
+            replayed += 1
+            continue
+        if event_type == "belief_consolidation":
+            expected_rules = payload.get("rules_digest")
+            actual_rules = hash_state(agent.engine.belief_rules)
+            if expected_rules != actual_rules:
+                raise ReplayContractError("belief_consolidation rule digest mismatch; explicit migration is required")
+            before = hash_state(agent.engine.belief_ledger.values)
+            if before != payload.get("before_beliefs_digest"):
+                raise ReplayContractError("belief_consolidation before-state digest mismatch")
+            changed = agent.dream(min_interval_seconds=0, record_event=False)
+            if list(changed) != list(payload.get("changed_beliefs") or []):
+                raise ReplayContractError("belief_consolidation changed-belief set mismatch")
+            after = hash_state(agent.engine.belief_ledger.values)
+            if after != payload.get("after_beliefs_digest"):
+                raise ReplayContractError("belief_consolidation after-state digest mismatch")
             replayed += 1
             continue
         if event_type in {"input", "user_statement"}:
