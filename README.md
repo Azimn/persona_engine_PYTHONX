@@ -55,14 +55,17 @@ Changing the renderer may change fluency, vocabulary, reasoning bandwidth, or st
 
 Latest completed phase-sized production integration:
 
-- Commit: `71790eb` (`Persist minimum-sufficient causal continuity roots`)
-- Focused root/continuity contracts: `36 passed`
-- Full Python 3.11 deterministic suite: `326 passed, 1 skipped, 1 warning`
-- 1,000-turn production SQLite measurement: `2,486,272 B`
-- 5,000-turn production SQLite measurement: `8,581,120 B`
+- Runtime commit: `268739c` (`Preserve slow belief development in canonical continuity`)
+- Documentation closeout: `9b4f64a` (`Document developmental continuity contract`)
+- Focused developmental/continuity/replay contracts: `18 passed`
+- Full Python 3.11 deterministic suite: `330 passed, 1 skipped, 1 warning`
+- Changed slow belief trajectory: live `-0.4`, restart `-0.4`, canonical replay `-0.4`
+- Two separated no-change repair consolidation boundaries: live `0.0`, canonical replay `0.0`
+- Root-only 1,000-turn production SQLite baseline: `2,486,272 B`
+- Root-only 5,000-turn production SQLite baseline: `8,581,120 B`
 - 5,000-turn active serialized state: approximately `12.8 KB`
 
-The remaining warning is the existing Starlette/httpx TestClient deprecation. The normal Python 3.11/3.12 Wayfarer CI matrix should be checked after this documentation pass before quoting a newer branch-wide two-version result.
+The remaining warning is the existing Starlette/httpx TestClient deprecation. This README update intentionally triggers the normal Python 3.11/3.12 Wayfarer CI matrix against the final developmental-continuity branch state.
 
 Run locally with:
 
@@ -93,7 +96,7 @@ Wayfarer has already:
 - removed renderer hints from bundled cartridges,
 - added renderer/identity authority tests.
 
-M1 ownership/ontology repair is complete. Current continuity work uses minimum-sufficient causal roots while preserving historical v1 compatibility. The next uncovered causal continuity family is slow belief consolidation/developmental replay.
+M1 ownership/ontology repair is complete. Current continuity work uses minimum-sufficient causal roots while preserving historical v1 compatibility. Slow `BeliefLedger` development now has an explicit digest-verified `belief_consolidation` boundary so replay preserves demonstrated developmental history without restoring verbose per-turn state records.
 
 ## Two Design Decisions Added During Review
 
@@ -177,36 +180,3 @@ AI coding tools and human contributors should read the following before behavior
 9. relevant tests
 
 Root `AGENTS.md` contains mandatory instructions for Codex and other automated coding assistants.
-
-## Current Major Future Milestones
-
-The detailed roadmap tracks:
-
-- `.snp` v2 and phenotype interoperability,
-- a canonical continuity ledger,
-- linear subject time,
-- cross-host handoff and branching semantics,
-- experience-centered memory,
-- controlled personality development,
-- affective homeostasis,
-- structured model-as-organ cognition,
-- social influence and anti-coercion,
-- action/tool authority,
-- semantic speech planning,
-- a better zero-model compositional renderer,
-- offscreen life,
-- substrate-neutral host protocol,
-- migration/ownership tooling,
-- Society Lab adversarial social testing,
-- renderer-swap benchmarks,
-- ablation and Minimum Viable Individual measurement,
-- eventual P99-next contract port,
-- runtime projection compilation,
-- hardware-budget profiling,
-- long-duration release trials.
-
-## Current Principle
-
-The minimum renderer and the minimum character are not the same problem.
-
-Wayfarer first determines the smallest causal machinery required for a persistent individual to remain coherent, recognizable, socially responsive, developmentally plausible, and substrate-independent. Only then should that stabilized individual contract be projected back toward the lowest-resource runtime.
