@@ -1,0 +1,43 @@
+name: Wayfarer document root-only continuity phase
+
+on:
+  push:
+    branches: [wayfarer]
+    paths:
+      - 'WAYFARER_DOCUMENT_ROOT_ONLY_TRIGGER.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  document:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Update durable project documentation
+        run: python tools/_document_root_only_continuity_phase.py
+      - name: Verify documentation references exist
+        run: |
+          test -f persona_engine/evidence/mvi/CANONICAL_ROOT_PROJECTION.md
+          test -f persona_engine/evidence/mvi/ROOT_ONLY_CONTINUITY_STORAGE.md
+          test -f persona_engine/evidence/mvi/ROOT_ONLY_PRODUCTION_PLATEAU.md
+          grep -q '71790eb' persona_engine/docs/WAYFARER_PROGRESS.md
+          grep -q 'root-only production contract' persona_engine/docs/WAYFARER_PROGRESS.md
+          grep -q 'Validated production refinement, 2026-08-30' persona_engine/docs/WAYFARER_MASTER_PLAN.md
+      - name: Commit docs and clean one-time scaffolding
+        run: |
+          rm -f tools/_document_root_only_continuity_phase.py
+          rm -f .github/workflows/wayfarer-document-root-only-phase.yml
+          rm -f WAYFARER_DOCUMENT_ROOT_ONLY_TRIGGER.txt
+          git config user.name 'Wayfarer Documentation'
+          git config user.email 'wayfarer-docs@users.noreply.github.com'
+          git add -A
+          git commit -m 'Document root-only continuity production contract'
+          git push origin HEAD:wayfarer
