@@ -28,6 +28,27 @@ from .continuity import (
 )
 from .deception_ledger import DeceptionLedger
 
+# Operational telemetry is not character cognition. The normal runtime keeps a
+# recent diagnostic window for debugging while direct Persistence callers retain
+# the legacy unlimited default for migration and tooling compatibility.
+DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT = 512
+
+
+def _extract_evidence_types(event_type: str, payload: dict[str, Any]) -> list[str]:
+    """Return the exact semantic counters consumed by slow consolidation."""
+
+    types: list[str] = []
+    trigger = payload.get("trigger_memory_type") if isinstance(payload, dict) else None
+    if trigger:
+        types.append(str(trigger))
+    if isinstance(payload, dict):
+        for item in payload.get("memory_types", []) or []:
+            types.append(str(item))
+    if not types:
+        types.append(str(event_type))
+    return types
+
+
 SCHEMA = """
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS state (
@@ -54,6 +75,16 @@ CREATE TABLE IF NOT EXISTS event_log (
     payload TEXT NOT NULL,
     created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS consolidation_evidence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    legacy_event_id INTEGER NOT NULL UNIQUE,
+    character_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    evidence_types TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_consolidation_evidence_stream_time
+    ON consolidation_evidence(character_id, user_id, created_at);
 CREATE TABLE IF NOT EXISTS continuity_subject (
     character_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
@@ -107,12 +138,17 @@ class ContinuityImportError(ValueError):
 
 
 class Persistence:
-    def __init__(self, path: str = "persona_state.db"):
+    def __init__(self, path: str = "persona_state.db", diagnostic_event_limit: int | None = None):
         self.path = path
+        self.diagnostic_event_limit = None if diagnostic_event_limit is None else max(1, int(diagnostic_event_limit))
         self._subject_bindings: dict[tuple[str, str], tuple[str, int]] = {}
         with self._connection() as conn:
             conn.executescript(SCHEMA)
             self._ensure_subject_sequence_schema_conn(conn)
+            # Migrate semantic consolidation evidence before any runtime is
+            # allowed to prune verbose legacy diagnostics. Source event ids make
+            # this idempotent across interrupted upgrades and repeated startups.
+            self._backfill_consolidation_evidence_conn(conn)
 
     def _ensure_subject_sequence_schema_conn(self, conn) -> None:
         """Add/backfill the subject-owned ordinal without changing stream sequence.
@@ -163,6 +199,31 @@ class Persistence:
             "ON continuity_event(subject_uuid,continuity_epoch,subject_sequence) "
             "WHERE subject_sequence IS NOT NULL"
         )
+
+    def _backfill_consolidation_evidence_conn(self, conn) -> int:
+        """Copy compact semantic evidence from any legacy diagnostic rows once."""
+
+        rows = conn.execute(
+            "SELECT e.id,e.character_id,e.user_id,e.event_type,e.payload,e.created_at "
+            "FROM event_log e LEFT JOIN consolidation_evidence c ON c.legacy_event_id=e.id "
+            "WHERE c.legacy_event_id IS NULL ORDER BY e.id"
+        ).fetchall()
+        inserted = 0
+        for event_id, character_id, user_id, event_type, payload_text, created_at in rows:
+            try:
+                payload = json.loads(payload_text)
+            except (json.JSONDecodeError, TypeError):
+                payload = {}
+            if not isinstance(payload, dict):
+                payload = {}
+            types = _extract_evidence_types(str(event_type), payload)
+            conn.execute(
+                "INSERT OR IGNORE INTO consolidation_evidence "
+                "(legacy_event_id,character_id,user_id,evidence_types,created_at) VALUES(?,?,?,?,?)",
+                (int(event_id), str(character_id), str(user_id), json.dumps(types, ensure_ascii=False), float(created_at)),
+            )
+            inserted += 1
+        return inserted
 
     def _connect(self):
         conn = sqlite3.connect(self.path, check_same_thread=False)
@@ -225,6 +286,11 @@ class Persistence:
                 "ON CONFLICT(character_id,user_id) DO UPDATE SET subject_uuid=excluded.subject_uuid, continuity_epoch=excluded.continuity_epoch, updated_at=excluded.updated_at",
                 (character_id, user_id, subject_uuid, continuity_epoch, time.time()),
             )
+        if self.diagnostic_event_limit is not None:
+            # A pre-M3 database may contain canonical experiences only in the
+            # legacy journal. Admit them to continuity before telemetry pruning.
+            self.backfill_legacy_events(character_id, user_id)
+            self.prune_diagnostic_events(character_id, user_id)
 
     def _resolve_subject(self, character_id: str, user_id: str) -> tuple[str, int]:
         key = (str(character_id), str(user_id))
@@ -320,6 +386,38 @@ class Persistence:
                 )
 
     # ---------------- diagnostic + canonical event logging ----------------
+    def _prune_diagnostic_events_conn(self, conn, character_id: str, user_id: str) -> int:
+        limit = self.diagnostic_event_limit
+        if limit is None:
+            return 0
+        cutoff = conn.execute(
+            "SELECT id FROM event_log WHERE character_id=? AND user_id=? ORDER BY id DESC LIMIT 1 OFFSET ?",
+            (character_id, user_id, max(0, int(limit) - 1)),
+        ).fetchone()
+        if not cutoff:
+            return 0
+        cur = conn.execute(
+            "DELETE FROM event_log WHERE character_id=? AND user_id=? AND id<?",
+            (character_id, user_id, int(cutoff[0])),
+        )
+        return max(0, int(cur.rowcount or 0))
+
+    def prune_diagnostic_events(self, character_id: str, user_id: str) -> int:
+        """Bound recent operational telemetry without touching lived history."""
+
+        with self._connection() as conn:
+            return self._prune_diagnostic_events_conn(conn, character_id, user_id)
+
+    def prune_consolidation_evidence(self, character_id: str, user_id: str, through: float) -> int:
+        """Discard semantic evidence already committed into the belief ledger."""
+
+        with self._connection() as conn:
+            cur = conn.execute(
+                "DELETE FROM consolidation_evidence WHERE character_id=? AND user_id=? AND created_at<=?",
+                (character_id, user_id, float(through)),
+            )
+            return max(0, int(cur.rowcount or 0))
+
     def log_event(self, character_id: str, user_id: str, timestep: int, event_type: str, payload: dict):
         """Write the broad diagnostic log and, when eligible, canonical continuity."""
 
@@ -331,6 +429,11 @@ class Persistence:
                 (character_id, user_id, timestep, event_type, json.dumps(payload, ensure_ascii=False), now),
             )
             legacy_id = int(cur.lastrowid)
+            conn.execute(
+                "INSERT INTO consolidation_evidence "
+                "(legacy_event_id,character_id,user_id,evidence_types,created_at) VALUES(?,?,?,?,?)",
+                (legacy_id, character_id, user_id, json.dumps(_extract_evidence_types(event_type, payload), ensure_ascii=False), now),
+            )
             if canonical_continuity_eligible(event_type, payload):
                 self._append_continuity_event_conn(
                     conn,
@@ -342,6 +445,7 @@ class Persistence:
                     wall_time=now,
                     legacy_event_id=legacy_id,
                 )
+            self._prune_diagnostic_events_conn(conn, character_id, user_id)
 
     def _next_sequence_conn(self, conn, subject_uuid: str, user_id: str, continuity_epoch: int) -> int:
         row = conn.execute(
@@ -714,35 +818,37 @@ class Persistence:
 
     # ---------------- legacy event-log readers ----------------
     def event_counts_since(self, character_id: str, user_id: str, since: float) -> dict[str, int]:
-        """Count evidence types logged after the supplied wall-clock timestamp."""
+        """Count compact semantic evidence after the supplied consolidation watermark.
+
+        This no longer depends on retaining verbose diagnostic payloads. Legacy
+        journals are backfilled into consolidation_evidence during Persistence
+        initialization before a bounded runtime can prune them.
+        """
+
         conn = self._connect()
         cur = conn.execute(
-            "SELECT event_type, payload FROM event_log WHERE character_id=? AND user_id=? AND created_at>?",
-            (character_id, user_id, since),
+            "SELECT evidence_types FROM consolidation_evidence "
+            "WHERE character_id=? AND user_id=? AND created_at>? ORDER BY id",
+            (character_id, user_id, float(since)),
         )
         counts: dict[str, int] = {}
         try:
-            for event_type, payload_text in cur.fetchall():
+            for (types_text,) in cur.fetchall():
                 try:
-                    payload = json.loads(payload_text)
-                except json.JSONDecodeError:
-                    payload = {}
-                types = []
-                if isinstance(payload, dict):
-                    if payload.get("trigger_memory_type"):
-                        types.append(str(payload["trigger_memory_type"]))
-                    for item in payload.get("memory_types", []) or []:
-                        types.append(str(item))
-                if not types:
-                    types.append(str(event_type))
+                    types = json.loads(types_text)
+                except (json.JSONDecodeError, TypeError):
+                    types = []
+                if not isinstance(types, list):
+                    continue
                 for item in types:
-                    counts[item] = counts.get(item, 0) + 1
+                    key = str(item)
+                    counts[key] = counts.get(key, 0) + 1
             return counts
         finally:
             conn.close()
 
     def load_events_since(self, character_id: str, user_id: str, since: float, event_type: str | None = None) -> list[dict]:
-        """Load diagnostic event-log payloads created after a wall-clock timestamp."""
+        """Load retained diagnostic payloads after a wall-clock timestamp.\n\n        Bounded runtimes expose recent telemetry only; canonical continuity is\n        the authority for full lived history. Direct Persistence callers keep\n        the legacy unlimited journal unless they opt into a limit.\n        """
         conn = self._connect()
         if event_type is None:
             cur = conn.execute(

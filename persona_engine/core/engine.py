@@ -34,7 +34,7 @@ from .cold_biography import (
 )
 from .decision_memory import evaluate_history_for_decision
 from .decision_commitment import evaluate_commitments_for_decision
-from .persistence import Persistence
+from .persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
@@ -102,7 +102,7 @@ class ReflectionCandidate:
 
 
 class InteriorEngine:
-    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None):
+    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT):
         self.cartridge_data = None
         self.belief_rules = []
         if cartridge_path is not None:
@@ -148,7 +148,7 @@ class InteriorEngine:
         self.renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
         self.validator = OutputValidator()
         self.consistency = ConsistencyLayer(self.validator)
-        self.persistence = Persistence(db_path)
+        self.persistence = Persistence(db_path, diagnostic_event_limit=diagnostic_event_limit)
         if self.identity.entity_uuid:
             self.persistence.bind_subject(self.identity.name, self.user_id, self.identity.entity_uuid)
         self.deception_ledger = DeceptionLedger()

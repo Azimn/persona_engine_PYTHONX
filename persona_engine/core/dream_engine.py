@@ -21,8 +21,13 @@ class DreamEngine:
         since = float(self.belief_ledger.last_consolidated or 0.0)
         counts = self.persistence.event_counts_since(character_id, user_id, since)
         changed = self.belief_ledger.evaluate_rules(belief_rules, counts)
-        self.belief_ledger.last_consolidated = time.time()
+        watermark = time.time()
+        self.belief_ledger.last_consolidated = watermark
+        # Persist the new watermark before pruning its source evidence. A crash
+        # after save but before prune is harmless because those rows fall behind
+        # the persisted watermark; pruning before save could lose evidence.
         self.persistence.save(character_id, user_id, "belief_ledger", self.belief_ledger.to_state())
+        self.persistence.prune_consolidation_evidence(character_id, user_id, watermark)
         return changed
 
     def run_idle_pass(self, character_id: str, user_id: str, belief_rules: list[dict], min_interval_seconds: int = 3600) -> list[str]:

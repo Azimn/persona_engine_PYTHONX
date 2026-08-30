@@ -6,14 +6,15 @@ from .core.engine import InteriorEngine
 from .core.symbols import SharedSymbol
 from .core.audio_sensor import AudioObservation
 from .core.vision_sensor import VisionObservation
+from .core.persistence import DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 import time
 
 
 class CharacterAgent:
     """Thin public API. All real mechanics live in InteriorEngine."""
 
-    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None):
-        self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path)
+    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT):
+        self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path, diagnostic_event_limit=diagnostic_event_limit)
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
         self.engine.pressures.add(EmotionalPressure(name, magnitude, inhibition_strength, trigger_sensitivity))

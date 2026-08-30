@@ -1,9 +1,9 @@
 {
   "canonical_diagnostic_duplication": {
-    "canonical_payload_bytes_for_linked_rows": 2839861,
-    "diagnostic_payload_bytes_for_linked_rows": 2839861,
-    "exact_duplicate_payload_bytes": 2839861,
-    "linked_canonical_rows": 3010
+    "canonical_payload_bytes_for_linked_rows": 181199,
+    "diagnostic_payload_bytes_for_linked_rows": 181199,
+    "exact_duplicate_payload_bytes": 181199,
+    "linked_canonical_rows": 192
   },
   "continuity_event_by_type": [
     {
@@ -32,22 +32,25 @@
     }
   ],
   "database": {
-    "allocated_bytes": 13443072,
+    "allocated_bytes": 6692864,
     "dbstat_available": true,
-    "file_bytes": 13443072,
-    "freelist_bytes": 0,
-    "freelist_pages": 0,
+    "file_bytes": 6692864,
+    "freelist_bytes": 4096,
+    "freelist_pages": 1,
     "journal_mode": "wal",
-    "logical_text_bytes_across_measured_columns": 10555358,
-    "page_count": 3282,
+    "logical_text_bytes_across_measured_columns": 4299690,
+    "page_count": 1634,
     "page_size": 4096,
     "physical_bytes_by_object": {
+      "consolidation_evidence": 495616,
       "continuity_checkpoint": 163840,
       "continuity_event": 4120576,
       "continuity_subject": 4096,
-      "event_log": 8241152,
+      "event_log": 532480,
+      "idx_consolidation_evidence_stream_time": 364544,
       "idx_continuity_subject_global_sequence": 167936,
       "idx_continuity_subject_sequence": 217088,
+      "sqlite_autoindex_consolidation_evidence_1": 94208,
       "sqlite_autoindex_continuity_checkpoint_1": 73728,
       "sqlite_autoindex_continuity_event_1": 151552,
       "sqlite_autoindex_continuity_event_2": 36864,
@@ -63,79 +66,78 @@
   },
   "derived": {
     "checkpoint_rows_per_exercised_turn": 1.004,
-    "continuity_payload_fraction_of_file": 0.2113,
+    "consolidation_evidence_rows_per_exercised_turn": 8.027,
+    "continuity_payload_fraction_of_file": 0.4243,
     "continuity_rows_per_exercised_turn": 3.01,
-    "event_log_payload_fraction_of_file": 0.5025,
-    "event_log_rows_per_exercised_turn": 8.027,
-    "exact_duplicate_payload_fraction_of_file": 0.2113,
-    "file_bytes_per_exercised_turn": 13443.07
+    "event_log_payload_fraction_of_file": 0.0644,
+    "event_log_rows_per_exercised_turn": 0.512,
+    "exact_duplicate_payload_fraction_of_file": 0.0271,
+    "file_bytes_per_exercised_turn": 6692.86,
+    "runtime_diagnostic_event_limit": 512
   },
   "event_log_by_type": [
     {
-      "average_payload_bytes": 2620.78,
+      "average_payload_bytes": 2623.69,
       "event_type": "turn",
-      "payload_bytes": 2628643,
-      "rows": 1003
+      "payload_bytes": 167916,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 1051.3,
+      "average_payload_bytes": 1051.11,
       "event_type": "state_transition",
-      "payload_bytes": 1054450,
-      "rows": 1003
+      "payload_bytes": 67271,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 921.54,
+      "average_payload_bytes": 922.12,
       "event_type": "input",
-      "payload_bytes": 924301,
-      "rows": 1003
+      "payload_bytes": 59016,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 858.28,
+      "average_payload_bytes": 858.0,
       "event_type": "sensorium",
-      "payload_bytes": 860859,
-      "rows": 1003
+      "payload_bytes": 54912,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 477.15,
+      "average_payload_bytes": 476.45,
       "event_type": "speech",
-      "payload_bytes": 478580,
-      "rows": 1003
+      "payload_bytes": 30493,
+      "rows": 64
     },
     {
       "average_payload_bytes": 330.0,
       "event_type": "private_cognition",
-      "payload_bytes": 330990,
-      "rows": 1003
+      "payload_bytes": 21120,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 293.9,
+      "average_payload_bytes": 293.45,
       "event_type": "voice_plan",
-      "payload_bytes": 294783,
-      "rows": 1003
+      "payload_bytes": 18781,
+      "rows": 64
     },
     {
-      "average_payload_bytes": 180.95,
+      "average_payload_bytes": 181.0,
       "event_type": "avatar_state",
-      "payload_bytes": 181495,
-      "rows": 1003
-    },
-    {
-      "average_payload_bytes": 474.0,
-      "event_type": "belief",
-      "payload_bytes": 948,
-      "rows": 2
-    },
-    {
-      "average_payload_bytes": 251.0,
-      "event_type": "commitment_adopted",
-      "payload_bytes": 251,
-      "rows": 1
+      "payload_bytes": 11584,
+      "rows": 64
     }
   ],
   "interpretation": "This probe measures storage ownership, not a proposed retention policy. The broad diagnostic journal, canonical continuity ledger, current snapshots, and digest checkpoints are reported separately so any future persistence optimization can preserve the semantic consumer that justified each byte.",
   "probe": "persistence-storage-v1",
   "production_policy_changed": false,
   "tables": {
+    "consolidation_evidence": {
+      "logical_text_bytes": 308073,
+      "rows": 8027,
+      "text_column_bytes": {
+        "character_id": 72243,
+        "evidence_types": 131479,
+        "user_id": 104351
+      }
+    },
     "continuity_checkpoint": {
       "logical_text_bytes": 125500,
       "rows": 1004,
@@ -176,23 +178,23 @@
       }
     },
     "event_log": {
-      "logical_text_bytes": 7011161,
-      "rows": 8027,
+      "logical_text_bytes": 447413,
+      "rows": 512,
       "text_column_bytes": {
-        "character_id": 72243,
-        "event_type": 79267,
-        "payload": 6755300,
-        "user_id": 104351
+        "character_id": 4608,
+        "event_type": 5056,
+        "payload": 431093,
+        "user_id": 6656
       }
     },
     "state": {
-      "logical_text_bytes": 13640,
+      "logical_text_bytes": 13647,
       "rows": 18,
       "text_column_bytes": {
         "character_id": 162,
         "key": 186,
         "user_id": 234,
-        "value": 13058
+        "value": 13065
       }
     },
     "subject_state": {

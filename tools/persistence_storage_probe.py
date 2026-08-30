@@ -93,6 +93,7 @@ def run(turns: int = DEFAULT_TURNS) -> dict:
                 "state": _table_metrics(conn, "state", ("character_id", "user_id", "key", "value")),
                 "subject_state": _table_metrics(conn, "subject_state", ("subject_uuid", "key", "value")),
                 "event_log": _table_metrics(conn, "event_log", ("character_id", "user_id", "event_type", "payload")),
+                "consolidation_evidence": _table_metrics(conn, "consolidation_evidence", ("character_id", "user_id", "evidence_types")),
                 "continuity_subject": _table_metrics(conn, "continuity_subject", ("character_id", "user_id", "subject_uuid")),
                 "continuity_event": _table_metrics(
                     conn,
@@ -161,6 +162,8 @@ def run(turns: int = DEFAULT_TURNS) -> dict:
                     "event_log_rows_per_exercised_turn": round(tables["event_log"]["rows"] / turns, 3),
                     "continuity_rows_per_exercised_turn": round(tables["continuity_event"]["rows"] / turns, 3),
                     "checkpoint_rows_per_exercised_turn": round(tables["continuity_checkpoint"]["rows"] / turns, 3),
+                    "consolidation_evidence_rows_per_exercised_turn": round(tables["consolidation_evidence"]["rows"] / turns, 3),
+                    "runtime_diagnostic_event_limit": agent.engine.persistence.diagnostic_event_limit,
                     "event_log_payload_fraction_of_file": round(
                         tables["event_log"]["text_column_bytes"]["payload"] / file_bytes, 4
                     ) if file_bytes else 0.0,
