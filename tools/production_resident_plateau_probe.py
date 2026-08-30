@@ -64,12 +64,12 @@ def run() -> dict:
     with tempfile.TemporaryDirectory() as directory:
         db = str(Path(directory) / "state.db")
         agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
-        subject_uuid = agent.engine.subject_uuid
+        subject_uuid = agent.engine.identity.entity_uuid
 
         # Keep several real longitudinal requirements alive throughout the run.
         agent.say("Please remember this neutral detail: the lighthouse lens color is cobalt-blue.")
-        first_conflict = agent.say("You lied to me. This is your fault.")
-        second_conflict = agent.say("You lied to me again. This is your fault too.")
+        agent.say("You lied to me. This is your fault.")
+        agent.say("You lied to me again. This is your fault too.")
         agent.adopt_commitment("non_disclosure", "project orchid")
         conflict_ids = {
             memory.id
@@ -94,7 +94,7 @@ def run() -> dict:
 
         # Reconstruct from persisted production state, then test lived behavior.
         restarted = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
-        restart_subject_same = restarted.engine.subject_uuid == subject_uuid
+        restart_subject_same = restarted.engine.identity.entity_uuid == subject_uuid
         restart_user_count = sum(
             1 for memory in restarted.engine.memory.memories
             if memory.source == KnowledgeSource.USER_TOLD
