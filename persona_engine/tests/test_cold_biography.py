@@ -5,7 +5,13 @@ import tempfile
 from pathlib import Path
 
 from persona_engine.agent import CharacterAgent
-from persona_engine.core.cold_biography import grounded_recall_match, recall_focus_tokens
+from persona_engine.core.cold_biography import (
+    context_focus_tokens,
+    contextual_readthrough_request,
+    grounded_context_match,
+    grounded_recall_match,
+    recall_focus_tokens,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 CART = ROOT / "persona_engine" / "cartridges" / "pretorius.snp"
@@ -111,3 +117,71 @@ def test_non_recall_turn_does_not_open_cold_archive():
             raise AssertionError("cold archive should not be scanned for ordinary turns")
         agent.engine.persistence.iter_continuity_events = fail
         agent.say("Hello.")
+
+
+
+def _project_two(agent: CharacterAgent) -> None:
+    memories = list(agent.engine.memory.memories)
+    agent.engine.memory.memories = sorted(memories, key=_priority, reverse=True)[:2]
+
+
+def test_contextual_readthrough_requires_continuation_and_multiple_grounded_anchors():
+    query = "Is the old observatory code word still the same?"
+    assert contextual_readthrough_request(query) is True
+    assert context_focus_tokens(query) == {"observatory", "code", "word"}
+    assert grounded_context_match(
+        query,
+        "Please remember this neutral detail: the old observatory code word is amber-otter.",
+    ) is True
+    assert grounded_context_match(
+        "Is the brass telescope serial number still the same?",
+        "Please remember this neutral detail: the old observatory code word is amber-otter.",
+    ) is False
+    assert contextual_readthrough_request("Is it still the same?") is False
+    assert contextual_readthrough_request("What is the old observatory code word?") is False
+
+
+def test_contextual_cold_readthrough_changes_observable_answer_without_rehydrating_hot_memory():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "state.db")
+        _make_history(db)
+        agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        _project_two(agent)
+        assert all(TARGET not in memory.content.lower() for memory in agent.engine.memory.memories)
+
+        result = agent.say("Is the old observatory code word still the same?")
+
+        assert TARGET in result["response"].lower()
+        assert any(
+            TARGET in item["content"].lower()
+            and "cold_biography" in item["tags"]
+            and "contextual_readthrough" in item["tags"]
+            for item in result["retrieved_memory_trace"]
+        )
+        assert all(TARGET not in memory.content.lower() for memory in agent.engine.memory.memories)
+
+
+def test_contextual_cold_readthrough_fails_closed_for_never_happened_and_anchorless_topics():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "state.db")
+        _make_history(db)
+        agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+        _project_two(agent)
+
+        negative = agent.say("Is the brass telescope serial number still the same?")
+        broad = agent.say("Is it still the same?")
+
+        assert not any("contextual_readthrough" in item["tags"] for item in negative["retrieved_memory_trace"])
+        assert not any("contextual_readthrough" in item["tags"] for item in broad["retrieved_memory_trace"])
+        assert TARGET not in negative["response"].lower()
+        assert TARGET not in broad["response"].lower()
+
+
+def test_contextual_cold_readthrough_does_not_cross_interlocutor_boundary():
+    with tempfile.TemporaryDirectory() as d:
+        db = os.path.join(d, "state.db")
+        _make_history(db, "alice")
+        bob = CharacterAgent(cartridge_path=str(CART), user_id="bob", db_path=db)
+        result = bob.say("Is the old observatory code word still the same?")
+        assert TARGET not in result["response"].lower()
+        assert not any("contextual_readthrough" in item["tags"] for item in result["retrieved_memory_trace"])

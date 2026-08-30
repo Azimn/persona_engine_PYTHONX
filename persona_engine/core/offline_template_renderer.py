@@ -93,12 +93,18 @@ class OfflineTemplateRenderer:
         resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
         digest = request.ledger_digest if isinstance(request.ledger_digest, dict) else {}
         identity = str(digest.get("identity", "")).strip()
-        memories = [str(getattr(memory, "content", memory)) for memory in (request.retrieved_memories or [])]
+        memory_units = list(request.retrieved_memories or [])
+        memories = [str(getattr(memory, "content", memory)) for memory in memory_units]
+        contextual_memory = any(
+            "contextual_readthrough" in set(getattr(memory, "tags", set()) or set())
+            for memory in memory_units
+        )
         context = {
             "user_text": str(resolved.get("user_text", "")),
             "system_text": str(resolved.get("system_prompt", "")),
             "decision_payload": dict(request.decision_payload or {}),
             "memories": memories,
+            "contextual_memory": contextual_memory,
             "evidence": list(request.evidence or []),
             "ledger_digest": dict(digest),
             "identity": identity,
@@ -110,6 +116,10 @@ class OfflineTemplateRenderer:
         system_text = str(context.get("system_text", ""))
         identity = str(context.get("identity", ""))
         group = self._classify(user_text, system_text, context.get("decision_payload", {}))
+        if group == "question" and bool(context.get("contextual_memory")):
+            # Grounded cold continuation is already authorized evidence. Expose
+            # it rather than hiding successful recollection behind a generic reply.
+            group = "memory"
         topic = self._extract_topic(user_text)
         memory = self._select_memory(topic, context.get("memories", []))
         if group == "memory" and not memory:
