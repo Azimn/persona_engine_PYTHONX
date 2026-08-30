@@ -519,7 +519,12 @@ class InteriorEngine:
         top_mems = self.memory.retrieve("reflection on recent unresolved events", now, top_k=3)
         if not top_mems:
             return
-        unresolved = [m for m in top_mems if m.unresolved]
+        # A memory may truthfully record that an episode was unresolved at the
+        # time without implying that the relationship is still unresolved now.
+        # Reflection must therefore combine historical evidence with current
+        # relationship state, matching the conduct gate's repair semantics.
+        relationship_unresolved_now = self.relationship.unresolved_conflict > 0.0
+        unresolved = [m for m in top_mems if m.unresolved] if relationship_unresolved_now else []
         ids = [m.id for m in top_mems]
         confidence = min(0.9, 0.45 + 0.15 * len(unresolved) + sum(m.identity_relevance for m in top_mems) / 10.0)
         claim = "The relationship tends to become guarded after unresolved accusations." if unresolved else "Recent exchanges are forming a stable interaction pattern."

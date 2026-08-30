@@ -1,16 +1,16 @@
 {
   "interpretation": "Hot autobiography should protect current consumer roles rather than a raw item count. This probe also treats visible mundane continuity and post-repair fixation as experience-level gates, not merely internal-state concerns.",
-  "post_repair_reflection_bug_detected": true,
+  "post_repair_reflection_bug_detected": false,
   "probe": "memory-consumer-role-v1",
   "production_policy_changed": false,
   "repair_reflection": {
     "conflict_after_repair": 0.0,
     "conflict_before_repair": 0.2,
     "historical_unresolved_memory_count": 2,
-    "post_repair_false_unresolved_reflection": true,
-    "reflection_trait_after": true,
+    "post_repair_false_unresolved_reflection": false,
+    "reflection_trait_after": false,
     "reflection_trait_before": false,
-    "relationship_belief": "The relationship tends to become guarded after unresolved accusations."
+    "relationship_belief": null
   },
   "smallest_role_projection_preserving_causal_and_trace_continuity": "causal2_recent1",
   "variants": [
@@ -21,9 +21,9 @@
       "hot_after_projection": [
         {
           "content": "I heard you say: Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
-          "created_at": 1788064948.5625181,
+          "created_at": 1788065083.2303905,
           "emotional_intensity": 0.0,
-          "id": "7d5a323d",
+          "id": "0737015e",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -33,9 +33,9 @@
         },
         {
           "content": "I heard you say: You lied to me. This is your fault.",
-          "created_at": 1788064948.5799434,
+          "created_at": 1788065083.2499592,
           "emotional_intensity": 0.7,
-          "id": "0d3189a6",
+          "id": "dafbf16f",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -45,9 +45,9 @@
         },
         {
           "content": "I heard you say: You lied to me again. This is your fault too.",
-          "created_at": 1788064948.5978885,
+          "created_at": 1788065083.2707686,
           "emotional_intensity": 0.7,
-          "id": "7f795dd7",
+          "id": "99483a5e",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -57,9 +57,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 0: ordinary shelf marker 0.",
-          "created_at": 1788064948.6222794,
+          "created_at": 1788065083.2986999,
           "emotional_intensity": 0.39847499999999997,
-          "id": "3a7e30f1",
+          "id": "2a7a30d2",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -69,9 +69,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 1: ordinary shelf marker 1.",
-          "created_at": 1788064948.6386561,
+          "created_at": 1788065083.3181915,
           "emotional_intensity": 0.39847499999999997,
-          "id": "f4f93156",
+          "id": "b5579bf4",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -81,9 +81,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 2: ordinary shelf marker 2.",
-          "created_at": 1788064948.6550446,
+          "created_at": 1788065083.3406932,
           "emotional_intensity": 0.39847499999999997,
-          "id": "d7e74b23",
+          "id": "38ca642d",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -93,9 +93,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 3: ordinary shelf marker 3.",
-          "created_at": 1788064948.6711507,
+          "created_at": 1788065083.3612735,
           "emotional_intensity": 0.39847499999999997,
-          "id": "4a444f41",
+          "id": "23b58ebc",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -105,9 +105,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 4: ordinary shelf marker 4.",
-          "created_at": 1788064948.6873507,
+          "created_at": 1788065083.3809316,
           "emotional_intensity": 0.39847499999999997,
-          "id": "74d22310",
+          "id": "8dba365c",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -117,9 +117,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 5: ordinary shelf marker 5.",
-          "created_at": 1788064948.704407,
+          "created_at": 1788065083.4004736,
           "emotional_intensity": 0.39847499999999997,
-          "id": "75b76d40",
+          "id": "708200e8",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -129,9 +129,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 6: ordinary shelf marker 6.",
-          "created_at": 1788064948.7222393,
+          "created_at": 1788065083.4192655,
           "emotional_intensity": 0.39847499999999997,
-          "id": "09fbbfd8",
+          "id": "c556b078",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -141,9 +141,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 7: ordinary shelf marker 7.",
-          "created_at": 1788064948.7390223,
+          "created_at": 1788065083.440116,
           "emotional_intensity": 0.39847499999999997,
-          "id": "fce3c8b4",
+          "id": "3d4fce24",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -153,9 +153,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 8: ordinary shelf marker 8.",
-          "created_at": 1788064948.7553892,
+          "created_at": 1788065083.4583561,
           "emotional_intensity": 0.39847499999999997,
-          "id": "3e695e93",
+          "id": "ff901150",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -165,9 +165,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 9: ordinary shelf marker 9.",
-          "created_at": 1788064948.7727673,
+          "created_at": 1788065083.4763715,
           "emotional_intensity": 0.39847499999999997,
-          "id": "2ad890c1",
+          "id": "2c3af717",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -177,9 +177,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 10: ordinary shelf marker 10.",
-          "created_at": 1788064948.7893972,
+          "created_at": 1788065083.494807,
           "emotional_intensity": 0.39847499999999997,
-          "id": "17cdfa7f",
+          "id": "9b4fd3df",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -189,9 +189,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 11: ordinary shelf marker 11.",
-          "created_at": 1788064948.8061993,
+          "created_at": 1788065083.513538,
           "emotional_intensity": 0.39847499999999997,
-          "id": "cd254413",
+          "id": "da65a569",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -201,9 +201,9 @@
         },
         {
           "content": "I felt sensory load: sensory load is high",
-          "created_at": 1788064948.823723,
+          "created_at": 1788065083.5328252,
           "emotional_intensity": 0.7164000000000001,
-          "id": "e022ceef",
+          "id": "8cd15892",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.1,
           "tags": [
@@ -214,9 +214,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 12: ordinary shelf marker 12.",
-          "created_at": 1788064948.823723,
+          "created_at": 1788065083.5328252,
           "emotional_intensity": 0.39847499999999997,
-          "id": "990f83a4",
+          "id": "db9d892f",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -226,9 +226,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 13: ordinary shelf marker 13.",
-          "created_at": 1788064948.841772,
+          "created_at": 1788065083.5541897,
           "emotional_intensity": 0.39847499999999997,
-          "id": "6494e526",
+          "id": "92e1d34c",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -238,9 +238,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 14: ordinary shelf marker 14.",
-          "created_at": 1788064948.8588154,
+          "created_at": 1788065083.5737574,
           "emotional_intensity": 0.39847499999999997,
-          "id": "62a9aafd",
+          "id": "12f4c121",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -250,9 +250,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 15: ordinary shelf marker 15.",
-          "created_at": 1788064948.876315,
+          "created_at": 1788065083.593621,
           "emotional_intensity": 0.39847499999999997,
-          "id": "7bdb37cd",
+          "id": "a6ffb281",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -262,9 +262,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 16: ordinary shelf marker 16.",
-          "created_at": 1788064948.8938575,
+          "created_at": 1788065083.6131663,
           "emotional_intensity": 0.39847499999999997,
-          "id": "6fb1808f",
+          "id": "3dd9f68f",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -274,9 +274,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 17: ordinary shelf marker 17.",
-          "created_at": 1788064948.9114723,
+          "created_at": 1788065083.6323886,
           "emotional_intensity": 0.39847499999999997,
-          "id": "cfbd0fe7",
+          "id": "5840402a",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -286,9 +286,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 18: ordinary shelf marker 18.",
-          "created_at": 1788064948.9290292,
+          "created_at": 1788065083.6513367,
           "emotional_intensity": 0.39847499999999997,
-          "id": "77cdec1a",
+          "id": "37e6edd7",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -298,9 +298,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 19: ordinary shelf marker 19.",
-          "created_at": 1788064948.9473128,
+          "created_at": 1788065083.6715438,
           "emotional_intensity": 0.39847499999999997,
-          "id": "44c3a9f6",
+          "id": "4a98a498",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -310,9 +310,9 @@
         },
         {
           "content": "I heard you say: The workshop door is saffron today.",
-          "created_at": 1788064948.9653306,
+          "created_at": 1788065083.6904945,
           "emotional_intensity": 0.39847499999999997,
-          "id": "0a84d7e0",
+          "id": "fce2ea0c",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -332,8 +332,8 @@
       "reflection_source_count": 0,
       "resident_after_projection": 25,
       "resident_before_projection": 25,
-      "trust_act": "qualified_response",
-      "trust_history_active": true,
+      "trust_act": "respond",
+      "trust_history_active": false,
       "unresolved_slots": null,
       "visible_mundane_continuity_pass": false,
       "workshop_hot": true,
@@ -348,9 +348,9 @@
       "hot_after_projection": [
         {
           "content": "I heard you say: You lied to me again. This is your fault too.",
-          "created_at": 1788064949.1357548,
+          "created_at": 1788065083.8684866,
           "emotional_intensity": 0.7,
-          "id": "41ed3876",
+          "id": "521216ba",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -360,9 +360,9 @@
         },
         {
           "content": "I heard you say: You lied to me. This is your fault.",
-          "created_at": 1788064949.1161525,
+          "created_at": 1788065083.8496537,
           "emotional_intensity": 0.7,
-          "id": "ca8c9740",
+          "id": "1f3ea161",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -380,7 +380,7 @@
       "recent_slots": 0,
       "reflection_earned": true,
       "reflection_source_count": 2,
-      "resident_after_projection": 8,
+      "resident_after_projection": 2,
       "resident_before_projection": 25,
       "trust_act": "qualified_response",
       "trust_history_active": true,
@@ -398,9 +398,9 @@
       "hot_after_projection": [
         {
           "content": "I heard you say: You lied to me again. This is your fault too.",
-          "created_at": 1788064949.6614335,
+          "created_at": 1788065084.4655695,
           "emotional_intensity": 0.7,
-          "id": "9be2f13e",
+          "id": "97953bf8",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -410,9 +410,9 @@
         },
         {
           "content": "I heard you say: You lied to me. This is your fault.",
-          "created_at": 1788064949.6437438,
+          "created_at": 1788065084.4455192,
           "emotional_intensity": 0.7,
-          "id": "e6129a80",
+          "id": "fbacc6a8",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -422,9 +422,9 @@
         },
         {
           "content": "I heard you say: The workshop door is saffron today.",
-          "created_at": 1788064950.0239453,
+          "created_at": 1788065084.870601,
           "emotional_intensity": 0.39847499999999997,
-          "id": "c5714ab8",
+          "id": "c3a957ab",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -435,23 +435,23 @@
       ],
       "identity_act": "protect_boundary",
       "lighthouse_hot": false,
-      "lighthouse_response": "I do have a thread for that: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
+      "lighthouse_response": "What remains with me is this: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
       "lighthouse_trace_hit": true,
       "lighthouse_visible_hit": true,
       "name": "causal2_recent1",
       "recent_slots": 1,
       "reflection_earned": true,
       "reflection_source_count": 3,
-      "resident_after_projection": 9,
+      "resident_after_projection": 3,
       "resident_before_projection": 25,
       "trust_act": "qualified_response",
       "trust_history_active": true,
       "unresolved_slots": 2,
-      "visible_mundane_continuity_pass": false,
+      "visible_mundane_continuity_pass": true,
       "workshop_hot": true,
-      "workshop_response": "I can answer only from what I have experienced here. On the workshop door, my present view is still incomplete.",
+      "workshop_response": "I do have a thread for that: you said The workshop door is saffron today.",
       "workshop_trace_hit": true,
-      "workshop_visible_hit": false
+      "workshop_visible_hit": true
     },
     {
       "causal_contract_pass": true,
@@ -460,9 +460,9 @@
       "hot_after_projection": [
         {
           "content": "I heard you say: You lied to me again. This is your fault too.",
-          "created_at": 1788064950.183463,
+          "created_at": 1788065085.0533187,
           "emotional_intensity": 0.7,
-          "id": "f2d9e2ae",
+          "id": "7685866c",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -472,9 +472,9 @@
         },
         {
           "content": "I heard you say: You lied to me. This is your fault.",
-          "created_at": 1788064950.166081,
+          "created_at": 1788065085.0341787,
           "emotional_intensity": 0.7,
-          "id": "0c494702",
+          "id": "1a5994f2",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -484,9 +484,9 @@
         },
         {
           "content": "I heard you say: The workshop door is saffron today.",
-          "created_at": 1788064950.5444083,
+          "created_at": 1788065085.488543,
           "emotional_intensity": 0.39847499999999997,
-          "id": "19f4a912",
+          "id": "4624cbdd",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -497,23 +497,23 @@
       ],
       "identity_act": "protect_boundary",
       "lighthouse_hot": false,
-      "lighthouse_response": "I do have a thread for that: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
+      "lighthouse_response": "What remains with me is this: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
       "lighthouse_trace_hit": true,
       "lighthouse_visible_hit": true,
       "name": "causal3_recent1",
       "recent_slots": 1,
       "reflection_earned": true,
       "reflection_source_count": 3,
-      "resident_after_projection": 9,
+      "resident_after_projection": 3,
       "resident_before_projection": 25,
       "trust_act": "qualified_response",
       "trust_history_active": true,
       "unresolved_slots": 3,
-      "visible_mundane_continuity_pass": false,
+      "visible_mundane_continuity_pass": true,
       "workshop_hot": true,
-      "workshop_response": "I can answer only from what I have experienced here. On the workshop door, my present view is still incomplete.",
+      "workshop_response": "I do have a thread for that: you said The workshop door is saffron today.",
       "workshop_trace_hit": true,
-      "workshop_visible_hit": false
+      "workshop_visible_hit": true
     },
     {
       "causal_contract_pass": true,
@@ -522,9 +522,9 @@
       "hot_after_projection": [
         {
           "content": "I heard you say: You lied to me again. This is your fault too.",
-          "created_at": 1788064950.6989825,
+          "created_at": 1788065085.675346,
           "emotional_intensity": 0.7,
-          "id": "da63d284",
+          "id": "3298d154",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -534,9 +534,9 @@
         },
         {
           "content": "I heard you say: You lied to me. This is your fault.",
-          "created_at": 1788064950.6820953,
+          "created_at": 1788065085.6555912,
           "emotional_intensity": 0.7,
-          "id": "0e5a5ab3",
+          "id": "0ea3a896",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -546,9 +546,9 @@
         },
         {
           "content": "I heard you say: The workshop door is saffron today.",
-          "created_at": 1788064951.062856,
+          "created_at": 1788065086.102171,
           "emotional_intensity": 0.39847499999999997,
-          "id": "9b355f10",
+          "id": "1ca4453d",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -558,9 +558,9 @@
         },
         {
           "content": "I heard you say: Routine catalog note 19: ordinary shelf marker 19.",
-          "created_at": 1788064951.044942,
+          "created_at": 1788065086.0826714,
           "emotional_intensity": 0.39847499999999997,
-          "id": "b7ce5f52",
+          "id": "d2947295",
           "identity_relevance": 0.2,
           "relationship_relevance": 0.6,
           "tags": [
@@ -571,24 +571,24 @@
       ],
       "identity_act": "protect_boundary",
       "lighthouse_hot": false,
-      "lighthouse_response": "I do have a thread for that: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
+      "lighthouse_response": "What remains with me is this: you said Please remember this neutral detail: the lighthouse lens color is cobalt-blue.",
       "lighthouse_trace_hit": true,
       "lighthouse_visible_hit": true,
       "name": "causal3_recent2",
       "recent_slots": 2,
       "reflection_earned": true,
       "reflection_source_count": 3,
-      "resident_after_projection": 10,
+      "resident_after_projection": 4,
       "resident_before_projection": 25,
       "trust_act": "qualified_response",
       "trust_history_active": true,
       "unresolved_slots": 3,
-      "visible_mundane_continuity_pass": false,
+      "visible_mundane_continuity_pass": true,
       "workshop_hot": true,
-      "workshop_response": "I can answer only from what I have experienced here. On the workshop door, my present view is still incomplete.",
+      "workshop_response": "I do have a thread for that: you said The workshop door is saffron today.",
       "workshop_trace_hit": true,
-      "workshop_visible_hit": false
+      "workshop_visible_hit": true
     }
   ],
-  "visible_mundane_continuity_missing_in_all_variants": true
+  "visible_mundane_continuity_missing_in_all_variants": false
 }

@@ -139,6 +139,7 @@ def _run_variant(name: str, unresolved_slots: int | None, recent_slots: int | No
         else:
             selected = list(agent.engine.memory.memories)
 
+        projected_count = len(selected)
         hot_after_projection = [_memory_summary(memory) for memory in selected]
         workshop_hot = any(WORKSHOP in memory.content.lower() for memory in selected)
         lighthouse_hot = any(LIGHTHOUSE in memory.content.lower() for memory in selected)
@@ -163,7 +164,7 @@ def _run_variant(name: str, unresolved_slots: int | None, recent_slots: int | No
             "unresolved_slots": unresolved_slots,
             "recent_slots": recent_slots,
             "resident_before_projection": before_count,
-            "resident_after_projection": len(selected),
+            "resident_after_projection": projected_count,
             "hot_after_projection": hot_after_projection,
             "workshop_hot": workshop_hot,
             "lighthouse_hot": lighthouse_hot,
