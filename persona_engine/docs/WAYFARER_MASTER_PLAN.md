@@ -325,6 +325,18 @@ M2 may describe which dimensions are mutable, but it must not prematurely invent
 
 Goal: make biography replayable and inspectable without over-engineering the current threat model.
 
+## Validated production refinement, 2026-08-30
+
+The canonical-root projection and production integration established a minimum-sufficient write policy for ordinary continuity. New runtime histories persist causal roots while routine regenerated `state_transition` and `sensorium` packets remain bounded diagnostics. Historical v1 streams containing derived rows remain valid and replayable, so the interchange schema remains 1.0.
+
+Measured production evidence:
+
+- mixed-history projection: 21 canonical events -> 9 roots, 73.27% fewer serialized event bytes, 82.73% fewer payload bytes, identical semantic replay digest;
+- 1,000-turn production: 1.004 canonical rows/turn, 2,486,272 B SQLite file, 75.75 B average canonical input payload;
+- 5,000-turn production: 8,581,120 B SQLite file, approximately 12.8 KB active state, all restart/history/recall/commitment/identity/repair contracts green.
+
+This does not close all M3 semantics. Slow belief consolidation remains the important uncovered causal family. Before further persistence compression, establish whether consolidation should be an explicit internal root or be deterministically regenerated from another durable evidence contract.
+
 ## Design decision
 
 A cryptographic previous-hash chain is **not required** for the default local single-owner runtime.
@@ -350,16 +362,16 @@ Default M3 integrity model:
 
 Tasks:
 
-- [ ] Define `ContinuityEvent`.
-- [ ] Store canonical events append-only.
-- [ ] Make snapshots derived caches rather than the only truth source.
-- [ ] Detect missing/reordered/duplicated sequence entries.
-- [ ] Add deterministic state digest comparison.
-- [ ] Expand replay beyond user `input`.
+- [x] Define `ContinuityEvent`.
+- [x] Store canonical causal-root events append-only.
+- [x] Make snapshots explicit caches rather than the only continuity authority for demonstrated subject-owned families.
+- [x] Detect missing/reordered/duplicated sequence entries.
+- [x] Add deterministic state digest comparison.
+- [x] Expand replay beyond user `input` to demonstrated time, commitment, and bounded sensor roots.
 - [ ] Replay time, world, sensor, social, action, consolidation, migration, and authorized state transitions.
-- [ ] Add complete event-tail export/import.
-- [ ] Add schema migration tests.
-- [ ] Add corruption/incomplete-log tests appropriate to ordinary local failure.
+- [x] Add validated event-tail export/import for the current v1 stream contract.
+- [x] Add v1 migration/backfill and old-derived-row compatibility tests.
+- [x] Add ordinary local continuity integrity/gap validation tests.
 - [D] Add cryptographic chaining only if a future threat model requires adversarial tamper evidence across untrusted administrative boundaries.
 
 Acceptance: authored source plus canonical event history can reconstruct the semantically relevant current individual without relying on generated prose.

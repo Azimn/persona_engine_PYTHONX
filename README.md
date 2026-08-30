@@ -53,12 +53,16 @@ Changing the renderer may change fluency, vocabulary, reasoning bandwidth, or st
 
 ## Current Verified Test State
 
-Latest completed Wayfarer CI before this README update:
+Latest completed phase-sized production integration:
 
-- GitHub Actions run: `33111704143`
-- Head: `fcaf4fd9af2f5c8e6e32b7ab5225ce133cb6c67e`
-- Python 3.11: `194 passed, 1 skipped, 1 warning in 3.46s`
-- Python 3.12: successful
+- Commit: `71790eb` (`Persist minimum-sufficient causal continuity roots`)
+- Focused root/continuity contracts: `36 passed`
+- Full Python 3.11 deterministic suite: `326 passed, 1 skipped, 1 warning`
+- 1,000-turn production SQLite measurement: `2,486,272 B`
+- 5,000-turn production SQLite measurement: `8,581,120 B`
+- 5,000-turn active serialized state: approximately `12.8 KB`
+
+The remaining warning is the existing Starlette/httpx TestClient deprecation. The normal Python 3.11/3.12 Wayfarer CI matrix should be checked after this documentation pass before quoting a newer branch-wide two-version result.
 
 Run locally with:
 
@@ -89,7 +93,7 @@ Wayfarer has already:
 - removed renderer hints from bundled cartridges,
 - added renderer/identity authority tests.
 
-The next M1 task is to remove remaining universal AI/language-model ontology assumptions from generic engine/output code and move such conflicts into character-specific self-model policy.
+M1 ownership/ontology repair is complete. Current continuity work uses minimum-sufficient causal roots while preserving historical v1 compatibility. The next uncovered causal continuity family is slow belief consolidation/developmental replay.
 
 ## Two Design Decisions Added During Review
 

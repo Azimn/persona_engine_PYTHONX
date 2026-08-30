@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## Current branch
 
@@ -18,20 +18,29 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 Current production/evidence head before this documentation update:
 
 ```text
-46110470b756c1cb893407b13c019aa094162fa2
-Integrate grounded contextual cold biography
+71790eb
+Persist minimum-sufficient causal continuity roots
 ```
 
-The latest phase-sized Python 3.11 integration run completed with:
+The production integration gate completed with:
 
 ```text
-Focused contextual/history/offline-renderer tests: 27 passed
-Full suite: 302 passed, 1 skipped, 1 warning
+Focused root/continuity/replay/persistence tests: 36 passed
+Full Python 3.11 deterministic suite: 326 passed, 1 skipped, 1 warning
+1,000-turn SQLite file: 2,486,272 B
+5,000-turn SQLite file: 8,581,120 B
+5,000-turn active serialized state: 12,758 B
 ```
 
-The integration makes grounded contextual cold-biography read-through observable in the deterministic renderer while keeping the recovered episode transient and interlocutor-scoped. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+The canonical-root projection first demonstrated that a mixed 21-event history could be reduced to 9 causal roots while preserving the exact semantic replay digest, cold biography, submitted host context, commitment continuity, subject time, and bounded sensory replay. Serialized event bytes fell 73.27% and payload bytes fell 82.73% in that experiment.
 
-This documentation commit is intended to trigger the ordinary Python 3.11/3.12 Wayfarer CI path against the committed production state because GitHub intentionally does not recursively trigger workflows from the bot-authored integration commit.
+Production now follows the same causal contract. New v1 runtime histories retain minimum-sufficient roots rather than routine regenerated `state_transition` and `sensorium` records. Historical v1 histories containing those derived rows remain valid, importable, and replayable; replay skips the derived records rather than double-applying them. Rich derived packets remain available in the bounded diagnostic journal.
+
+The 1,000-turn production storage probe reduced durable continuity from approximately 3.01 rows per exercised turn to 1.004. Canonical input payloads averaged 75.75 B and exact canonical/diagnostic payload duplication was zero. The complete database fell from the previous approximately 6.78 MB measurement to 2.49 MB.
+
+The 5,000-turn production plateau remained behaviorally green. Resident memory remained seven objects, the same subject survived restart, unresolved history continued to qualify trust, cold lighthouse recall worked, the non-disclosure commitment still declined disclosure, identity rewrite still produced `protect_boundary`, and genuine repair returned relationship conflict to zero. Active state changed only +205 B between turn 250 and turn 5,000. Database growth over that interval was 7,438,336 B instead of the pre-persistence-cleanup 62,939,136 B.
+
+Outstanding continuity issue: slow `BeliefLedger` consolidation is persistent but its causal replay semantics are not yet established as a first-class root. Do not call M3 semantically complete for developmental history until an explicit consolidation/replay experiment closes that gap.
 
 ## Baseline history
 
@@ -80,6 +89,20 @@ Deterministic renderer-swap tests hold character history/input fixed while varyi
 `InterpretiveBelief` is fast, turn-local, source-grounded, subjective, deterministic, and noncanonical. `BeliefLedger` is slow, persistent, cartridge-defined, and consolidation/evidence-gated. They are intentionally different timescales, not duplicate authorities. No direct interpretive-confidence to slow-belief assignment is permitted.
 
 ## M3 canonical continuity ledger and replay
+
+### 2026-08-30 root-only production contract
+
+**VALIDATED AND IN PRODUCTION.** New runtime writes distinguish causal biography from regenerated verification evidence. `canonical_continuity_root_eligible()` governs new durable writes; the broader historical validator remains for v1 compatibility. Production `input` roots store user text plus only context actually submitted by the host. Classifier output, canonicality flags, memory-type metadata, derived body/world context, routine `state_transition`, and routine `sensorium` remain diagnostic rather than permanent biography.
+
+Evidence:
+
+- `evidence/mvi/CANONICAL_ROOT_PROJECTION.md`
+- `evidence/mvi/ROOT_ONLY_CONTINUITY_STORAGE.md`
+- `evidence/mvi/ROOT_ONLY_PRODUCTION_PLATEAU.md`
+
+The representation change kept `CONTINUITY_SCHEMA_VERSION = 1.0` because old and new streams remain mutually readable at the interchange level. This is a narrower write policy and payload schema refinement, not an incompatible bundle format change.
+
+**Next semantic gap:** explicitly test and define slow belief-consolidation continuity/replay. A replay that reconstructs conversational and sensory roots but loses consolidated developmental change is not sufficient for the project goal.
 
 **COMPLETE FOR THE CURRENT ROOT-EVENT CONTRACT.**
 
