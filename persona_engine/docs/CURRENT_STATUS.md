@@ -169,17 +169,31 @@ Repository documentation is part of the implementation contract. If documentatio
 
 ## Semantic memory recoverability status
 
-**EVIDENCE COMPLETE; production global hot-memory policy remains EXPERIMENTAL.** No universal resident-memory capacity was selected and no production retention behavior changed in this phase.
+**V2 EVIDENCE COMPLETE; production global hot-memory policy remains EXPERIMENTAL.** No universal resident-memory capacity was selected and no production retention behavior changed.
 
-`semantic-memory-recoverability-v1` compared current production against four experimental USER_TOLD projections across six histories: unresolved conflict with unrelated distractors, unresolved conflict with lexical distractors, repaired history, reopened conflict with unrelated distractors, reopened conflict with lexical distractors, and neutral history with lexical distractors. Every variant was restarted before evaluation. The probe separately checked current conduct, old and recent contextual recall, negative-recall fail-closed behavior, commitment/identity authority, and reopened-conflict provenance.
+V1 exposed a measurement confound rather than a production conclusion: it mixed grounded retrieval with literal surface wording and used a workshop query outside the already-demonstrated continuation oracle. V2 separates semantic retrieval/authority from renderer realization, uses the established `What about the workshop door?` continuation query, and records relationship state immediately after restart before evaluation prompts can alter it.
 
-Projection results (core passes / 6): production `0/6`; recoverable-cold-only `0/6`; active-conflict-only `0/6`; recent-context-only `0/6`; active-conflict-plus-recent `0/6`.
+Semantic-core passes: production 6/6; recoverable_cold_only 2/6; active_conflict_only 6/6; recent_context_only 2/6; active_conflict_plus_recent 6/6.
 
-Production passed all scenarios: `False`. Active-conflict-only passed all scenarios: `False`. Recent-only preserved every active-conflict conduct case: `False`. Cold-only preserved every active-conflict conduct case: `False`. All projections preserved the tested recoverable-context contract: `False`.
+Conduct passes: production 6/6; recoverable_cold_only 2/6; active_conflict_only 6/6; recent_context_only 2/6; active_conflict_plus_recent 6/6.
 
-Interpret these results by semantic role, not count. Canonical biography can reconstruct the tested old/recent USER_TOLD wording without automatically rehydrating it into resident state. The discriminating resident role in this experiment is current unresolved relationship evidence needed by conduct/reflection consumers. A passing projection is not evidence that all other memory families or future behaviors can be evicted.
+Grounded retrieval-contract passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6.
+
+Surface-realization passes: production 5/6; recoverable_cold_only 3/6; active_conflict_only 4/6; recent_context_only 4/6; active_conflict_plus_recent 4/6.
+
+Authority passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6. Restart relationship-state passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6.
+
+The main causal discriminator is whether currently unresolved relationship evidence remains resident for reflection/conduct consumers. Cold-only and recent-only projections are allowed to fail that active-conflict conduct role; those failures do not imply canonical biography was lost. Conversely, old/recent autobiographical wording is expected to be reconstructable through the bounded cold-biography contract without automatic hot-state rehydration.
+
+Rows where semantic core passed but surface realization did not are retained as renderer diagnostics, not mislabeled as memory loss:
+
+- `unresolved/unrelated/active_conflict_plus_recent` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
+- `unresolved/lexical/production` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
+- `unresolved/lexical/active_conflict_only` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
+- `reopened/unrelated/active_conflict_only` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
+- `reopened/lexical/active_conflict_plus_recent` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
 
 Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
 
-**Next memory-policy target:** use the observed failure matrix, if any, to isolate the smallest missing semantic/recoverability contract. If no production failure appears, expand consumer-role coverage beyond USER_TOLD before changing retention policy. Non-USER_TOLD families remain pinned until reconstruction is demonstrated.
+**Next action:** if production semantic core is green but production surface is not, isolate the minimum deterministic-renderer realization defect while leaving memory retention unchanged. If production semantic core itself fails, diagnose that causal path first. Do not select a global hot-memory `N` from this evidence.
 
