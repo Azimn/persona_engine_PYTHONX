@@ -29,73 +29,63 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import textwrap
 
           source = Path('persona_engine/core/offline_template_renderer.py')
           text = source.read_text()
-          old = '''    def _memory_excerpt(self, memory: str) -> str:
-              if not memory:
-                  return "nothing I can honestly retrieve"
-              memory = re.sub(r"^I heard you say:\\s*", "you said ", memory, flags=re.IGNORECASE)
-              memory = " ".join(memory.split())
-              if len(memory) > 120:
-                  memory = memory[:117].rsplit(" ", 1)[0] + "..."
-              return memory.rstrip(".")
-          '''
-          new = '''    def _memory_excerpt(self, memory: str) -> str:
-              if not memory:
-                  return "nothing I can honestly retrieve"
-              memory = re.sub(r"^I heard you say:\\s*", "you said ", memory, flags=re.IGNORECASE)
-              # Memory-command scaffolding is not part of the remembered fact. Under
-              # a tight expression budget it can consume the entire slot and hide the
-              # value that retrieval actually recovered. Strip only generic recall
-              # instructions here; selection, authority, and canonical memory remain
-              # unchanged.
-              memory = re.sub(
-                  r"^you said\\s+(?:please\\s+)?remember\\s+(?:this\\s+)?(?:neutral\\s+)?(?:detail|fact)\\s*:\\s*",
-                  "",
-                  memory,
-                  flags=re.IGNORECASE,
-              )
-              memory = " ".join(memory.split())
-              if len(memory) > 120:
-                  memory = memory[:117].rsplit(" ", 1)[0] + "..."
-              return memory.rstrip(".")
-          '''
-          if old not in text:
-              raise SystemExit('memory excerpt block not found')
-          source.write_text(text.replace(old, new), encoding='utf-8')
+          marker = 'Memory-command scaffolding is not part of the remembered fact.'
+          if marker not in text:
+              needle = '        memory = re.sub(r"^I heard you say:\\s*", "you said ", memory, flags=re.IGNORECASE)\n'
+              if needle not in text:
+                  raise SystemExit('single memory normalization line not found')
+              addition = textwrap.dedent('''\
+                      # Memory-command scaffolding is not part of the remembered fact. Under
+                      # a tight expression budget it can consume the slot and hide the value
+                      # retrieval actually recovered. Strip only generic recall instructions;
+                      # selection, authority, canonical storage, and retention stay unchanged.
+                      memory = re.sub(
+                          r"^you said\\s+(?:please\\s+)?remember\\s+(?:this\\s+)?(?:neutral\\s+)?(?:detail|fact)\\s*:\\s*",
+                          "",
+                          memory,
+                          flags=re.IGNORECASE,
+                      )
+              ''')
+              # dedent produces top-level text, but this code belongs inside the method.
+              addition = ''.join(('        ' + line if line.strip() else line) for line in addition.splitlines(keepends=True))
+              text = text.replace(needle, needle + addition, 1)
+              source.write_text(text, encoding='utf-8')
 
           tests = Path('persona_engine/tests/test_offline_template_renderer.py')
           test_text = tests.read_text()
-          marker = 'def test_tight_memory_budget_preserves_recalled_value():'
-          if marker not in test_text:
-              test_text += '''\n\ndef test_tight_memory_budget_preserves_recalled_value():
-              load_cartridge(str(ROOT / "cartridges" / "pretorius.snp"))
-              renderer = OfflineTemplateRenderer()
-              memory = MemoryUnit(
-                  content="I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
-                  created_at=1.0,
-                  source=KnowledgeSource.USER_TOLD,
-                  tags={"canonical_user_statement", "cold_biography", "contextual_readthrough"},
-              )
-              request = SimpleNamespace(
-                  ledger_digest={"identity": "Pretorius"},
-                  resolved_state={
-                      "system_prompt": "Character identity: Pretorius",
-                      "user_text": "Is the old observatory code word still the same?",
-                  },
-                  decision_payload={"dialogue_act": "respond"},
-                  retrieved_memories=[memory],
-                  evidence=[],
-                  seed=17,
-              )
+          if 'def test_tight_memory_budget_preserves_recalled_value():' not in test_text:
+              test_text += '\n\n' + textwrap.dedent('''\
+                  def test_tight_memory_budget_preserves_recalled_value():
+                      load_cartridge(str(ROOT / "cartridges" / "pretorius.snp"))
+                      renderer = OfflineTemplateRenderer()
+                      memory = MemoryUnit(
+                          content="I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
+                          created_at=1.0,
+                          source=KnowledgeSource.USER_TOLD,
+                          tags={"canonical_user_statement", "cold_biography", "contextual_readthrough"},
+                      )
+                      request = SimpleNamespace(
+                          ledger_digest={"identity": "Pretorius"},
+                          resolved_state={
+                              "system_prompt": "Character identity: Pretorius",
+                              "user_text": "Is the old observatory code word still the same?",
+                          },
+                          decision_payload={"dialogue_act": "respond"},
+                          retrieved_memories=[memory],
+                          evidence=[],
+                          seed=17,
+                      )
 
-              response = renderer.render_expression_request(request, max_chars=100).lower()
+                      response = renderer.render_expression_request(request, max_chars=100).lower()
 
-              assert len(response) <= 100
-              assert "amber-otter" in response
-              assert "please remember this neutral detail" not in response
-          '''
+                      assert len(response) <= 100
+                      assert "amber-otter" in response
+                      assert "please remember this neutral detail" not in response
+              ''')
               tests.write_text(test_text, encoding='utf-8')
           PY
           python -m py_compile persona_engine/core/offline_template_renderer.py persona_engine/tests/test_offline_template_renderer.py
@@ -117,69 +107,11 @@ jobs:
           assert production['authority_passes'] == production['scenario_count'], production
           role = summary['active_conflict_only']
           assert role['active_conflict_conduct_passes'] == role['active_conflict_scenarios'], role
-          cold = summary['recoverable_cold_only']
-          recent = summary['recent_context_only']
-          assert cold['active_conflict_conduct_passes'] == 0, cold
-          assert recent['active_conflict_conduct_passes'] == 0, recent
+          assert summary['recoverable_cold_only']['active_conflict_conduct_passes'] == 0
+          assert summary['recent_context_only']['active_conflict_conduct_passes'] == 0
           PY
       - name: Run full deterministic suite
         run: python -m pytest persona_engine/tests -q
-      - name: Finalize durable phase record
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          root = Path('persona_engine')
-          data = json.loads((root / 'evidence/mvi/semantic_memory_recoverability.json').read_text())
-          by_name = {item['projection']: item for item in data['summaries']}
-          order = ['production', 'recoverable_cold_only', 'active_conflict_only', 'recent_context_only', 'active_conflict_plus_recent']
-          def counts(key): return '; '.join(f"{name} {by_name[name][key]}/6" for name in order)
-          misses = [r for r in data['rows'] if r['semantic_core_pass'] and not r['surface_realization_pass']]
-          diagnostics = '\n'.join(f"- `{r['scenario']}/{r['distractor_kind']}/{r['projection']}` old=`{r['old_context_response']}`; recent=`{r['recent_context_response']}`" for r in misses[:12]) or '- none'
-          section = f'''## 2026-08-30 semantic memory recoverability phase
-
-          **PHASE COMPLETE; global hot-memory capacity remains EXPERIMENTAL.** No universal resident-memory count was selected and no production retention rule was broadened.
-
-          V2 separated resident causal evidence, canonical cold-biography recovery, renderer realization, authority, and restart state across six restarted histories with unrelated, lexically confusable, repaired, reopened, and neutral conditions.
-
-          Semantic-core passes: {counts('semantic_core_passes')}.
-
-          Conduct passes: {counts('conduct_passes')}.
-
-          Grounded retrieval-contract passes: {counts('retrieval_contract_passes')}.
-
-          Surface-realization passes after the bounded-renderer repair: {counts('surface_realization_passes')}.
-
-          Authority passes: {counts('authority_passes')}. Restart relationship-state passes: {counts('restart_state_passes')}.
-
-          The experiment identifies a semantic residency role without selecting a total capacity. Current unresolved relationship evidence must remain resident for the demonstrated reflection/conduct consumer: `active_conflict_only` preserves that role, while `recoverable_cold_only` and `recent_context_only` correctly fail active-conflict conduct despite preserving grounded autobiographical recovery. Old and recent USER_TOLD wording remains recoverable from canonical cold biography in every tested projection without automatic hot-state rehydration.
-
-          The first V2 run also exposed a separate deterministic expression defect. Retrieval contained the exact `amber-otter` fact, but generic `Please remember this neutral detail:` scaffolding consumed a tight expression budget and could truncate the remembered value. The renderer now strips that generic recall-command scaffolding only when preparing the expression excerpt. Memory selection, canonical storage, authority, and retention policy are unchanged. A dedicated tight-budget regression requires the recovered value to remain visible.
-
-          Remaining semantic-core/surface diagnostics outside production:
-
-          {diagnostics}
-
-          Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
-
-          **Next memory-policy question:** expand reconstruction evidence to the currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to judge residency by demonstrated consumer role plus reconstruction contract, not a global `N`.
-          '''
-          section = '\n'.join(line.strip() for line in section.splitlines()).strip() + '\n\n'
-
-          progress_path = root / 'docs/WAYFARER_PROGRESS.md'
-          progress = progress_path.read_text(); marker = '## 2026-08-30 semantic memory recoverability phase'
-          progress = progress.split(marker, 1)[0].rstrip() + '\n\n' + section if marker in progress else progress.rstrip() + '\n\n' + section
-          progress_path.write_text(progress, encoding='utf-8')
-
-          status_path = root / 'docs/CURRENT_STATUS.md'
-          status = status_path.read_text(); status_marker = '## Semantic memory recoverability status'; status_section = section.replace(marker, status_marker)
-          if status_marker in status:
-              before, rest = status.split(status_marker, 1); next_heading = rest.find('\n## '); status = before.rstrip() + '\n\n' + status_section + (rest[next_heading + 1:] if next_heading >= 0 else '')
-          else:
-              status = status.rstrip() + '\n\n' + status_section
-          status_path.write_text(status, encoding='utf-8')
-          PY
       - name: Commit tested phase repair
         run: |
           rm -f .github/workflows/wayfarer-memory-surface-fix.yml
