@@ -21,24 +21,22 @@ This file is the canonical long-form roadmap for the Wayfarer development line. 
 
 ## Current checkpoint
 
-M1 runtime ownership and authority repair is complete.
+Wayfarer has completed the current semantic resident-memory pass and the first shared-store portion of M5 single-writer continuity.
 
-The ordered M1 runtime pass produced:
+Current verified production contracts include:
 
-- renderer/identity decoupling commit `c064c3d4fdedfd08668171b26fc9e26cb8443c70`
-- ontology-decoupling commit `ba78a1cfccb1f0e78aa46ea41a5e251f54bdfca0`
+- causal-root canonical continuity and replay for the demonstrated root families;
+- path-dependent slow-belief consolidation boundaries;
+- `semantic-residency-v1`, with no universal hot-memory count;
+- process-local state serialization for engine mutations;
+- `writer-handoff-v1` for cooperative hosts sharing one canonical SQLite authority store.
 
-Verification inside GitHub Actions run `33174272164`:
+Current Python 3.11 deterministic inventory is `340 passed, 1 skipped, 1 warning`; the optimized writer fence completed that suite in `31.68s`. The permanent handoff probe and `32` targeted custody/continuity tests are green.
 
-```text
-Renderer/identity targeted tests: 7 passed
-M1 ontology + renderer + engine targeted tests: 21 passed
-Full Python 3.11 suite: 198 passed, 1 skipped, 1 warning in 3.47s
-```
-
-The next work is to finish the remaining M0 evidence capture, confirm normal two-version CI, then begin M2 `.snp` v2 design.
+M5 is **partially complete**, not closed. Shared-store host/generation fencing and explicit handoff are implemented. Disconnected-store transfer, explicit branching, divergent-copy detection/reconciliation rules, and broader migration scenarios remain open. Full typed social influence and offscreen-life/autonomy also remain later longitudinal work.
 
 ---
+
 
 # 1. North Star
 
@@ -411,16 +409,16 @@ Acceptance: after shutdown/resume, the same individual continues from a coherent
 
 Goal: move one individual without accidentally creating contradictory canonical histories.
 
-- [ ] Add continuity epoch.
-- [ ] Add host ID.
-- [ ] Add lease ID and lease generation.
-- [ ] Define one writable-host lease.
-- [ ] Define read-only/multi-interface sessions.
-- [ ] Define migration sequence: quiesce, commit, digest, revoke, increment, transfer, validate, activate.
-- [ ] Detect stale writer attempts.
+- [x] Add continuity epoch for canonical event streams. Do not use it as the writer fencing token.
+- [x] Add explicit host ID.
+- [~] Add custody generation. `writer_generation` is implemented; a separate expiring lease ID is not required by shared-store v1 and remains a future distributed-host decision.
+- [x] Define one writable-host custody claim for a shared canonical authority store.
+- [~] Non-owner hosts can read shared-store projections while writes fail closed; richer multi-interface/session policy remains future work.
+- [~] Implement shared-store handoff: commit/digest, advance generation, name target, validate receipt/state, activate target. Disconnected-store quiesce/package transfer remains open.
+- [x] Detect stale writer attempts, including an old process whose host ID later becomes active under a newer generation.
 - [ ] Define explicit branch operation for intentional copies.
-- [ ] Never silently merge divergent lived histories.
-- [ ] Test laptop-to-phone, game-to-chat, stale writer, interrupted transfer, duplicate bundle, deliberate branch, and attempted re-merge.
+- [x] Never silently merge divergent lived histories; no current merge path exists.
+- [~] Test shared-store host transfer, competing writer, stale writer, bad/mismatched receipt, generation reuse, restart/state digest, and interlocutor continuity. Disconnected transfer, deliberate branch, duplicate bundle, and attempted re-merge remain open.
 
 Acceptance: system can distinguish `same individual moved` from `two descendants copied`.
 
@@ -452,7 +450,7 @@ Current implementation evidence:
 - [x] Explicit recall has grounded, fail-closed cold read-through for the active interlocutor.
 - [x] Narrow contextual continuation can transiently recover one grounded cold episode without embedding the remembered value in the query or promoting the episode into resident memory.
 - [x] Multi-memory pressure testing demonstrated that unlimited resident autobiography can degrade bounded top-K cognition through retrieval interference.
-- [ ] Derive the production hot-memory admission/eviction policy from actual memory-consumer evidence contracts rather than a convenient fixed item count.
+- [x] Derive the production resident-memory policy from actual consumer roles and recoverability rather than a fixed item count. Current contract: `semantic-residency-v1`; no universal `N`.
 
 Tasks:
 
@@ -1047,3 +1045,16 @@ The memory-capacity experiments have been superseded by an explicit semantic res
 
 The combined adversarial policy probe is green, including negative ablations, and the production-only 5,000-turn plateau remains bounded with `134 B` active-state growth from turn 250 to 5,000. This earns the production rule but does not freeze any item count. A future low-resource projection should consume the surviving semantic contracts, not the incidental seven-item count in the current fixture.
 
+
+
+### M15 custody checkpoint: shared-store single writer
+
+- [x] Demonstrate the pre-fix split-writer failure in a shared canonical store.
+- [x] Add explicit host identity plus monotonic writer-generation fencing.
+- [x] Fence subject-affecting persistence writes in the same SQLite transaction as mutation.
+- [x] Add explicit handoff receipt, state-digest anchor, and subject-sequence anchor.
+- [x] Prove the former host and an old reused-host generation fail closed.
+- [x] Preserve current subject-owned and interlocutor-owned state contracts through handoff.
+- [ ] Define a versioned subject-wide transfer bundle for disconnected authority stores.
+- [ ] Detect/reclassify already-divergent transferred copies as branches/descendants.
+- [ ] Add remote/distributed custody only if a real deployment threat model requires consensus, expiry, or adversarial synchronization.

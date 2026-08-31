@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-08-30
+Last updated: 2026-08-31
 
 ## Current branch
 
@@ -15,40 +15,23 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 
 ## Latest implemented checkpoint
 
-Current production/evidence head before this documentation update:
+Current production contracts are `semantic-residency-v1` and the new shared-store `writer-handoff-v1` custody boundary.
+
+Latest deterministic verification on Python 3.11:
 
 ```text
-ab1d6959a1d6b7403ded687b1f76ba672aec79e7
-Preserve recovered memory values under tight output budgets
+Targeted custody/continuity set: 32 passed in 1.89s
+Permanent shared-store handoff probe: passed
+Full deterministic suite: 340 passed, 1 skipped, 1 warning in 31.68s
 ```
 
-The semantic-memory phase integration completed with:
+The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
 
-```text
-Targeted offline renderer: 11 passed
-Full Python 3.11 deterministic suite: 331 passed, 1 skipped, 1 warning
-Production semantic/retrieval/surface/authority/restart: 6/6 each
-```
+The permanent probe demonstrates one active writer across distinct hosts, stale-source failure after handoff, generation fencing even when a host ID later returns, exact handoff-state digest validation, preserved subject UUID/order/clock/earned trait/commitment behavior, preserved interlocutor relationship scope, and exclusion of custody administration from lived biography. Scope remains one shared canonical SQLite authority store; disconnected copies and branch reconciliation are not claimed solved.
 
-The prior root-only storage evidence remains the current persistence-size baseline:
+Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-```text
-1,000-turn SQLite file: 2,486,272 B
-5,000-turn SQLite file: 8,581,120 B
-5,000-turn active serialized state: 12,758 B
-```
-
-The canonical-root projection first demonstrated that a mixed 21-event history could be reduced to 9 causal roots while preserving the exact semantic replay digest, cold biography, submitted host context, commitment continuity, subject time, and bounded sensory replay. Serialized event bytes fell 73.27% and payload bytes fell 82.73% in that experiment.
-
-Production now follows the same causal contract. New v1 runtime histories retain minimum-sufficient roots rather than routine regenerated `state_transition` and `sensorium` records. Historical v1 histories containing those derived rows remain valid, importable, and replayable; replay skips the derived records rather than double-applying them. Rich derived packets remain available in the bounded diagnostic journal.
-
-The 1,000-turn production storage probe reduced durable continuity from approximately 3.01 rows per exercised turn to 1.004. Canonical input payloads averaged 75.75 B and exact canonical/diagnostic payload duplication was zero. The complete database fell from the previous approximately 6.78 MB measurement to 2.49 MB.
-
-The 5,000-turn production plateau remained behaviorally green. Resident memory remained seven objects, the same subject survived restart, unresolved history continued to qualify trust, cold lighthouse recall worked, the non-disclosure commitment still declined disclosure, identity rewrite still produced `protect_boundary`, and genuine repair returned relationship conflict to zero. Active state changed only +205 B between turn 250 and turn 5,000. Database growth over that interval was 7,438,336 B instead of the pre-persistence-cleanup 62,939,136 B.
-
-The slow-belief developmental continuity gap is now closed for the demonstrated `BeliefLedger` rule contract. Pre-fix evidence showed two separately consolidated identity violations reached `trust_user=-0.4`, survived restart, but replayed from input roots alone as `0.0`; consolidating once only at replay end reached merely `-0.2`. It also showed that two one-repair threshold misses separated by consolidation stayed at `0.0`, while grouping the same two repairs before one pass reached `+0.15`. Consolidation boundaries are therefore causal even when no belief value changes.
-
-Production now records a compact `belief_consolidation` root whenever an executed pass consumes evidence relevant to the active belief rules, including threshold misses. Empty passes with no rule-relevant evidence remain housekeeping. Replay regenerates evidence from prior roots, checks the cartridge rule digest and pre-belief digest, executes the pass at the recorded boundary, and checks changed-belief IDs plus the post-belief digest. The belief snapshot, canonical boundary, and evidence-window pruning are committed atomically. Evidence: `evidence/mvi/DEVELOPMENTAL_CONTINUITY.md` and `evidence/mvi/DEVELOPMENTAL_CONTINUITY_FIXED.md`.
+Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 
@@ -112,7 +95,7 @@ The representation change kept `CONTINUITY_SCHEMA_VERSION = 1.0` because old and
 
 **Developmental replay refinement:** slow belief consolidation is now a demonstrated causal root. A `belief_consolidation` root records rule-relevant pass boundaries, including no-change threshold misses, without restoring verbose state-transition history. Legacy `dream_consolidation` rows remain readable as derived v1 compatibility records.
 
-**Next evidence target:** re-measure persistence with developmental roots active, then choose the next semantic gap from actual longitudinal failure rather than adding another subsystem speculatively. Cross-host single-writer handoff and broader authorized world/action replay remain major roadmap gaps.
+**Historical checkpoint note:** the developmental-root remeasurement, semantic resident-memory pass, and first shared-store single-writer handoff have since been completed. Use the latest checkpoint above and the later phase sections for current next work.
 
 **COMPLETE FOR THE CURRENT ROOT-EVENT CONTRACT.**
 
@@ -371,3 +354,17 @@ Evidence: `evidence/mvi/NON_USER_MEMORY_CONSUMER_AUDIT.md`, `NON_USER_MEMORY_POL
 
 **Next memory implication:** there is no evidence-backed reason to tune another integer budget. Further reduction of active memory requires a typed reconstruction/archive path for `OBSERVED` and/or `REFLECTION`, followed by the same consumer and experience ablations. P99/C99 projection remains deferred until the broader Wayfarer semantics are substantially complete.
 
+
+
+## Shared-store writer handoff phase
+
+- Falsified the prior shared-store assumption: two independent engine instances could both author one canonical subject.
+- Added durable subject writer custody keyed by active host plus monotonic writer generation.
+- Subject-affecting persistence writes now fence the generation inside their SQLite mutation transaction.
+- Added explicit source-to-target handoff receipts with state digest and subject-sequence anchor.
+- Former hosts fail closed; reused host IDs do not revive stale processes because the generation must also match.
+- Preserved subject UUID, canonical subject ordering, clock, earned traits, commitments, and interlocutor relationship scope across handoff.
+- Kept handoff administration outside lived `continuity_event` biography.
+- Scope remains a shared canonical authority store. Disconnected-store transfer and branch reconciliation remain later M15 work.
+- Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `cross_host_writer_pre_fix.json`, `cross_host_writer_handoff.json`.
+- Verification after eliminating writer-row heartbeat amplification: targeted custody/continuity `32 passed in 1.89s`; permanent probe passed; full deterministic suite `340 passed, 1 skipped, 1 warning in 31.68s`.

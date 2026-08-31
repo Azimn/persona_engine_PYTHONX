@@ -8,24 +8,19 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 ## Current production checkpoint
 
-Latest production commit:
+Current production contract: **`writer-handoff-v1` shared-store custody plus `semantic-residency-v1` memory residency.**
+
+Current Python 3.11 verification:
 
 ```text
-ab1d6959a1d6b7403ded687b1f76ba672aec79e7
-Preserve recovered memory values under tight output budgets
+Targeted custody/continuity set: 32 passed
+Permanent shared-store handoff probe: passed
+Full deterministic suite: 340 passed, 1 skipped, 1 warning in 31.68s
 ```
 
-The phase-sized Python 3.11 semantic-memory integration gate completed with:
+Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-```text
-Targeted offline renderer: 11 passed
-Full deterministic suite: 331 passed, 1 skipped, 1 warning
-Production semantic/retrieval/surface/authority/restart: 6/6 each
-```
-
-The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
-
-This status commit is intentionally made through the normal repository write path so the standard Python 3.11/3.12 Wayfarer CI matrix verifies the final documented branch state.
+The authoritative evidence for this phase is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
 ## Project definition
 
@@ -133,11 +128,11 @@ Production remains narrower: only canonically recoverable `USER_TOLD` autobiogra
 
 Developmental persistence was also re-measured with the new consolidation contract exercised every `50` turns across the same 1,000-input history used by its control. It committed `20` `belief_consolidation` roots at an average payload of `462.7` B. SQLite delta versus the same inputs without executed consolidation was `-761,856` B; consolidation-evidence row delta was `-7,508` because committed boundaries consume/prune their evidence windows. This is an engineering storage measurement, not validation of the psychological threshold/delta values.
 
-**Next memory-policy question:** test admission/eviction by semantic consumer role and recoverability across multiple histories, distractor structures, repair states, and restart boundaries. Do not select a global `N` from the 1/2/4/8 experiments.
+**Current memory-policy result:** that consumer-role/recoverability pass is complete as `semantic-residency-v1`. No universal `N` was selected. `OBSERVED` and `REFLECTION` remain resident until a future typed reconstruction path earns their eviction; see the later Semantic residency policy section and its evidence.
 
 ## Other known limitations
 
-Replay does not yet cover every future authoritative host/world/action family. Cross-host single-writer lease and handoff semantics remain future work. Social influence/collaboration authority is not yet fully typed. The default zero-model renderer remains linguistically limited. There is no production microphone, camera, TTS, avatar engine, or mobile-native host. Offscreen life remains limited compared with the planned event-based autonomy layer. The minimum viable individual has not yet been established through the complete ablation program.
+Replay does not yet cover every future authoritative host/world/action family. Shared-store cross-host single-writer custody and explicit handoff are now implemented as `writer-handoff-v1`; disconnected-store transfer/branch reconciliation remains future work. Social influence/collaboration authority is not yet fully typed. The default zero-model renderer remains linguistically limited. There is no production microphone, camera, TTS, avatar engine, or mobile-native host. Offscreen life remains limited compared with the planned event-based autonomy layer. The minimum viable individual has not yet been established through the complete ablation program.
 
 ## Standing design decisions
 
@@ -147,10 +142,11 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Expand reconstruction evidence to pinned non-`USER_TOLD` memory families before changing their residency.
-2. Keep the global hot-memory capacity experimental; use semantic consumer roles plus reconstruction contracts rather than choosing a universal count.
-3. Preserve the closed slow-belief replay contract and do not conflate replay correctness with M7 psychological calibration.
-4. Keep cross-host single-writer handoff/branching and full typed social influence deferred until their roadmap phases.
+1. Preserve the shared-store `writer-handoff-v1` fence. Any next cross-host phase must falsify disconnected-store transfer/branch behavior rather than weaken the working shared-store contract.
+2. Do not resume memory-count optimization without a new demonstrated failure. `semantic-residency-v1` and the 5,000-turn active-state plateau are the current memory result.
+3. Full typed social-influence authority and richer offscreen autonomy remain unresolved longitudinal candidates; choose the next one by writing its falsification criterion first.
+4. Treat duplicated current-status prose as a repository-governance risk. The current manual synchronization process has produced stale contradictory checkpoints and should be replaced by a machine-verifiable status source plus CI consistency checks in a separate governance phase.
+5. Add an independently designed adversarial continuity evaluation before making strong robustness claims about the same-individual contract or freezing cross-language conformance vectors.
 
 ## Required reading
 
@@ -192,17 +188,17 @@ The experiment also isolated and repaired a separate experience-level renderer d
 
 Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
 
-**Next memory-policy target:** expand reconstruction evidence to currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency by demonstrated semantic consumer role plus a tested reconstruction contract. Do not select a global `N` from the 1/2/4/8 or projection experiments.
+**Historical checkpoint note:** this was the next target at the end of semantic-memory-recoverability-v2. It was subsequently completed by `semantic-residency-v1`; current policy is described below.
 
 
 
 ## Runtime transaction and streaming integrity
 
-The local runtime now enforces a reentrant single-writer boundary around public access paths that can mutate or expose the continuing subject during a turn. This closes the race between `receive_input()` and background/explicit `advance_time()` without changing the intentionally deferred cross-host ownership model. Compound legacy pressure/symbol helpers participate in the same boundary.
+The local runtime enforces a reentrant process-local serialization boundary around public access paths that can mutate or expose the continuing subject during a turn. This closes the race between `receive_input()` and background/explicit `advance_time()`. Shared-store cross-host custody is now a separate `writer-handoff-v1` host + generation fence; disconnected authority-store copies and branch reconciliation remain deferred. Compound legacy pressure/symbol helpers participate in the local boundary.
 
 The public streaming convenience path is also causal: `stream_last_response()` executes one turn and emits chunks from that turn's already validated final response. It does not ask the renderer for a second, potentially divergent utterance after canonical writeback. The FastAPI SSE path already streamed the committed result and remains unchanged.
 
-Two deterministic regressions cover exact streamed-response identity and blocking of concurrent turn/time mutations. With those additions the expected Python 3.11 deterministic inventory is `333 passed, 1 skipped, 1 warning`. One-shot run `33347858914` passed the targeted regressions and full Python 3.11 suite; normal Wayfarer CI run `33347953873` passed both Python 3.11 and Python 3.12 on hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad`.
+Two deterministic regressions cover exact streamed-response identity and blocking of concurrent turn/time mutations. At that historical local-serialization checkpoint the Python 3.11 deterministic inventory was `333 passed, 1 skipped, 1 warning`. One-shot run `33347858914` passed the targeted regressions and full Python 3.11 suite; normal Wayfarer CI run `33347953873` passed both Python 3.11 and Python 3.12 on hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad`. The current inventory is recorded at the top of this file.
 
 ## Semantic residency policy
 
@@ -210,3 +206,14 @@ Wayfarer production now names its resident-memory contract `semantic-residency-v
 
 A combined adversarial fixture and a fresh 5,000-turn production-only plateau are green. At turn 5,000 the exercised fixture used `12,707 B` of serialized active state and `7` resident memories, with only `134 B` active-state growth since turn 250. These are measured outcomes, not fixed budgets.
 
+
+
+## Shared-store cross-host writer custody
+
+`writer-handoff-v1` is the first M5 custody contract. Each permanent subject has one active `host_id` plus a monotonic writer generation in the shared authority store. Subject-affecting persistence writes fence against both values inside the same SQLite transaction as the mutation. A host with a stale generation or a different active host fails closed with `WriterLeaseError`.
+
+An explicit handoff persists a clean source boundary, records its state digest and subject-sequence anchor as administrative continuity metadata, advances the writer generation, and names the target host. The handoff itself is not inserted into `continuity_event`; changing custodial machinery is not automatically a lived experience. The target validates the durable receipt and loaded-state digest before accepting custody.
+
+The combined probe preserves permanent subject UUID, subject-wide canonical ordering, continuity clock, subject-owned earned traits, self-owned commitment behavior, and interlocutor-specific relationship scope. It also proves generation fencing when a host ID later returns: an older process with that same host ID remains stale until it receives the new generation explicitly.
+
+Scope is deliberately narrow: one shared canonical SQLite authority store, cooperative hosts, no expiry/automatic stealing. Disconnected copies, remote consensus, hostile direct database access, and branch reconciliation are not claimed solved. See `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`.

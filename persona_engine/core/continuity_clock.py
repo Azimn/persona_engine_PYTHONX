@@ -11,7 +11,7 @@ portable context, not part of elapsed-time arithmetic.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -66,7 +66,19 @@ class ContinuityClock:
         )
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        """Return the canonical persisted clock representation.
+
+        Subject elapsed time uses the same six-decimal precision as canonical
+        time-advance payloads so restart and host handoff reconstruct exactly
+        the state that was digested at the persistence boundary. Live elapsed
+        arithmetic remains full Python float precision between writes.
+        """
+        return {
+            "subject_elapsed_seconds": round(float(self.subject_elapsed_seconds), 6),
+            "last_wall_time": float(self.last_wall_time),
+            "timezone_name": str(self.timezone_name or "unknown"),
+            "correction_count": max(0, int(self.correction_count)),
+        }
 
     def observe_wall(self, observed_wall_time: float, *, source: str = "wall_clock_catchup") -> ClockAdvance:
         observed = float(observed_wall_time)

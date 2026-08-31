@@ -1,0 +1,7 @@
+{
+  "canonical_input_count": 2,
+  "dual_writer_possible": true,
+  "finding": "Two independent engine instances sharing one canonical store can both author the same subject because no host writer fencing exists.",
+  "probe": "cross-host-writer-pre-fix-v1",
+  "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36"
+}

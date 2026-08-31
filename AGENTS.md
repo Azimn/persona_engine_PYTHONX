@@ -124,9 +124,11 @@ Read `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semant
 
 **Current memory-policy result:** `semantic-residency-v1` is the production rule. Active unresolved `USER_TOLD` evidence remains resident for demonstrated conduct/reflection consumers; inactive autobiographical wording may read through canonical cold biography. `OBSERVED` and `REFLECTION` remain resident because adversarial ablation loses their first-person experience and no safe cold reconstruction path exists. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families. Further eviction requires a typed reconstruction contract, not a numeric capacity target.
 
-### Intentionally deferred work
+### Cross-host custody and intentionally deferred work
 
-Cross-host single-writer handoff/lease/branch semantics and full typed social-influence authority are intentionally deferred. They are not missing by oversight. Do not pull them into a memory or developmental-continuity task merely because they appear later in the roadmap.
+Shared-store single-writer custody is now active as `writer-handoff-v1`: explicit `host_id`, monotonic writer generation, transactional fencing, and deliberate source-to-target handoff. Do not weaken that contract or reinterpret the existing event `continuity_epoch` as the writer generation.
+
+Disconnected-store transfer, branch reconciliation, remote/distributed lease expiry/consensus, and full typed social-influence authority remain deferred. They are not missing by oversight.
 
 Divergent lived histories remain branches/descendants. Silent merge is prohibited until explicit merge semantics are designed and approved.
 
@@ -210,22 +212,11 @@ The expected full test command is:
 python -m pytest persona_engine/tests -q
 ```
 
-The original pre-Wayfarer baseline and its known failures are recorded in `persona_engine/docs/WAYFARER_BASELINE.md`. Do not replace that frozen baseline with later green results.
+The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELINE.md`; do not replace it with later green results.
 
-Current semantic-memory phase implementation/evidence:
+**Current production inventory after `writer-handoff-v1`: `340 passed, 1 skipped, 1 warning` on Python 3.11.** The targeted custody/continuity set is `32 passed`; the permanent shared-store handoff probe passes. The optimized writer fence uses a SQLite `BEGIN IMMEDIATE` write reservation before host/generation validation and avoids a semantically unused per-mutation writer-row heartbeat. The full deterministic suite completed in `31.68s` in the verification run. The sole warning remains the existing Starlette/httpx TestClient deprecation.
 
-- Phase commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7` (`Preserve recovered memory values under tight output budgets`)
-- Phase integration run: `33345170927`
-- Targeted offline renderer suite: `11 passed`
-- Python 3.11.16 full deterministic suite: `331 passed, 1 skipped, 1 warning in 22.67s`
-- Semantic-memory production projection: `6/6` semantic core, `6/6` experience, `6/6` grounded retrieval, `6/6` surface realization, `6/6` authority, `6/6` restart-state preservation
-- The warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
-
-Durable documentation sync for this phase:
-
-- `eb0bba740635a997b662676237ef59b7c201516a` (`Record semantic memory role phase results`)
-
-Current expected deterministic test inventory after the local state-safety hardening is therefore **333 passed, 1 skipped, 1 warning** on Python 3.11. Hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad` passed normal Wayfarer CI run `33347953873` on both Python 3.11 and Python 3.12. This verification note is documentation over the same runtime/test code; always check GitHub Actions for any newer head before quoting a result.
+Historical phase-local totals remain useful evidence, but they are not the current inventory. Before quoting a test count or head, prefer this block plus the newest normal Wayfarer CI run and relevant evidence file.
 
 ## Current evidence checkpoint
 
@@ -237,7 +228,7 @@ Current expected deterministic test inventory after the local state-safety harde
 - Active-conflict-only USER_TOLD projection: preserves all six tested semantic/experience scenarios.
 - Deterministic tight-budget recall: recovered value remains visible after generic recall-command scaffolding is stripped at expression time.
 - `OBSERVED` and `REFLECTION`: demonstrated resident until first-person reconstruction exists; their ablations lose retrievable experience. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families.
-- Cross-host handoff/branching: intentionally deferred.
+- Cross-host shared-store custody: implemented with host + writer-generation fencing; disconnected-store transfer/branch reconciliation remains deferred.
 - Full typed social-influence authority: intentionally deferred.
 
 Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.
@@ -248,8 +239,8 @@ Do not anchor on older test totals, old unresolved-gap language, historical expe
 - `receive_input()` and `advance_time()` must not interleave partial subject state.
 - Renderer replacement, sensory/world mutation, commitment adoption, consolidation, and turn processing use the same local boundary.
 - `CharacterAgent.stream_last_response()` must stream the exact validated response from the one committed turn and must not invoke a second renderer generation.
-- This local lock is not the deferred cross-host writer lease/handoff mechanism and must not be described as solving M8 migration ownership.
-- Two new deterministic regressions raise the expected Python 3.11 inventory to `333 passed, 1 skipped, 1 warning`; normal Wayfarer CI run `33347953873` passed on both Python 3.11 and Python 3.12.
+- The local reentrant lock remains a process-local serialization layer. Shared-store cross-host custody is a separate durable host + writer-generation fence. Neither contract covers disconnected authority-store copies or branch reconciliation.
+- At that historical local-serialization checkpoint, the deterministic inventory was `333 passed, 1 skipped, 1 warning`; normal Wayfarer CI run `33347953873` passed on both Python 3.11 and Python 3.12. This is phase-local history, not the current inventory.
 
 
 ## Semantic residency phase checkpoint
@@ -260,3 +251,15 @@ Do not anchor on older test totals, old unresolved-gap language, historical expe
 - Python 3.11 deterministic inventory for this phase: `335 passed, 1 skipped, 1 warning`.
 - Phase finalization workflow run: `33350912560`.
 - Do not reinterpret the observed seven-item plateau as a universal memory capacity.
+
+
+## Writer custody checkpoint
+
+- One shared canonical subject authority store has one active host writer generation.
+- Mutating transactions acquire SQLite `BEGIN IMMEDIATE` before validating host + generation, preventing handoff/check races without rewriting the custody row on every mutation.
+- `host_id` defaults to `local` for the established single-host compatibility profile; distinct hosts must provide distinct IDs.
+- A stale host may read projections but subject-affecting writes fail with `WriterLeaseError`.
+- Handoff has no timeout or automatic steal path in v1. Fail closed rather than guess custody.
+- Administrative handoff records are not lived biography and must not be inserted into `continuity_event` unless a future host/environment event is separately demonstrated as subject experience.
+- Do not use existing `continuity_epoch` as a writer fencing token. Writer generation is a separate custody concept.
+- Do not claim disconnected database copies are protected by the shared-store lease. Divergent copies remain branch/descendant candidates until a later transfer/reconciliation contract exists.

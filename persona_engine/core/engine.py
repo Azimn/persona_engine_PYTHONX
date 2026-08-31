@@ -124,8 +124,9 @@ class ReflectionCandidate:
 
 
 class InteriorEngine:
-    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT):
+    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT, host_id: str = "local"):
         self._state_lock = threading.RLock()
+        self.host_id = str(host_id or "local")
         self.cartridge_data = None
         self.belief_rules = []
         if cartridge_path is not None:
@@ -171,7 +172,7 @@ class InteriorEngine:
         self.renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
         self.validator = OutputValidator()
         self.consistency = ConsistencyLayer(self.validator)
-        self.persistence = Persistence(db_path, diagnostic_event_limit=diagnostic_event_limit)
+        self.persistence = Persistence(db_path, diagnostic_event_limit=diagnostic_event_limit, host_id=self.host_id)
         if self.identity.entity_uuid:
             self.persistence.bind_subject(self.identity.name, self.user_id, self.identity.entity_uuid)
         self.deception_ledger = DeceptionLedger()
@@ -199,6 +200,31 @@ class InteriorEngine:
         with self._state_lock:
             yield
 
+    def _require_writer(self) -> dict[str, Any]:
+        return self.persistence.assert_writer(self.identity.name, self.user_id)
+
+    @_serialized_state_access
+    def writer_status(self) -> dict[str, Any]:
+        return self.persistence.writer_status(self.identity.name, self.user_id)
+
+    @_serialized_state_access
+    def handoff_writer(self, target_host_id: str) -> dict[str, Any]:
+        """Persist a clean boundary, then transfer exclusive host write custody."""
+        self._require_writer()
+        self._persist()
+        digest = continuity_state_digest(self._serialize_state())
+        return self.persistence.handoff_writer(
+            self.identity.name, self.user_id, target_host_id, state_digest=digest
+        )
+
+    @_serialized_state_access
+    def accept_writer_handoff(self, receipt: dict[str, Any]) -> dict[str, Any]:
+        """Accept custody only when loaded state matches the source boundary."""
+        digest = continuity_state_digest(self._serialize_state())
+        return self.persistence.accept_writer_handoff(
+            self.identity.name, self.user_id, receipt, local_state_digest=digest
+        )
+
     @_serialized_state_access
     def set_renderer(self, renderer) -> None:
         """Replace only the surface renderer through an approved host channel."""
@@ -221,6 +247,8 @@ class InteriorEngine:
         non-disclosure behavior demonstrated by the commitment-gap experiment.
         """
 
+        if record_event or persist:
+            self._require_writer()
         kind = str(commitment_kind or "").strip().lower()
         target = " ".join(str(commitment_target or "").strip().lower().split())
         if kind != "non_disclosure":
@@ -244,6 +272,7 @@ class InteriorEngine:
             "commitment_kind": kind,
             "commitment_target": target,
             "adoption_source": "self_decision",
+            "adopted_at": intention.created_at,
             "payload_schema": "commitment-adoption-v1",
             "memory_types": ["commitment"],
         }
@@ -402,11 +431,28 @@ class InteriorEngine:
             target = str(payload.get("commitment_target", ""))
             if kind != "non_disclosure" or not target.strip():
                 continue
-            self.adopt_commitment(
-                kind,
-                target,
-                record_event=False,
-                persist=False,
+            normalized_target = " ".join(target.strip().lower().split())
+            normalized_name = normalized_target.replace(" ", "_")
+            commitment_name = str(payload.get("commitment_name") or f"commitment:{kind}:{normalized_name}")
+            existing = next((item for item in self.intentions.intentions if item.name == commitment_name), None)
+            if existing is not None:
+                continue
+            adopted_at = payload.get("adopted_at", event.get("created_at", time.time()))
+            try:
+                adopted_at = float(adopted_at)
+            except (TypeError, ValueError):
+                adopted_at = float(event.get("created_at", time.time()))
+            self.intentions.add_intention(
+                Intention(
+                    name=commitment_name,
+                    priority=0.0,
+                    source="self_decision",
+                    created_at=adopted_at,
+                    expires_at=None,
+                    requires_user_context=False,
+                    commitment_kind=kind,
+                    commitment_target=normalized_target,
+                )
             )
 
     def _serialize_state(self) -> dict:
@@ -468,6 +514,7 @@ class InteriorEngine:
         }
 
     def _persist(self):
+        self._require_writer()
         # WorldAuthority is the current objective-state authority. Canonical
         # continuity owns world history, so facts that can never again affect
         # server or visible truth are compacted before snapshot persistence.
@@ -497,6 +544,7 @@ class InteriorEngine:
         ``time_advance`` root. Legacy five-second body/pressure mechanics receive
         at most the compatibility budget until those coefficients are calibrated.
         """
+        self._require_writer()
         advance = self.clock.advance_by(elapsed_seconds, observed_wall_time=time.time(), source=source)
         return self._apply_clock_advance(advance, record_event=record_event, persist=persist)
 
@@ -655,6 +703,7 @@ class InteriorEngine:
         by the active rule set remain noncanonical housekeeping.
         """
 
+        self._require_writer()
         result = self.dream_engine.prepare_idle_pass(
             self.identity.name,
             self.user_id,
@@ -717,6 +766,7 @@ class InteriorEngine:
 
     @_serialized_state_access
     def import_session_snapshot(self, snap):
+        self._require_writer()
         from .session import import_snapshot
         import_snapshot(snap, self.pressures, self.belief_ledger, self.identity.name)
         self._persist()
@@ -785,6 +835,7 @@ class InteriorEngine:
 
         Audio modules cannot mutate pressure or relationship state directly.
         """
+        self._require_writer()
         before_pressures = {name: p.magnitude for name, p in self.pressures.pressures.items()}
         routed = self.sensory_router.route_audio(observation, self.world_authority)
         payload = {
@@ -809,6 +860,7 @@ class InteriorEngine:
     @_serialized_state_access
     def ingest_vision_observation(self, observation: VisionObservation) -> dict:
         """Route a bounded vision observation through world authority."""
+        self._require_writer()
         before_relationship = dict(vars(self.relationship))
         routed = self.sensory_router.route_vision(observation, self.world_authority)
         payload = {
@@ -829,6 +881,7 @@ class InteriorEngine:
 
     @_serialized_state_access
     def propose_world_action(self, action_type: str, payload: dict | None = None) -> dict:
+        self._require_writer()
         proposal = WorldActionProposal(self.identity.name, action_type, dict(payload or {}), time.time())
         resolution = self.world_authority.resolve_action(proposal)
         visible = {fact.key: fact.value for fact in resolution.facts_created if fact.visible_to_character}
@@ -868,6 +921,7 @@ class InteriorEngine:
     # ---------------- main turn ----------------
     @_serialized_state_access
     def receive_input(self, user_text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
+        self._require_writer()
         self._catch_up_idle()
         self.timestep += 1
         now = time.time()

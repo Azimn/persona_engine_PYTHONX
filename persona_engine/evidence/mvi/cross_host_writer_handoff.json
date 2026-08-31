@@ -1,0 +1,15 @@
+{
+  "clock_seconds": 60.080240844665525,
+  "handoff_is_not_biography": true,
+  "passed": true,
+  "pre_handoff_competing_host_blocked": true,
+  "probe": "shared-store-writer-handoff-v1",
+  "same_subject_across_interlocutors": true,
+  "scope": "shared canonical SQLite authority store; cooperative hosts with distinct host_id values",
+  "stale_source_blocked": true,
+  "subject_sequence_after_target_turn": 4,
+  "subject_sequence_anchor": 3,
+  "target_commitment_act": "decline",
+  "trait_present": true,
+  "writer_generation": 2
+}

@@ -13,16 +13,27 @@ import time
 class CharacterAgent:
     """Thin public API. All real mechanics live in InteriorEngine."""
 
-    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT):
-        self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path, diagnostic_event_limit=diagnostic_event_limit)
+    def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT, host_id: str = "local"):
+        self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path, diagnostic_event_limit=diagnostic_event_limit, host_id=host_id)
+
+    def writer_status(self) -> dict:
+        return self.engine.writer_status()
+
+    def handoff_writer(self, target_host_id: str) -> dict:
+        return self.engine.handoff_writer(target_host_id)
+
+    def accept_writer_handoff(self, receipt: dict) -> dict:
+        return self.engine.accept_writer_handoff(receipt)
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
         with self.engine.state_transaction():
+            self.engine._require_writer()
             self.engine.pressures.add(EmotionalPressure(name, magnitude, inhibition_strength, trigger_sensitivity))
             self.engine._persist()
 
     def add_symbol(self, name: str, meaning: str, emotional_charge: float = 0.5, stability: float = 0.5):
         with self.engine.state_transaction():
+            self.engine._require_writer()
             now = time.time()
             self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
             self.engine._persist()

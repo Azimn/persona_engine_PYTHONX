@@ -84,3 +84,15 @@ def test_subject_clock_follows_one_subject_across_interlocutors():
             alice_elapsed,
             bob_elapsed,
         ]
+
+
+def test_clock_snapshot_uses_canonical_microsecond_precision():
+    clock = ContinuityClock(
+        subject_elapsed_seconds=60.00401997566223,
+        last_wall_time=1234.5,
+        timezone_name="unknown",
+        correction_count=0,
+    )
+    snapshot = clock.to_dict()
+    assert snapshot["subject_elapsed_seconds"] == 60.00402
+    assert ContinuityClock.from_dict(snapshot).to_dict() == snapshot

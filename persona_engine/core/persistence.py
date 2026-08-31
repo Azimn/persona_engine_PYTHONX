@@ -131,6 +131,27 @@ CREATE TABLE IF NOT EXISTS continuity_checkpoint (
     created_at REAL NOT NULL,
     UNIQUE(subject_uuid, user_id, continuity_epoch,sequence)
 );
+CREATE TABLE IF NOT EXISTS continuity_writer (
+    subject_uuid TEXT PRIMARY KEY,
+    active_host_id TEXT NOT NULL,
+    writer_generation INTEGER NOT NULL,
+    updated_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS continuity_handoff (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    handoff_uuid TEXT NOT NULL UNIQUE,
+    subject_uuid TEXT NOT NULL,
+    from_host_id TEXT NOT NULL,
+    to_host_id TEXT NOT NULL,
+    previous_generation INTEGER NOT NULL,
+    writer_generation INTEGER NOT NULL,
+    continuity_epoch INTEGER NOT NULL,
+    subject_sequence_anchor INTEGER NOT NULL,
+    state_digest TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_continuity_handoff_subject_generation
+    ON continuity_handoff(subject_uuid, writer_generation);
 """
 
 
@@ -138,10 +159,20 @@ class ContinuityImportError(ValueError):
     """Raised when an imported canonical event tail violates continuity rules."""
 
 
+class WriterLeaseError(RuntimeError):
+    """Raised when a runtime without the current writer generation tries to mutate a subject."""
+
+
 class Persistence:
-    def __init__(self, path: str = "persona_state.db", diagnostic_event_limit: int | None = None):
+    def __init__(self, path: str = "persona_state.db", diagnostic_event_limit: int | None = None, host_id: str = "local"):
         self.path = path
+        self.host_id = " ".join(str(host_id or "").strip().split())
+        if not self.host_id:
+            raise ValueError("host_id must not be empty")
+        if len(self.host_id) > 128:
+            raise ValueError("host_id is too long")
         self.diagnostic_event_limit = None if diagnostic_event_limit is None else max(1, int(diagnostic_event_limit))
+        self._writer_claims: dict[str, int] = {}
         # Operational hysteresis: avoid a SELECT/DELETE maintenance cycle on
         # every logged event. Small limits still prune every event; the normal
         # 512-row runtime window amortizes maintenance across 128 writes.
@@ -273,8 +304,13 @@ class Persistence:
         subject_uuid: str,
         continuity_epoch: int = 0,
     ) -> None:
-        """Bind a persistence stream to the permanent portable subject UUID."""
+        """Bind a stream to a subject and establish or observe writer custody.
 
+        The first host to bind a previously unowned subject receives writer
+        generation 1. A different host may read the same store, but it cannot
+        mutate subject state until the active writer explicitly hands custody to
+        it. Rebinding never silently changes the subject UUID or event epoch.
+        """
         subject_uuid = str(subject_uuid or "").strip()
         if not subject_uuid:
             raise ValueError("bind_subject requires a non-empty permanent subject UUID")
@@ -282,18 +318,42 @@ class Persistence:
             uuid.UUID(subject_uuid)
         except ValueError as exc:
             raise ValueError(f"invalid subject UUID: {subject_uuid}") from exc
-        continuity_epoch = max(0, int(continuity_epoch))
+        requested_epoch = max(0, int(continuity_epoch))
         key = (str(character_id), str(user_id))
-        self._subject_bindings[key] = (subject_uuid, continuity_epoch)
+        now = time.time()
         with self._connection() as conn:
+            existing = conn.execute(
+                "SELECT subject_uuid,continuity_epoch FROM continuity_subject WHERE character_id=? AND user_id=?",
+                (character_id, user_id),
+            ).fetchone()
+            if existing:
+                if str(existing[0]) != subject_uuid:
+                    raise ValueError("existing stream is bound to a different subject UUID")
+                bound_epoch = int(existing[1])
+                if bound_epoch != requested_epoch:
+                    raise ValueError("continuity epoch rebinding requires an explicit migration contract")
+                conn.execute(
+                    "UPDATE continuity_subject SET updated_at=? WHERE character_id=? AND user_id=?",
+                    (now, character_id, user_id),
+                )
+            else:
+                bound_epoch = requested_epoch
+                conn.execute(
+                    "INSERT INTO continuity_subject(character_id,user_id,subject_uuid,continuity_epoch,updated_at) VALUES(?,?,?,?,?)",
+                    (character_id, user_id, subject_uuid, bound_epoch, now),
+                )
             conn.execute(
-                "INSERT INTO continuity_subject(character_id,user_id,subject_uuid,continuity_epoch,updated_at) VALUES(?,?,?,?,?) "
-                "ON CONFLICT(character_id,user_id) DO UPDATE SET subject_uuid=excluded.subject_uuid, continuity_epoch=excluded.continuity_epoch, updated_at=excluded.updated_at",
-                (character_id, user_id, subject_uuid, continuity_epoch, time.time()),
+                "INSERT OR IGNORE INTO continuity_writer(subject_uuid,active_host_id,writer_generation,updated_at) VALUES(?,?,?,?)",
+                (subject_uuid, self.host_id, 1, now),
             )
-        if self.diagnostic_event_limit is not None:
-            # A pre-M3 database may contain canonical experiences only in the
-            # legacy journal. Admit them to continuity before telemetry pruning.
+            writer = conn.execute(
+                "SELECT active_host_id,writer_generation FROM continuity_writer WHERE subject_uuid=?",
+                (subject_uuid,),
+            ).fetchone()
+        self._subject_bindings[key] = (subject_uuid, bound_epoch)
+        if writer and str(writer[0]) == self.host_id and subject_uuid not in self._writer_claims:
+            self._writer_claims[subject_uuid] = int(writer[1])
+        if self.diagnostic_event_limit is not None and self.writer_status(character_id, user_id)["writable"]:
             self.backfill_legacy_events(character_id, user_id)
             self.prune_diagnostic_events(character_id, user_id)
 
@@ -317,9 +377,175 @@ class Persistence:
         self._subject_bindings[key] = resolved
         return resolved
 
+    # ---------------- cross-host writer custody ----------------
+    def _ensure_writer_row_conn(self, conn, subject_uuid: str) -> tuple[str, int]:
+        row = conn.execute(
+            "SELECT active_host_id,writer_generation FROM continuity_writer WHERE subject_uuid=?",
+            (subject_uuid,),
+        ).fetchone()
+        if row is None:
+            conn.execute(
+                "INSERT OR IGNORE INTO continuity_writer(subject_uuid,active_host_id,writer_generation,updated_at) VALUES(?,?,?,?)",
+                (subject_uuid, self.host_id, 1, time.time()),
+            )
+            row = conn.execute(
+                "SELECT active_host_id,writer_generation FROM continuity_writer WHERE subject_uuid=?",
+                (subject_uuid,),
+            ).fetchone()
+        if row is None:
+            raise WriterLeaseError("writer custody row could not be established")
+        active_host, generation = str(row[0]), int(row[1])
+        if active_host == self.host_id and subject_uuid not in self._writer_claims:
+            self._writer_claims[subject_uuid] = generation
+        return active_host, generation
+
+    def _fence_writer_conn(self, conn, character_id: str, user_id: str) -> tuple[str, int]:
+        """Validate writer generation while holding SQLite's write reservation.
+
+        ``BEGIN IMMEDIATE`` obtains the database write reservation before the
+        custody row is read, so an explicit handoff cannot race between the
+        generation check and the caller's mutation. V1 has no lease timeout, so
+        rewriting ``continuity_writer.updated_at`` on every state mutation would
+        add a hot-row durability cost without strengthening the custody contract.
+        """
+        if not conn.in_transaction:
+            conn.execute("BEGIN IMMEDIATE")
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+        claim = self._writer_claims.get(subject_uuid)
+        if active_host != self.host_id or claim != generation:
+            raise WriterLeaseError(
+                f"stale or non-owner writer: host={self.host_id!r}, claim={claim}, "
+                f"active_host={active_host!r}, active_generation={generation}"
+            )
+        return subject_uuid, generation
+
+    def assert_writer(self, character_id: str, user_id: str) -> dict[str, Any]:
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        with self._connection() as conn:
+            active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+        claim = self._writer_claims.get(subject_uuid)
+        if active_host != self.host_id or claim != generation:
+            raise WriterLeaseError(
+                f"host {self.host_id!r} does not hold current writer generation for subject {subject_uuid}"
+            )
+        return self.writer_status(character_id, user_id)
+
+    def writer_status(self, character_id: str, user_id: str) -> dict[str, Any]:
+        subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        with self._connection() as conn:
+            active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+        claim = self._writer_claims.get(subject_uuid)
+        return {
+            "subject_uuid": subject_uuid,
+            "continuity_epoch": epoch,
+            "local_host_id": self.host_id,
+            "active_host_id": active_host,
+            "writer_generation": generation,
+            "claim_generation": claim,
+            "writable": active_host == self.host_id and claim == generation,
+        }
+
+    def handoff_writer(self, character_id: str, user_id: str, target_host_id: str, *, state_digest: str = "") -> dict[str, Any]:
+        """Transfer shared-store writer custody and advance its fencing generation.
+
+        V1 deliberately has no timeout or automatic stealing. Ambiguous custody
+        fails closed instead of risking split-brain canonical history. The audit
+        is continuity administration, not a fabricated lived event.
+        """
+        target = " ".join(str(target_host_id or "").strip().split())
+        if not target:
+            raise ValueError("target_host_id must not be empty")
+        if target == self.host_id:
+            raise ValueError("target_host_id must name a different host")
+        subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        now = time.time()
+        handoff_uuid = str(uuid.uuid4())
+        with self._connection() as conn:
+            _, generation = self._fence_writer_conn(conn, character_id, user_id)
+            anchor_row = conn.execute(
+                "SELECT COALESCE(MAX(subject_sequence),0) FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=?",
+                (subject_uuid, epoch),
+            ).fetchone()
+            anchor = int(anchor_row[0] or 0)
+            next_generation = generation + 1
+            cur = conn.execute(
+                "UPDATE continuity_writer SET active_host_id=?,writer_generation=?,updated_at=? "
+                "WHERE subject_uuid=? AND active_host_id=? AND writer_generation=?",
+                (target, next_generation, now, subject_uuid, self.host_id, generation),
+            )
+            if int(cur.rowcount or 0) != 1:
+                raise WriterLeaseError("writer handoff lost the fencing race")
+            conn.execute(
+                "INSERT INTO continuity_handoff(handoff_uuid,subject_uuid,from_host_id,to_host_id,previous_generation,writer_generation,continuity_epoch,subject_sequence_anchor,state_digest,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                (handoff_uuid, subject_uuid, self.host_id, target, generation, next_generation, epoch, anchor, str(state_digest or ""), now),
+            )
+        return {
+            "schema_version": "writer-handoff-v1",
+            "handoff_uuid": handoff_uuid,
+            "subject_uuid": subject_uuid,
+            "from_host_id": self.host_id,
+            "to_host_id": target,
+            "previous_generation": generation,
+            "writer_generation": next_generation,
+            "continuity_epoch": epoch,
+            "subject_sequence_anchor": anchor,
+            "state_digest": str(state_digest or ""),
+            "created_at": now,
+        }
+
+    def accept_writer_handoff(self, character_id: str, user_id: str, receipt: dict[str, Any], *, local_state_digest: str = "") -> dict[str, Any]:
+        """Validate the durable handoff receipt and install its generation locally."""
+        if str(receipt.get("schema_version")) != "writer-handoff-v1":
+            raise WriterLeaseError("unsupported writer handoff receipt")
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        if str(receipt.get("subject_uuid")) != subject_uuid:
+            raise WriterLeaseError("handoff subject UUID mismatch")
+        if str(receipt.get("to_host_id")) != self.host_id:
+            raise WriterLeaseError("handoff targets a different host")
+        expected_digest = str(receipt.get("state_digest") or "")
+        if expected_digest and local_state_digest and expected_digest != local_state_digest:
+            raise WriterLeaseError("target state does not match the handoff state digest")
+        generation = int(receipt.get("writer_generation", -1))
+        handoff_uuid = str(receipt.get("handoff_uuid") or "")
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT active_host_id,writer_generation FROM continuity_writer WHERE subject_uuid=?",
+                (subject_uuid,),
+            ).fetchone()
+            audit = conn.execute(
+                "SELECT to_host_id,writer_generation,state_digest FROM continuity_handoff WHERE handoff_uuid=? AND subject_uuid=?",
+                (handoff_uuid, subject_uuid),
+            ).fetchone()
+        if row is None or str(row[0]) != self.host_id or int(row[1]) != generation:
+            raise WriterLeaseError("handoff receipt is not the active writer generation")
+        if audit is None or str(audit[0]) != self.host_id or int(audit[1]) != generation or str(audit[2]) != expected_digest:
+            raise WriterLeaseError("handoff receipt does not match durable custody audit")
+        self._writer_claims[subject_uuid] = generation
+        return self.writer_status(character_id, user_id)
+
+    def load_writer_handoffs(self, character_id: str, user_id: str) -> list[dict[str, Any]]:
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT handoff_uuid,from_host_id,to_host_id,previous_generation,writer_generation,continuity_epoch,subject_sequence_anchor,state_digest,created_at FROM continuity_handoff WHERE subject_uuid=? ORDER BY writer_generation,id",
+                (subject_uuid,),
+            ).fetchall()
+        return [
+            {
+                "handoff_uuid": row[0], "subject_uuid": subject_uuid,
+                "from_host_id": row[1], "to_host_id": row[2],
+                "previous_generation": int(row[3]), "writer_generation": int(row[4]),
+                "continuity_epoch": int(row[5]), "subject_sequence_anchor": int(row[6]),
+                "state_digest": str(row[7]), "created_at": float(row[8]),
+            }
+            for row in rows
+        ]
+
     # ---------------- state snapshots ----------------
     def save(self, character_id: str, user_id: str, key: str, value):
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             conn.execute(
                 "INSERT INTO state (character_id, user_id, key, value, updated_at) VALUES (?,?,?,?,?) "
                 "ON CONFLICT(character_id, user_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
@@ -344,6 +570,7 @@ class Persistence:
 
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             conn.execute(
                 "INSERT INTO subject_state(subject_uuid,key,value,updated_at) VALUES(?,?,?,?) "
                 "ON CONFLICT(subject_uuid,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
@@ -367,6 +594,7 @@ class Persistence:
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
         now = time.time()
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             for key, value in items.items():
                 conn.execute(
                     "INSERT INTO subject_state(subject_uuid,key,value,updated_at) VALUES(?,?,?,?) "
@@ -383,6 +611,7 @@ class Persistence:
     def save_many(self, character_id: str, user_id: str, items: dict):
         now = time.time()
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             for key, value in items.items():
                 conn.execute(
                     "INSERT INTO state (character_id, user_id, key, value, updated_at) VALUES (?,?,?,?,?) "
@@ -417,6 +646,7 @@ class Persistence:
         """Bound recent operational telemetry without touching lived history."""
 
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             removed = self._prune_diagnostic_events_conn(conn, character_id, user_id)
         self._diagnostic_writes_since_prune[(str(character_id), str(user_id))] = 0
         return removed
@@ -425,6 +655,7 @@ class Persistence:
         """Discard semantic evidence already committed into the belief ledger."""
 
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             cur = conn.execute(
                 "DELETE FROM consolidation_evidence WHERE character_id=? AND user_id=? AND created_at<=?",
                 (character_id, user_id, float(through)),
@@ -453,6 +684,7 @@ class Persistence:
             raise ValueError("invalid belief_consolidation causal root")
         now = time.time()
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             conn.execute(
                 "INSERT INTO state (character_id,user_id,key,value,updated_at) VALUES(?,?,?,?,?) "
                 "ON CONFLICT(character_id,user_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
@@ -505,6 +737,7 @@ class Persistence:
         payload = dict(payload or {})
         root_payload = dict(continuity_payload) if continuity_payload is not None else dict(payload)
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             cur = conn.execute(
                 "INSERT INTO event_log (character_id,user_id,timestep,event_type,payload,created_at) VALUES (?,?,?,?,?,?)",
                 (character_id, user_id, timestep, event_type, json.dumps(payload, ensure_ascii=False), now),
@@ -784,6 +1017,7 @@ class Persistence:
         events.sort(key=lambda event: int(event.get("sequence", -1)))
 
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             current_row = conn.execute(
                 "SELECT COALESCE(MAX(sequence),0) FROM continuity_event WHERE subject_uuid=? AND user_id=? AND continuity_epoch=?",
                 (subject_uuid, user_id, epoch),
@@ -829,6 +1063,7 @@ class Persistence:
 
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             rows = conn.execute(
                 "SELECT id,timestep,event_type,payload,created_at FROM event_log WHERE character_id=? AND user_id=? ORDER BY id",
                 (character_id, user_id),
@@ -872,6 +1107,7 @@ class Persistence:
         digest = state_digest(state)
         now = time.time()
         with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id)
             row = conn.execute(
                 "SELECT COALESCE(MAX(sequence),0) FROM continuity_event WHERE subject_uuid=? AND user_id=? AND continuity_epoch=?",
                 (subject_uuid, user_id, epoch),
