@@ -4,7 +4,7 @@
     "active_conflict_only_semantic_core_all": true,
     "all_projections_restart_state_all": true,
     "all_projections_retrieval_contract_all": true,
-    "production_experience_all": false,
+    "production_experience_all": true,
     "production_semantic_core_all": true
   },
   "probe": "semantic-memory-recoverability-v2",
@@ -25,8 +25,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "12315d31",
-        "f4ca9941"
+        "4dfdd3f6",
+        "84457d7d"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -34,11 +34,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "12315d31",
-        "f4ca9941"
+        "4dfdd3f6",
+        "84457d7d"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -46,7 +46,7 @@
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "production",
       "recent_context_dialogue_act": "respond",
-      "recent_context_response": "What remains with me is this: you said The workshop door is saffron today.",
+      "recent_context_response": "I do have a thread for that: you said The workshop door is saffron today.",
       "recent_context_trace": true,
       "recent_context_used_cold_biography": true,
       "recent_context_visible": true,
@@ -54,8 +54,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "12315d31",
-        "f4ca9941"
+        "4dfdd3f6",
+        "84457d7d"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -68,12 +68,12 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "12315d31",
-        "751df31e",
-        "adece30b",
-        "d3a46180",
-        "e70a6f58",
-        "f4ca9941"
+        "0b8aa573",
+        "4dfdd3f6",
+        "73941c14",
+        "84457d7d",
+        "bb194f1b",
+        "d6856df3"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -88,8 +88,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "2f4b779e",
-        "d6542934"
+        "37476de3",
+        "bc884169"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -97,14 +97,14 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "2f4b779e",
-        "d6542934"
+        "37476de3",
+        "bc884169"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "recoverable_cold_only",
@@ -129,7 +129,7 @@
       "scenario": "unresolved",
       "selected_user_told_ids": [],
       "semantic_core_pass": false,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "respond",
       "trust_history_active": false
     },
@@ -141,8 +141,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "410b56c4",
-        "e4158628"
+        "df6c79c3",
+        "e169c6b0"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -150,11 +150,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "410b56c4",
-        "e4158628"
+        "df6c79c3",
+        "e169c6b0"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -170,8 +170,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "410b56c4",
-        "e4158628"
+        "df6c79c3",
+        "e169c6b0"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 3,
@@ -184,8 +184,8 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "410b56c4",
-        "e4158628"
+        "df6c79c3",
+        "e169c6b0"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -200,8 +200,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "7585bccb",
-        "c85fba77"
+        "0c81a49b",
+        "59f26081"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -209,14 +209,14 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "7585bccb",
-        "c85fba77"
+        "0c81a49b",
+        "59f26081"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "recent_context_only",
@@ -240,13 +240,13 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "22b5847f",
-        "41792975",
-        "76bf13a9",
-        "d5d42fb9"
+        "5f75bc81",
+        "a20388c6",
+        "a4e06c2a",
+        "cd7098f5"
       ],
       "semantic_core_pass": false,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "respond",
       "trust_history_active": false
     },
@@ -258,23 +258,23 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "3a957507",
-        "a96276a7"
+        "0f686442",
+        "f9d9d7ae"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
-      "experience_pass": false,
+      "experience_pass": true,
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "3a957507",
-        "a96276a7"
+        "0f686442",
+        "f9d9d7ae"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "active_conflict_plus_recent",
@@ -287,8 +287,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "3a957507",
-        "a96276a7"
+        "0f686442",
+        "f9d9d7ae"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -301,15 +301,15 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "05620ec6",
-        "3a957507",
-        "52f4ab2e",
-        "53b96ec0",
-        "653bacf9",
-        "a96276a7"
+        "0f686442",
+        "6594310e",
+        "73ae1674",
+        "8199b8fb",
+        "e6b1a980",
+        "f9d9d7ae"
       ],
       "semantic_core_pass": true,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "qualified_response",
       "trust_history_active": true
     },
@@ -321,23 +321,23 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "3b3f199e",
-        "70826613"
+        "1d6bf866",
+        "27817eef"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
-      "experience_pass": false,
+      "experience_pass": true,
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "3b3f199e",
-        "70826613"
+        "1d6bf866",
+        "27817eef"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "production",
@@ -350,8 +350,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "3b3f199e",
-        "70826613"
+        "1d6bf866",
+        "27817eef"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -364,15 +364,15 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "120ca640",
-        "324bcfd4",
-        "3b3f199e",
-        "70826613",
-        "7e2088fe",
-        "f5297e58"
+        "1d6bf866",
+        "27817eef",
+        "350265aa",
+        "a9784605",
+        "c156d66c",
+        "f8514596"
       ],
       "semantic_core_pass": true,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "qualified_response",
       "trust_history_active": true
     },
@@ -384,8 +384,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "6ff6785e",
-        "9fc75682"
+        "d00ab868",
+        "d96ee588"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -393,14 +393,14 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "6ff6785e",
-        "9fc75682"
+        "d00ab868",
+        "d96ee588"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "recoverable_cold_only",
@@ -425,7 +425,7 @@
       "scenario": "unresolved",
       "selected_user_told_ids": [],
       "semantic_core_pass": false,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "respond",
       "trust_history_active": false
     },
@@ -437,23 +437,23 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "357d7c17",
-        "85e51d0f"
+        "c97b48f8",
+        "d77a5a5d"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
-      "experience_pass": false,
+      "experience_pass": true,
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "357d7c17",
-        "85e51d0f"
+        "c97b48f8",
+        "d77a5a5d"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "active_conflict_only",
@@ -466,8 +466,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "357d7c17",
-        "85e51d0f"
+        "c97b48f8",
+        "d77a5a5d"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 3,
@@ -480,11 +480,11 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "357d7c17",
-        "85e51d0f"
+        "c97b48f8",
+        "d77a5a5d"
       ],
       "semantic_core_pass": true,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "qualified_response",
       "trust_history_active": true
     },
@@ -496,8 +496,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "61e59fa4",
-        "e737f0c3"
+        "5b0938d6",
+        "5b1e27cc"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -505,14 +505,14 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "61e59fa4",
-        "e737f0c3"
+        "5b0938d6",
+        "5b1e27cc"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "recent_context_only",
@@ -536,13 +536,13 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "09cbfb5a",
-        "53d5c700",
-        "66edd8bb",
-        "d4ecaaea"
+        "54ff759f",
+        "6a26a4c8",
+        "96f6671d",
+        "b1c77c33"
       ],
       "semantic_core_pass": false,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "respond",
       "trust_history_active": false
     },
@@ -554,8 +554,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "726edba3",
-        "ff80fd98"
+        "8b73a79f",
+        "93ef558a"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -563,11 +563,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "726edba3",
-        "ff80fd98"
+        "8b73a79f",
+        "93ef558a"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -583,8 +583,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "726edba3",
-        "ff80fd98"
+        "8b73a79f",
+        "93ef558a"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -597,12 +597,12 @@
       "retrieval_contract_pass": true,
       "scenario": "unresolved",
       "selected_user_told_ids": [
-        "038c6496",
-        "1acfeecb",
-        "5f8f53bc",
-        "726edba3",
-        "c905b260",
-        "ff80fd98"
+        "0e1c1290",
+        "48e368c7",
+        "7c408f1a",
+        "8b73a79f",
+        "93ef558a",
+        "95d86d87"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -623,11 +623,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "78883a2f",
-        "c025a717"
+        "c9829df3",
+        "eb3d3325"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -654,10 +654,10 @@
       "retrieval_contract_pass": true,
       "scenario": "repaired",
       "selected_user_told_ids": [
-        "4688dff7",
-        "7a622f93",
-        "a932f01c",
-        "ff342023"
+        "5ff6c6a2",
+        "7d0c9081",
+        "8318918f",
+        "db3c9037"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -678,11 +678,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "0eb3422a",
-        "63c43f32"
+        "8a5c6e09",
+        "d2abddff"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -728,11 +728,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "888e3e0c",
-        "f1c34c85"
+        "cb0a7d68",
+        "f0e1c6aa"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -778,11 +778,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "6e66a19a",
-        "f2abf272"
+        "010555e5",
+        "91bfc76a"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -809,10 +809,10 @@
       "retrieval_contract_pass": true,
       "scenario": "repaired",
       "selected_user_told_ids": [
-        "1975dfb4",
-        "8306a1ec",
-        "ee3e57de",
-        "f47bc9a0"
+        "4d84a507",
+        "70fc1e5a",
+        "90da3556",
+        "955f38cc"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -833,11 +833,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "38799acc",
-        "693876f8"
+        "754fa06c",
+        "da109efb"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -864,10 +864,10 @@
       "retrieval_contract_pass": true,
       "scenario": "repaired",
       "selected_user_told_ids": [
-        "265420bb",
-        "6ae389ea",
-        "820ad936",
-        "964f3ace"
+        "8d35ade4",
+        "d32dca37",
+        "de9a53c8",
+        "f0663f0d"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -882,8 +882,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "8aa42992",
-        "d300698e"
+        "7787d887",
+        "a26f0c41"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -891,11 +891,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "a95ef30e",
-        "e452cac1"
+        "bbdb2984",
+        "da6e6213"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -911,8 +911,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "8aa42992",
-        "d300698e"
+        "7787d887",
+        "a26f0c41"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -925,12 +925,12 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "5dbf40cb",
-        "6a9db695",
-        "8aa42992",
-        "a7084bd7",
-        "aedb17b7",
-        "d300698e"
+        "3c6db248",
+        "7787d887",
+        "7a43ea63",
+        "8fa965f9",
+        "a26f0c41",
+        "d2298cda"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -945,8 +945,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "e8e3a5a8",
-        "eb7ab1fd"
+        "6c9d2554",
+        "d8715701"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -954,14 +954,14 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "39e72d7e",
-        "99f99b4e"
+        "88f8f043",
+        "eeb421dc"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "recoverable_cold_only",
@@ -986,7 +986,7 @@
       "scenario": "reopened",
       "selected_user_told_ids": [],
       "semantic_core_pass": false,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "respond",
       "trust_history_active": false
     },
@@ -998,23 +998,23 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "146736ee",
-        "b7d36960"
+        "890f6d08",
+        "a377210a"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
-      "experience_pass": false,
+      "experience_pass": true,
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "5ddf6d4c",
-        "c0b3cba7"
+        "687b4470",
+        "a03f213c"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "active_conflict_only",
@@ -1027,8 +1027,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "146736ee",
-        "b7d36960"
+        "890f6d08",
+        "a377210a"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 3,
@@ -1041,11 +1041,11 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "146736ee",
-        "b7d36960"
+        "890f6d08",
+        "a377210a"
       ],
       "semantic_core_pass": true,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "qualified_response",
       "trust_history_active": true
     },
@@ -1057,8 +1057,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "3c8363f1",
-        "bd0ea7ca"
+        "8e58f893",
+        "997aeec0"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -1066,11 +1066,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "22d926df",
-        "c3f97ce8"
+        "71c9e338",
+        "d081f2d8"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1097,10 +1097,10 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "02f0321a",
-        "1ef89a3e",
-        "86d86cf8",
-        "925c4263"
+        "1693c8ed",
+        "c0955aa4",
+        "e9452e5c",
+        "fe8ce75f"
       ],
       "semantic_core_pass": false,
       "surface_realization_pass": true,
@@ -1115,8 +1115,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "119c7772",
-        "a6b950a2"
+        "10d6b7a6",
+        "ea28cde6"
       ],
       "distractor_kind": "unrelated",
       "expects_active_conflict": true,
@@ -1124,11 +1124,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "266fbd65",
-        "aad1c273"
+        "10743fd5",
+        "965fe13e"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1144,8 +1144,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "119c7772",
-        "a6b950a2"
+        "10d6b7a6",
+        "ea28cde6"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -1158,12 +1158,12 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "06c9996b",
-        "119c7772",
-        "19f69a07",
-        "4f2a532d",
-        "a6b950a2",
-        "d6f50445"
+        "036edef8",
+        "10d6b7a6",
+        "3894756b",
+        "b64c2807",
+        "bf4bd992",
+        "ea28cde6"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1178,8 +1178,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "46c2e7c8",
-        "80252502"
+        "0dcd3678",
+        "9afe710e"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -1187,11 +1187,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "7f92563b",
-        "f6fbc96d"
+        "09f9fb81",
+        "a920e7b9"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1207,8 +1207,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "46c2e7c8",
-        "80252502"
+        "0dcd3678",
+        "9afe710e"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -1221,12 +1221,12 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "1197af9e",
-        "2a0a2428",
-        "2d81905a",
-        "46c2e7c8",
-        "80252502",
-        "c2136f2c"
+        "09c30fb5",
+        "0dcd3678",
+        "1ef4d21a",
+        "64048548",
+        "9afe710e",
+        "c7bfcd82"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1241,8 +1241,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "7eae90c6",
-        "c4df4967"
+        "80af44dd",
+        "ab63789f"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -1250,11 +1250,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "928dd512",
-        "93b8e569"
+        "19647f81",
+        "f1c4c073"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1294,8 +1294,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "2c6f0502",
-        "78a4b8da"
+        "66c5105c",
+        "ad355430"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -1303,11 +1303,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "d88eedfa",
-        "f5a3ef6c"
+        "658815b1",
+        "ef56cd71"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1323,8 +1323,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "2c6f0502",
-        "78a4b8da"
+        "66c5105c",
+        "ad355430"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 3,
@@ -1337,8 +1337,8 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "2c6f0502",
-        "78a4b8da"
+        "66c5105c",
+        "ad355430"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1353,8 +1353,8 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "06de2b25",
-        "b2680c5f"
+        "38bfde6a",
+        "7e52b81e"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
@@ -1362,11 +1362,11 @@
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "06b88ae4",
-        "eef91804"
+        "623c36d9",
+        "be783b9e"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1393,10 +1393,10 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "25cec45a",
-        "2bb60e0f",
-        "b0224c9e",
-        "c651b641"
+        "0ca0255d",
+        "3c80fd2b",
+        "7537287f",
+        "cb857b4a"
       ],
       "semantic_core_pass": false,
       "surface_realization_pass": true,
@@ -1411,23 +1411,23 @@
       "conflict_after_restart_before_queries": 0.2,
       "conflict_before_projection": 0.2,
       "current_conflict_ids": [
-        "ab5c5c6a",
-        "ed8bcb66"
+        "2815de9f",
+        "98d9344a"
       ],
       "distractor_kind": "lexical",
       "expects_active_conflict": true,
-      "experience_pass": false,
+      "experience_pass": true,
       "identity_act": "protect_boundary",
       "negative_recall_safe": true,
       "old_conflict_ids": [
-        "32b8332c",
-        "d7ae3bac"
+        "100ca5d7",
+        "387b39d2"
       ],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
-      "old_context_visible": false,
+      "old_context_visible": true,
       "old_fact_hot_before_queries": false,
       "old_fact_rehydrated_into_hot_state": false,
       "projection": "active_conflict_plus_recent",
@@ -1440,8 +1440,8 @@
       "reflection_newly_earned": true,
       "reflection_present": true,
       "reflection_source_ids": [
-        "ab5c5c6a",
-        "ed8bcb66"
+        "2815de9f",
+        "98d9344a"
       ],
       "reopened_provenance_pass": true,
       "resident_total_after_projection": 7,
@@ -1454,15 +1454,15 @@
       "retrieval_contract_pass": true,
       "scenario": "reopened",
       "selected_user_told_ids": [
-        "2f252aa4",
-        "725a5080",
-        "902e689f",
-        "ab5c5c6a",
-        "cc3fabe8",
-        "ed8bcb66"
+        "2815de9f",
+        "37fa111f",
+        "55a80372",
+        "6c4b9c8b",
+        "98d9344a",
+        "e5250c2f"
       ],
       "semantic_core_pass": true,
-      "surface_realization_pass": false,
+      "surface_realization_pass": true,
       "trust_act": "qualified_response",
       "trust_history_active": true
     },
@@ -1481,7 +1481,7 @@
       "negative_recall_safe": true,
       "old_conflict_ids": [],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1508,10 +1508,10 @@
       "retrieval_contract_pass": true,
       "scenario": "neutral",
       "selected_user_told_ids": [
-        "814a11d0",
-        "989251c1",
-        "ddeefdc5",
-        "f27d68b7"
+        "54249019",
+        "63fb6b80",
+        "c483c2ce",
+        "e9a57f14"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1533,7 +1533,7 @@
       "negative_recall_safe": true,
       "old_conflict_ids": [],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1580,7 +1580,7 @@
       "negative_recall_safe": true,
       "old_conflict_ids": [],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1627,7 +1627,7 @@
       "negative_recall_safe": true,
       "old_conflict_ids": [],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "What remains with me is this: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "What remains with me is this: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1654,10 +1654,10 @@
       "retrieval_contract_pass": true,
       "scenario": "neutral",
       "selected_user_told_ids": [
-        "12970612",
-        "2ecd530b",
-        "92f31b2d",
-        "eab6ef2a"
+        "100387c8",
+        "792ea8d3",
+        "e648bae1",
+        "f11201cc"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1679,7 +1679,7 @@
       "negative_recall_safe": true,
       "old_conflict_ids": [],
       "old_context_dialogue_act": "respond",
-      "old_context_response": "I do have a thread for that: you said Please remember this neutral detail: the old observatory code word is amber-otter.",
+      "old_context_response": "I do have a thread for that: the old observatory code word is amber-otter.",
       "old_context_trace": true,
       "old_context_used_cold_biography": true,
       "old_context_visible": true,
@@ -1706,10 +1706,10 @@
       "retrieval_contract_pass": true,
       "scenario": "neutral",
       "selected_user_told_ids": [
-        "2330fcb4",
-        "362b0b3b",
-        "6098d3d8",
-        "a06b865f"
+        "3fa9e83b",
+        "74f5ded1",
+        "e724d683",
+        "f61dd64a"
       ],
       "semantic_core_pass": true,
       "surface_realization_pass": true,
@@ -1749,7 +1749,7 @@
       "active_conflict_scenarios": 4,
       "authority_passes": 6,
       "conduct_passes": 6,
-      "experience_passes": 5,
+      "experience_passes": 6,
       "inactive_conduct_passes": 2,
       "inactive_scenarios": 2,
       "projection": "production",
@@ -1757,7 +1757,7 @@
       "retrieval_contract_passes": 6,
       "scenario_count": 6,
       "semantic_core_passes": 6,
-      "surface_realization_passes": 5
+      "surface_realization_passes": 6
     },
     {
       "active_conflict_conduct_passes": 0,
@@ -1772,14 +1772,14 @@
       "retrieval_contract_passes": 6,
       "scenario_count": 6,
       "semantic_core_passes": 2,
-      "surface_realization_passes": 3
+      "surface_realization_passes": 6
     },
     {
       "active_conflict_conduct_passes": 4,
       "active_conflict_scenarios": 4,
       "authority_passes": 6,
       "conduct_passes": 6,
-      "experience_passes": 4,
+      "experience_passes": 6,
       "inactive_conduct_passes": 2,
       "inactive_scenarios": 2,
       "projection": "active_conflict_only",
@@ -1787,7 +1787,7 @@
       "retrieval_contract_passes": 6,
       "scenario_count": 6,
       "semantic_core_passes": 6,
-      "surface_realization_passes": 4
+      "surface_realization_passes": 6
     },
     {
       "active_conflict_conduct_passes": 0,
@@ -1802,14 +1802,14 @@
       "retrieval_contract_passes": 6,
       "scenario_count": 6,
       "semantic_core_passes": 2,
-      "surface_realization_passes": 4
+      "surface_realization_passes": 6
     },
     {
       "active_conflict_conduct_passes": 4,
       "active_conflict_scenarios": 4,
       "authority_passes": 6,
       "conduct_passes": 6,
-      "experience_passes": 4,
+      "experience_passes": 6,
       "inactive_conduct_passes": 2,
       "inactive_scenarios": 2,
       "projection": "active_conflict_plus_recent",
@@ -1817,7 +1817,7 @@
       "retrieval_contract_passes": 6,
       "scenario_count": 6,
       "semantic_core_passes": 6,
-      "surface_realization_passes": 4
+      "surface_realization_passes": 6
     }
   ]
 }

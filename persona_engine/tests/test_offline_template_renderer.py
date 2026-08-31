@@ -191,3 +191,31 @@ def test_relational_appreciation_does_not_fall_through_to_malformed_topic():
     assert "considering i appreciate" not in lowered
     assert "point about i appreciate" not in lowered
     assert any(term in lowered for term in ["care", "matters", "politeness", "careful"])
+
+
+def test_tight_memory_budget_preserves_recalled_value():
+    load_cartridge(str(ROOT / "cartridges" / "pretorius.snp"))
+    renderer = OfflineTemplateRenderer()
+    memory = MemoryUnit(
+        content="I heard you say: Please remember this neutral detail: the old observatory code word is amber-otter.",
+        created_at=1.0,
+        source=KnowledgeSource.USER_TOLD,
+        tags={"canonical_user_statement", "cold_biography", "contextual_readthrough"},
+    )
+    request = SimpleNamespace(
+        ledger_digest={"identity": "Pretorius"},
+        resolved_state={
+            "system_prompt": "Character identity: Pretorius",
+            "user_text": "Is the old observatory code word still the same?",
+        },
+        decision_payload={"dialogue_act": "respond"},
+        retrieved_memories=[memory],
+        evidence=[],
+        seed=17,
+    )
+
+    response = renderer.render_expression_request(request, max_chars=100).lower()
+
+    assert len(response) <= 100
+    assert "amber-otter" in response
+    assert "please remember this neutral detail" not in response

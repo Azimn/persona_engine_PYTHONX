@@ -290,6 +290,16 @@ class OfflineTemplateRenderer:
         if not memory:
             return "nothing I can honestly retrieve"
         memory = re.sub(r"^I heard you say:\s*", "you said ", memory, flags=re.IGNORECASE)
+        # Memory-command scaffolding is not part of the remembered fact. Under
+        # a tight expression budget it can consume the slot and hide the value
+        # retrieval actually recovered. Strip only generic recall instructions;
+        # selection, authority, canonical storage, and retention stay unchanged.
+        memory = re.sub(
+            r"^you said\s+(?:please\s+)?remember\s+(?:this\s+)?(?:neutral\s+)?(?:detail|fact)\s*:\s*",
+            "",
+            memory,
+            flags=re.IGNORECASE,
+        )
         memory = " ".join(memory.split())
         if len(memory) > 120:
             memory = memory[:117].rsplit(" ", 1)[0] + "..."
