@@ -203,3 +203,10 @@ The local runtime now enforces a reentrant single-writer boundary around public 
 The public streaming convenience path is also causal: `stream_last_response()` executes one turn and emits chunks from that turn's already validated final response. It does not ask the renderer for a second, potentially divergent utterance after canonical writeback. The FastAPI SSE path already streamed the committed result and remains unchanged.
 
 Two deterministic regressions cover exact streamed-response identity and blocking of concurrent turn/time mutations. With those additions the expected Python 3.11 deterministic inventory is `333 passed, 1 skipped, 1 warning`. One-shot run `33347858914` passed the targeted regressions and full Python 3.11 suite; normal Wayfarer CI run `33347953873` passed both Python 3.11 and Python 3.12 on hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad`.
+
+## Semantic residency policy
+
+Wayfarer production now names its resident-memory contract `semantic-residency-v1`. Inactive `USER_TOLD` autobiography may be reconstructed from canonical cold biography, while current unresolved relationship evidence remains resident for demonstrated conduct/reflection consumers. `OBSERVED` and `REFLECTION` remain resident because controlled ablations lose retrievable first-person experience and no equivalent cold reconstruction path exists. No universal resident-memory count is approved.
+
+A combined adversarial fixture and a fresh 5,000-turn production-only plateau are green. At turn 5,000 the exercised fixture used `12,707 B` of serialized active state and `7` resident memories, with only `134 B` active-state growth since turn 250. These are measured outcomes, not fixed budgets.
+

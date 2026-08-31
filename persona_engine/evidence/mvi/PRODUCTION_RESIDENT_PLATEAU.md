@@ -2,16 +2,16 @@
 
 Passed: `True`.  
 Experimental projection helpers used: `False`.  
-Active growth, turn 250 to 5000: `-60 B`.  
-Database growth, turn 250 to 5000: `62,939,136 B`.
+Active growth, turn 250 to 5000: `134 B`.  
+Database growth, turn 250 to 5000: `7,434,240 B`.
 
 | Turn | Active bytes | DB bytes | Memories | USER_TOLD | Unresolved USER_TOLD | World facts | Canonical inputs |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 250 | 12,562 | 3,432,448 | 7 | 6 | 2 | 1 | 253 |
-| 500 | 12,607 | 6,750,208 | 7 | 6 | 2 | 1 | 503 |
-| 1000 | 12,606 | 13,361,152 | 7 | 6 | 2 | 1 | 1003 |
-| 2500 | 12,714 | 33,247,232 | 7 | 6 | 2 | 1 | 2503 |
-| 5000 | 12,502 | 66,371,584 | 7 | 6 | 2 | 1 | 5003 |
+| 250 | 12,573 | 1,142,784 | 7 | 6 | 2 | 1 | 253 |
+| 500 | 12,601 | 1,531,904 | 7 | 6 | 2 | 1 | 503 |
+| 1000 | 12,619 | 2,297,856 | 7 | 6 | 2 | 1 | 1003 |
+| 2500 | 12,728 | 4,620,288 | 7 | 6 | 2 | 1 | 2503 |
+| 5000 | 12,707 | 8,577,024 | 7 | 6 | 2 | 1 | 5003 |
 
 ## Restart behavior
 

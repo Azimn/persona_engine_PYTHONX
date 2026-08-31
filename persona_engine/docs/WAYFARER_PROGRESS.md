@@ -356,3 +356,18 @@ Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `s
 Legacy `CharacterAgent.add_pressure()` and `add_symbol()` now use the explicit compound `state_transaction()` seam so their direct state edit plus persistence is atomic with respect to other host calls. This is local single-writer serialization only. It does not introduce the intentionally deferred cross-host lease/handoff system.
 
 Verification for this hardening phase: targeted engine regressions and the full Python 3.11 deterministic suite passed in one-shot run `33347858914`. Normal Wayfarer CI run `33347953873` then passed on the clean hardened code head for both Python 3.11 and Python 3.12. The expected deterministic inventory is `333 passed, 1 skipped, 1 warning`.
+
+## Semantic resident-memory policy checkpoint
+
+**VALIDATED IN PRODUCTION.** The current resident-memory rule is now explicit as `semantic-residency-v1`: residency is based on demonstrated live consumer role plus safe recoverability, never a universal item count. The engine persistence boundary calls this named policy directly.
+
+The non-`USER_TOLD` audit found only two active autobiographical families: `OBSERVED` and `REFLECTION`. Both remain resident. Ablation of `OBSERVED` removes the subject's retrievable observed experience; ablation of `REFLECTION` removes retrievable evidence that the subject formed the reflection. Their downstream consequences are not sufficient substitutes for those first-person experiences. `INFERRED` and `CORE_IDENTITY` have no current production autobiographical `MemoryUnit` producer and therefore do not consume a production residency budget; they fail closed if introduced without a reconstruction contract.
+
+The combined adversarial fixture carries repaired and reopened conflict, old cold autobiography, recent context, a real generated reflection, an observed experience, non-disclosure commitment, identity pressure, unrelated distractors, restart, and interlocutor switching in one continuing subject. Production preserves the full contract. Removing active unresolved `USER_TOLD` evidence removes qualified history-sensitive conduct. Removing either non-user family removes its corresponding first-person experience while authority and cold autobiography remain intact.
+
+The production-only 5,000-turn plateau was rerun after the policy became explicit. It passed with no experimental projection helper: active serialized state was `12,707 B` at turn 5,000 and grew only `134 B` from turn 250 to 5,000. Resident memory remained `7` items in this fixture (`{'observed': 1, 'user_told': 6}`), but that observed count is a result, not a capacity rule. Database growth over the same interval was `7,434,240 B`, representing biography rather than expanding active character state. Restart, history-qualified trust, cold lighthouse recall, commitment refusal, identity protection, and repair all remained green.
+
+Evidence: `evidence/mvi/NON_USER_MEMORY_CONSUMER_AUDIT.md`, `NON_USER_MEMORY_POLICY.md`, `non_user_memory_policy.json`, `PRODUCTION_RESIDENT_PLATEAU.md`, and `production_resident_plateau.json`.
+
+**Next memory implication:** there is no evidence-backed reason to tune another integer budget. Further reduction of active memory requires a typed reconstruction/archive path for `OBSERVED` and/or `REFLECTION`, followed by the same consumer and experience ablations. P99/C99 projection remains deferred until the broader Wayfarer semantics are substantially complete.
+

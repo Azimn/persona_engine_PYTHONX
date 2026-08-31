@@ -1040,3 +1040,10 @@ Phase commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7`. Evidence: `evidence/mv
 The local reference runtime now serializes public subject-state access through one reentrant single-writer boundary. This is a concurrency correctness refinement, not the deferred M8 cross-host lease/handoff design. It prevents local background time advancement, renderer reconfiguration, sensor/world writes, consolidation, and turn processing from interleaving partial in-memory subject state.
 
 The legacy `CharacterAgent.stream_last_response()` convenience path also now preserves the causal turn boundary by chunking the exact validated response produced and committed by one turn instead of generating a second utterance after writeback.
+
+## Validated semantic residency refinement, 2026-08-30
+
+The memory-capacity experiments have been superseded by an explicit semantic residency contract. `USER_TOLD` eviction is allowed only where canonical cold biography can reconstruct the needed autobiography and no current consumer requires original causal metadata. `OBSERVED` and `REFLECTION` remain resident because their first-person experiences are not yet reconstructable. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical memory families.
+
+The combined adversarial policy probe is green, including negative ablations, and the production-only 5,000-turn plateau remains bounded with `134 B` active-state growth from turn 250 to 5,000. This earns the production rule but does not freeze any item count. A future low-resource projection should consume the surviving semantic contracts, not the incidental seven-item count in the current fixture.
+

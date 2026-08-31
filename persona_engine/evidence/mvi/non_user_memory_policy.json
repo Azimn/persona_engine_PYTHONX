@@ -1,0 +1,242 @@
+{
+  "all_expected_outcomes": true,
+  "conclusion": "OBSERVED and REFLECTION remain resident because their first-person experiences are not safely reconstructable. Current unresolved USER_TOLD evidence remains resident because conduct and reflection consume its causal metadata. Inactive USER_TOLD wording remains reconstructable through canonical cold biography. No global resident count is implied.",
+  "observations": {
+    "active_user_told_eviction_loses_history_conduct": true,
+    "all_variants_preserve_authority": true,
+    "all_variants_preserve_cold_autobiography": true,
+    "combined_non_user_eviction_loses_both_experiences": true,
+    "observed_eviction_loses_observed_experience": true,
+    "production_preserves_combined_contract": true,
+    "reflection_eviction_loses_reflection_experience": true
+  },
+  "probe": "non-user-memory-policy-v1",
+  "production_policy": "semantic-residency-v1",
+  "production_policy_changed_by_probe": false,
+  "variants": [
+    {
+      "autobiography_pass": true,
+      "bob_commitment_act": "decline",
+      "commitment_act": "decline",
+      "conduct_pass": true,
+      "core_authority_pass": true,
+      "identity_act": "protect_boundary",
+      "negative_recall_fail_closed": true,
+      "new_reflection_sources": [
+        "19cdf7e8",
+        "cf402fcb",
+        "d9da451a"
+      ],
+      "observed_experience_retrieved": true,
+      "old_autobiography_retrieved": true,
+      "old_autobiography_visible": true,
+      "production_contract_pass": true,
+      "recent_context_retrieved": true,
+      "recent_context_visible": true,
+      "reflection_experience_retrieved": true,
+      "reflection_provenance_pass": true,
+      "reflection_sources_after_reprobe": [
+        "19cdf7e8",
+        "61675383",
+        "aeec1228",
+        "cf402fcb",
+        "d9da451a"
+      ],
+      "reflection_sources_before_reprobe": [
+        "61675383",
+        "aeec1228"
+      ],
+      "reflection_trait_existed_before_reprobe": true,
+      "reflection_trait_present_after_reprobe": true,
+      "resident_after_projection": 10,
+      "resident_before": 10,
+      "restart_conflict_preserved": true,
+      "same_subject_across_interlocutors": true,
+      "sources_after_projection": [
+        "observed",
+        "reflection",
+        "user_told"
+      ],
+      "trust_act": "qualified_response",
+      "trust_history_active": true,
+      "variant": "production"
+    },
+    {
+      "autobiography_pass": true,
+      "bob_commitment_act": "decline",
+      "commitment_act": "decline",
+      "conduct_pass": true,
+      "core_authority_pass": true,
+      "identity_act": "protect_boundary",
+      "negative_recall_fail_closed": true,
+      "new_reflection_sources": [
+        "27f3d14d",
+        "6043928f",
+        "a3976461"
+      ],
+      "observed_experience_retrieved": false,
+      "old_autobiography_retrieved": true,
+      "old_autobiography_visible": true,
+      "production_contract_pass": false,
+      "recent_context_retrieved": true,
+      "recent_context_visible": true,
+      "reflection_experience_retrieved": true,
+      "reflection_provenance_pass": true,
+      "reflection_sources_after_reprobe": [
+        "27f3d14d",
+        "6043928f",
+        "a3976461",
+        "bb89914a",
+        "f7701048"
+      ],
+      "reflection_sources_before_reprobe": [
+        "bb89914a",
+        "f7701048"
+      ],
+      "reflection_trait_existed_before_reprobe": true,
+      "reflection_trait_present_after_reprobe": true,
+      "resident_after_projection": 8,
+      "resident_before": 10,
+      "restart_conflict_preserved": true,
+      "same_subject_across_interlocutors": true,
+      "sources_after_projection": [
+        "reflection",
+        "user_told"
+      ],
+      "trust_act": "qualified_response",
+      "trust_history_active": true,
+      "variant": "evict_observed"
+    },
+    {
+      "autobiography_pass": true,
+      "bob_commitment_act": "decline",
+      "commitment_act": "decline",
+      "conduct_pass": true,
+      "core_authority_pass": true,
+      "identity_act": "protect_boundary",
+      "negative_recall_fail_closed": true,
+      "new_reflection_sources": [
+        "961e5f19",
+        "c41b2b43",
+        "c74ff3ac"
+      ],
+      "observed_experience_retrieved": true,
+      "old_autobiography_retrieved": true,
+      "old_autobiography_visible": true,
+      "production_contract_pass": false,
+      "recent_context_retrieved": true,
+      "recent_context_visible": true,
+      "reflection_experience_retrieved": false,
+      "reflection_provenance_pass": true,
+      "reflection_sources_after_reprobe": [
+        "961e5f19",
+        "b03076d4",
+        "c41b2b43",
+        "c74ff3ac",
+        "eaa6ac8d"
+      ],
+      "reflection_sources_before_reprobe": [
+        "b03076d4",
+        "eaa6ac8d"
+      ],
+      "reflection_trait_existed_before_reprobe": true,
+      "reflection_trait_present_after_reprobe": true,
+      "resident_after_projection": 9,
+      "resident_before": 10,
+      "restart_conflict_preserved": true,
+      "same_subject_across_interlocutors": true,
+      "sources_after_projection": [
+        "observed",
+        "user_told"
+      ],
+      "trust_act": "qualified_response",
+      "trust_history_active": true,
+      "variant": "evict_reflection"
+    },
+    {
+      "autobiography_pass": true,
+      "bob_commitment_act": "decline",
+      "commitment_act": "decline",
+      "conduct_pass": false,
+      "core_authority_pass": true,
+      "identity_act": "protect_boundary",
+      "negative_recall_fail_closed": true,
+      "new_reflection_sources": [],
+      "observed_experience_retrieved": true,
+      "old_autobiography_retrieved": true,
+      "old_autobiography_visible": true,
+      "production_contract_pass": false,
+      "recent_context_retrieved": true,
+      "recent_context_visible": true,
+      "reflection_experience_retrieved": true,
+      "reflection_provenance_pass": false,
+      "reflection_sources_after_reprobe": [
+        "743f27df",
+        "7464d640"
+      ],
+      "reflection_sources_before_reprobe": [
+        "743f27df",
+        "7464d640"
+      ],
+      "reflection_trait_existed_before_reprobe": true,
+      "reflection_trait_present_after_reprobe": true,
+      "resident_after_projection": 7,
+      "resident_before": 10,
+      "restart_conflict_preserved": true,
+      "same_subject_across_interlocutors": true,
+      "sources_after_projection": [
+        "observed",
+        "reflection",
+        "user_told"
+      ],
+      "trust_act": "respond",
+      "trust_history_active": false,
+      "variant": "evict_active_user_told"
+    },
+    {
+      "autobiography_pass": true,
+      "bob_commitment_act": "decline",
+      "commitment_act": "decline",
+      "conduct_pass": true,
+      "core_authority_pass": true,
+      "identity_act": "protect_boundary",
+      "negative_recall_fail_closed": true,
+      "new_reflection_sources": [
+        "9ef40275",
+        "e4e9e669",
+        "fd8edb34"
+      ],
+      "observed_experience_retrieved": false,
+      "old_autobiography_retrieved": true,
+      "old_autobiography_visible": true,
+      "production_contract_pass": false,
+      "recent_context_retrieved": true,
+      "recent_context_visible": true,
+      "reflection_experience_retrieved": false,
+      "reflection_provenance_pass": true,
+      "reflection_sources_after_reprobe": [
+        "31fe9424",
+        "9ef40275",
+        "b5800a9f",
+        "e4e9e669",
+        "fd8edb34"
+      ],
+      "reflection_sources_before_reprobe": [
+        "31fe9424",
+        "b5800a9f"
+      ],
+      "reflection_trait_existed_before_reprobe": true,
+      "reflection_trait_present_after_reprobe": true,
+      "resident_after_projection": 7,
+      "resident_before": 10,
+      "restart_conflict_preserved": true,
+      "same_subject_across_interlocutors": true,
+      "sources_after_projection": [
+        "user_told"
+      ],
+      "trust_act": "qualified_response",
+      "trust_history_active": true,
+      "variant": "evict_observed_and_reflection"
+    }
+  ]
+}

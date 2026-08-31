@@ -1,0 +1,9 @@
+{
+  "adversarial_all_expected_outcomes": true,
+  "adversarial_exit_code": 0,
+  "full_suite_exit_code": 0,
+  "full_suite_expected": "335 passed, 1 skipped, 1 warning",
+  "phase": "semantic-residency-v1-final",
+  "plateau_passed": true,
+  "workflow_run": 33350912560
+}

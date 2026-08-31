@@ -26,6 +26,7 @@ from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_i
 from .intention import Intention, IntentionQueue, OpenLoop
 from .interpretation import InterpretationEngine, sources_from_mapping
 from .memory import KnowledgeSource, MemoryStore, MemoryUnit
+from .memory_policy import apply_resident_memory_policy
 from .cold_biography import (
     contextual_readthrough_request,
     explicit_recall_request,
@@ -471,7 +472,7 @@ class InteriorEngine:
         # continuity owns world history, so facts that can never again affect
         # server or visible truth are compacted before snapshot persistence.
         self.world_authority.compact_dominated()
-        self.memory.compact_user_told_working_set(self.relationship)
+        apply_resident_memory_policy(self.memory, self.relationship)
         state = self._serialize_state()
         # Preserve the full legacy/interlocutor snapshot for compatibility, then
         # write only explicitly earned subject-owned families to UUID scope.

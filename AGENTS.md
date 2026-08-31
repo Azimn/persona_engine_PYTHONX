@@ -122,7 +122,7 @@ A separate deterministic-renderer defect exposed by this phase is also fixed. Ge
 
 Read `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json` before changing memory residency.
 
-**Next memory-policy target:** expand reconstruction evidence to the currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency from demonstrated consumer role plus a tested reconstruction contract. Do not choose a global memory count from the existing experiments.
+**Current memory-policy result:** `semantic-residency-v1` is the production rule. Active unresolved `USER_TOLD` evidence remains resident for demonstrated conduct/reflection consumers; inactive autobiographical wording may read through canonical cold biography. `OBSERVED` and `REFLECTION` remain resident because adversarial ablation loses their first-person experience and no safe cold reconstruction path exists. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families. Further eviction requires a typed reconstruction contract, not a numeric capacity target.
 
 ### Intentionally deferred work
 
@@ -236,7 +236,7 @@ Current expected deterministic test inventory after the local state-safety harde
 - Cold-only and recent-only USER_TOLD projections: preserve retrieval but fail all four tested active-conflict conduct cases.
 - Active-conflict-only USER_TOLD projection: preserves all six tested semantic/experience scenarios.
 - Deterministic tight-budget recall: recovered value remains visible after generic recall-command scaffolding is stripped at expression time.
-- Non-`USER_TOLD` memory families: still pinned; reconstruction evidence is the next memory-policy target.
+- `OBSERVED` and `REFLECTION`: demonstrated resident until first-person reconstruction exists; their ablations lose retrievable experience. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families.
 - Cross-host handoff/branching: intentionally deferred.
 - Full typed social-influence authority: intentionally deferred.
 
@@ -250,3 +250,13 @@ Do not anchor on older test totals, old unresolved-gap language, historical expe
 - `CharacterAgent.stream_last_response()` must stream the exact validated response from the one committed turn and must not invoke a second renderer generation.
 - This local lock is not the deferred cross-host writer lease/handoff mechanism and must not be described as solving M8 migration ownership.
 - Two new deterministic regressions raise the expected Python 3.11 inventory to `333 passed, 1 skipped, 1 warning`; normal Wayfarer CI run `33347953873` passed on both Python 3.11 and Python 3.12.
+
+
+## Semantic residency phase checkpoint
+
+- Production policy: `semantic-residency-v1`; no global `max_memories=N`.
+- Combined adversarial probe: all expected production and negative-ablation outcomes green.
+- 5,000-turn production plateau: passed without experimental projection helpers; turn-5000 active state `12,707 B`, turn-250 to turn-5000 active growth `134 B`.
+- Python 3.11 deterministic inventory for this phase: `335 passed, 1 skipped, 1 warning`.
+- Phase finalization workflow run: `33350912560`.
+- Do not reinterpret the observed seven-item plateau as a universal memory capacity.
