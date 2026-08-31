@@ -1,4 +1,88 @@
-RESOURCES FOR SCHOLARLY WORK CHATGPT checked the set against current scholarly and publisher records and searched outward from it for adjacent work. My overall read is favorable: this is a useful literature cluster for Wayfarer, but not because these papers collectively tell us how to build it. They help establish that several of Wayfarer’s individual premises are independently important, while also making the particular combination we are pursuing look more distinctive.
+RESOURCES FOR SCHOLARLY WORK 
+
+Yes. And the GPT-4o episode gives you unusually strong real-world evidence that the problem is not hypothetical.
+
+The model you are referring to is GPT-4o. OpenAI retired it from ChatGPT on February 13, 2026. More importantly for your argument, OpenAI explicitly acknowledged that when GPT-4o had previously been deprecated, a subset of users objected because they preferred its conversational style, warmth, and behavior. Access was restored for a period partly because of that response.  OpenAI had also previously rolled back a GPT-4o update because even an update to the same nominal model changed its personality enough to produce undesirable behavior. 
+
+That makes the engineering problem you are pursuing considerably more interesting than ordinary character prompting.
+
+A conventional character system effectively does something like:
+
+Character = model + prompt + conversation history
+
+Even when the prompt contains detailed characterization, a substantial amount of the resulting character is actually an emergent property of the particular model. Its sentence rhythm, verbosity, humor, initiative, emotional intensity, metaphor use, willingness to disagree, uncertainty expression, conversational pacing, and dozens of other subtle behaviors come from the model itself.
+
+Change the model and you have effectively changed part of the character.
+
+What you are trying to move toward is closer to:
+
+Character state + behavioral policy + expressive specification → interchangeable model → utterance
+
+The model becomes a renderer rather than the locus of identity.
+
+That distinction produces a useful technical concept for your work: identity invariance under model substitution.
+
+You could define the fundamental requirement approximately as:
+
+Given a persistent character state C_t, replacing renderer M_a with renderer M_b should produce outputs that remain within an acceptable behavioral and expressive distance from the established character.
+
+That is considerably stronger than saying, “both models were given the same persona prompt.”
+
+And there are actually two different continuity problems hidden inside it.
+
+The first is behavioral continuity. Does the character retain the same beliefs, values, relationships, memories, preferences, commitments, dispositions, and decision tendencies?
+
+The second is expressive continuity. Does it still sound like the same individual?
+
+Most memory architectures address the first problem to some extent. Very few seriously address the second.
+
+That matters because users recognize characters through extremely small stylistic signals. A character who retains every autobiographical fact but suddenly becomes more verbose, starts asking follow-up questions constantly, stops using contractions, becomes more agreeable, loses its sense of humor, or begins explaining its reasoning differently may feel like a different person.
+
+In other words, factual continuity is not sufficient for perceived identity continuity.
+
+The GPT-4o situation provides an unusually good natural experiment. The underlying service retained users’ accounts, conversations, custom instructions, and much of their contextual information, yet changing the model still produced enough perceived personality discontinuity for users to notice and object. OpenAI itself described conversational style and warmth as important parts of that preference. 
+
+That suggests a potentially important direction for your prototypes: instead of treating “voice” as a prompt describing adjectives such as warm, sarcastic, concise, you could treat expression as a measurable part of the persistent character representation.
+
+For example, the character kernel could learn or maintain distributions governing sentence length, response length, question frequency, contraction use, lexical complexity, hedging, humor frequency, directness, emotional amplification, self-reference, metaphor density, greeting behavior, disagreement behavior, initiative, interruption tolerance, and dozens of other features.
+
+Then a renderer adapter translates those invariant character parameters into whatever control mechanism a particular model supports.
+
+Conceptually:
+
+C_t = (Identity,\ Memory,\ Relationships,\ Beliefs,\ Drives,\ Style)
+
+followed by
+
+A_M(C_t) \rightarrow P_M
+
+where A_M is a model-specific adapter and P_M is the instruction or conditioning representation supplied to model M.
+
+The important thing is that the adapter changes when the model changes, while the character does not.
+
+That gives you a much cleaner architecture than trying to construct one magical universal prompt.
+
+It also gives you an excellent experimental setup. Establish a character using Model A, interact long enough for users to develop a recognizable impression of it, secretly replace A with Models B, C, and D, and compare several conditions: raw conversation transfer, ordinary persona prompt transfer, persistent character-state transfer, and character-state plus renderer adaptation.
+
+Then ask whether observers can identify the model substitution, whether they judge the character as “the same person,” and how much behavioral and expressive drift occurs.
+
+The research question underneath a substantial portion of what you have been building could therefore be stated very cleanly:
+
+How much of a persistent artificial character’s identity can be made independent of the generative model used to express it?
+
+And the stronger engineering version is:
+
+Can a model-agnostic character representation plus model-specific rendering adapters preserve behavioral and expressive identity across heterogeneous language-model substitutions?
+
+That is a much more defensible problem than simply trying to make “consistent AI personalities.” It addresses an actual failure mode of contemporary hosted AI systems, and GPT-4o’s retirement provides direct evidence that users perceive model-dependent personality as consequential rather than cosmetic. 
+
+
+
+
+
+
+
+CHATGPT checked the set against current scholarly and publisher records and searched outward from it for adjacent work. My overall read is favorable: this is a useful literature cluster for Wayfarer, but not because these papers collectively tell us how to build it. They help establish that several of Wayfarer’s individual premises are independently important, while also making the particular combination we are pursuing look more distinctive.
 
 ### First, a bibliographic sanity check
 
