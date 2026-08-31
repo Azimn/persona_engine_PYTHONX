@@ -1,0 +1,127 @@
+name: Wayfarer semantic memory phase documentation sync
+
+on:
+  push:
+    branches: [wayfarer]
+    paths:
+      - '.github/workflows/wayfarer-semantic-memory-doc-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: wayfarer
+          fetch-depth: 0
+      - name: Synchronize durable phase docs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          phase_sha = 'ab1d6959a1d6b7403ded687b1f76ba672aec79e7'
+          phase_short = phase_sha[:7]
+
+          semantic_section = f'''## 2026-08-30 semantic memory recoverability phase
+
+          **PHASE COMPLETE; global hot-memory capacity remains EXPERIMENTAL.** No universal resident-memory count was selected and no production retention rule was broadened.
+
+          Phase implementation/evidence commit: `{phase_sha}` (`Preserve recovered memory values under tight output budgets`). The phase integration ran the full Python 3.11 deterministic suite at `331 passed, 1 skipped, 1 warning`; the only warning remains the existing Starlette/httpx TestClient deprecation.
+
+          `semantic-memory-recoverability-v2` separates resident causal evidence, canonical cold-biography recovery, renderer realization, authority, and restart state across six restarted histories with unrelated, lexically confusable, repaired, reopened, and neutral conditions.
+
+          Final projection results (semantic core / experience / grounded retrieval / surface / authority / restart, each out of 6):
+
+          - production: `6 / 6 / 6 / 6 / 6 / 6`
+          - recoverable-cold-only: `2 / 2 / 6 / 6 / 6 / 6`
+          - active-conflict-only: `6 / 6 / 6 / 6 / 6 / 6`
+          - recent-context-only: `2 / 2 / 6 / 6 / 6 / 6`
+          - active-conflict-plus-recent: `6 / 6 / 6 / 6 / 6 / 6`
+
+          The causal discriminator is now explicit. Current unresolved relationship evidence is a demonstrated resident role for reflection/conduct consumers. Removing that evidence while keeping only cold-recoverable or merely recent USER_TOLD autobiography makes all four active-conflict conduct cases lose their qualified-history behavior. Retaining the current active-conflict evidence preserves all four. Repaired/neutral histories remain unaffected.
+
+          Conversely, both old and recent USER_TOLD autobiographical wording was grounded and recoverable in every projection, including cold-only, across restart and lexical distractors. Negative recall remained fail-closed, recovered cold facts were not automatically promoted back into hot state, commitment/identity authority remained intact, and reopened-conflict reflection provenance stayed scoped to the current post-repair conflict episode.
+
+          The experiment also isolated and repaired a separate experience-level renderer defect. Retrieval already contained the exact `amber-otter` fact, but generic `Please remember this neutral detail:` scaffolding could consume a tight output budget and truncate the remembered value. `_memory_excerpt()` now removes only generic recall-command scaffolding while preparing the expression excerpt. Memory selection, authority, canonical storage, and retention are unchanged. `test_tight_memory_budget_preserves_recalled_value` locks that boundary; the targeted offline-renderer suite is `11 passed`.
+
+          Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
+
+          **Next memory-policy target:** expand reconstruction evidence to currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency by demonstrated semantic consumer role plus a tested reconstruction contract. Do not select a global `N` from the 1/2/4/8 or projection experiments.
+          '''
+          semantic_section = '\n'.join(line.strip() for line in semantic_section.splitlines()).strip() + '\n\n'
+
+          progress_path = Path('persona_engine/docs/WAYFARER_PROGRESS.md')
+          progress = progress_path.read_text(encoding='utf-8')
+          progress = progress.replace('Last updated: 2026-08-30', 'Last updated: 2026-08-30')
+          progress = re.sub(
+              r'Current production/evidence head before this documentation update:\n\n```text\n.*?\n```\n\nThe developmental-continuity production gate completed with:\n\n```text\n.*?\n```',
+              f'''Current production/evidence head before this documentation update:\n\n```text\n{phase_sha}\nPreserve recovered memory values under tight output budgets\n```\n\nThe semantic-memory phase integration completed with:\n\n```text\nTargeted offline renderer: 11 passed\nFull Python 3.11 deterministic suite: 331 passed, 1 skipped, 1 warning\nProduction semantic/retrieval/surface/authority/restart: 6/6 each\n```''',
+              progress,
+              count=1,
+              flags=re.S,
+          )
+          marker = '## 2026-08-30 semantic memory recoverability phase'
+          if marker in progress:
+              before = progress.split(marker, 1)[0].rstrip()
+              progress = before + '\n\n' + semantic_section
+          else:
+              progress = progress.rstrip() + '\n\n' + semantic_section
+          progress_path.write_text(progress, encoding='utf-8')
+
+          status_path = Path('persona_engine/docs/CURRENT_STATUS.md')
+          status = status_path.read_text(encoding='utf-8')
+          status = re.sub(
+              r'Latest production commit:\n\n```text\n.*?\n```\n\nThe phase-sized Python 3\.11 developmental integration gate completed with:\n\n```text\n.*?\n```',
+              f'''Latest production commit:\n\n```text\n{phase_sha}\nPreserve recovered memory values under tight output budgets\n```\n\nThe phase-sized Python 3.11 semantic-memory integration gate completed with:\n\n```text\nTargeted offline renderer: 11 passed\nFull deterministic suite: 331 passed, 1 skipped, 1 warning\nProduction semantic/retrieval/surface/authority/restart: 6/6 each\n```''',
+              status,
+              count=1,
+              flags=re.S,
+          )
+          status = re.sub(
+              r'## Immediate next work\n.*?(?=## Required reading)',
+              '''## Immediate next work\n\n1. Expand reconstruction evidence to pinned non-`USER_TOLD` memory families before changing their residency.\n2. Keep the global hot-memory capacity experimental; use semantic consumer roles plus reconstruction contracts rather than choosing a universal count.\n3. Preserve the closed slow-belief replay contract and do not conflate replay correctness with M7 psychological calibration.\n4. Keep cross-host single-writer handoff/branching and full typed social influence deferred until their roadmap phases.\n\n''',
+              status,
+              count=1,
+              flags=re.S,
+          )
+          status_marker = '## Semantic memory recoverability status'
+          status_section = semantic_section.replace('## 2026-08-30 semantic memory recoverability phase', status_marker)
+          if status_marker in status:
+              before = status.split(status_marker, 1)[0].rstrip()
+              status = before + '\n\n' + status_section
+          else:
+              status = status.rstrip() + '\n\n' + status_section
+          status_path.write_text(status, encoding='utf-8')
+
+          master_path = Path('persona_engine/docs/WAYFARER_MASTER_PLAN.md')
+          master = master_path.read_text(encoding='utf-8')
+          master_marker = '## 2026-08-30 semantic memory role checkpoint'
+          master_section = f'''## 2026-08-30 semantic memory role checkpoint
+
+          Semantic USER_TOLD residency has now been tested across unresolved, repaired, reopened, neutral, lexical-distractor, and restart conditions. Production and the active-conflict semantic projection pass all demonstrated causal and experience contracts. Cold-only and recent-only projections preserve grounded autobiography but fail active-conflict conduct, establishing current unresolved relationship evidence as a demonstrated resident causal role rather than merely retrievable biography.
+
+          This does **not** establish a global memory capacity. USER_TOLD autobiography has a bounded canonical cold-reconstruction path; other memory families remain pinned until equivalent reconstruction contracts are demonstrated. The next memory experiment therefore moves by source/consumer semantics, beginning with currently pinned non-`USER_TOLD` families, not by selecting `N`.
+
+          The deterministic renderer separately learned to remove generic recall-command scaffolding from a memory excerpt so a tight output budget preserves the recovered fact. This is an expression-boundary correction only and does not alter memory authority or retention.
+
+          Phase commit: `{phase_sha}`. Evidence: `evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md`.
+          '''
+          master_section = '\n'.join(line.strip() for line in master_section.splitlines()).strip() + '\n'
+          if master_marker in master:
+              master = master.split(master_marker, 1)[0].rstrip() + '\n\n' + master_section
+          else:
+              master = master.rstrip() + '\n\n' + master_section
+          master_path.write_text(master, encoding='utf-8')
+          PY
+      - name: Commit documentation as one phase sync
+        run: |
+          rm -f .github/workflows/wayfarer-semantic-memory-doc-sync.yml
+          git config user.name 'Wayfarer Docs'
+          git config user.email 'wayfarer-docs@users.noreply.github.com'
+          git add -A
+          git commit -m 'Record semantic memory role phase results'
+          git push origin HEAD:wayfarer
