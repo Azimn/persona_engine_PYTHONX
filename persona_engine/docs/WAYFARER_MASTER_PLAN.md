@@ -1023,3 +1023,13 @@ Use `[?]` when implementation exists but verification is incomplete.
 - [ ] Make structured self-model/ontology a first M2 schema concern so v1 `forbidden_self_claims` does not grow into a permanent phrase blacklist.
 - [ ] Design MatrAIx interoperability as a crosswalk/projection layer, not as a requirement that every runtime actively compute every phenotype dimension.
 - [ ] Keep the M7 calibration gate binding while designing M2 mutable phenotype fields.
+
+## 2026-08-30 semantic memory role checkpoint
+
+Semantic USER_TOLD residency has now been tested across unresolved, repaired, reopened, neutral, lexical-distractor, and restart conditions. Production and the active-conflict semantic projection pass all demonstrated causal and experience contracts. Cold-only and recent-only projections preserve grounded autobiography but fail active-conflict conduct, establishing current unresolved relationship evidence as a demonstrated resident causal role rather than merely retrievable biography.
+
+This does **not** establish a global memory capacity. USER_TOLD autobiography has a bounded canonical cold-reconstruction path; other memory families remain pinned until equivalent reconstruction contracts are demonstrated. The next memory experiment therefore moves by source/consumer semantics, beginning with currently pinned non-`USER_TOLD` families, not by selecting `N`.
+
+The deterministic renderer separately learned to remove generic recall-command scaffolding from a memory excerpt so a tight output budget preserves the recovered fact. This is an expression-boundary correction only and does not alter memory authority or retention.
+
+Phase commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7`. Evidence: `evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md`.

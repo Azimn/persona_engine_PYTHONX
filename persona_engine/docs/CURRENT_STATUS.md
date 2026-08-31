@@ -11,15 +11,16 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 Latest production commit:
 
 ```text
-268739c
-Preserve slow belief development in canonical continuity
+ab1d6959a1d6b7403ded687b1f76ba672aec79e7
+Preserve recovered memory values under tight output budgets
 ```
 
-The phase-sized Python 3.11 developmental integration gate completed with:
+The phase-sized Python 3.11 semantic-memory integration gate completed with:
 
 ```text
-Focused developmental/continuity/replay tests: 18 passed
-Full deterministic suite: 330 passed, 1 skipped, 1 warning
+Targeted offline renderer: 11 passed
+Full deterministic suite: 331 passed, 1 skipped, 1 warning
+Production semantic/retrieval/surface/authority/restart: 6/6 each
 ```
 
 The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
@@ -146,10 +147,10 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Verify the normal Python 3.11/3.12 CI matrix on the final developmental-continuity branch state.
-2. Re-measure persistence with `belief_consolidation` roots active before changing the compact evidence stream further.
-3. Use the next controlled longitudinal failure to choose between broader world/action replay, cross-host single-writer handoff, or another minimum-individual requirement; do not add all three speculatively.
-4. Keep M7 plasticity calibration separate from this continuity result: replay correctness does not validate the psychological values of belief deltas or thresholds.
+1. Expand reconstruction evidence to pinned non-`USER_TOLD` memory families before changing their residency.
+2. Keep the global hot-memory capacity experimental; use semantic consumer roles plus reconstruction contracts rather than choosing a universal count.
+3. Preserve the closed slow-belief replay contract and do not conflate replay correctness with M7 psychological calibration.
+4. Keep cross-host single-writer handoff/branching and full typed social influence deferred until their roadmap phases.
 
 ## Required reading
 
@@ -169,31 +170,27 @@ Repository documentation is part of the implementation contract. If documentatio
 
 ## Semantic memory recoverability status
 
-**V2 EVIDENCE COMPLETE; production global hot-memory policy remains EXPERIMENTAL.** No universal resident-memory capacity was selected and no production retention behavior changed.
+**PHASE COMPLETE; global hot-memory capacity remains EXPERIMENTAL.** No universal resident-memory count was selected and no production retention rule was broadened.
 
-V1 exposed a measurement confound rather than a production conclusion: it mixed grounded retrieval with literal surface wording and used a workshop query outside the already-demonstrated continuation oracle. V2 separates semantic retrieval/authority from renderer realization, uses the established `What about the workshop door?` continuation query, and records relationship state immediately after restart before evaluation prompts can alter it.
+Phase implementation/evidence commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7` (`Preserve recovered memory values under tight output budgets`). The phase integration ran the full Python 3.11 deterministic suite at `331 passed, 1 skipped, 1 warning`; the only warning remains the existing Starlette/httpx TestClient deprecation.
 
-Semantic-core passes: production 6/6; recoverable_cold_only 2/6; active_conflict_only 6/6; recent_context_only 2/6; active_conflict_plus_recent 6/6.
+`semantic-memory-recoverability-v2` separates resident causal evidence, canonical cold-biography recovery, renderer realization, authority, and restart state across six restarted histories with unrelated, lexically confusable, repaired, reopened, and neutral conditions.
 
-Conduct passes: production 6/6; recoverable_cold_only 2/6; active_conflict_only 6/6; recent_context_only 2/6; active_conflict_plus_recent 6/6.
+Final projection results (semantic core / experience / grounded retrieval / surface / authority / restart, each out of 6):
 
-Grounded retrieval-contract passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6.
+- production: `6 / 6 / 6 / 6 / 6 / 6`
+- recoverable-cold-only: `2 / 2 / 6 / 6 / 6 / 6`
+- active-conflict-only: `6 / 6 / 6 / 6 / 6 / 6`
+- recent-context-only: `2 / 2 / 6 / 6 / 6 / 6`
+- active-conflict-plus-recent: `6 / 6 / 6 / 6 / 6 / 6`
 
-Surface-realization passes: production 5/6; recoverable_cold_only 3/6; active_conflict_only 4/6; recent_context_only 4/6; active_conflict_plus_recent 4/6.
+The causal discriminator is now explicit. Current unresolved relationship evidence is a demonstrated resident role for reflection/conduct consumers. Removing that evidence while keeping only cold-recoverable or merely recent USER_TOLD autobiography makes all four active-conflict conduct cases lose their qualified-history behavior. Retaining the current active-conflict evidence preserves all four. Repaired/neutral histories remain unaffected.
 
-Authority passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6. Restart relationship-state passes: production 6/6; recoverable_cold_only 6/6; active_conflict_only 6/6; recent_context_only 6/6; active_conflict_plus_recent 6/6.
+Conversely, both old and recent USER_TOLD autobiographical wording was grounded and recoverable in every projection, including cold-only, across restart and lexical distractors. Negative recall remained fail-closed, recovered cold facts were not automatically promoted back into hot state, commitment/identity authority remained intact, and reopened-conflict reflection provenance stayed scoped to the current post-repair conflict episode.
 
-The main causal discriminator is whether currently unresolved relationship evidence remains resident for reflection/conduct consumers. Cold-only and recent-only projections are allowed to fail that active-conflict conduct role; those failures do not imply canonical biography was lost. Conversely, old/recent autobiographical wording is expected to be reconstructable through the bounded cold-biography contract without automatic hot-state rehydration.
-
-Rows where semantic core passed but surface realization did not are retained as renderer diagnostics, not mislabeled as memory loss:
-
-- `unresolved/unrelated/active_conflict_plus_recent` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
-- `unresolved/lexical/production` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
-- `unresolved/lexical/active_conflict_only` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
-- `reopened/unrelated/active_conflict_only` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
-- `reopened/lexical/active_conflict_plus_recent` old=`What remains with me is this: you said Please remember this neutral detail: the old observatory code word is...`; recent=`I do have a thread for that: you said The workshop door is saffron today.`
+The experiment also isolated and repaired a separate experience-level renderer defect. Retrieval already contained the exact `amber-otter` fact, but generic `Please remember this neutral detail:` scaffolding could consume a tight output budget and truncate the remembered value. `_memory_excerpt()` now removes only generic recall-command scaffolding while preparing the expression excerpt. Memory selection, authority, canonical storage, and retention are unchanged. `test_tight_memory_budget_preserves_recalled_value` locks that boundary; the targeted offline-renderer suite is `11 passed`.
 
 Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
 
-**Next action:** if production semantic core is green but production surface is not, isolate the minimum deterministic-renderer realization defect while leaving memory retention unchanged. If production semantic core itself fails, diagnose that causal path first. Do not select a global hot-memory `N` from this evidence.
+**Next memory-policy target:** expand reconstruction evidence to currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency by demonstrated semantic consumer role plus a tested reconstruction contract. Do not select a global `N` from the 1/2/4/8 or projection experiments.
 
