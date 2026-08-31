@@ -414,11 +414,14 @@ Goal: move one individual without accidentally creating contradictory canonical 
 - [~] Add custody generation. `writer_generation` is implemented; a separate expiring lease ID is not required by shared-store v1 and remains a future distributed-host decision.
 - [x] Define one writable-host custody claim for a shared canonical authority store.
 - [~] Non-owner hosts can read shared-store projections while writes fail closed; richer multi-interface/session policy remains future work.
-- [~] Implement shared-store handoff: commit/digest, advance generation, name target, validate receipt/state, activate target. Disconnected-store quiesce/package transfer remains open.
+- [x] Implement shared-store handoff: commit/digest, advance generation, name target, validate receipt/state, activate target.
+- [x] Implement cooperative disconnected-store move: persist a whole-subject boundary, produce a target-specific package, quiesce every source stream, stage the target read-only, finalize/retire the source authority store, then activate the target at the next writer generation.
+- [x] Make finalized source-store retirement survive process restart and target-host-id reuse on the old database file.
 - [x] Detect stale writer attempts, including an old process whose host ID later becomes active under a newer generation.
 - [ ] Define explicit branch operation for intentional copies.
 - [x] Never silently merge divergent lived histories; no current merge path exists.
-- [~] Test shared-store host transfer, competing writer, stale writer, bad/mismatched receipt, generation reuse, restart/state digest, and interlocutor continuity. Disconnected transfer, deliberate branch, duplicate bundle, and attempted re-merge remain open.
+- [x] Test shared-store host transfer, competing writer, stale writer, bad/mismatched receipt, generation reuse, restart/state digest, and interlocutor continuity.
+- [~] Test disconnected transfer with whole-subject ordering, multiple interlocutors, pending consolidation evidence, staged-target write refusal, tampered bundle/receipt rejection, exact-bundle idempotence, cancellation, source retirement, and target activation. Deliberate branch, malicious duplicate activation under forged/reused host identity, and attempted re-merge remain open.
 
 Acceptance: system can distinguish `same individual moved` from `two descendants copied`.
 

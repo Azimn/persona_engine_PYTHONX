@@ -35,6 +35,7 @@ A research summary should link to those sources rather than silently replacing t
 5. When recording a quantitative result, identify the evidence file, code commit or tested head, and test/run context when available.
 6. Prefer dated snapshots over mutable prose for thesis-facing summaries.
 7. Do not freeze a thesis claim merely because the current architecture makes it convenient. Let the final research question follow the strongest reproducible result.
+8. Treat research capture as part of substantive Wayfarer completion: if a phase changes a potentially thesis-relevant claim, limitation, negative result, method, or quantitative result, update the evidence index or add a dated research summary in that same phase.
 
 ## Likely thesis pathway
 

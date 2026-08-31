@@ -13,25 +13,33 @@ Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
 
+## Disconnected authority-store transfer checkpoint
+
+`disconnected-transfer-v1` extends the existing writer-generation contract across two separate SQLite authority stores under a cooperative host-id threat model. Preparation persists a clean whole-subject boundary and quiesces every source stream. The target stages the exact bundle read-only. Source finalization advances writer generation and permanently retires that source database; target activation validates the staged content and local state digest before claiming the new generation. Transfer administration remains outside lived biography.
+
+The bundle carries subject-wide canonical ordering, all bound interlocutor snapshots, subject-owned snapshots, current checkpoints, pending slow-consolidation evidence, and prior shared-store handoff audit. Diagnostic event-log rows are intentionally not required. Pending consolidation evidence receives target-local synthetic negative legacy ids so later positive diagnostic ids cannot collide.
+
+The supported contract does not solve malicious duplicate activation by two stores impersonating the same target host, hostile direct SQLite mutation, distributed consensus, intentional branch semantics, or branch reconciliation.
+
 ## Latest implemented checkpoint
 
-Current production contracts are `semantic-residency-v1` and the new shared-store `writer-handoff-v1` custody boundary.
+Current production contracts are `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
 Latest deterministic verification on Python 3.11:
 
 ```text
-Targeted custody/continuity set: 32 passed in 1.89s
-Permanent shared-store handoff probe: passed
-Full deterministic suite: 340 passed, 1 skipped, 1 warning in 31.68s
+Targeted migration/continuity set: 38 passed in 2.78s
+Permanent disconnected-store transfer probe: passed
+Full deterministic suite: 346 passed, 1 skipped, 1 warning in 31.81s
 ```
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
 
-The permanent probe demonstrates one active writer across distinct hosts, stale-source failure after handoff, generation fencing even when a host ID later returns, exact handoff-state digest validation, preserved subject UUID/order/clock/earned trait/commitment behavior, preserved interlocutor relationship scope, and exclusion of custody administration from lived biography. Scope remains one shared canonical SQLite authority store; disconnected copies and branch reconciliation are not claimed solved.
+The shared-store custody probe demonstrates one active writer across distinct hosts, stale-source failure after handoff, generation fencing even when a host ID later returns, exact handoff-state digest validation, preserved subject UUID/order/clock/earned trait/commitment behavior, preserved interlocutor relationship scope, and exclusion of custody administration from lived biography. The separate disconnected-store probe now demonstrates the supported cooperative move contract. Arbitrary copied stores, malicious duplicate target-host impersonation, intentional branch semantics, and branch reconciliation are still not claimed solved.
 
 Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
+Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 

@@ -34,6 +34,10 @@ from .deception_ledger import DeceptionLedger
 # the legacy unlimited default for migration and tooling compatibility.
 DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT = 512
 
+DISCONNECTED_TRANSFER_SCHEMA_VERSION = "disconnected-transfer-v1"
+DISCONNECTED_TRANSFER_STAGE_RECEIPT_VERSION = "disconnected-transfer-stage-v1"
+DISCONNECTED_TRANSFER_FINAL_RECEIPT_VERSION = "disconnected-transfer-final-v1"
+
 
 def _extract_evidence_types(event_type: str, payload: dict[str, Any]) -> list[str]:
     """Return the exact semantic counters consumed by slow consolidation."""
@@ -152,6 +156,30 @@ CREATE TABLE IF NOT EXISTS continuity_handoff (
 );
 CREATE INDEX IF NOT EXISTS idx_continuity_handoff_subject_generation
     ON continuity_handoff(subject_uuid, writer_generation);
+CREATE TABLE IF NOT EXISTS continuity_transfer (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transfer_uuid TEXT NOT NULL,
+    subject_uuid TEXT NOT NULL,
+    role TEXT NOT NULL,
+    phase TEXT NOT NULL,
+    character_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    source_host_id TEXT NOT NULL,
+    target_host_id TEXT NOT NULL,
+    source_generation INTEGER NOT NULL,
+    target_generation INTEGER NOT NULL,
+    continuity_epoch INTEGER NOT NULL,
+    subject_sequence_anchor INTEGER NOT NULL,
+    state_digest TEXT NOT NULL,
+    content_digest TEXT NOT NULL,
+    bundle_digest TEXT NOT NULL,
+    migration_chain TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL,
+    UNIQUE(transfer_uuid, role)
+);
+CREATE INDEX IF NOT EXISTS idx_continuity_transfer_subject_role_phase
+    ON continuity_transfer(subject_uuid, role, phase);
 """
 
 
@@ -399,32 +427,69 @@ class Persistence:
             self._writer_claims[subject_uuid] = generation
         return active_host, generation
 
-    def _fence_writer_conn(self, conn, character_id: str, user_id: str) -> tuple[str, int]:
+    def _pending_disconnected_transfer_conn(self, conn, subject_uuid: str) -> str | None:
+        row = conn.execute(
+            "SELECT transfer_uuid FROM continuity_transfer "
+            "WHERE subject_uuid=? AND role='source' AND phase='prepared' ORDER BY id DESC LIMIT 1",
+            (subject_uuid,),
+        ).fetchone()
+        return str(row[0]) if row else None
+
+    def _retired_disconnected_transfer_conn(self, conn, subject_uuid: str) -> str | None:
+        row = conn.execute(
+            "SELECT transfer_uuid FROM continuity_transfer "
+            "WHERE subject_uuid=? AND role='source' AND phase='finalized' ORDER BY id DESC LIMIT 1",
+            (subject_uuid,),
+        ).fetchone()
+        return str(row[0]) if row else None
+
+    def _fence_writer_conn(
+        self,
+        conn,
+        character_id: str,
+        user_id: str,
+        *,
+        allow_transfer_uuid: str | None = None,
+    ) -> tuple[str, int]:
         """Validate writer generation while holding SQLite's write reservation.
 
         ``BEGIN IMMEDIATE`` obtains the database write reservation before the
         custody row is read, so an explicit handoff cannot race between the
-        generation check and the caller's mutation. V1 has no lease timeout, so
-        rewriting ``continuity_writer.updated_at`` on every state mutation would
-        add a hot-row durability cost without strengthening the custody contract.
+        generation check and the caller's mutation. A prepared disconnected
+        transfer additionally quiesces normal writes until it is finalized or
+        canceled. A finalized source store is permanently retired under the v1
+        transfer contract, even if that old file is reopened using the target
+        host id.
         """
         if not conn.in_transaction:
             conn.execute("BEGIN IMMEDIATE")
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
         active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+        retired = self._retired_disconnected_transfer_conn(conn, subject_uuid)
+        if retired is not None:
+            raise WriterLeaseError(f"authority store retired by disconnected transfer {retired}")
         claim = self._writer_claims.get(subject_uuid)
         if active_host != self.host_id or claim != generation:
             raise WriterLeaseError(
                 f"stale or non-owner writer: host={self.host_id!r}, claim={claim}, "
                 f"active_host={active_host!r}, active_generation={generation}"
             )
+        pending = self._pending_disconnected_transfer_conn(conn, subject_uuid)
+        if pending is not None and pending != str(allow_transfer_uuid or ""):
+            raise WriterLeaseError(f"source is quiesced for disconnected transfer {pending}")
         return subject_uuid, generation
 
     def assert_writer(self, character_id: str, user_id: str) -> dict[str, Any]:
         subject_uuid, _ = self._resolve_subject(character_id, user_id)
         with self._connection() as conn:
             active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+            pending = self._pending_disconnected_transfer_conn(conn, subject_uuid)
+            retired = self._retired_disconnected_transfer_conn(conn, subject_uuid)
         claim = self._writer_claims.get(subject_uuid)
+        if retired is not None:
+            raise WriterLeaseError(f"authority store retired by disconnected transfer {retired}")
+        if pending is not None:
+            raise WriterLeaseError(f"source is quiesced for disconnected transfer {pending}")
         if active_host != self.host_id or claim != generation:
             raise WriterLeaseError(
                 f"host {self.host_id!r} does not hold current writer generation for subject {subject_uuid}"
@@ -435,6 +500,8 @@ class Persistence:
         subject_uuid, epoch = self._resolve_subject(character_id, user_id)
         with self._connection() as conn:
             active_host, generation = self._ensure_writer_row_conn(conn, subject_uuid)
+            pending = self._pending_disconnected_transfer_conn(conn, subject_uuid)
+            retired = self._retired_disconnected_transfer_conn(conn, subject_uuid)
         claim = self._writer_claims.get(subject_uuid)
         return {
             "subject_uuid": subject_uuid,
@@ -443,7 +510,16 @@ class Persistence:
             "active_host_id": active_host,
             "writer_generation": generation,
             "claim_generation": claim,
-            "writable": active_host == self.host_id and claim == generation,
+            "transfer_pending": pending is not None,
+            "pending_transfer_uuid": pending,
+            "store_retired": retired is not None,
+            "retired_transfer_uuid": retired,
+            "writable": (
+                active_host == self.host_id
+                and claim == generation
+                and pending is None
+                and retired is None
+            ),
         }
 
     def handoff_writer(self, character_id: str, user_id: str, target_host_id: str, *, state_digest: str = "") -> dict[str, Any]:
@@ -541,6 +617,608 @@ class Persistence:
             }
             for row in rows
         ]
+
+    # ---------------- disconnected authority-store transfer ----------------
+    @staticmethod
+    def _normalize_transfer_host_id(value: str, field: str) -> str:
+        normalized = " ".join(str(value or "").strip().split())
+        if not normalized:
+            raise ContinuityImportError(f"{field} must not be empty")
+        if len(normalized) > 128:
+            raise ContinuityImportError(f"{field} is too long")
+        return normalized
+
+    def _migration_chain_conn(self, conn, subject_uuid: str) -> list[dict[str, Any]]:
+        row = conn.execute(
+            "SELECT migration_chain FROM continuity_transfer "
+            "WHERE subject_uuid=? AND role='target' AND phase='activated' ORDER BY id DESC LIMIT 1",
+            (subject_uuid,),
+        ).fetchone()
+        if not row:
+            return []
+        try:
+            value = json.loads(row[0])
+        except (json.JSONDecodeError, TypeError):
+            return []
+        return list(value) if isinstance(value, list) else []
+
+    def _subject_transfer_content_conn(self, conn, subject_uuid: str, epoch: int) -> dict[str, Any]:
+        bindings_rows = conn.execute(
+            "SELECT character_id,user_id,continuity_epoch FROM continuity_subject "
+            "WHERE subject_uuid=? ORDER BY character_id,user_id",
+            (subject_uuid,),
+        ).fetchall()
+        bindings = [
+            {"character_id": str(cid), "user_id": str(uid), "continuity_epoch": int(bound_epoch)}
+            for cid, uid, bound_epoch in bindings_rows
+        ]
+        binding_keys = {(item["character_id"], item["user_id"]) for item in bindings}
+
+        stream_state: list[dict[str, Any]] = []
+        checkpoints: list[dict[str, Any]] = []
+        for binding in bindings:
+            cid, uid = binding["character_id"], binding["user_id"]
+            rows = conn.execute(
+                "SELECT key,value FROM state WHERE character_id=? AND user_id=? ORDER BY key",
+                (cid, uid),
+            ).fetchall()
+            for key, value_text in rows:
+                stream_state.append({
+                    "character_id": cid,
+                    "user_id": uid,
+                    "key": str(key),
+                    "value": json.loads(value_text),
+                })
+            checkpoint = conn.execute(
+                "SELECT sequence,state_schema,state_digest,created_at FROM continuity_checkpoint "
+                "WHERE subject_uuid=? AND user_id=? AND continuity_epoch=? ORDER BY sequence DESC,id DESC LIMIT 1",
+                (subject_uuid, uid, epoch),
+            ).fetchone()
+            if checkpoint:
+                checkpoints.append({
+                    "character_id": cid,
+                    "user_id": uid,
+                    "sequence": int(checkpoint[0]),
+                    "state_schema": str(checkpoint[1]),
+                    "state_digest": str(checkpoint[2]),
+                    "created_at": float(checkpoint[3]),
+                })
+
+        subject_state = [
+            {"key": str(key), "value": json.loads(value_text)}
+            for key, value_text in conn.execute(
+                "SELECT key,value FROM subject_state WHERE subject_uuid=? ORDER BY key",
+                (subject_uuid,),
+            ).fetchall()
+        ]
+
+        event_rows = conn.execute(
+            "SELECT event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id "
+            "FROM continuity_event WHERE subject_uuid=? AND continuity_epoch=? ORDER BY subject_sequence",
+            (subject_uuid, epoch),
+        ).fetchall()
+        events = []
+        for row in event_rows:
+            event = self._continuity_row_to_dict(row)
+            event.pop("legacy_event_id", None)
+            events.append(event)
+
+        evidence_rows = conn.execute(
+            "SELECT e.character_id,e.user_id,e.evidence_types,e.created_at "
+            "FROM consolidation_evidence e "
+            "JOIN continuity_subject s ON s.character_id=e.character_id AND s.user_id=e.user_id "
+            "WHERE s.subject_uuid=? ORDER BY e.created_at,e.id",
+            (subject_uuid,),
+        ).fetchall()
+        pending_evidence = []
+        for cid, uid, evidence_text, created_at in evidence_rows:
+            if (str(cid), str(uid)) not in binding_keys:
+                continue
+            types = json.loads(evidence_text)
+            pending_evidence.append({
+                "character_id": str(cid),
+                "user_id": str(uid),
+                "evidence_types": list(types) if isinstance(types, list) else [],
+                "created_at": float(created_at),
+            })
+
+        shared_handoffs = [
+            {
+                "handoff_uuid": str(row[0]),
+                "subject_uuid": subject_uuid,
+                "from_host_id": str(row[1]),
+                "to_host_id": str(row[2]),
+                "previous_generation": int(row[3]),
+                "writer_generation": int(row[4]),
+                "continuity_epoch": int(row[5]),
+                "subject_sequence_anchor": int(row[6]),
+                "state_digest": str(row[7]),
+                "created_at": float(row[8]),
+            }
+            for row in conn.execute(
+                "SELECT handoff_uuid,from_host_id,to_host_id,previous_generation,writer_generation,continuity_epoch,subject_sequence_anchor,state_digest,created_at "
+                "FROM continuity_handoff WHERE subject_uuid=? ORDER BY writer_generation,id",
+                (subject_uuid,),
+            ).fetchall()
+        ]
+
+        return {
+            "bindings": bindings,
+            "stream_state": stream_state,
+            "subject_state": subject_state,
+            "events": events,
+            "pending_evidence": pending_evidence,
+            "shared_handoffs": shared_handoffs,
+            "checkpoints": checkpoints,
+        }
+
+    @staticmethod
+    def _transfer_content_digest(content: dict[str, Any]) -> str:
+        return state_digest(content)
+
+    def _validate_disconnected_transfer_bundle(self, bundle: dict[str, Any]) -> tuple[str, int, dict[str, Any]]:
+        if not isinstance(bundle, dict) or str(bundle.get("schema_version")) != DISCONNECTED_TRANSFER_SCHEMA_VERSION:
+            raise ContinuityImportError("unsupported disconnected transfer schema_version")
+        supplied_bundle_digest = str(bundle.get("bundle_digest") or "")
+        unsigned = {key: value for key, value in bundle.items() if key != "bundle_digest"}
+        if not supplied_bundle_digest or state_digest(unsigned) != supplied_bundle_digest:
+            raise ContinuityImportError("disconnected transfer bundle digest mismatch")
+        content = bundle.get("content")
+        if not isinstance(content, dict):
+            raise ContinuityImportError("disconnected transfer content must be an object")
+        if self._transfer_content_digest(content) != str(bundle.get("content_digest") or ""):
+            raise ContinuityImportError("disconnected transfer content digest mismatch")
+
+        subject_uuid = str(bundle.get("subject_uuid") or "")
+        try:
+            uuid.UUID(subject_uuid)
+        except ValueError as exc:
+            raise ContinuityImportError("invalid disconnected transfer subject UUID") from exc
+        epoch = int(bundle.get("continuity_epoch", -1))
+        if epoch < 0:
+            raise ContinuityImportError("invalid disconnected transfer continuity epoch")
+        source_host = self._normalize_transfer_host_id(bundle.get("source_host_id", ""), "source_host_id")
+        target_host = self._normalize_transfer_host_id(bundle.get("target_host_id", ""), "target_host_id")
+        if source_host == target_host:
+            raise ContinuityImportError("disconnected transfer requires distinct source and target hosts")
+        source_generation = int(bundle.get("source_generation", -1))
+        target_generation = int(bundle.get("target_generation", -1))
+        if source_generation < 1 or target_generation != source_generation + 1:
+            raise ContinuityImportError("invalid disconnected transfer writer generations")
+
+        bindings = list(content.get("bindings") or [])
+        if not bindings:
+            raise ContinuityImportError("disconnected transfer requires at least one subject binding")
+        binding_keys: set[tuple[str, str]] = set()
+        for item in bindings:
+            if not isinstance(item, dict):
+                raise ContinuityImportError("invalid disconnected transfer binding")
+            key = (str(item.get("character_id") or ""), str(item.get("user_id") or ""))
+            if not all(key) or int(item.get("continuity_epoch", -1)) != epoch or key in binding_keys:
+                raise ContinuityImportError("invalid or duplicate disconnected transfer binding")
+            binding_keys.add(key)
+        primary = (str(bundle.get("character_id") or ""), str(bundle.get("user_id") or ""))
+        if primary not in binding_keys:
+            raise ContinuityImportError("primary transfer stream is not bound to the subject")
+
+        events = list(content.get("events") or [])
+        seen_event_ids: set[str] = set()
+        subject_ordinals: list[int] = []
+        stream_sequences: dict[tuple[str, str], list[int]] = {}
+        for event in events:
+            if not isinstance(event, dict):
+                raise ContinuityImportError("invalid disconnected transfer event")
+            if str(event.get("subject_uuid")) != subject_uuid or int(event.get("continuity_epoch", -1)) != epoch:
+                raise ContinuityImportError("disconnected transfer event subject mismatch")
+            key = (str(event.get("character_id") or ""), str(event.get("user_id") or ""))
+            if key not in binding_keys:
+                raise ContinuityImportError("disconnected transfer event references an unbound stream")
+            event_uuid = str(event.get("event_uuid") or "")
+            if not event_uuid or event_uuid in seen_event_ids:
+                raise ContinuityImportError("duplicate disconnected transfer event UUID")
+            seen_event_ids.add(event_uuid)
+            if event.get("canonicality") != "canonical_event" or not isinstance(event.get("payload"), dict):
+                raise ContinuityImportError("disconnected transfer contains a noncanonical event")
+            if not canonical_continuity_eligible(str(event.get("event_type", "")), event["payload"]):
+                raise ContinuityImportError("disconnected transfer contains an ineligible canonical event")
+            subject_ordinals.append(int(event.get("subject_sequence", -1)))
+            stream_sequences.setdefault(key, []).append(int(event.get("sequence", -1)))
+        anchor = int(bundle.get("subject_sequence_anchor", -1))
+        expected_subject = list(range(1, anchor + 1))
+        if subject_ordinals != expected_subject:
+            raise ContinuityImportError("disconnected transfer subject sequence is not complete and contiguous")
+        for sequences in stream_sequences.values():
+            if sequences != list(range(1, max(sequences) + 1)):
+                raise ContinuityImportError("disconnected transfer stream sequence is not complete and contiguous")
+
+        for family in ("stream_state", "pending_evidence", "checkpoints"):
+            for item in list(content.get(family) or []):
+                if not isinstance(item, dict):
+                    raise ContinuityImportError(f"invalid disconnected transfer {family} entry")
+                key = (str(item.get("character_id") or ""), str(item.get("user_id") or ""))
+                if key not in binding_keys:
+                    raise ContinuityImportError(f"disconnected transfer {family} references an unbound stream")
+        for handoff in list(content.get("shared_handoffs") or []):
+            if not isinstance(handoff, dict) or str(handoff.get("subject_uuid")) != subject_uuid:
+                raise ContinuityImportError("invalid shared-store handoff history in disconnected transfer")
+        return subject_uuid, epoch, content
+
+    def prepare_disconnected_transfer(
+        self,
+        character_id: str,
+        user_id: str,
+        target_host_id: str,
+        *,
+        local_state_digest: str,
+    ) -> dict[str, Any]:
+        """Create a target-specific transfer bundle and quiesce the source store.
+
+        The source retains custody while the target stages and validates the
+        bundle, but normal mutations fail closed after preparation. Finalization
+        or explicit cancellation is therefore required before the source can
+        proceed. Transfer administration is not added to lived biography.
+        """
+        target = self._normalize_transfer_host_id(target_host_id, "target_host_id")
+        if target == self.host_id:
+            raise ContinuityImportError("target_host_id must name a different host")
+        subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        transfer_uuid = str(uuid.uuid4())
+        created_at = time.time()
+        with self._connection() as conn:
+            _, generation = self._fence_writer_conn(conn, character_id, user_id)
+            content = self._subject_transfer_content_conn(conn, subject_uuid, epoch)
+            content_digest = self._transfer_content_digest(content)
+            anchor = len(content["events"])
+            target_generation = generation + 1
+            migration_chain = self._migration_chain_conn(conn, subject_uuid)
+            unsigned = {
+                "schema_version": DISCONNECTED_TRANSFER_SCHEMA_VERSION,
+                "transfer_uuid": transfer_uuid,
+                "subject_uuid": subject_uuid,
+                "character_id": str(character_id),
+                "user_id": str(user_id),
+                "source_host_id": self.host_id,
+                "target_host_id": target,
+                "source_generation": generation,
+                "target_generation": target_generation,
+                "continuity_epoch": epoch,
+                "subject_sequence_anchor": anchor,
+                "state_digest": str(local_state_digest or ""),
+                "content_digest": content_digest,
+                "created_at": created_at,
+                "migration_chain": migration_chain,
+                "content": content,
+            }
+            bundle_digest = state_digest(unsigned)
+            conn.execute(
+                "INSERT INTO continuity_transfer(transfer_uuid,subject_uuid,role,phase,character_id,user_id,source_host_id,target_host_id,source_generation,target_generation,continuity_epoch,subject_sequence_anchor,state_digest,content_digest,bundle_digest,migration_chain,created_at,updated_at) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    transfer_uuid, subject_uuid, "source", "prepared", str(character_id), str(user_id),
+                    self.host_id, target, generation, target_generation, epoch, anchor,
+                    str(local_state_digest or ""), content_digest, bundle_digest,
+                    json.dumps(migration_chain, ensure_ascii=False), created_at, created_at,
+                ),
+            )
+        return {**unsigned, "bundle_digest": bundle_digest}
+
+    def stage_disconnected_transfer(self, bundle: dict[str, Any]) -> dict[str, Any]:
+        """Install a validated transfer bundle into a non-writable target store."""
+        subject_uuid, epoch, content = self._validate_disconnected_transfer_bundle(bundle)
+        if str(bundle.get("target_host_id")) != self.host_id:
+            raise ContinuityImportError("disconnected transfer targets a different host")
+        transfer_uuid = str(bundle["transfer_uuid"])
+        now = time.time()
+        with self._connection() as conn:
+            if not conn.in_transaction:
+                conn.execute("BEGIN IMMEDIATE")
+            existing_audit = conn.execute(
+                "SELECT phase,bundle_digest FROM continuity_transfer WHERE transfer_uuid=? AND role='target'",
+                (transfer_uuid,),
+            ).fetchone()
+            if existing_audit:
+                if str(existing_audit[0]) == "staged" and str(existing_audit[1]) == str(bundle["bundle_digest"]):
+                    return {
+                        "schema_version": DISCONNECTED_TRANSFER_STAGE_RECEIPT_VERSION,
+                        "transfer_uuid": transfer_uuid,
+                        "subject_uuid": subject_uuid,
+                        "character_id": str(bundle["character_id"]),
+                        "user_id": str(bundle["user_id"]),
+                        "source_host_id": str(bundle["source_host_id"]),
+                        "target_host_id": self.host_id,
+                        "source_generation": int(bundle["source_generation"]),
+                        "target_generation": int(bundle["target_generation"]),
+                        "continuity_epoch": epoch,
+                        "subject_sequence_anchor": int(bundle["subject_sequence_anchor"]),
+                        "state_digest": str(bundle.get("state_digest") or ""),
+                        "content_digest": str(bundle["content_digest"]),
+                        "bundle_digest": str(bundle["bundle_digest"]),
+                    }
+                raise ContinuityImportError("transfer UUID already exists with incompatible target state")
+            if conn.execute("SELECT 1 FROM continuity_subject WHERE subject_uuid=? LIMIT 1", (subject_uuid,)).fetchone():
+                raise ContinuityImportError("target store already contains this subject")
+            if conn.execute("SELECT 1 FROM continuity_writer WHERE subject_uuid=?", (subject_uuid,)).fetchone():
+                raise ContinuityImportError("target store already contains writer custody for this subject")
+
+            for binding in content["bindings"]:
+                cid, uid = str(binding["character_id"]), str(binding["user_id"])
+                if conn.execute(
+                    "SELECT 1 FROM continuity_subject WHERE character_id=? AND user_id=?",
+                    (cid, uid),
+                ).fetchone() or conn.execute(
+                    "SELECT 1 FROM state WHERE character_id=? AND user_id=? LIMIT 1",
+                    (cid, uid),
+                ).fetchone():
+                    raise ContinuityImportError("target store has a conflicting stream binding or snapshot")
+                conn.execute(
+                    "INSERT INTO continuity_subject(character_id,user_id,subject_uuid,continuity_epoch,updated_at) VALUES(?,?,?,?,?)",
+                    (cid, uid, subject_uuid, epoch, now),
+                )
+                self._subject_bindings[(cid, uid)] = (subject_uuid, epoch)
+
+            conn.execute(
+                "INSERT INTO continuity_writer(subject_uuid,active_host_id,writer_generation,updated_at) VALUES(?,?,?,?)",
+                (subject_uuid, str(bundle["source_host_id"]), int(bundle["source_generation"]), now),
+            )
+            for item in content["stream_state"]:
+                conn.execute(
+                    "INSERT INTO state(character_id,user_id,key,value,updated_at) VALUES(?,?,?,?,?)",
+                    (
+                        str(item["character_id"]), str(item["user_id"]), str(item["key"]),
+                        json.dumps(item["value"], ensure_ascii=False), now,
+                    ),
+                )
+            for item in content["subject_state"]:
+                conn.execute(
+                    "INSERT INTO subject_state(subject_uuid,key,value,updated_at) VALUES(?,?,?,?)",
+                    (subject_uuid, str(item["key"]), json.dumps(item["value"], ensure_ascii=False), now),
+                )
+            for event in content["events"]:
+                conn.execute(
+                    "INSERT INTO continuity_event(event_uuid,subject_uuid,character_id,user_id,sequence,subject_sequence,continuity_epoch,subject_time,wall_time,source_actor,source_class,authority_class,event_type,visibility,canonicality,causal_parents,payload_schema,payload,legacy_event_id) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)",
+                    (
+                        str(event["event_uuid"]), subject_uuid, str(event["character_id"]), str(event["user_id"]),
+                        int(event["sequence"]), int(event["subject_sequence"]), epoch,
+                        float(event["subject_time"]), float(event["wall_time"]), str(event["source_actor"]),
+                        str(event["source_class"]), str(event["authority_class"]), str(event["event_type"]),
+                        str(event["visibility"]), "canonical_event",
+                        json.dumps(list(event.get("causal_parents") or []), ensure_ascii=False),
+                        str(event["payload_schema"]), json.dumps(event["payload"], ensure_ascii=False),
+                    ),
+                )
+            min_legacy = conn.execute("SELECT COALESCE(MIN(legacy_event_id),0) FROM consolidation_evidence").fetchone()
+            next_legacy = min(-1, int(min_legacy[0] or 0) - 1)
+            for item in content["pending_evidence"]:
+                conn.execute(
+                    "INSERT INTO consolidation_evidence(legacy_event_id,character_id,user_id,evidence_types,created_at) VALUES(?,?,?,?,?)",
+                    (
+                        next_legacy, str(item["character_id"]), str(item["user_id"]),
+                        json.dumps(list(item.get("evidence_types") or []), ensure_ascii=False), float(item["created_at"]),
+                    ),
+                )
+                next_legacy -= 1
+            for item in content["shared_handoffs"]:
+                conn.execute(
+                    "INSERT OR IGNORE INTO continuity_handoff(handoff_uuid,subject_uuid,from_host_id,to_host_id,previous_generation,writer_generation,continuity_epoch,subject_sequence_anchor,state_digest,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        str(item["handoff_uuid"]), subject_uuid, str(item["from_host_id"]), str(item["to_host_id"]),
+                        int(item["previous_generation"]), int(item["writer_generation"]), int(item["continuity_epoch"]),
+                        int(item["subject_sequence_anchor"]), str(item["state_digest"]), float(item["created_at"]),
+                    ),
+                )
+            for item in content["checkpoints"]:
+                conn.execute(
+                    "INSERT INTO continuity_checkpoint(subject_uuid,character_id,user_id,continuity_epoch,sequence,state_schema,state_digest,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                    (
+                        subject_uuid, str(item["character_id"]), str(item["user_id"]), epoch,
+                        int(item["sequence"]), str(item["state_schema"]), str(item["state_digest"]), float(item["created_at"]),
+                    ),
+                )
+            conn.execute(
+                "INSERT INTO continuity_transfer(transfer_uuid,subject_uuid,role,phase,character_id,user_id,source_host_id,target_host_id,source_generation,target_generation,continuity_epoch,subject_sequence_anchor,state_digest,content_digest,bundle_digest,migration_chain,created_at,updated_at) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    transfer_uuid, subject_uuid, "target", "staged", str(bundle["character_id"]), str(bundle["user_id"]),
+                    str(bundle["source_host_id"]), self.host_id, int(bundle["source_generation"]), int(bundle["target_generation"]),
+                    epoch, int(bundle["subject_sequence_anchor"]), str(bundle.get("state_digest") or ""),
+                    str(bundle["content_digest"]), str(bundle["bundle_digest"]),
+                    json.dumps(list(bundle.get("migration_chain") or []), ensure_ascii=False), float(bundle["created_at"]), now,
+                ),
+            )
+        return {
+            "schema_version": DISCONNECTED_TRANSFER_STAGE_RECEIPT_VERSION,
+            "transfer_uuid": transfer_uuid,
+            "subject_uuid": subject_uuid,
+            "character_id": str(bundle["character_id"]),
+            "user_id": str(bundle["user_id"]),
+            "source_host_id": str(bundle["source_host_id"]),
+            "target_host_id": self.host_id,
+            "source_generation": int(bundle["source_generation"]),
+            "target_generation": int(bundle["target_generation"]),
+            "continuity_epoch": epoch,
+            "subject_sequence_anchor": int(bundle["subject_sequence_anchor"]),
+            "state_digest": str(bundle.get("state_digest") or ""),
+            "content_digest": str(bundle["content_digest"]),
+            "bundle_digest": str(bundle["bundle_digest"]),
+        }
+
+    def cancel_disconnected_transfer(self, character_id: str, user_id: str, transfer_uuid: str) -> dict[str, Any]:
+        subject_uuid, _ = self._resolve_subject(character_id, user_id)
+        transfer_uuid = str(transfer_uuid or "")
+        with self._connection() as conn:
+            self._fence_writer_conn(conn, character_id, user_id, allow_transfer_uuid=transfer_uuid)
+            row = conn.execute(
+                "SELECT phase FROM continuity_transfer WHERE transfer_uuid=? AND subject_uuid=? AND role='source'",
+                (transfer_uuid, subject_uuid),
+            ).fetchone()
+            if row is None or str(row[0]) != "prepared":
+                raise WriterLeaseError("disconnected transfer is not cancelable from the source")
+            conn.execute(
+                "UPDATE continuity_transfer SET phase='canceled',updated_at=? WHERE transfer_uuid=? AND role='source'",
+                (time.time(), transfer_uuid),
+            )
+        return self.writer_status(character_id, user_id)
+
+    def finalize_disconnected_transfer(
+        self,
+        character_id: str,
+        user_id: str,
+        stage_receipt: dict[str, Any],
+        *,
+        local_state_digest: str,
+    ) -> dict[str, Any]:
+        if str(stage_receipt.get("schema_version")) != DISCONNECTED_TRANSFER_STAGE_RECEIPT_VERSION:
+            raise WriterLeaseError("unsupported disconnected transfer stage receipt")
+        transfer_uuid = str(stage_receipt.get("transfer_uuid") or "")
+        subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        now = time.time()
+        with self._connection() as conn:
+            _, generation = self._fence_writer_conn(
+                conn, character_id, user_id, allow_transfer_uuid=transfer_uuid
+            )
+            audit = conn.execute(
+                "SELECT target_host_id,source_generation,target_generation,continuity_epoch,subject_sequence_anchor,state_digest,content_digest,bundle_digest,migration_chain,created_at,phase "
+                "FROM continuity_transfer WHERE transfer_uuid=? AND subject_uuid=? AND role='source'",
+                (transfer_uuid, subject_uuid),
+            ).fetchone()
+            if audit is None or str(audit[10]) != "prepared":
+                raise WriterLeaseError("source transfer is not in prepared state")
+            target_host = str(audit[0])
+            source_generation, target_generation = int(audit[1]), int(audit[2])
+            if generation != source_generation or int(audit[3]) != epoch:
+                raise WriterLeaseError("source transfer generation or epoch changed")
+            checks = {
+                "transfer_uuid": transfer_uuid,
+                "subject_uuid": subject_uuid,
+                "character_id": str(character_id),
+                "user_id": str(user_id),
+                "source_host_id": self.host_id,
+                "target_host_id": target_host,
+                "source_generation": source_generation,
+                "target_generation": target_generation,
+                "continuity_epoch": epoch,
+                "subject_sequence_anchor": int(audit[4]),
+                "state_digest": str(audit[5]),
+                "content_digest": str(audit[6]),
+                "bundle_digest": str(audit[7]),
+            }
+            for key, expected in checks.items():
+                actual = stage_receipt.get(key)
+                if str(actual) != str(expected):
+                    raise WriterLeaseError(f"stage receipt mismatch for {key}")
+            if str(local_state_digest or "") != str(audit[5]):
+                raise WriterLeaseError("source state digest changed after transfer preparation")
+            current_content = self._subject_transfer_content_conn(conn, subject_uuid, epoch)
+            if self._transfer_content_digest(current_content) != str(audit[6]):
+                raise WriterLeaseError("source content changed after transfer preparation")
+            cur = conn.execute(
+                "UPDATE continuity_writer SET active_host_id=?,writer_generation=?,updated_at=? "
+                "WHERE subject_uuid=? AND active_host_id=? AND writer_generation=?",
+                (target_host, target_generation, now, subject_uuid, self.host_id, source_generation),
+            )
+            if int(cur.rowcount or 0) != 1:
+                raise WriterLeaseError("disconnected transfer lost the source fencing race")
+            conn.execute(
+                "UPDATE continuity_transfer SET phase='finalized',updated_at=? WHERE transfer_uuid=? AND role='source'",
+                (now, transfer_uuid),
+            )
+            migration_chain = json.loads(audit[8]) if audit[8] else []
+            created_at = float(audit[9])
+        return {
+            **checks,
+            "schema_version": DISCONNECTED_TRANSFER_FINAL_RECEIPT_VERSION,
+            "created_at": created_at,
+            "finalized_at": now,
+            "migration_chain": migration_chain if isinstance(migration_chain, list) else [],
+        }
+
+    def activate_disconnected_transfer(
+        self,
+        character_id: str,
+        user_id: str,
+        final_receipt: dict[str, Any],
+        *,
+        local_state_digest: str,
+    ) -> dict[str, Any]:
+        if str(final_receipt.get("schema_version")) != DISCONNECTED_TRANSFER_FINAL_RECEIPT_VERSION:
+            raise WriterLeaseError("unsupported disconnected transfer final receipt")
+        transfer_uuid = str(final_receipt.get("transfer_uuid") or "")
+        subject_uuid, epoch = self._resolve_subject(character_id, user_id)
+        if str(final_receipt.get("subject_uuid")) != subject_uuid:
+            raise WriterLeaseError("disconnected transfer subject UUID mismatch")
+        if str(final_receipt.get("target_host_id")) != self.host_id:
+            raise WriterLeaseError("disconnected transfer final receipt targets a different host")
+        if str(final_receipt.get("character_id")) != str(character_id) or str(final_receipt.get("user_id")) != str(user_id):
+            raise WriterLeaseError("disconnected transfer primary stream mismatch")
+        now = time.time()
+        with self._connection() as conn:
+            if not conn.in_transaction:
+                conn.execute("BEGIN IMMEDIATE")
+            audit = conn.execute(
+                "SELECT source_host_id,source_generation,target_generation,continuity_epoch,subject_sequence_anchor,state_digest,content_digest,bundle_digest,migration_chain,created_at,phase "
+                "FROM continuity_transfer WHERE transfer_uuid=? AND subject_uuid=? AND role='target'",
+                (transfer_uuid, subject_uuid),
+            ).fetchone()
+            if audit is None or str(audit[10]) != "staged":
+                raise WriterLeaseError("target transfer is not staged")
+            checks = {
+                "source_host_id": str(audit[0]),
+                "source_generation": int(audit[1]),
+                "target_generation": int(audit[2]),
+                "continuity_epoch": int(audit[3]),
+                "subject_sequence_anchor": int(audit[4]),
+                "state_digest": str(audit[5]),
+                "content_digest": str(audit[6]),
+                "bundle_digest": str(audit[7]),
+            }
+            for key, expected in checks.items():
+                if str(final_receipt.get(key)) != str(expected):
+                    raise WriterLeaseError(f"final receipt mismatch for {key}")
+            if int(audit[3]) != epoch:
+                raise WriterLeaseError("target continuity epoch mismatch")
+            if str(local_state_digest or "") != str(audit[5]):
+                raise WriterLeaseError("target state does not match disconnected transfer boundary")
+            current_content = self._subject_transfer_content_conn(conn, subject_uuid, epoch)
+            if self._transfer_content_digest(current_content) != str(audit[6]):
+                raise WriterLeaseError("staged target content changed before activation")
+            writer = conn.execute(
+                "SELECT active_host_id,writer_generation FROM continuity_writer WHERE subject_uuid=?",
+                (subject_uuid,),
+            ).fetchone()
+            if writer is None or str(writer[0]) != str(audit[0]) or int(writer[1]) != int(audit[1]):
+                raise WriterLeaseError("staged target writer fence no longer matches source generation")
+            cur = conn.execute(
+                "UPDATE continuity_writer SET active_host_id=?,writer_generation=?,updated_at=? "
+                "WHERE subject_uuid=? AND active_host_id=? AND writer_generation=?",
+                (self.host_id, int(audit[2]), now, subject_uuid, str(audit[0]), int(audit[1])),
+            )
+            if int(cur.rowcount or 0) != 1:
+                raise WriterLeaseError("target activation lost the writer fencing race")
+            prior_chain = json.loads(audit[8]) if audit[8] else []
+            if not isinstance(prior_chain, list):
+                prior_chain = []
+            descriptor = {
+                "transfer_uuid": transfer_uuid,
+                "source_host_id": str(audit[0]),
+                "target_host_id": self.host_id,
+                "source_generation": int(audit[1]),
+                "target_generation": int(audit[2]),
+                "continuity_epoch": epoch,
+                "subject_sequence_anchor": int(audit[4]),
+                "bundle_digest": str(audit[7]),
+                "state_digest": str(audit[5]),
+                "created_at": float(audit[9]),
+                "activated_at": now,
+            }
+            migration_chain = prior_chain + [descriptor]
+            conn.execute(
+                "UPDATE continuity_transfer SET phase='activated',migration_chain=?,updated_at=? "
+                "WHERE transfer_uuid=? AND role='target'",
+                (json.dumps(migration_chain, ensure_ascii=False), now, transfer_uuid),
+            )
+        self._writer_claims[subject_uuid] = int(final_receipt["target_generation"])
+        return self.writer_status(character_id, user_id)
 
     # ---------------- state snapshots ----------------
     def save(self, character_id: str, user_id: str, key: str, value):

@@ -6,7 +6,7 @@ from .core.engine import InteriorEngine
 from .core.symbols import SharedSymbol
 from .core.audio_sensor import AudioObservation
 from .core.vision_sensor import VisionObservation
-from .core.persistence import DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
+from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 import time
 
 
@@ -24,6 +24,35 @@ class CharacterAgent:
 
     def accept_writer_handoff(self, receipt: dict) -> dict:
         return self.engine.accept_writer_handoff(receipt)
+
+    def prepare_disconnected_transfer(self, target_host_id: str) -> dict:
+        return self.engine.prepare_disconnected_transfer(target_host_id)
+
+    @classmethod
+    def stage_disconnected_transfer(
+        cls,
+        bundle: dict,
+        *,
+        db_path: str,
+        host_id: str,
+        diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT,
+    ) -> dict:
+        """Stage a whole-subject bundle before constructing the target agent."""
+        persistence = Persistence(
+            db_path,
+            diagnostic_event_limit=diagnostic_event_limit,
+            host_id=host_id,
+        )
+        return persistence.stage_disconnected_transfer(bundle)
+
+    def cancel_disconnected_transfer(self, transfer_uuid: str) -> dict:
+        return self.engine.cancel_disconnected_transfer(transfer_uuid)
+
+    def finalize_disconnected_transfer(self, stage_receipt: dict) -> dict:
+        return self.engine.finalize_disconnected_transfer(stage_receipt)
+
+    def activate_disconnected_transfer(self, final_receipt: dict) -> dict:
+        return self.engine.activate_disconnected_transfer(final_receipt)
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
         with self.engine.state_transaction():

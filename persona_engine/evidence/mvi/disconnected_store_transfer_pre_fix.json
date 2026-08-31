@@ -1,0 +1,11 @@
+{
+  "alice_export_contains_bob_events": false,
+  "alice_export_contains_subject_sequence": false,
+  "diagnosis": "independent_writers_and_incomplete_subject_transfer",
+  "probe": "disconnected-store-transfer-gap-v1",
+  "same_subject_uuid": true,
+  "source_generation": 1,
+  "source_writable": true,
+  "target_generation": 1,
+  "target_writable": true
+}

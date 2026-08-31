@@ -49,7 +49,13 @@ Research use: useful example of the difference between persistence and causal ef
   - pre-fix dual-writer falsification and post-fix shared-store `writer-handoff-v1` evidence;
   - covers host identity, writer generation, stale-writer failure, exact state-digest handoff, subject UUID/order, commitment, relationship scope, clock, and earned-state preservation.
 
-Research limitation: this is one shared canonical SQLite authority store. Disconnected copies, explicit branching, and reconciliation remain open and must not be claimed solved.
+Research limitation: `writer-handoff-v1` covers one shared canonical SQLite authority store. The later `disconnected-transfer-v1` evidence covers a cooperative target-specific move between separate authority stores, but explicit branching, hostile duplicate activation, remote consensus, and reconciliation remain open.
+
+- `persona_engine/evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`
+  - pre-fix evidence that two separate stores could independently consider the same UUID writable and that the old per-interlocutor export was not a whole-subject migration package;
+  - post-fix evidence for staged target validation, source-wide quiescence, irreversible source-store retirement, generation continuity, cross-interlocutor state transfer, pending developmental evidence transfer, and target activation.
+
+Research use: supports a narrow same-individual-move claim under the cooperative host-id and supported-API threat model. It does not prove uniqueness against malicious database copying or target-host impersonation.
 
 ## Resource-bounded execution
 

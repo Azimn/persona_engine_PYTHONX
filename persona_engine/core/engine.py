@@ -226,6 +226,48 @@ class InteriorEngine:
         )
 
     @_serialized_state_access
+    def prepare_disconnected_transfer(self, target_host_id: str) -> dict[str, Any]:
+        """Persist one clean whole-subject boundary, package it, and quiesce this store."""
+        self._require_writer()
+        self._persist()
+        digest = continuity_state_digest(self._serialize_state())
+        return self.persistence.prepare_disconnected_transfer(
+            self.identity.name,
+            self.user_id,
+            target_host_id,
+            local_state_digest=digest,
+        )
+
+    @_serialized_state_access
+    def cancel_disconnected_transfer(self, transfer_uuid: str) -> dict[str, Any]:
+        """Cancel a prepared move before source finalization and restore source writes."""
+        return self.persistence.cancel_disconnected_transfer(
+            self.identity.name, self.user_id, transfer_uuid
+        )
+
+    @_serialized_state_access
+    def finalize_disconnected_transfer(self, stage_receipt: dict[str, Any]) -> dict[str, Any]:
+        """Retire this source store only after a target has staged the exact bundle."""
+        digest = continuity_state_digest(self._serialize_state())
+        return self.persistence.finalize_disconnected_transfer(
+            self.identity.name,
+            self.user_id,
+            stage_receipt,
+            local_state_digest=digest,
+        )
+
+    @_serialized_state_access
+    def activate_disconnected_transfer(self, final_receipt: dict[str, Any]) -> dict[str, Any]:
+        """Activate a staged target only after the source has irreversibly retired."""
+        digest = continuity_state_digest(self._serialize_state())
+        return self.persistence.activate_disconnected_transfer(
+            self.identity.name,
+            self.user_id,
+            final_receipt,
+            local_state_digest=digest,
+        )
+
+    @_serialized_state_access
     def set_renderer(self, renderer) -> None:
         """Replace only the surface renderer through an approved host channel."""
 

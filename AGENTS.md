@@ -20,6 +20,10 @@ When working on the `wayfarer` branch, read these files before making changes, i
 
 At the end of a substantive Wayfarer phase, synchronize this `AGENTS.md` status/verification section whenever a new agent could otherwise anchor on obsolete test counts, completed gaps, experimental numbers, or superseded next actions.
 
+### Research capture discipline
+
+Wayfarer may later support a thesis or publication. When substantive work produces a potentially research-relevant result, negative result, quantitative measurement, methodological limitation, falsified assumption, or change to a claim that could matter academically, update the appropriate material under `research/` in the same phase. Prefer the research evidence index or a dated evidence summary, and link to authoritative engineering evidence instead of duplicating it as a second implementation contract. Builder-designed tests remain internal engineering evidence unless a genuinely independent evaluation protocol says otherwise. Research files may interpret evidence but never override code, tests, `CURRENT_STATUS.md`, or `persona_engine/evidence/`.
+
 For non-Wayfarer work, also read:
 
 1. `README.md`
@@ -186,7 +190,8 @@ Do not evict a currently pinned non-`USER_TOLD` memory family merely because USE
 8. Run the most relevant tests before finishing.
 9. Update `WAYFARER_PROGRESS.md` and the master plan/status documentation as appropriate.
 10. Synchronize this `AGENTS.md` current-status/verification block when substantive work changes what a fresh agent should assume.
-11. Clearly report commands run, results, files changed, migrations, and unresolved risks.
+11. Capture thesis-relevant findings, negative results, measurements, and methodological limitations under `research/` while linking back to authoritative engineering evidence.
+12. Clearly report commands run, results, files changed, migrations, and unresolved risks.
 
 Prefer one tested phase commit for implementation/evidence/documentation when practical. If GitHub Actions must be used as a write/test bridge, avoid long `Stage` / `Trigger` / `Retrigger` commit chains. Prefer a one-shot self-triggering temporary workflow or another mechanism that leaves one meaningful phase commit after cleanup. Failed tooling attempts are not architecture and should not become the main project narrative.
 
@@ -214,7 +219,7 @@ python -m pytest persona_engine/tests -q
 
 The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELINE.md`; do not replace it with later green results.
 
-**Current production inventory after `writer-handoff-v1`: `340 passed, 1 skipped, 1 warning` on Python 3.11.** The targeted custody/continuity set is `32 passed`; the permanent shared-store handoff probe passes. The optimized writer fence uses a SQLite `BEGIN IMMEDIATE` write reservation before host/generation validation and avoids a semantically unused per-mutation writer-row heartbeat. The full deterministic suite completed in `31.68s` in the verification run. The sole warning remains the existing Starlette/httpx TestClient deprecation.
+**Current production inventory after `disconnected-transfer-v1`: `346 passed, 1 skipped, 1 warning in 31.81s` on Python 3.11.** The targeted migration/continuity set completed as `38 passed in 2.78s` and the permanent disconnected-store transfer probe passed. Shared-store `writer-handoff-v1` remains intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
 
 Historical phase-local totals remain useful evidence, but they are not the current inventory. Before quoting a test count or head, prefer this block plus the newest normal Wayfarer CI run and relevant evidence file.
 
@@ -228,7 +233,8 @@ Historical phase-local totals remain useful evidence, but they are not the curre
 - Active-conflict-only USER_TOLD projection: preserves all six tested semantic/experience scenarios.
 - Deterministic tight-budget recall: recovered value remains visible after generic recall-command scaffolding is stripped at expression time.
 - `OBSERVED` and `REFLECTION`: demonstrated resident until first-person reconstruction exists; their ablations lose retrievable experience. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families.
-- Cross-host shared-store custody: implemented with host + writer-generation fencing; disconnected-store transfer/branch reconciliation remains deferred.
+- Cross-host shared-store custody: implemented with host + writer-generation fencing.
+- Disconnected authority-store move: implemented for cooperative target-specific staged transfer with source quiescence, permanent source retirement, target activation, whole-subject ordering/state, and pending-evidence preservation. Explicit branch/reconciliation semantics remain open.
 - Full typed social-influence authority: intentionally deferred.
 
 Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.
@@ -239,7 +245,7 @@ Do not anchor on older test totals, old unresolved-gap language, historical expe
 - `receive_input()` and `advance_time()` must not interleave partial subject state.
 - Renderer replacement, sensory/world mutation, commitment adoption, consolidation, and turn processing use the same local boundary.
 - `CharacterAgent.stream_last_response()` must stream the exact validated response from the one committed turn and must not invoke a second renderer generation.
-- The local reentrant lock remains a process-local serialization layer. Shared-store cross-host custody is a separate durable host + writer-generation fence. Neither contract covers disconnected authority-store copies or branch reconciliation.
+- The local reentrant lock remains a process-local serialization layer. Shared-store cross-host custody is a separate durable host + writer-generation fence. `disconnected-transfer-v1` covers deliberate cooperative moves between separate authority stores; arbitrary copied stores and branch reconciliation remain outside these contracts.
 - At that historical local-serialization checkpoint, the deterministic inventory was `333 passed, 1 skipped, 1 warning`; normal Wayfarer CI run `33347953873` passed on both Python 3.11 and Python 3.12. This is phase-local history, not the current inventory.
 
 
@@ -262,4 +268,4 @@ Do not anchor on older test totals, old unresolved-gap language, historical expe
 - Handoff has no timeout or automatic steal path in v1. Fail closed rather than guess custody.
 - Administrative handoff records are not lived biography and must not be inserted into `continuity_event` unless a future host/environment event is separately demonstrated as subject experience.
 - Do not use existing `continuity_epoch` as a writer fencing token. Writer generation is a separate custody concept.
-- Do not claim disconnected database copies are protected by the shared-store lease. Divergent copies remain branch/descendant candidates until a later transfer/reconciliation contract exists.
+- Do not claim arbitrary disconnected database copies are protected by the shared-store lease. Supported deliberate moves use `disconnected-transfer-v1`; divergent or unauthorized copies remain branch/descendant candidates until explicit branch/reconciliation semantics exist.

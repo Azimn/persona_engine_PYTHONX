@@ -8,19 +8,19 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 ## Current production checkpoint
 
-Current production contract: **`writer-handoff-v1` shared-store custody plus `semantic-residency-v1` memory residency.**
+Current production contract: **`writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, plus `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
 ```text
-Targeted custody/continuity set: 32 passed
-Permanent shared-store handoff probe: passed
-Full deterministic suite: 340 passed, 1 skipped, 1 warning in 31.68s
+Targeted migration/continuity set: 38 passed in 2.78s
+Permanent disconnected-store transfer probe: passed
+Full deterministic suite: 346 passed, 1 skipped, 1 warning in 31.81s
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-The authoritative evidence for this phase is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
+The authoritative custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; the disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
 ## Project definition
 
@@ -132,7 +132,7 @@ Developmental persistence was also re-measured with the new consolidation contra
 
 ## Other known limitations
 
-Replay does not yet cover every future authoritative host/world/action family. Shared-store cross-host single-writer custody and explicit handoff are now implemented as `writer-handoff-v1`; disconnected-store transfer/branch reconciliation remains future work. Social influence/collaboration authority is not yet fully typed. The default zero-model renderer remains linguistically limited. There is no production microphone, camera, TTS, avatar engine, or mobile-native host. Offscreen life remains limited compared with the planned event-based autonomy layer. The minimum viable individual has not yet been established through the complete ablation program.
+Replay does not yet cover every future authoritative host/world/action family. Shared-store cross-host single-writer custody is implemented as `writer-handoff-v1`. Cooperative target-specific disconnected authority-store moves are implemented as `disconnected-transfer-v1`; explicit branching, hostile duplicate activation, distributed consensus, and reconciliation remain future work. Social influence/collaboration authority is not yet fully typed. The default zero-model renderer remains linguistically limited. There is no production microphone, camera, TTS, avatar engine, or mobile-native host. Offscreen life remains limited compared with the planned event-based autonomy layer. The minimum viable individual has not yet been established through the complete ablation program.
 
 ## Standing design decisions
 
@@ -142,7 +142,7 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Preserve the shared-store `writer-handoff-v1` fence. Any next cross-host phase must falsify disconnected-store transfer/branch behavior rather than weaken the working shared-store contract.
+1. Preserve both writer-custody contracts. The next M5 continuity target is an explicit branch operation and branch identity semantics, not another implicit copy path.
 2. Do not resume memory-count optimization without a new demonstrated failure. `semantic-residency-v1` and the 5,000-turn active-state plateau are the current memory result.
 3. Full typed social-influence authority and richer offscreen autonomy remain unresolved longitudinal candidates; choose the next one by writing its falsification criterion first.
 4. Treat duplicated current-status prose as a repository-governance risk. The current manual synchronization process has produced stale contradictory checkpoints and should be replaced by a machine-verifiable status source plus CI consistency checks in a separate governance phase.
