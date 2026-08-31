@@ -166,3 +166,20 @@ Before modifying Wayfarer behavior, read in this order:
 9. relevant tests and evidence
 
 Repository documentation is part of the implementation contract. If documentation and code disagree, establish live behavior through code, history, tests, and evidence, then update documentation in the same work pass.
+
+## Semantic memory recoverability status
+
+**EVIDENCE COMPLETE; production global hot-memory policy remains EXPERIMENTAL.** No universal resident-memory capacity was selected and no production retention behavior changed in this phase.
+
+`semantic-memory-recoverability-v1` compared current production against four experimental USER_TOLD projections across six histories: unresolved conflict with unrelated distractors, unresolved conflict with lexical distractors, repaired history, reopened conflict with unrelated distractors, reopened conflict with lexical distractors, and neutral history with lexical distractors. Every variant was restarted before evaluation. The probe separately checked current conduct, old and recent contextual recall, negative-recall fail-closed behavior, commitment/identity authority, and reopened-conflict provenance.
+
+Projection results (core passes / 6): production `0/6`; recoverable-cold-only `0/6`; active-conflict-only `0/6`; recent-context-only `0/6`; active-conflict-plus-recent `0/6`.
+
+Production passed all scenarios: `False`. Active-conflict-only passed all scenarios: `False`. Recent-only preserved every active-conflict conduct case: `False`. Cold-only preserved every active-conflict conduct case: `False`. All projections preserved the tested recoverable-context contract: `False`.
+
+Interpret these results by semantic role, not count. Canonical biography can reconstruct the tested old/recent USER_TOLD wording without automatically rehydrating it into resident state. The discriminating resident role in this experiment is current unresolved relationship evidence needed by conduct/reflection consumers. A passing projection is not evidence that all other memory families or future behaviors can be evicted.
+
+Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json`.
+
+**Next memory-policy target:** use the observed failure matrix, if any, to isolate the smallest missing semantic/recoverability contract. If no production failure appears, expand consumer-role coverage beyond USER_TOLD before changing retention policy. Non-USER_TOLD families remain pinned until reconstruction is demonstrated.
+
