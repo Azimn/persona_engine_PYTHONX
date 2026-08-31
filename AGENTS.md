@@ -225,7 +225,7 @@ Durable documentation sync for this phase:
 
 - `eb0bba740635a997b662676237ef59b7c201516a` (`Record semantic memory role phase results`)
 
-Current expected deterministic test inventory is therefore **331 passed, 1 skipped, 1 warning** on Python 3.11. The final `AGENTS.md` synchronization commit should be verified by the normal Python 3.11/3.12 Wayfarer CI matrix; always check GitHub Actions for any newer head before quoting a result.
+Current expected deterministic test inventory after the local state-safety hardening is therefore **333 passed, 1 skipped, 1 warning** on Python 3.11. Hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad` passed normal Wayfarer CI run `33347953873` on both Python 3.11 and Python 3.12. This verification note is documentation over the same runtime/test code; always check GitHub Actions for any newer head before quoting a result.
 
 ## Current evidence checkpoint
 
@@ -241,3 +241,12 @@ Current expected deterministic test inventory is therefore **331 passed, 1 skipp
 - Full typed social-influence authority: intentionally deferred.
 
 Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.
+
+## Local state-serialization checkpoint
+
+- Public mutable engine entry points share one reentrant local single-writer boundary.
+- `receive_input()` and `advance_time()` must not interleave partial subject state.
+- Renderer replacement, sensory/world mutation, commitment adoption, consolidation, and turn processing use the same local boundary.
+- `CharacterAgent.stream_last_response()` must stream the exact validated response from the one committed turn and must not invoke a second renderer generation.
+- This local lock is not the deferred cross-host writer lease/handoff mechanism and must not be described as solving M8 migration ownership.
+- Two new deterministic regressions raise the expected Python 3.11 inventory to `333 passed, 1 skipped, 1 warning`; normal Wayfarer CI run `33347953873` passed on both Python 3.11 and Python 3.12.

@@ -345,3 +345,14 @@ Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `s
 
 **Next memory-policy target:** expand reconstruction evidence to currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency by demonstrated semantic consumer role plus a tested reconstruction contract. Do not select a global `N` from the 1/2/4/8 or projection experiments.
 
+
+
+## Runtime state transaction and causal streaming hardening
+
+**IMPLEMENTED AND REGRESSION-TESTED.** Mutable public engine entry points now share one reentrant single-writer boundary. A complete turn cannot overlap background or explicit time advancement, renderer replacement, sensory/world mutation, commitment adoption, slow consolidation, or another guarded host mutation. Read projections used during a turn share the same boundary so they cannot expose a partial subject state.
+
+`CharacterAgent.stream_last_response()` no longer performs a second renderer generation after the canonical turn has already committed. It chunks the exact validated response stored as speech evidence by that same turn. The existing FastAPI SSE endpoint already followed this causal pattern and required no behavior change.
+
+Legacy `CharacterAgent.add_pressure()` and `add_symbol()` now use the explicit compound `state_transaction()` seam so their direct state edit plus persistence is atomic with respect to other host calls. This is local single-writer serialization only. It does not introduce the intentionally deferred cross-host lease/handoff system.
+
+Verification for this hardening phase: targeted engine regressions and the full Python 3.11 deterministic suite passed in one-shot run `33347858914`. Normal Wayfarer CI run `33347953873` then passed on the clean hardened code head for both Python 3.11 and Python 3.12. The expected deterministic inventory is `333 passed, 1 skipped, 1 warning`.

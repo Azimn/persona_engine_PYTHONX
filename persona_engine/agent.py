@@ -17,13 +17,15 @@ class CharacterAgent:
         self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path, diagnostic_event_limit=diagnostic_event_limit)
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
-        self.engine.pressures.add(EmotionalPressure(name, magnitude, inhibition_strength, trigger_sensitivity))
-        self.engine._persist()
+        with self.engine.state_transaction():
+            self.engine.pressures.add(EmotionalPressure(name, magnitude, inhibition_strength, trigger_sensitivity))
+            self.engine._persist()
 
     def add_symbol(self, name: str, meaning: str, emotional_charge: float = 0.5, stability: float = 0.5):
-        now = time.time()
-        self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
-        self.engine._persist()
+        with self.engine.state_transaction():
+            now = time.time()
+            self.engine.symbols.add(SharedSymbol(name, meaning, now, emotional_charge, now, stability))
+            self.engine._persist()
 
     def adopt_commitment(self, commitment_kind: str, commitment_target: str, *, record_event: bool = True) -> dict:
         """Adopt explicit semantic commitment state through character authority.
@@ -59,16 +61,19 @@ class CharacterAgent:
         return self.engine.poll_proactive_events()
 
     def stream_last_response(self, text: str):
-        """Convenience API for UIs that want timed chunk output.
+        """Chunk the exact finalized response from one canonical turn.
 
-        This builds a normal turn first so all deterministic state transitions
-        occur, then streams a renderer response using the resulting envelope.
-        For full production use, call InteriorEngine directly so you can stream
-        the exact same prompt before post-writeback.
+        The legacy implementation rendered a second time after state writeback,
+        so streamed wording could differ from the speech evidence that actually
+        caused the turn consequences. This helper now performs one normal turn
+        and streams only that validated final text. It never re-enters the
+        renderer after the turn commits.
         """
         result = self.engine.receive_input(text)
-        for chunk in self.engine.renderer.generate_stream([{"role": "user", "content": text}], max_chars=len(result["response"]) + 8):
-            yield chunk
+        response = result["response"]
+        chunk_chars = 32
+        for start in range(0, len(response), chunk_chars):
+            yield response[start:start + chunk_chars]
 
 
     def observe_audio(self, observation: AudioObservation | dict) -> dict:

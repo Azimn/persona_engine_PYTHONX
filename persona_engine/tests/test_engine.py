@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+import threading
 import time
 
 from persona_engine.agent import CharacterAgent
@@ -123,3 +124,73 @@ def test_streaming_fallback_yields_chunks():
         chunks = list(agent.engine.renderer.generate_stream([{"role": "user", "content": "Hello."}], max_chars=80))
         assert chunks
         assert "".join(chunks)
+
+
+def test_stream_last_response_reuses_exact_committed_response_without_rerender():
+    with tempfile.TemporaryDirectory() as d:
+        agent = make_agent(os.path.join(d, "state.db"))
+
+        def forbidden_second_render(*args, **kwargs):
+            raise AssertionError("stream_last_response must not invoke renderer.generate_stream")
+
+        agent.engine.renderer.generate_stream = forbidden_second_render
+        streamed = "".join(agent.stream_last_response("Hello."))
+        speech_rows = agent.engine.persistence.load_events_since(
+            agent.engine.identity.name,
+            agent.engine.user_id,
+            since=0,
+            event_type="speech",
+        )
+        input_rows = agent.engine.persistence.load_events_since(
+            agent.engine.identity.name,
+            agent.engine.user_id,
+            since=0,
+            event_type="input",
+        )
+        assert len(input_rows) == 1
+        assert len(speech_rows) == 1
+        assert streamed == speech_rows[0]["payload"]["response"]
+
+
+def test_state_transaction_serializes_turn_and_time_mutations():
+    with tempfile.TemporaryDirectory() as d:
+        agent = make_agent(os.path.join(d, "state.db"))
+        turn_started = threading.Event()
+        time_started = threading.Event()
+        turn_done = threading.Event()
+        time_done = threading.Event()
+        errors = []
+
+        def run_turn():
+            turn_started.set()
+            try:
+                agent.say("Hello.")
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                turn_done.set()
+
+        def run_time():
+            time_started.set()
+            try:
+                agent.advance_time(5.0, source="concurrency_test")
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                time_done.set()
+
+        turn_thread = threading.Thread(target=run_turn)
+        time_thread = threading.Thread(target=run_time)
+        with agent.engine.state_transaction():
+            turn_thread.start()
+            time_thread.start()
+            assert turn_started.wait(1.0)
+            assert time_started.wait(1.0)
+            assert not turn_done.wait(0.05)
+            assert not time_done.wait(0.05)
+
+        assert turn_done.wait(3.0)
+        assert time_done.wait(3.0)
+        turn_thread.join(timeout=1.0)
+        time_thread.join(timeout=1.0)
+        assert not errors

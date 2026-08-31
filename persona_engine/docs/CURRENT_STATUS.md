@@ -194,3 +194,12 @@ Evidence: `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `s
 
 **Next memory-policy target:** expand reconstruction evidence to currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency by demonstrated semantic consumer role plus a tested reconstruction contract. Do not select a global `N` from the 1/2/4/8 or projection experiments.
 
+
+
+## Runtime transaction and streaming integrity
+
+The local runtime now enforces a reentrant single-writer boundary around public access paths that can mutate or expose the continuing subject during a turn. This closes the race between `receive_input()` and background/explicit `advance_time()` without changing the intentionally deferred cross-host ownership model. Compound legacy pressure/symbol helpers participate in the same boundary.
+
+The public streaming convenience path is also causal: `stream_last_response()` executes one turn and emits chunks from that turn's already validated final response. It does not ask the renderer for a second, potentially divergent utterance after canonical writeback. The FastAPI SSE path already streamed the committed result and remains unchanged.
+
+Two deterministic regressions cover exact streamed-response identity and blocking of concurrent turn/time mutations. With those additions the expected Python 3.11 deterministic inventory is `333 passed, 1 skipped, 1 warning`. One-shot run `33347858914` passed the targeted regressions and full Python 3.11 suite; normal Wayfarer CI run `33347953873` passed both Python 3.11 and Python 3.12 on hardened code head `8ae965baddaacfefa55112b5ee81778b1db962ad`.

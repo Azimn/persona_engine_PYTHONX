@@ -1033,3 +1033,10 @@ This does **not** establish a global memory capacity. USER_TOLD autobiography ha
 The deterministic renderer separately learned to remove generic recall-command scaffolding from a memory excerpt so a tight output budget preserves the recovered fact. This is an expression-boundary correction only and does not alter memory authority or retention.
 
 Phase commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7`. Evidence: `evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md`.
+
+
+## Validated runtime hardening, 2026-08-30
+
+The local reference runtime now serializes public subject-state access through one reentrant single-writer boundary. This is a concurrency correctness refinement, not the deferred M8 cross-host lease/handoff design. It prevents local background time advancement, renderer reconfiguration, sensor/world writes, consolidation, and turn processing from interleaving partial in-memory subject state.
+
+The legacy `CharacterAgent.stream_last_response()` convenience path also now preserves the causal turn boundary by chunking the exact validated response produced and committed by one turn instead of generating a second utterance after writeback.

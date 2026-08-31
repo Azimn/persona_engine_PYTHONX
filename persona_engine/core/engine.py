@@ -9,6 +9,8 @@ workspace frame -> renderer -> validator -> canonical writeback -> event-log per
 import json
 import time
 import threading
+from contextlib import contextmanager
+from functools import wraps
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -78,6 +80,24 @@ def _suppression_trace(gate: str, action: str, reason: str, severity: str = "inf
     return SuppressionTrace(gate=gate, action=action, reason=reason, severity=severity)
 
 
+def _serialized_state_access(method):
+    """Serialize one public access path to the mutable continuing subject.
+
+    The engine remains single-writer in this local runtime. A reentrant lock is
+    required because a complete turn calls other public projections and plans
+    before returning. The lock prevents background time advancement, renderer
+    reconfiguration, or another host call from observing or mutating a partial
+    turn.
+    """
+
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        with self._state_lock:
+            return method(self, *args, **kwargs)
+
+    return wrapped
+
+
 # Compatibility budget for pre-M4 per-five-second dynamics. Full elapsed subject
 # time is never truncated. These 1,000 seconds only bound legacy body/pressure
 # integration until those rates are empirically calibrated against real duration.
@@ -104,6 +124,7 @@ class ReflectionCandidate:
 
 class InteriorEngine:
     def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT):
+        self._state_lock = threading.RLock()
         self.cartridge_data = None
         self.belief_rules = []
         if cartridge_path is not None:
@@ -165,17 +186,32 @@ class InteriorEngine:
         self._restore_subject_owned_clock()
         self._restore_subject_owned_commitments()
 
+    @contextmanager
+    def state_transaction(self):
+        """Hold the engine single-writer boundary for a compound host mutation.
+
+        CharacterAgent uses this only for legacy compound helpers that directly
+        touch a state family before persistence. Normal engine entry points apply
+        the same reentrant lock automatically.
+        """
+
+        with self._state_lock:
+            yield
+
+    @_serialized_state_access
     def set_renderer(self, renderer) -> None:
         """Replace only the surface renderer through an approved host channel."""
 
         self.renderer = renderer
 
+    @_serialized_state_access
     def renderer_status(self) -> dict:
         status = getattr(self.renderer, "runtime_status", None)
         if callable(status):
             return status()
         return {"requested_provider": "custom", "actual_provider": "custom", "model_name": type(self.renderer).__name__}
 
+    @_serialized_state_access
     def adopt_commitment(self, commitment_kind: str, commitment_target: str, *, record_event: bool = True, persist: bool = True) -> dict:
         """Explicitly adopt one typed character-owned commitment.
 
@@ -452,6 +488,7 @@ class InteriorEngine:
         advance = self.clock.observe_wall(time.time(), source="wall_clock_catchup")
         self._apply_clock_advance(advance, record_event=True, persist=False)
 
+    @_serialized_state_access
     def advance_time(self, elapsed_seconds: float, *, source: str = "explicit", record_event: bool = True, persist: bool = True) -> dict:
         """Advance linear subject time and apply only explicitly bounded dynamics.
 
@@ -579,16 +616,19 @@ class InteriorEngine:
 
 
     # ---------------- public interface projection ----------------
+    @_serialized_state_access
     def public_status(self, affect_bucket: str | None = None, dominant_pressure: str | None = None) -> dict[str, str]:
         """Return categorical public organism status for UI renderers."""
 
         return public_status_from_engine(self, affect_bucket=affect_bucket, dominant_pressure=dominant_pressure).to_dict()
 
+    @_serialized_state_access
     def debug_snapshot(self) -> dict:
         """Return private debug state for developer inspection only."""
 
         return debug_snapshot_from_engine(self)
 
+    @_serialized_state_access
     def poll_proactive_events(self, max_events: int = 3) -> list[dict]:
         """Return generic proactive event proposals without mutating state."""
 
@@ -603,6 +643,7 @@ class InteriorEngine:
         )]
 
     # ---------------- slow consolidation ----------------
+    @_serialized_state_access
     def dream(self, min_interval_seconds: int = 3600, *, record_event: bool = True) -> list[str]:
         """Run one slow-belief pass and preserve causally relevant boundaries.
 
@@ -668,10 +709,12 @@ class InteriorEngine:
         self._persist()
         return changed
 
+    @_serialized_state_access
     def export_session_snapshot(self):
         from .session import export_snapshot
         return export_snapshot(self.pressures, self.belief_ledger, self.identity.name)
 
+    @_serialized_state_access
     def import_session_snapshot(self, snap):
         from .session import import_snapshot
         import_snapshot(snap, self.pressures, self.belief_ledger, self.identity.name)
@@ -735,6 +778,7 @@ class InteriorEngine:
         }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
+    @_serialized_state_access
     def ingest_audio_observation(self, observation: AudioObservation) -> dict:
         """Route a bounded audio observation through world authority.
 
@@ -761,6 +805,7 @@ class InteriorEngine:
         self._persist()
         return {"accepted": routed.resolution.accepted, "facts": [f.to_dict() for f in routed.resolution.facts_created], "pressure_unchanged": before_pressures == {name: p.magnitude for name, p in self.pressures.pressures.items()}}
 
+    @_serialized_state_access
     def ingest_vision_observation(self, observation: VisionObservation) -> dict:
         """Route a bounded vision observation through world authority."""
         before_relationship = dict(vars(self.relationship))
@@ -781,6 +826,7 @@ class InteriorEngine:
         self._persist()
         return {"accepted": routed.resolution.accepted, "facts": [f.to_dict() for f in routed.resolution.facts_created], "relationship_unchanged": before_relationship == dict(vars(self.relationship))}
 
+    @_serialized_state_access
     def propose_world_action(self, action_type: str, payload: dict | None = None) -> dict:
         proposal = WorldActionProposal(self.identity.name, action_type, dict(payload or {}), time.time())
         resolution = self.world_authority.resolve_action(proposal)
@@ -797,6 +843,7 @@ class InteriorEngine:
         self._persist()
         return {"accepted": resolution.accepted, "reason": resolution.reason, "facts": [f.to_dict() for f in resolution.facts_created]}
 
+    @_serialized_state_access
     def plan_voice(self, text: str, envelope=None) -> dict:
         if envelope is None:
             top = self.pressures.top()
@@ -806,6 +853,7 @@ class InteriorEngine:
         self.persistence.log_event(self.identity.name, self.user_id, self.timestep, "voice_plan", {"plan": plan.to_dict(), "memory_types": ["voice_plan"]})
         return plan.to_dict()
 
+    @_serialized_state_access
     def avatar_projection(self, affect_bucket: str | None = None, dominant_pressure: str | None = None) -> dict:
         status = self.public_status(affect_bucket, dominant_pressure)
         state = self.avatar_projector.project(status)
@@ -817,6 +865,7 @@ class InteriorEngine:
         return classification.__dict__
 
     # ---------------- main turn ----------------
+    @_serialized_state_access
     def receive_input(self, user_text: str, server_truth: dict | None = None, visible_context: dict | None = None) -> dict:
         self._catch_up_idle()
         self.timestep += 1
