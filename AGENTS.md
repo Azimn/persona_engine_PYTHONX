@@ -96,17 +96,33 @@ Replay regenerates evidence from preceding causal roots, verifies the active rul
 
 Do not reopen this gap merely because older progress notes describe it as pending. See `persona_engine/evidence/mvi/DEVELOPMENTAL_CONTINUITY.md` and `DEVELOPMENTAL_CONTINUITY_FIXED.md` before modifying this contract.
 
-### Hot-memory policy
+### Hot-memory and recoverability policy
 
-The **global hot-memory admission/eviction policy remains experimental**. Do not infer or productionize a universal resident-memory limit from any one probe.
+The **global hot-memory admission/eviction capacity remains experimental**. No universal resident-memory integer `N` is approved.
 
-Current production has only a narrow recoverability-backed `USER_TOLD` working-set compactor. It preserves the widths required by demonstrated consumers while canonically recoverable old autobiography can be read transiently from cold biography. Non-`USER_TOLD` memory families remain pinned until a reconstruction contract is demonstrated. Contextual cold-biography candidates are retrieval evidence for the current turn and are not automatically promoted back into hot state.
+Current production has a narrow recoverability-backed `USER_TOLD` working-set compactor. Canonically recoverable autobiography can be read transiently from cold biography without automatically being promoted back into hot state. Other memory families remain pinned until their reconstruction contracts are demonstrated.
 
-The 2026-08-30 refresh changed the interpretation of older evidence. In the current causal-pressure fixture, the no-extra-projection production path carried 7 resident memories and passed the demonstrated causal/contextual roles. The old historical 24-item unconstrained-interference result is therefore not a measurement of current production behavior.
+The older 1/2/4/8 and historical 24-item probes remain evidence, not capacity policy. Current semantic-role evidence is more specific and supersedes any attempt to interpret those numbers as a production limit.
 
-Experimental projections remain deliberately non-normative and disagree by procedure: the refreshed role/pressure study can preserve its demonstrated roles with a 2-item projection, while the continuous-budget experiment passes 1, 2, and 4 but fails its tested 8-budget condition. This is evidence to design around **semantic consumer role and recoverability**, not to choose a global integer `N`.
+`semantic-memory-recoverability-v2` tested five USER_TOLD projections across six restarted histories: unresolved conflict with unrelated distractors, unresolved conflict with lexical distractors, repaired history, reopened conflict with unrelated distractors, reopened conflict with lexical distractors, and neutral history with lexical distractors.
 
-See `HOT_MEMORY_CAUSAL_PRESSURE.md`, `MEMORY_CONSUMER_ROLE.md`, `CONTINUOUS_HOT_MEMORY.md`, and `DEVELOPMENTAL_PERSISTENCE_COST.md` before changing admission or eviction behavior.
+Final projection results, reported as semantic core / experience / grounded retrieval / surface realization / authority / restart, each out of six:
+
+- production: `6 / 6 / 6 / 6 / 6 / 6`
+- recoverable-cold-only: `2 / 2 / 6 / 6 / 6 / 6`
+- active-conflict-only: `6 / 6 / 6 / 6 / 6 / 6`
+- recent-context-only: `2 / 2 / 6 / 6 / 6 / 6`
+- active-conflict-plus-recent: `6 / 6 / 6 / 6 / 6 / 6`
+
+The demonstrated residency rule is semantic, not numeric. **Current unresolved relationship evidence is a resident causal role for the existing reflection/conduct consumers.** Cold-only and recent-only projections preserve grounded old/recent autobiography but lose qualified-history conduct in all four active-conflict scenarios. Active-conflict-only preserves all four active-conflict conduct cases and all six overall semantic/experience scenarios.
+
+Old and recent USER_TOLD autobiographical wording is reconstructable through canonical cold biography in every tested projection. Negative recall remains fail-closed. Recovered cold facts are not automatically rehydrated into hot state. Reopened-conflict reflection provenance remains scoped to the current post-repair conflict episode. Commitment and identity authority survive every tested projection.
+
+A separate deterministic-renderer defect exposed by this phase is also fixed. Generic memory-command scaffolding such as `Please remember this neutral detail:` could consume a tight output budget and truncate the retrieved value even though retrieval was correct. `_memory_excerpt()` now strips only that generic recall-command scaffolding at realization time. Memory selection, canonical storage, authority, and retention are unchanged. `test_tight_memory_budget_preserves_recalled_value` protects this boundary.
+
+Read `persona_engine/evidence/mvi/SEMANTIC_MEMORY_RECOVERABILITY.md` and `semantic_memory_recoverability.json` before changing memory residency.
+
+**Next memory-policy target:** expand reconstruction evidence to the currently pinned non-`USER_TOLD` memory families before changing their admission/eviction behavior. Continue to decide residency from demonstrated consumer role plus a tested reconstruction contract. Do not choose a global memory count from the existing experiments.
 
 ### Intentionally deferred work
 
@@ -141,6 +157,8 @@ Do not add cryptographic machinery merely because an ordinary append-only local 
 Do not proliferate per-trait plasticity constants without an experimental validation plan. Numerical parameters must produce identifiable observable effects, survive sensitivity/holdout testing, and be versioned with their evidence.
 
 Do not impose a global hot-memory count from a single 1/2/4/8 or similar probe. A production admission/eviction rule must be justified by demonstrated consumer roles, recoverability, multiple histories/distractor structures, repair state, restart behavior, and the relevant ablations.
+
+Do not evict a currently pinned non-`USER_TOLD` memory family merely because USER_TOLD cold biography is reconstructable. Each source/family must earn its own reconstruction contract against its actual consumers.
 
 ## Where Things Belong
 
@@ -194,29 +212,32 @@ python -m pytest persona_engine/tests -q
 
 The original pre-Wayfarer baseline and its known failures are recorded in `persona_engine/docs/WAYFARER_BASELINE.md`. Do not replace that frozen baseline with later green results.
 
-Current phase/evidence head before this instruction sync:
+Current semantic-memory phase implementation/evidence:
 
-- Phase commit: `01b0a9524db37b98c4debc101f63b490a77fa9ed` (`Refresh hot-memory and developmental persistence evidence`)
-- Phase integration run: `33337114891`
-- Python 3.11 integration suite: `330 passed, 1 skipped, 1 warning in 43.39s`
+- Phase commit: `ab1d6959a1d6b7403ded687b1f76ba672aec79e7` (`Preserve recovered memory values under tight output budgets`)
+- Phase integration run: `33345170927`
+- Targeted offline renderer suite: `11 passed`
+- Python 3.11.16 full deterministic suite: `331 passed, 1 skipped, 1 warning in 22.67s`
+- Semantic-memory production projection: `6/6` semantic core, `6/6` experience, `6/6` grounded retrieval, `6/6` surface realization, `6/6` authority, `6/6` restart-state preservation
 - The warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-Latest completed normal two-version Wayfarer CI before this instruction sync:
+Durable documentation sync for this phase:
 
-- Run: `33337114880`
-- Tested commit: `3c1232fc721fadcdaafebfb2f9d8c61fba96018e`
-- Python 3.11.16: `330 passed, 1 skipped, 1 warning in 35.49s`
-- Python 3.12.14: `330 passed, 1 skipped, 1 warning in 27.93s`
+- `eb0bba740635a997b662676237ef59b7c201516a` (`Record semantic memory role phase results`)
 
-The phase commit differs from that CI-tested staging commit by the generated evidence/tool/docs and cleanup of the temporary evidence workflow; the phase integration itself ran the full Python 3.11 suite successfully before committing those results. Check GitHub Actions for any newer branch head before quoting a newer result.
+Current expected deterministic test inventory is therefore **331 passed, 1 skipped, 1 warning** on Python 3.11. The final `AGENTS.md` synchronization commit should be verified by the normal Python 3.11/3.12 Wayfarer CI matrix; always check GitHub Actions for any newer head before quoting a result.
 
 ## Current evidence checkpoint
 
 - Slow-belief developmental replay: closed for the demonstrated current rule contract.
 - Hot-memory global capacity: experimental; no universal `N` approved.
-- Current pressure-fixture production resident count: 7, scenario-specific and not a limit.
-- Developmental storage probe: 20 `belief_consolidation` roots added 9,254 canonical payload bytes while consuming 7,508 stale consolidation-evidence rows; the developmental database was 761,856 B smaller than the same 1,000 inputs without executed consolidation.
+- USER_TOLD cold biography: grounded old/recent reconstruction demonstrated across all five projections and six restarted histories in the current probe.
+- Current unresolved relationship evidence: demonstrated resident causal role for reflection/conduct consumers.
+- Cold-only and recent-only USER_TOLD projections: preserve retrieval but fail all four tested active-conflict conduct cases.
+- Active-conflict-only USER_TOLD projection: preserves all six tested semantic/experience scenarios.
+- Deterministic tight-budget recall: recovered value remains visible after generic recall-command scaffolding is stripped at expression time.
+- Non-`USER_TOLD` memory families: still pinned; reconstruction evidence is the next memory-policy target.
 - Cross-host handoff/branching: intentionally deferred.
 - Full typed social-influence authority: intentionally deferred.
 
-Do not anchor on older test totals, old unresolved-gap language, or historical experimental memory counts when newer code/evidence exists.
+Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.
