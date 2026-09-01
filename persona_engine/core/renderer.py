@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 
 from .cognition_schemas import DeceptionAuthorization, PrivateCognitionProposal
 from .deception_ledger import DeceptionLedger
+from .expression_bridge import build_expression_messages
 from .memory import MemoryUnit
 from .offline_template_renderer import OfflineTemplateRenderer
 from .renderer_contract import ExpressionRequest, PrivateCognitionRequest, PrivateCognitionResult
@@ -180,10 +181,7 @@ class LocalLLMRenderer:
         else:
             max_chars = int(getattr(request.expression_constraints, "max_chars", 200))
 
-        resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
-        user_text = str(resolved.get("user_text", ""))
-        system_prompt = str(resolved.get("system_prompt", ""))
-        messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
+        messages = build_expression_messages(request)
 
         if self.provider == "ollama":
             try:

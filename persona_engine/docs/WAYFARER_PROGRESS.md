@@ -13,6 +13,14 @@ Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
 
+## Expression substrate continuity checkpoint
+
+`expression-brief-v1` is the first concrete M12 renderer-independence contract. The engine now assembles one structured character moment after semantic choice and before language realization. Ollama, local HF, external/frontier host callbacks, and deterministic offline rendering consume that same moment instead of receiving materially different subsets of state.
+
+The brief includes explicit decision payload, relevant selected memories, relationship stance and values, slow developmental beliefs/earned traits, affect, voice constraints, continuity cues, expression limits, and the existing workspace context. It is noncanonical renderer input, not a new identity/state authority. The deterministic renderer also supports optional cartridge-authored relationship-stance variants, allowing offline speech to perform accumulated history rather than merely preserve it internally.
+
+Verification: targeted renderer/expression set `50 passed, 1 skipped in 0.86s`; permanent expression-substrate probe passed; full Python 3.11 suite `354 passed, 1 skipped, 1 warning in 28.41s`. Named frontier-model perceptual parity remains unclaimed pending real held-out runs and human evaluation.
+
 ## Disconnected authority-store transfer checkpoint
 
 `disconnected-transfer-v1` extends the existing writer-generation contract across two separate SQLite authority stores under a cooperative host-id threat model. Preparation persists a clean whole-subject boundary and quiesces every source stream. The target stages the exact bundle read-only. Source finalization advances writer generation and permanently retires that source database; target activation validates the staged content and local state digest before claiming the new generation. Transfer administration remains outside lived biography.
@@ -23,14 +31,14 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 ## Latest implemented checkpoint
 
-Current production contracts are `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
+Current production contracts include `expression-brief-v1`, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
 Latest deterministic verification on Python 3.11:
 
 ```text
-Targeted migration/continuity set: 38 passed in 2.78s
-Permanent disconnected-store transfer probe: passed
-Full deterministic suite: 346 passed, 1 skipped, 1 warning in 31.81s
+Targeted renderer/expression set: 50 passed, 1 skipped in 0.86s
+Permanent expression-substrate probe: passed
+Full deterministic suite: 354 passed, 1 skipped, 1 warning in 28.41s
 ```
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
@@ -39,7 +47,7 @@ The shared-store custody probe demonstrates one active writer across distinct ho
 
 Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
+Evidence: `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 

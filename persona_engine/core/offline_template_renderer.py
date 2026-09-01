@@ -106,6 +106,8 @@ class OfflineTemplateRenderer:
             and grounded_context_match(user_text, str(getattr(memory, "content", memory)))
             for memory in memory_units
         )
+        experience_context = resolved.get("experience_context", {}) if isinstance(resolved.get("experience_context", {}), dict) else {}
+        relationship_context = experience_context.get("relationship", {}) if isinstance(experience_context.get("relationship", {}), dict) else {}
         context = {
             "user_text": user_text,
             "system_text": str(resolved.get("system_prompt", "")),
@@ -116,6 +118,7 @@ class OfflineTemplateRenderer:
             "evidence": list(request.evidence or []),
             "ledger_digest": dict(digest),
             "identity": identity,
+            "relational_stance": str(relationship_context.get("stance", "neutral")),
         }
         return self._render_context(context, max_chars=max_chars, seed=request.seed)
 
@@ -144,7 +147,7 @@ class OfflineTemplateRenderer:
             "identity": self._identity(context, system_text),
             "state": self._subject_state(system_text),
         }
-        template = self._choose(group, identity, user_text, system_text, seed)
+        template = self._choose_for_stance(group, str(context.get("relational_stance", "neutral")), identity, user_text, system_text, seed)
         text = self._fill(template.text, slots)
         return self._clean_truncate(text, max_chars)
 
@@ -234,8 +237,27 @@ class OfflineTemplateRenderer:
             return fallbacks
         return [template for template in _FALLBACK_TEMPLATES if template.group == "statement"]
 
-    def _choose(self, group: str, identity: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
-        candidates = self._templates_for(group, identity)
+    def _stance_groups(self, group: str, stance: str) -> list[str]:
+        if stance == "conflicted":
+            return [f"{group}__conflicted", f"{group}__guarded"]
+        if stance == "guarded":
+            return [f"{group}__guarded"]
+        if stance == "close":
+            return [f"{group}__close", f"{group}__trusted"]
+        if stance == "trusted":
+            return [f"{group}__trusted"]
+        return []
+
+    def _choose_for_stance(self, group: str, stance: str, identity: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
+        bank = dialogue_for(identity) if identity else {}
+        for candidate_group in self._stance_groups(group, stance):
+            authored = bank.get(candidate_group, [])
+            if authored:
+                candidates = [OfflineTemplate(candidate_group, text, 200 - index) for index, text in enumerate(authored)]
+                return self._choose_candidates(candidates, user_text, system_text, seed)
+        return self._choose(group, identity, user_text, system_text, seed)
+
+    def _choose_candidates(self, candidates: list[OfflineTemplate], user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
         scored: list[tuple[int, OfflineTemplate]] = []
         for index, template in enumerate(candidates):
             last_used = self._usage.get(template.text, 0)
@@ -246,6 +268,9 @@ class OfflineTemplateRenderer:
         chosen = scored[0][1]
         self._usage[chosen.text] = self._turn
         return chosen
+
+    def _choose(self, group: str, identity: str, user_text: str, system_text: str, seed: int | None) -> OfflineTemplate:
+        return self._choose_candidates(self._templates_for(group, identity), user_text, system_text, seed)
 
     def _stable_jitter(self, *parts: Any) -> int:
         payload = "|".join(str(part) for part in parts).encode("utf-8", errors="ignore")

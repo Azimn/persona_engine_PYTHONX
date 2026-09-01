@@ -219,7 +219,7 @@ python -m pytest persona_engine/tests -q
 
 The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELINE.md`; do not replace it with later green results.
 
-**Current production inventory after `disconnected-transfer-v1`: `346 passed, 1 skipped, 1 warning in 31.81s` on Python 3.11.** The targeted migration/continuity set completed as `38 passed in 2.78s` and the permanent disconnected-store transfer probe passed. Shared-store `writer-handoff-v1` remains intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
+**Current production inventory after `expression-brief-v1`: `354 passed, 1 skipped, 1 warning in 28.41s` on Python 3.11.** The targeted renderer/expression set completed as `50 passed, 1 skipped in 0.86s` and the permanent expression-substrate probe passed. `disconnected-transfer-v1`, shared-store `writer-handoff-v1`, and `semantic-residency-v1` remain intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
 
 Historical phase-local totals remain useful evidence, but they are not the current inventory. Before quoting a test count or head, prefer this block plus the newest normal Wayfarer CI run and relevant evidence file.
 
@@ -235,6 +235,7 @@ Historical phase-local totals remain useful evidence, but they are not the curre
 - `OBSERVED` and `REFLECTION`: demonstrated resident until first-person reconstruction exists; their ablations lose retrievable experience. `INFERRED` and `CORE_IDENTITY` are not current production autobiographical families.
 - Cross-host shared-store custody: implemented with host + writer-generation fencing.
 - Disconnected authority-store move: implemented for cooperative target-specific staged transfer with source quiescence, permanent source retirement, target activation, whole-subject ordering/state, and pending-evidence preservation. Explicit branch/reconciliation semantics remain open.
+- Expression substrate: `expression-brief-v1` provides one JSON-safe noncanonical character moment to Ollama, local HF, host-supplied external/frontier callbacks, and deterministic offline realization. Offline dialogue may use cartridge-authored relationship-stance variants; renderer choice still has no identity authority.
 - Full typed social-influence authority: intentionally deferred.
 
 Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.

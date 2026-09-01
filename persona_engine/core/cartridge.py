@@ -60,6 +60,20 @@ _DIALOGUE_GROUPS = {
     "unanchored_sound", "quiet", "how_are_you", "who_are_you", "what_doing", "statement",
 }
 _DIALOGUE_SLOTS = {"address", "topic", "memory", "state", "identity"}
+_DIALOGUE_STANCES = {"conflicted", "guarded", "trusted", "close"}
+
+
+def _dialogue_group_allowed(group: str) -> bool:
+    if group in _DIALOGUE_GROUPS:
+        return True
+    base, separator, stance = str(group).partition("__")
+    return bool(separator and base in _DIALOGUE_GROUPS and stance in _DIALOGUE_STANCES)
+
+
+def _validate_dialogue_group_keys(dialogue: dict[str, Any]) -> None:
+    unknown = sorted(str(group) for group in dialogue if not _dialogue_group_allowed(str(group)))
+    if unknown:
+        raise CartridgeError(f"unknown field in [dialogue]: {unknown[0]}")
 _OPTIONAL_SECTIONS = {
     "sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes",
     "concealment", "arc", "dialogue",
@@ -117,7 +131,10 @@ def _require_section(data: dict[str, Any], section: str) -> dict[str, Any]:
     value = data.get(section)
     if not isinstance(value, dict):
         raise CartridgeError(f"missing required section [{section}]")
-    _unknown_keys(value, _ALLOWED_SECTION_FIELDS[section], f"[{section}]")
+    if section == "dialogue":
+        _validate_dialogue_group_keys(value)
+    else:
+        _unknown_keys(value, _ALLOWED_SECTION_FIELDS[section], f"[{section}]")
     for field in _REQUIRED.get(section, ()):
         if field not in value:
             raise CartridgeError(f"missing required field [{section}].{field}")
@@ -144,7 +161,7 @@ def _require_string_list(section: dict[str, Any], field: str, label: str) -> Non
 
 
 def _validate_dialogue(dialogue: dict[str, Any]) -> None:
-    _unknown_keys(dialogue, _DIALOGUE_GROUPS, "[dialogue]")
+    _validate_dialogue_group_keys(dialogue)
     slot_pattern = re.compile(r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
     for group, entries in dialogue.items():
         if not isinstance(entries, list) or not entries or not all(isinstance(entry, str) and entry.strip() for entry in entries):

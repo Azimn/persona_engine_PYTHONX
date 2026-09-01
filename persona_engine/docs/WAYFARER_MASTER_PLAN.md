@@ -21,7 +21,7 @@ This file is the canonical long-form roadmap for the Wayfarer development line. 
 
 ## Current checkpoint
 
-Wayfarer has completed the current semantic resident-memory pass and the first shared-store portion of M5 single-writer continuity.
+Wayfarer has completed the current semantic resident-memory pass, cooperative shared/disconnected custody work, and the first concrete M12 expression-substrate brief contract.
 
 Current verified production contracts include:
 
@@ -29,11 +29,13 @@ Current verified production contracts include:
 - path-dependent slow-belief consolidation boundaries;
 - `semantic-residency-v1`, with no universal hot-memory count;
 - process-local state serialization for engine mutations;
-- `writer-handoff-v1` for cooperative hosts sharing one canonical SQLite authority store.
+- `writer-handoff-v1` for cooperative hosts sharing one canonical SQLite authority store;
+- `disconnected-transfer-v1` for cooperative target-specific authority-store moves;
+- `expression-brief-v1` for one structured noncanonical character moment across offline, local-model, and host-supplied external/frontier expression adapters.
 
-Current Python 3.11 deterministic inventory is `340 passed, 1 skipped, 1 warning`; the optimized writer fence completed that suite in `31.68s`. The permanent handoff probe and `32` targeted custody/continuity tests are green.
+Current Python 3.11 deterministic inventory after the expression-substrate phase is `354 passed, 1 skipped, 1 warning in 28.41s`; the targeted renderer/expression set is `50 passed, 1 skipped in 0.86s` and the permanent expression-substrate probe is green.
 
-M5 is **partially complete**, not closed. Shared-store host/generation fencing and explicit handoff are implemented. Disconnected-store transfer, explicit branching, divergent-copy detection/reconciliation rules, and broader migration scenarios remain open. Full typed social influence and offscreen-life/autonomy also remain later longitudinal work.
+M5 is **partially complete**, not closed. Shared-store handoff and cooperative disconnected-store transfer are implemented; explicit branching, hostile duplicate detection/reconciliation, and broader distributed migration remain open. Active product/research priority is now character quality and cross-substrate recognizability rather than those distant custody edge cases. Full typed social influence and offscreen-life/autonomy also remain later longitudinal work.
 
 ---
 
@@ -658,10 +660,10 @@ Goal: stop asking the LLM to infer who the character should be from a role-play 
 
 A future `SpeechPlan` should include speaker, listener, dialogue act, communicative goal, position, certainty, stance, affect, warmth, directness, disclosure constraints, permitted claims, permitted memories, active commitments, relationship posture, voice profile, and forbidden semantics.
 
-- [ ] Expand `ExpressionRequest` toward semantic realization.
-- [ ] Resolve character choice before rendering.
-- [ ] Reduce reliance on `stay in character` prompting.
-- [ ] Validate semantic contradictions with the plan.
+- [~] Expand `ExpressionRequest` toward semantic realization. `expression-brief-v1` now serializes the resolved character moment for all language substrates; a richer formal `SpeechPlan` remains future work.
+- [x] Resolve character choice before rendering for the current speech path.
+- [~] Reduce reliance on `stay in character` prompting. Local/frontier adapters now receive explicit decision, relationship, development, memory, affect, voice, and continuity state; further semantic-plan tightening remains.
+- [x] Validate semantic contradictions with the current decision/identity/history consistency plan.
 - [ ] Support deterministic/offline, local, and generic remote renderers.
 - [ ] Keep network access optional.
 - [ ] Add renderer-swap tests.

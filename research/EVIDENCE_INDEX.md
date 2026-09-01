@@ -78,3 +78,11 @@ Not yet established as a systematic program. This should be added before strong 
 **Tier C: human-visible evaluation**
 
 Not yet sufficient for a broad claim that Wayfarer preserves perceived identity across heterogeneous renderers. Future blind evaluation is appropriate if that becomes the thesis question.
+
+## Expression-substrate continuity and visible history
+
+- `persona_engine/evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`
+  - records the pre-fix renderer-input asymmetry and the first `expression-brief-v1` production evidence;
+  - tests one vendor-neutral external/frontier callback seam plus history-conditioned deterministic offline realization.
+
+Research limitation: this is Tier A builder-designed engineering evidence. It establishes a common substrate-neutral expression contract and visible offline history sensitivity, not human-perceived identity equivalence across named frontier models.

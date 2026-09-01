@@ -52,3 +52,16 @@ def build_envelope(risk_bucket: str, relationship, dominant_pressure_name: str) 
 
     env.vulnerability_allowed = relationship.trust > 0.55 and relationship.tension < 0.35 and risk_bucket == "LOW"
     return env
+
+def relationship_expression_stance(relationship) -> str:
+    """Return a coarse history-conditioned stance for language realization."""
+
+    if relationship.unresolved_conflict > 0.35 or relationship.tension >= 0.60:
+        return "conflicted"
+    if relationship.guardedness >= 0.65 or relationship.trust < 0.35:
+        return "guarded"
+    if relationship.trust >= 0.66 and relationship.attachment >= 0.30 and relationship.tension < 0.25:
+        return "close"
+    if relationship.trust >= 0.66 and relationship.tension < 0.35:
+        return "trusted"
+    return "neutral"

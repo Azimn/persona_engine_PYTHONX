@@ -20,7 +20,7 @@ from .cognition_schemas import turn_seed
 from .cartridge import load_cartridge
 from .deception_ledger import DeceptionLedger
 from .dream_engine import DreamEngine
-from .expression import build_envelope, select_resistance
+from .expression import build_envelope, relationship_expression_stance, select_resistance
 from .habit import Habit, HabitTracker
 from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_identity_command
 from .intention import Intention, IntentionQueue, OpenLoop
@@ -1254,12 +1254,65 @@ class InteriorEngine:
 
         second_thoughts = derive_second_thoughts(frame)
         system_prompt = frame.to_system_prompt(self.identity.name, self.identity.temperament)
+        voice_section = self.cartridge_data.get("voice", {}) if isinstance(self.cartridge_data, dict) else {}
+        experience_context = {
+            "relationship": {
+                "stance": relationship_expression_stance(self.relationship),
+                "summary": frame.relationship_summary,
+                "trust": round(self.relationship.trust, 6),
+                "familiarity": round(self.relationship.familiarity, 6),
+                "tension": round(self.relationship.tension, 6),
+                "attachment": round(self.relationship.attachment, 6),
+                "respect": round(self.relationship.respect, 6),
+                "guardedness": round(self.relationship.guardedness, 6),
+                "unresolved_conflict": round(self.relationship.unresolved_conflict, 6),
+            },
+            "development": {
+                "slow_beliefs": {str(key): round(float(value), 6) for key, value in sorted(self.belief_ledger.values.items())},
+                "earned_traits": [
+                    {"name": trait.name, "strength": round(float(trait.strength), 6)}
+                    for trait in sorted(self.ledger.earned_traits.values(), key=lambda item: item.name)
+                    if trait.strength > 0.01
+                ],
+            },
+            "affect": {
+                "bucket": bucket,
+                "dominant_pressure": dominant_name,
+                "secondary_pressure": secondary_name,
+            },
+            "voice": {
+                "temperament": self.identity.temperament,
+                "speech_constraints": list(self.identity.speech_constraints),
+                "speaking_style": str(voice_section.get("speaking_style", "")) if isinstance(voice_section, dict) else "",
+                "address_user_as": str(voice_section.get("address_user_as", "")) if isinstance(voice_section, dict) else "",
+            },
+            "continuity": {
+                "selected_intention": frame.selected_intention,
+                "open_loop": frame.open_loop,
+                "shared_symbol": frame.shared_symbol,
+                "active_habit": frame.active_habit,
+                "subject_elapsed_seconds": round(float(self.clock.subject_elapsed_seconds), 6),
+            },
+            "expression": {
+                "tone": envelope.tone_label,
+                "warmth": round(float(envelope.warmth), 6),
+                "directness": round(float(envelope.directness), 6),
+                "guardedness": round(float(envelope.guardedness), 6),
+                "vulnerability_allowed": bool(envelope.vulnerability_allowed),
+                "refusal_mode": envelope.refusal_mode,
+            },
+        }
+        resolved_expression_state = {
+            "system_prompt": system_prompt,
+            "user_text": user_text,
+            "experience_context": experience_context,
+        }
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
         seed = turn_seed(self.user_id, self.timestep, "expression")
         response = render_expression(
             self.renderer,
             ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-            resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+            resolved_state=resolved_expression_state,
             arc_context={},
             evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
             retrieved_memories=retrieved,
@@ -1300,7 +1353,7 @@ class InteriorEngine:
             response = render_expression(
                 self.renderer,
                 ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-                resolved_state={"system_prompt": retry_prompt, "user_text": user_text},
+                resolved_state={**resolved_expression_state, "system_prompt": retry_prompt},
                 arc_context={},
                 evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
                 retrieved_memories=retrieved,
@@ -1324,7 +1377,7 @@ class InteriorEngine:
                 response = render_expression(
                     fallback_renderer,
                     ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-                    resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+                    resolved_state=resolved_expression_state,
                     arc_context={},
                     evidence=[{"type": "input", "text": user_text}],
                     retrieved_memories=retrieved,
@@ -1345,7 +1398,7 @@ class InteriorEngine:
             response = render_expression(
                 fallback_renderer,
                 ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
-                resolved_state={"system_prompt": system_prompt, "user_text": user_text},
+                resolved_state=resolved_expression_state,
                 arc_context={},
                 evidence=[{"type": "input", "text": user_text}],
                 retrieved_memories=retrieved,

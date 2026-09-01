@@ -1,0 +1,10 @@
+{
+  "hf_expression_prompt_error": "TypeError",
+  "hf_expression_prompt_serialized_memory_unit": false,
+  "offline_authored_stance_variants_honored": false,
+  "offline_guarded_reply": "BASE CARE",
+  "offline_trusted_reply": "BASE CARE",
+  "ollama_received_explicit_structured_decision": false,
+  "ollama_received_expression_brief_schema": false,
+  "probe": "expression-substrate-pre-fix"
+}

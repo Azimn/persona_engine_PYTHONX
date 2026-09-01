@@ -8,19 +8,27 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 ## Current production checkpoint
 
-Current production contract: **`writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, plus `semantic-residency-v1` memory residency.**
+Current production contracts include **`expression-brief-v1` renderer independence, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
 ```text
-Targeted migration/continuity set: 38 passed in 2.78s
-Permanent disconnected-store transfer probe: passed
-Full deterministic suite: 346 passed, 1 skipped, 1 warning in 31.81s
+Targeted renderer/expression set: 50 passed, 1 skipped in 0.86s
+Permanent expression-substrate probe: passed
+Full deterministic suite: 354 passed, 1 skipped, 1 warning in 28.41s
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-The authoritative custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; the disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
+The authoritative expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
+
+## Expression-substrate continuity checkpoint
+
+`expression-brief-v1` makes the already-resolved character moment the common language-rendering boundary. Ollama, local-HF completion, host-supplied external/frontier callbacks, and deterministic offline realization now consume the same JSON-safe brief carrying the semantic decision, selected relevant memories, relationship posture, developmental state, affect, voice constraints, continuity cues, and expression limits. The brief is explicitly noncanonical and expression-only.
+
+The deterministic offline renderer may select optional cartridge-authored `group__guarded`, `group__conflicted`, `group__trusted`, or `group__close` variants. Missing variants fall back to the existing base dialogue bank, so generic core code does not acquire character-specific prose. Pretorius now uses this seam for several high-value relational acts so visibly different accumulated relationship histories alter offline performance rather than merely internal state.
+
+This phase establishes a provider-neutral integration seam for frontier services but does **not** claim human-perceived parity with ChatGPT, Claude, Grok, or any named frontier model. That requires held-out model runs and human-visible evaluation.
 
 ## Project definition
 
@@ -142,7 +150,7 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Preserve both writer-custody contracts. The next M5 continuity target is an explicit branch operation and branch identity semantics, not another implicit copy path.
+1. Prioritize longitudinal character experience and cross-substrate recognizability. Use `expression-brief-v1` to compare the same developed subject under deterministic offline, small local, and frontier-class expression substrates before adding more custody machinery. Explicit branch semantics remain a real but deferred M5 concern.
 2. Do not resume memory-count optimization without a new demonstrated failure. `semantic-residency-v1` and the 5,000-turn active-state plateau are the current memory result.
 3. Full typed social-influence authority and richer offscreen autonomy remain unresolved longitudinal candidates; choose the next one by writing its falsification criterion first.
 4. Treat duplicated current-status prose as a repository-governance risk. The current manual synchronization process has produced stale contradictory checkpoints and should be replaced by a machine-verifiable status source plus CI consistency checks in a separate governance phase.

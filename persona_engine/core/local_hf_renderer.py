@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from .cognition_schemas import Impulse, PrivateCognitionProposal
+from .expression_bridge import build_expression_prompt
 from .model_registry import ModelRegistryEntry, resolve_model
 from .renderer import LocalLLMRenderer
 from .renderer_contract import ExpressionRequest, PrivateCognitionRequest, PrivateCognitionResult
@@ -115,18 +116,7 @@ class LocalHFRenderer:
         return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
     def _expression_prompt(self, request: ExpressionRequest) -> str:
-        return json.dumps({
-            "task": "expression",
-            "ledger_digest": request.ledger_digest,
-            "resolved_state": request.resolved_state,
-            "arc_context": request.arc_context,
-            "evidence": request.evidence,
-            "retrieved_memories": request.retrieved_memories,
-            "private_thought_context": request.private_thought_context,
-            "decision_payload": request.decision_payload,
-            "expression_constraints": request.expression_constraints,
-            "deception_obligations": request.deception_obligations,
-        }, ensure_ascii=False, sort_keys=True)
+        return build_expression_prompt(request)
 
     def _parse_private_cognition_json(self, text: str) -> PrivateCognitionProposal:
         try:
