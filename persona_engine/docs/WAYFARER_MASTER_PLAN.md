@@ -21,7 +21,7 @@ This file is the canonical long-form roadmap for the Wayfarer development line. 
 
 ## Current checkpoint
 
-Wayfarer has completed the current semantic resident-memory pass, cooperative shared/disconnected custody work, and the first concrete M12 expression-substrate brief contract.
+Wayfarer has completed the current semantic resident-memory pass, cooperative shared/disconnected custody work, the first concrete M12 expression-substrate brief contract, and the first reusable M18 longitudinal renderer-swap benchmark contract.
 
 Current verified production contracts include:
 
@@ -31,9 +31,10 @@ Current verified production contracts include:
 - process-local state serialization for engine mutations;
 - `writer-handoff-v1` for cooperative hosts sharing one canonical SQLite authority store;
 - `disconnected-transfer-v1` for cooperative target-specific authority-store moves;
-- `expression-brief-v1` for one structured noncanonical character moment across offline, local-model, and host-supplied external/frontier expression adapters.
+- `expression-brief-v1` for one structured noncanonical character moment across offline, local-model, and host-supplied external/frontier expression adapters;
+- `renderer-benchmark-v1` for frozen developed histories, hidden renderer swaps, semantic-projection comparison, and blinded Wayfarer-versus-prompt-only provider requests.
 
-Current Python 3.11 deterministic inventory after the expression-substrate phase is `354 passed, 1 skipped, 1 warning in 28.41s`; the targeted renderer/expression set is `50 passed, 1 skipped in 0.86s` and the permanent expression-substrate probe is green.
+Current Python 3.11 deterministic inventory after `renderer-benchmark-v1` is `357 passed, 1 skipped, 1 warning in 32.66s`; the focused renderer benchmark/expression set is `11 passed in 2.22s`, and the permanent 4-history x 4-probe renderer-swap benchmark is green.
 
 M5 is **partially complete**, not closed. Shared-store handoff and cooperative disconnected-store transfer are implemented; explicit branching, hostile duplicate detection/reconciliation, and broader distributed migration remain open. Active product/research priority is now character quality and cross-substrate recognizability rather than those distant custody edge cases. Full typed social influence and offscreen-life/autonomy also remain later longitudinal work.
 
@@ -664,10 +665,10 @@ A future `SpeechPlan` should include speaker, listener, dialogue act, communicat
 - [x] Resolve character choice before rendering for the current speech path.
 - [~] Reduce reliance on `stay in character` prompting. Local/frontier adapters now receive explicit decision, relationship, development, memory, affect, voice, and continuity state; further semantic-plan tightening remains.
 - [x] Validate semantic contradictions with the current decision/identity/history consistency plan.
-- [ ] Support deterministic/offline, local, and generic remote renderers.
-- [ ] Keep network access optional.
-- [ ] Add renderer-swap tests.
-- [ ] Measure trajectory invariance separately from surface wording.
+- [x] Support deterministic/offline, local-adapter, and generic remote-adapter renderer paths; actual heterogeneous model evaluation is tracked under M18.
+- [x] Keep network access optional; the deterministic/offline path and benchmark run without network model access.
+- [x] Add renderer-swap tests, including a continuing offline-to-external-to-offline schedule.
+- [~] Measure trajectory invariance separately from surface wording. `renderer-benchmark-v1` compares permanent identity, beliefs, relationship state, resolved decisions, and commitments; broader memory/affect projection remains M18 work.
 
 Acceptance: model swap changes expression substantially more than canonical character trajectory.
 
@@ -810,14 +811,14 @@ Core pair:
 1. Same character plus different models should remain recognizable.
 2. Different characters plus the same model should remain distinguishable.
 
-- [ ] Freeze scenario suite.
-- [ ] Run deterministic renderer.
+- [~] Freeze scenario suite. `renderer-benchmark-v1` freezes a first 4-history x 4-probe suite; independent held-out expansion remains required.
+- [x] Run deterministic renderer as the all-offline semantic control.
 - [ ] Run small local model.
 - [ ] Run medium local model where available.
 - [ ] Run substantially different frontier models where available.
-- [ ] Perform hidden mid-session renderer swaps.
-- [ ] Compare actions, intentions, beliefs, relationships, commitments, memories, affect, and state digests.
-- [ ] Separate parser-capability differences from identity drift.
+- [x] Perform hidden mid-session renderer swaps for the deterministic offline plus generic external-callback condition.
+- [~] Compare actions/decisions, beliefs, relationships, commitments, and identity projection. Explicit memory, affect, and broader state-digest benchmark projections remain open.
+- [~] Separate parser/capability differences from identity drift. The paired Wayfarer-versus-prompt-only provider pack now provides the experimental apparatus; actual model results remain open.
 - [ ] Add blind human recognizability tests.
 
 Acceptance: expression changes more than canonical trajectory when renderer changes.

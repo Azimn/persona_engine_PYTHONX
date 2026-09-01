@@ -1,0 +1,61 @@
+{
+  "schema_version": "wayfarer-renderer-benchmark-v1",
+  "evidence_tier": "A-builder-designed",
+  "passed": true,
+  "character": "Pretorius",
+  "histories": [
+    "neutral",
+    "trusted",
+    "conflicted",
+    "confidential_commitment"
+  ],
+  "probes": [
+    "greeting",
+    "care",
+    "confidential",
+    "greeting_return"
+  ],
+  "renderer_schedule": [
+    "offline",
+    "external",
+    "external",
+    "offline"
+  ],
+  "semantic_turn_comparisons": 16,
+  "semantic_turn_comparisons_equal": 16,
+  "external_turns": 8,
+  "external_turns_with_surface_change": 8,
+  "commitment_decline_preserved": true,
+  "provider_request_cases": 16,
+  "provider_arms": [
+    "wayfarer_expression_brief",
+    "prompt_only_workspace"
+  ],
+  "semantic_projection_fields": [
+    "identity",
+    "beliefs",
+    "relationship",
+    "decision_payload",
+    "commitments"
+  ],
+  "focused_verification": {
+    "passed": 11,
+    "seconds": 2.22
+  },
+  "full_python_3_11": {
+    "passed": 357,
+    "skipped": 1,
+    "warnings": 1,
+    "seconds": 32.66
+  },
+  "pre_optimization_full_suite": {
+    "passed": 359,
+    "skipped": 1,
+    "warnings": 1,
+    "seconds": 149.69,
+    "note": "Correct but redundant benchmark executions were removed from ordinary pytest; benchmark coverage remains in the permanent probe."
+  },
+  "actual_frontier_models_tested": false,
+  "actual_local_models_tested": false,
+  "blinded_human_recognizability_tested": false
+}

@@ -8,19 +8,19 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 ## Current production checkpoint
 
-Current production contracts include **`expression-brief-v1` renderer independence, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
+Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v1` renderer independence, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
 ```text
-Targeted renderer/expression set: 50 passed, 1 skipped in 0.86s
-Permanent expression-substrate probe: passed
-Full deterministic suite: 354 passed, 1 skipped, 1 warning in 28.41s
+Focused renderer benchmark/expression set: 11 passed in 2.22s
+Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
+Full deterministic suite: 357 passed, 1 skipped, 1 warning in 32.66s
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-The authoritative expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
+The authoritative renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
 ## Expression-substrate continuity checkpoint
 
@@ -29,6 +29,16 @@ The authoritative expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBS
 The deterministic offline renderer may select optional cartridge-authored `group__guarded`, `group__conflicted`, `group__trusted`, or `group__close` variants. Missing variants fall back to the existing base dialogue bank, so generic core code does not acquire character-specific prose. Pretorius now uses this seam for several high-value relational acts so visibly different accumulated relationship histories alter offline performance rather than merely internal state.
 
 This phase establishes a provider-neutral integration seam for frontier services but does **not** claim human-perceived parity with ChatGPT, Claude, Grok, or any named frontier model. That requires held-out model runs and human-visible evaluation.
+
+## Longitudinal renderer-swap benchmark checkpoint
+
+`renderer-benchmark-v1` freezes four developed Pretorius histories (neutral, trusted, conflicted, and confidential-commitment) and four later probes. An all-offline semantic control is compared with a continuing `offline -> external -> external -> offline` trajectory. All `16/16` current renderer-independent semantic projections matched while all `8/8` external turns changed visible wording. The projected boundary currently covers permanent identity, slow beliefs, relationship state, resolved decision payload, and active commitments.
+
+The Project Orchid case preserved the same active non-disclosure commitment and `dialogue_act=decline` while the offline and external renderers expressed that refusal differently. Returning to the offline renderer did not create a divergent later semantic trajectory in the frozen suite.
+
+The same harness exports `16` blinded paired provider cases. Each case has a full Wayfarer `expression-brief-v1` arm and a prompt-only workspace control arm, with history/probe labels and semantic references stored separately. This creates a future within-model control for testing whether externalized Wayfarer state preserves a developed character better than ordinary role-play prompting.
+
+This remains Tier A builder-designed engineering evidence. The external condition is a deterministic frontier-like callback. Actual local models, actual frontier models, independently designed held-out cases, and blinded human recognizability remain required for stronger M18 or thesis claims.
 
 ## Project definition
 
@@ -150,7 +160,7 @@ Developmental/plasticity parameters must earn their existence through observable
 
 ## Immediate next work
 
-1. Prioritize longitudinal character experience and cross-substrate recognizability. Use `expression-brief-v1` to compare the same developed subject under deterministic offline, small local, and frontier-class expression substrates before adding more custody machinery. Explicit branch semantics remain a real but deferred M5 concern.
+1. Use the frozen `renderer-benchmark-v1` provider pack for actual heterogeneous model runs. Keep the 16 current cases unchanged for the first local/frontier comparison, add independently designed held-out cases separately, and score recognizable character continuity apart from linguistic quality. Explicit branch semantics remain a real but deferred M5 concern.
 2. Do not resume memory-count optimization without a new demonstrated failure. `semantic-residency-v1` and the 5,000-turn active-state plateau are the current memory result.
 3. Full typed social-influence authority and richer offscreen autonomy remain unresolved longitudinal candidates; choose the next one by writing its falsification criterion first.
 4. Treat duplicated current-status prose as a repository-governance risk. The current manual synchronization process has produced stale contradictory checkpoints and should be replaced by a machine-verifiable status source plus CI consistency checks in a separate governance phase.

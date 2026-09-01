@@ -219,7 +219,7 @@ python -m pytest persona_engine/tests -q
 
 The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELINE.md`; do not replace it with later green results.
 
-**Current production inventory after `expression-brief-v1`: `354 passed, 1 skipped, 1 warning in 28.41s` on Python 3.11.** The targeted renderer/expression set completed as `50 passed, 1 skipped in 0.86s` and the permanent expression-substrate probe passed. `disconnected-transfer-v1`, shared-store `writer-handoff-v1`, and `semantic-residency-v1` remain intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
+**Current production inventory after `renderer-benchmark-v1`: `357 passed, 1 skipped, 1 warning in 32.66s` on Python 3.11.** The focused renderer-benchmark/expression set completed as `11 passed in 2.22s`; the permanent 4-history x 4-probe renderer-swap benchmark passed with `16/16` equal semantic projections and generated `16` blinded paired provider cases. `expression-brief-v1`, `disconnected-transfer-v1`, shared-store `writer-handoff-v1`, and `semantic-residency-v1` remain intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
 
 Historical phase-local totals remain useful evidence, but they are not the current inventory. Before quoting a test count or head, prefer this block plus the newest normal Wayfarer CI run and relevant evidence file.
 
@@ -236,6 +236,7 @@ Historical phase-local totals remain useful evidence, but they are not the curre
 - Cross-host shared-store custody: implemented with host + writer-generation fencing.
 - Disconnected authority-store move: implemented for cooperative target-specific staged transfer with source quiescence, permanent source retirement, target activation, whole-subject ordering/state, and pending-evidence preservation. Explicit branch/reconciliation semantics remain open.
 - Expression substrate: `expression-brief-v1` provides one JSON-safe noncanonical character moment to Ollama, local HF, host-supplied external/frontier callbacks, and deterministic offline realization. Offline dialogue may use cartridge-authored relationship-stance variants; renderer choice still has no identity authority.
+- Renderer benchmark: `renderer-benchmark-v1` freezes four developed Pretorius histories x four probes, preserves renderer-independent identity/belief/relationship/decision/commitment projection across hidden offline/external swaps, and exports paired Wayfarer-versus-prompt-only provider requests. Actual heterogeneous model runs and human recognizability remain open.
 - Full typed social-influence authority: intentionally deferred.
 
 Do not anchor on older test totals, old unresolved-gap language, historical experimental memory counts, or the pre-semantic-role interpretation of hot-memory policy when newer code/evidence exists.

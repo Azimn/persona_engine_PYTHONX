@@ -86,3 +86,15 @@ Not yet sufficient for a broad claim that Wayfarer preserves perceived identity 
   - tests one vendor-neutral external/frontier callback seam plus history-conditioned deterministic offline realization.
 
 Research limitation: this is Tier A builder-designed engineering evidence. It establishes a common substrate-neutral expression contract and visible offline history sensitivity, not human-perceived identity equivalence across named frontier models.
+
+## Longitudinal renderer-swap benchmark
+
+- `persona_engine/evidence/mvi/RENDERER_SWAP_BENCHMARK.md`
+  - freezes four developed Pretorius histories and four later probes;
+  - compares an all-offline control with an `offline -> external -> external -> offline` hidden-swap trajectory;
+  - records `16/16` equal renderer-independent semantic projections while all `8/8` external turns change visible wording;
+  - exports 16 blinded paired provider cases with a full Wayfarer expression-brief arm and a prompt-only workspace control arm.
+
+Research use: provides a reproducible apparatus for future within-model and cross-model continuity experiments. The strongest near-term test is to freeze these cases, run actual local/frontier models without changing the case set after outputs are observed, and score recognizable character continuity separately from linguistic quality.
+
+Research limitation: the current external condition is still a deterministic builder-authored callback. Actual ChatGPT/Claude/Grok/local-model outputs, independent held-out attacks, and blinded human recognizability remain future evidence tiers.

@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-08-31
+Last updated: 2026-09-01
 
 ## Current branch
 
@@ -12,6 +12,14 @@ Development branch: `wayfarer`
 Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
+
+## Longitudinal renderer-swap benchmark checkpoint
+
+`renderer-benchmark-v1` is the first reusable M18 longitudinal substrate-evaluation contract. Four frozen Pretorius histories (neutral, trusted, conflicted, and confidential-commitment) each receive four later probes. The control trajectory remains offline while the candidate switches `offline -> external -> external -> offline`. All `16/16` renderer-independent semantic projections matched, all `8/8` external turns changed visible wording, and the Project Orchid non-disclosure remained a semantic `decline` during the external turn.
+
+The benchmark also exports `16` blinded paired provider cases: full Wayfarer expression brief versus a prompt-only workspace control for the same frozen developed character moment. This enables future within-model tests of Wayfarer state versus ordinary role-play prompting. The current external condition is deterministic and builder-designed; actual local/frontier models and blinded human recognizability remain untested.
+
+Verification after removing redundant benchmark executions from ordinary pytest: focused renderer benchmark/expression set `11 passed in 2.22s`; permanent 4 x 4 benchmark passed; full Python 3.11 suite `357 passed, 1 skipped, 1 warning in 32.66s`.
 
 ## Expression substrate continuity checkpoint
 
@@ -31,14 +39,14 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 ## Latest implemented checkpoint
 
-Current production contracts include `expression-brief-v1`, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
+Current production contracts include `renderer-benchmark-v1`, `expression-brief-v1`, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
 Latest deterministic verification on Python 3.11:
 
 ```text
-Targeted renderer/expression set: 50 passed, 1 skipped in 0.86s
-Permanent expression-substrate probe: passed
-Full deterministic suite: 354 passed, 1 skipped, 1 warning in 28.41s
+Focused renderer benchmark/expression set: 11 passed in 2.22s
+Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
+Full deterministic suite: 357 passed, 1 skipped, 1 warning in 32.66s
 ```
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
@@ -47,7 +55,7 @@ The shared-store custody probe demonstrates one active writer across distinct ho
 
 Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-Evidence: `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
+Evidence: `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 
@@ -290,13 +298,13 @@ Do not encode decorative decimals. Plasticity starts with minimal shared profile
 
 ## Immediate next actions
 
-1. Verify this documentation commit and the committed `46110470...` contextual cold-biography integration through ordinary Wayfarer CI on Python 3.11 and 3.12.
-2. Do **not** turn the pressure fixture's smallest passing budget (`2`) into a production capacity constant.
-3. Audit every active consumer of autobiographical memory and derive the minimum evidence each can use: ordinary turn retrieval, `HistoryDecisionEvidence`, reflection/consolidation, renderer grounding, and any other current reader.
-4. Design a production hot-memory admission/eviction candidate from those consumer contracts. It should protect currently causal unresolved/evidence-bearing memories, prevent routine history from crowding them out, and rely on canonical cold biography plus grounded transient read-through for inactive history.
-5. Stress that candidate with several distinct simultaneous causal roles rather than duplicate copies of one event type. Preserve repair semantics, unresolved-history conduct, explicit recall, contextual continuation, identity protection, commitments, restart, and cross-interlocutor boundaries.
-6. If and only if that policy passes, integrate it and repeat the 5,000-turn plateau measurement with no experimental compaction helper. That will be the first defensible production resident-state measurement.
-7. After the production measurement, translate the surviving state families into a C99-oriented compact layout and estimate the character-kernel hardware floor separately from the optional language-generation floor. Continue targeted MVI scenarios for interpretation, habits, symbols, and body only where a longitudinal behavior gives them something concrete to explain.
+1. Use the frozen `renderer-benchmark-v1` provider pack for the first actual heterogeneous renderer comparison. Keep the current 16 cases unchanged while collecting the first local/frontier outputs.
+2. Run at least one small local model and substantially different frontier-class renderers through the same provider-facing cases. Record model/version/configuration and keep renderer output noncanonical.
+3. Compare recognizable character continuity separately from linguistic quality. The semantic reference remains Wayfarer-owned; human-visible quality should not be allowed to redefine the canonical trajectory.
+4. Add independently designed held-out histories/probes as a separate evaluation set rather than tuning the frozen v1 cases after seeing model outputs.
+5. Expand the M18 semantic projection only where a concrete comparison need justifies it, especially explicit memory/affect projection and parser-capability separation.
+6. Preserve `semantic-residency-v1`; do not reopen memory-count optimization without a new failure.
+7. Keep P99/C99 projection deferred until the PythonX continuity and cross-substrate contracts survive actual heterogeneous-model and independent evaluation.
 
 ## Contributor rule
 
