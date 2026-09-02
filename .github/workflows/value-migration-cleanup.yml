@@ -1,0 +1,50 @@
+name: Value Migration Cleanup
+
+on:
+  push:
+    branches: [wayfarer-executable-values-phase]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Remove duplicated legacy value-profile data after migration
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("persona_engine/core/cartridge_v2.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''        "extensions": {},
+    }
+    migrated["portability"] = {
+'''
+          new = '''        "extensions": {},
+    }
+    # The v1 compatibility section is only an authoring bridge. Once copied into
+    # the portable values namespace it must not survive as a second authority.
+    migrated.pop("value_profile", None)
+    migrated["portability"] = {
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f"expected one migration insertion point, found {text.count(old)}")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Remove one-shot workflow
+        run: rm -f .github/workflows/value-migration-cleanup.yml
+      - name: Commit migration cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persona_engine/core/cartridge_v2.py .github/workflows/value-migration-cleanup.yml
+          git diff --cached --check
+          git commit -m "Keep executable value rules single-sourced after migration"
+          git push origin HEAD:wayfarer-executable-values-phase
