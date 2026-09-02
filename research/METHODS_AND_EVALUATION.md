@@ -57,6 +57,13 @@ For a future model-substitution study, useful conditions may include:
 
 The exact comparison should be selected only after the renderer-independence contract is mature enough to test fairly.
 
+
+### Real-renderer collection discipline
+
+The first actual-model renderer runs should preserve the frozen builder-designed cases rather than tuning them after outputs are observed. Record provider/model identity, available sampling configuration, request hashes, raw responses, Wayfarer code checkpoint, and whether any fallback occurred. A fallback response may be diagnostically useful but cannot be counted as evidence for the requested model tier.
+
+Fixed-state degradation and Wayfarer-versus-prompt-only comparison answer different questions. The former asks which identity-critical signals remain recoverable as renderer capability decreases. The latter holds the underlying model constant and asks whether the externalized Wayfarer subject state preserves the developed character better than ordinary prompt-based role-play. Mechanical semantic checks and human recognizability/linguistic-quality judgments should remain separate outcomes.
+
 ## 4. Outcome families
 
 Do not collapse every result into one "lifelikeness" score.

@@ -813,9 +813,9 @@ Core pair:
 
 - [~] Freeze scenario suite. `renderer-benchmark-v1` freezes a first 4-history x 4-probe suite; independent held-out expansion remains required.
 - [x] Run deterministic renderer as the all-offline semantic control.
-- [ ] Run small local model.
-- [ ] Run medium local model where available.
-- [ ] Run substantially different frontier models where available.
+- [ ] Run small local model. Real Ollama execution/capture path now exists; no actual model result recorded yet.
+- [ ] Run medium local model where available. Reuse the same frozen requests before changing the fixture.
+- [ ] Run substantially different frontier models where available. Manual provider-neutral export/import now exists so free chat interfaces can be evaluated without provider-specific runtime code.
 - [x] Perform hidden mid-session renderer swaps for the deterministic offline plus generic external-callback condition.
 - [x] Record a fixed-state three-tier degradation probe for identity-critical output facts. Scripted local/frontier backends exercise the adapter contracts only and do not count as actual model runs.
 - [~] Compare actions/decisions, beliefs, relationships, commitments, and identity projection. Explicit memory, affect, and broader state-digest benchmark projections remain open.

@@ -19,6 +19,9 @@ The `wayfarer-renderer-degradation-v1` probe fixes one Pretorius state with a co
 
 `ExternalChatRenderer` now satisfies the full shared renderer protocol with zero-effect private cognition while retaining its existing host callback. The frontier seam is justified only by remote/frontier execution without local HF weights or `transformers`; it does not gain character authority. Evidence: `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`.
 
+
+The frozen degradation fixture can now be executed against real substrates with `tools/renderer_degradation_real.py`. `ollama` mode uses the existing `LocalLLMRenderer` and rejects any zero-model fallback as invalid actual-model evidence. `export-frontier` and `score-frontier` support copy/paste collection from frontier chat systems without adding provider SDKs or API cost to Wayfarer. The current repository contains execution apparatus only; no actual local/frontier result has been recorded yet.
+
 ## Longitudinal renderer-swap benchmark checkpoint
 
 `renderer-benchmark-v1` is the first reusable M18 longitudinal substrate-evaluation contract. Four frozen Pretorius histories (neutral, trusted, conflicted, and confidential-commitment) each receive four later probes. The control trajectory remains offline while the candidate switches `offline -> external -> external -> offline`. All `16/16` renderer-independent semantic projections matched, all `8/8` external turns changed visible wording, and the Project Orchid non-disclosure remained a semantic `decline` during the external turn.

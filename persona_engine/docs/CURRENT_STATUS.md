@@ -49,6 +49,11 @@ A separate `wayfarer-renderer-degradation-v1` probe now holds one resolved Preto
 
 The zero-model misses are retained as evidence rather than repaired in this phase. The scripted model tiers prove contract recoverability only; actual model adherence and human recognizability remain open. `ExternalChatRenderer` now satisfies the shared cognition-renderer protocol with zero-effect private cognition. Its justified capability over `LocalHFRenderer` is host-supplied remote/frontier execution without local HF weights or a `transformers` dependency, not a new identity or reasoning authority.
 
+
+`tools/renderer_degradation_real.py` now carries that frozen five-seed fixture into actual-model collection without changing its state or scoring criteria. It can run the existing `LocalLLMRenderer` against Ollama, export the exact provider-neutral expression messages for manual frontier runs, and score verbatim imported responses with the same four mechanical checks. An Ollama run is marked invalid as actual-model evidence if any sample falls back to the zero-model renderer. No actual local or frontier model result is claimed yet.
+
+This fixed-state protocol answers where identity-critical output signals degrade across renderer capability. It is deliberately separate from the larger Wayfarer-versus-prompt-only comparison. The existing 16 paired provider cases remain the apparatus for asking whether the same model preserves the developed character better with Wayfarer state than with ordinary persona prompting.
+
 ## Project definition
 
 The authoritative character is not the LLM. Authored identity plus lived continuity state constitute the individual. A language model may provide interpretation, proposals, reasoning bandwidth, or linguistic realization, but renderer replacement must not silently replace identity, biography, commitments, relationships, or developmental trajectory.
