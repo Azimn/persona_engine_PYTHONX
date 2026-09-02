@@ -39,7 +39,13 @@ from .cold_biography import (
 from .decision_memory import evaluate_history_for_decision
 from .decision_commitment import evaluate_commitments_for_decision
 from .persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
-from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
+from .relationship import (
+    RelationshipState,
+    appraise_event,
+    apply_appraisal,
+    apply_decision_relationship_effect,
+    relationship_to_qualitative,
+)
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
 from .consistency import ConsistencyLayer, regeneration_constraints
@@ -1531,12 +1537,11 @@ class InteriorEngine:
         """
 
         dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))
+        apply_decision_relationship_effect(self.relationship, dialogue_act)
         if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:
             top = self.pressures.top()
             if top:
                 top.magnitude = max(0.0, top.magnitude - 0.08)
-            if dialogue_act in {"protect_boundary", "challenge"}:
-                self.relationship.tension = min(1.0, self.relationship.tension + 0.02)
 
     def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool, suppression_traces: list[SuppressionTrace] | None = None):
         # Memory firewall: generated wording is logged as speech evidence, not
