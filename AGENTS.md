@@ -219,11 +219,9 @@ The expected full test command is:
 python -m pytest persona_engine/tests -q
 ```
 
+**`CURRENT_STATUS.md` is the only live numeric status source for the deterministic suite.** Do not maintain or quote a second current pass/skip/warning total in this file. Historical phase-local totals below remain evidence only. Before quoting current verification, read the top `Current production checkpoint` in `persona_engine/docs/CURRENT_STATUS.md` and the newest normal Wayfarer CI run. CI enforces the current count with `python tools/check_current_status_sync.py --pytest-output <captured pytest output>`.
+
 The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELINE.md`; do not replace it with later green results.
-
-**Current production inventory after `renderer-benchmark-v1`: `357 passed, 1 skipped, 1 warning in 32.66s` on Python 3.11.** The focused renderer-benchmark/expression set completed as `11 passed in 2.22s`; the permanent 4-history x 4-probe renderer-swap benchmark passed with `16/16` equal semantic projections and generated `16` blinded paired provider cases. `expression-brief-v1`, `disconnected-transfer-v1`, shared-store `writer-handoff-v1`, and `semantic-residency-v1` remain intact. The sole warning remains the existing Starlette/httpx TestClient deprecation.
-
-Historical phase-local totals remain useful evidence, but they are not the current inventory. Before quoting a test count or head, prefer this block plus the newest normal Wayfarer CI run and relevant evidence file.
 
 ## Current evidence checkpoint
 

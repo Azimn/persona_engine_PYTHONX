@@ -34,4 +34,10 @@ jobs:
           python -m pip install -e '.[test]'
 
       - name: Run deterministic test suite
-        run: python -m pytest persona_engine/tests -q
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pytest persona_engine/tests -q | tee .wayfarer-pytest-summary.txt
+
+      - name: Check current-status documentation sync
+        run: python tools/check_current_status_sync.py --pytest-output .wayfarer-pytest-summary.txt

@@ -8,6 +8,8 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 ## Current production checkpoint
 
+**This block is the only live numeric status source in project prose.** Historical phase sections may retain dated measurements, but current deterministic-suite totals belong here. CI verifies this count against the suite that just ran with `tools/check_current_status_sync.py`.
+
 Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v1` renderer independence, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
