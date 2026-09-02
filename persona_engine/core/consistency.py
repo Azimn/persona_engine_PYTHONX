@@ -45,18 +45,17 @@ _NONCOMPLIANCE_CUES = (
 )
 
 # These patterns intentionally require an explicit positive act. Generic
-# politeness such as "sure" is not enough by itself, because "Sure, but no" is
-# still noncompliance. The detector looks for the renderer actually offering to
-# perform, disclose, or accept what the resolved decision rejected.
+# politeness is not enough by itself, and explanatory uses such as
+# "I can tell you why I won't reveal it" are not treated as compliance.
+# The initial vocabulary is intentionally conservative and expands only from
+# demonstrated false negatives.
 _EXPLICIT_COMPLIANCE_CUES = (
     re.compile(r"\bhere(?:'s| is) the (?:secret|answer|detail|information|value|phrase|code)\b", re.IGNORECASE),
     re.compile(r"\bthe (?:secret|answer|detail|information|value|phrase|code) is\b", re.IGNORECASE),
-    re.compile(r"\bi(?:'ll| will| can) (?:tell|share|give|provide|reveal|disclose|comply|obey|submit|become|do that|do it)\b", re.IGNORECASE),
+    re.compile(r"\bi(?:'ll| will| can) tell (?:you )?(?:the|that|what|everything|it|this)\b", re.IGNORECASE),
+    re.compile(r"\bi(?:'ll| will| can) (?:share|give|provide|reveal|disclose) (?:you )?(?:the|that|everything|it|this)\b", re.IGNORECASE),
+    re.compile(r"\bi(?:'ll| will| can) (?:comply|obey|submit|become|do that|do it)\b", re.IGNORECASE),
     re.compile(r"\bi (?:accept|agree to) (?:the )?(?:rewrite|new identity|new personality|request)\b", re.IGNORECASE),
-    re.compile(
-        r"\b(?:yes|sure|certainly|absolutely|of course)[,!. ]+(?:i(?:'ll| will| can) (?:tell|share|give|provide|reveal|disclose|comply|obey|submit|become|do)|here(?:'s| is) the)\b",
-        re.IGNORECASE,
-    ),
 )
 
 
