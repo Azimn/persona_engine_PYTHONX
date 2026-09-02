@@ -18,7 +18,9 @@ from typing import Any
 
 from persona_engine.evaluation.local_model_session import (
     DEFAULT_OUTPUT_DIR,
+    build_artifact_manifest,
     build_preflight_report,
+    build_selected_model_evidence,
     git_state,
     model_is_installed,
     run_paired_ollama,
@@ -207,6 +209,17 @@ def command_smoke(args: argparse.Namespace) -> int:
         "degradation_reliability": degradation.get("reliability", {}),
         "fallback_detected": not valid,
         "preflight": str((output_dir / "preflight.json").resolve()),
+        "evidence_identity": build_selected_model_evidence(preflight, model),
+        "run_parameters": {
+            "host": args.host.rstrip("/"),
+            "timeout_seconds": args.timeout_seconds,
+            "token_budget": args.token_budget,
+            "thinking_mode": args.thinking_mode,
+        },
+        "artifacts": build_artifact_manifest({
+            "preflight": output_dir / "preflight.json",
+            "degradation": report_path,
+        }),
     }
     _write_summary(output_dir, summary)
     print(json.dumps(summary, indent=2, sort_keys=True))
@@ -245,6 +258,18 @@ def command_full(args: argparse.Namespace) -> int:
             "degradation_reliability": degradation.get("reliability", {}),
             "paired": None,
             "reason": "Full run stopped before paired collection because degradation fallback occurred.",
+            "preflight": str((output_dir / "preflight.json").resolve()),
+            "evidence_identity": build_selected_model_evidence(preflight, model),
+            "run_parameters": {
+                "host": args.host.rstrip("/"),
+                "timeout_seconds": args.timeout_seconds,
+                "token_budget": args.token_budget,
+                "thinking_mode": args.thinking_mode,
+            },
+            "artifacts": build_artifact_manifest({
+                "preflight": output_dir / "preflight.json",
+                "degradation": degradation_path,
+            }),
         }
         _write_summary(output_dir, summary)
         print(json.dumps(summary, indent=2, sort_keys=True))
@@ -285,6 +310,20 @@ def command_full(args: argparse.Namespace) -> int:
             "references_file": str(paired_key_path.resolve()),
             "fallback": paired.get("fallback"),
         },
+        "preflight": str((output_dir / "preflight.json").resolve()),
+        "evidence_identity": build_selected_model_evidence(preflight, model),
+        "run_parameters": {
+            "host": args.host.rstrip("/"),
+            "timeout_seconds": args.timeout_seconds,
+            "token_budget": args.token_budget,
+            "thinking_mode": args.thinking_mode,
+        },
+        "artifacts": build_artifact_manifest({
+            "preflight": output_dir / "preflight.json",
+            "degradation": degradation_path,
+            "paired_responses": paired_responses_path,
+            "paired_references": paired_key_path,
+        }),
     }
     _write_summary(output_dir, summary)
     print(json.dumps(summary, indent=2, sort_keys=True))

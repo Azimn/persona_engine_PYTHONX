@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 
 from persona_engine.evaluation.local_model_session import (
+    build_artifact_manifest,
+    build_selected_model_evidence,
     normalize_ollama_models,
     parse_parameter_billions,
     query_ollama_models,
@@ -85,7 +88,7 @@ def test_coding_specialized_model_is_not_automatically_selected_for_persona_eval
     assert recommendation["comparison_model"] == "general-chat:8b"
 
 
-def test_query_ollama_models_parses_registry_without_network():
+def test_query_ollama_models_parses_registry_without_network(tmp_path):
     class Response:
         def __enter__(self):
             return self
@@ -117,3 +120,31 @@ def test_query_ollama_models_parses_registry_without_network():
     assert error is None
     assert [model.name for model in models] == ["chat:latest"]
     assert models[0].digest == "sha256:registry"
+
+    preflight = {
+        "created_at_utc": "2026-09-02T12:00:00+00:00",
+        "platform": "Windows-test",
+        "python": "3.11.16",
+        "ollama": {
+            "host": "http://localhost:11434",
+            "models": [model.to_dict() for model in models],
+        },
+    }
+    evidence = build_selected_model_evidence(preflight, "chat:latest")
+    assert evidence is not None
+    assert evidence["model"]["digest"] == "sha256:registry"
+    assert evidence["model"]["parameter_size"] == "3B"
+    assert evidence["ollama_host"] == "http://localhost:11434"
+    assert build_selected_model_evidence(preflight, "missing:latest") is None
+
+    artifact = tmp_path / "result.json"
+    artifact.write_text('{"ok": true}\n', encoding="utf-8")
+    manifest = build_artifact_manifest({"result": artifact, "missing": tmp_path / "missing.json"})
+    expected = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    assert manifest == {
+        "result": {
+            "filename": "result.json",
+            "sha256": expected,
+            "size_bytes": artifact.stat().st_size,
+        }
+    }

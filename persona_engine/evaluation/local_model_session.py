@@ -392,6 +392,54 @@ def run_paired_ollama(
     return report, 0 if report["valid_actual_model_run"] else 2
 
 
+def build_selected_model_evidence(preflight: dict[str, Any], model_name: str | None) -> dict[str, Any] | None:
+    """Bind a returned result to the exact installed Ollama registry record.
+
+    Model tags can be mutable. The registry digest, parameter size, and
+    quantization therefore travel with the compact session summary rather than
+    remaining available only through a machine-local preflight path.
+    """
+
+    if not model_name:
+        return None
+    ollama = preflight.get("ollama", {})
+    if not isinstance(ollama, dict):
+        return None
+    selected = next(
+        (dict(row) for row in ollama.get("models", []) if isinstance(row, dict) and row.get("name") == model_name),
+        None,
+    )
+    if selected is None:
+        return None
+    return {
+        "preflight_created_at_utc": preflight.get("created_at_utc"),
+        "platform": preflight.get("platform"),
+        "python": preflight.get("python"),
+        "ollama_host": ollama.get("host"),
+        "model": selected,
+    }
+
+
+def build_artifact_manifest(paths: dict[str, str | Path]) -> dict[str, dict[str, Any]]:
+    """Return portable hashes for evidence files already written by a session."""
+
+    manifest: dict[str, dict[str, Any]] = {}
+    for label, raw_path in sorted(paths.items()):
+        path = Path(raw_path)
+        if not path.is_file():
+            continue
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        manifest[str(label)] = {
+            "filename": path.name,
+            "sha256": digest.hexdigest(),
+            "size_bytes": path.stat().st_size,
+        }
+    return manifest
+
+
 def model_is_installed(preflight: dict[str, Any], model_name: str) -> bool:
     return any(
         row.get("name") == model_name and row.get("eligible_for_text_eval")
