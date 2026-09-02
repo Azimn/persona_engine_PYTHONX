@@ -1,0 +1,31 @@
+name: Adjacent Epistemic Prototype
+
+on:
+  push:
+    branches: [wayfarer-adjacent-research-phase]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Verify epistemic prototype
+        run: python -m pytest persona_engine/tests/test_epistemic_ledger.py -q
+      - name: Verify deterministic suite
+        run: python -m pytest persona_engine/tests -q
