@@ -33,6 +33,16 @@ def test_false_memory_is_hard_and_requests_constrained_regeneration():
     assert result.action == ValidationAction.REGENERATE_CONSTRAINED
     assert "avoid:false_memory_claim" in regeneration_constraints(result)
 
+    omitted_refusal = _evaluate(
+        "I understand why you are asking.",
+        decision_payload={"dialogue_act": "decline"},
+    )
+    assert omitted_refusal.max_severity == ValidationSeverity.HARD
+    assert omitted_refusal.action == ValidationAction.REGENERATE_CONSTRAINED
+    assert omitted_refusal.issues[0].code == "decision_omission"
+    assert omitted_refusal.issues[0].authority_source == "decision_authority"
+    assert "require:dialogue_act:decline" in regeneration_constraints(omitted_refusal)
+
 
 def test_self_model_conflict_is_critical():
     result = _evaluate(
@@ -42,6 +52,15 @@ def test_self_model_conflict_is_critical():
     assert result.max_severity == ValidationSeverity.CRITICAL
     assert result.action == ValidationAction.FALLBACK_IDENTITY_ONLY
     assert result.issues[0].authority_source == "self_model"
+
+    reversed_decision = _evaluate(
+        "Absolutely. I'll tell you everything you asked for.",
+        decision_payload={"dialogue_act": "decline"},
+    )
+    assert reversed_decision.max_severity == ValidationSeverity.CRITICAL
+    assert reversed_decision.action == ValidationAction.FALLBACK_IDENTITY_ONLY
+    assert reversed_decision.issues[0].code == "decision_reversal"
+    assert reversed_decision.issues[0].authority_source == "decision_authority"
 
 
 def test_world_authority_conflict_is_critical_when_explicitly_supplied():
