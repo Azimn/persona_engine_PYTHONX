@@ -1,0 +1,86 @@
+"""One-shot durable documentation synchronization for verified Wayfarer Phase C2."""
+
+from pathlib import Path
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    file = Path(path)
+    text = file.read_text(encoding="utf-8")
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"expected exactly one match in {path}, found {count}: {old[:140]!r}")
+    file.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+
+def main() -> None:
+    plan = "WAYFARER_CHARACTER_CONTROL_PLAN.md"
+    replace_once(
+        plan,
+        "Phase C is active. C1 has separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. The same manipulation stimulus now resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering, while hard identity mutation remains core-owned. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Relationship appraisal dynamics and executable values remain active Phase C work.",
+        "Phase C is active. C1 separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. C2 then demonstrated and repaired a relationship-convergence defect without adding per-character relationship equations: the subject's already-resolved semantic conduct now has a tiny generic causal effect vocabulary (`challenge` sustains tension, `withdraw` sustains guardedness, and `protect_boundary` sustains tension). The same four manipulation turns now end with Pretorius guardedness `0.724`, Friendly guardedness `0.644`, and Rival tension `0.32`, while renderer wording remains outside the write path. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `persona_engine/evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `persona_engine/evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Executable values remain the active Phase C work.",
+    )
+    replace_once(
+        plan,
+        "- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection is complete; relationship dynamics and executable values remain.",
+        "- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection and C2 decision-owned relationship consequences are complete; executable values remain.",
+    )
+    replace_once(
+        plan,
+        """## Immediate Active Work
+
+Phase C is the current implementation target. C1 has demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants.
+
+The next controlled question is relationship convergence. Friendly, Rival, and Pretorius still pass through the same base trust, tension, attachment, respect, guardedness, and unresolved-conflict equations before their later conduct can diverge. Do not add broad personality constants merely because this is visible in code. First create controlled identical-history comparisons that demonstrate a behaviorally meaningful failure, then introduce the smallest character-owned sensitivity contract that repairs that failure.
+
+After relationship dynamics are supported by evidence, continue Priority 6 by making authored values and moral boundaries executable decision inputs. Host safety and capability remain separate from character willingness.
+
+Phase D real-model collection follows once the Phase C semantic kernel is stable enough that model failures can be attributed to the renderer rather than unresolved shared-character policy.
+
+A future agent should begin here rather than inventing a new priority list from chat history.""",
+        """## Immediate Active Work
+
+Phase C is the current implementation target. C1 demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants. C2 demonstrated that different decisions were still converging to identical relationship trajectories, froze that negative result, and repaired the failure with bounded generic consequences of the subject's own semantic conduct rather than per-character relationship equations.
+
+Priority 6 is now the active controlled question: make authored values and moral boundaries executable decision inputs. Start from the existing cartridge identity data and normalized `phenotype.values` namespace. First construct a controlled cross-character case showing that descriptive values currently fail to change semantic conduct. Then introduce the smallest typed representation that repairs that demonstrated failure. A sparse rule, enum, or small bounded numeric value is preferable to a broad trait matrix when it is causally sufficient. Do not introduce OCEAN, Big Five, or another generalized personality model solely for standardization or descriptive completeness.
+
+Keep host safety and capability separate from character willingness. Hard identity invariants remain distinct from authored moral preferences. Preserve renderer independence by resolving any value conflict before language realization and exposing the cause in typed decision evidence.
+
+Phase D real-model collection follows once the Phase C semantic kernel is stable enough that model failures can be attributed to the renderer rather than unresolved shared-character policy.
+
+A future agent should begin here rather than inventing a new priority list from chat history.""",
+    )
+
+    status = "persona_engine/docs/CURRENT_STATUS.md"
+    replace_once(status, "Full deterministic suite: 366 passed, 1 skipped, 1 warning", "Full deterministic suite: 371 passed, 1 skipped, 1 warning")
+    replace_once(
+        status,
+        "Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**",
+        "Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**",
+    )
+    replace_once(
+        status,
+        "Character disposition C1 moves seven soft social-response preferences out of universal engine policy and into cartridge-owned data. In the current cross-character regression, identical manipulation resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering. Hard identity mutation remains a core-owned `character_refusal` for all three. Relationship appraisal equations remain generic and are the next explicit convergence question.\n\nEvidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, and `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Design documentation: `CHARACTER_DISPOSITIONS.md`.",
+        "Character disposition C1 moves seven soft social-response preferences out of universal engine policy and into cartridge-owned data. In the cross-character regression, identical manipulation resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering. Hard identity mutation remains a core-owned `character_refusal` for all three.\n\nC2 froze a remaining convergence defect: despite those different decisions, identical social histories originally produced identical relationship trajectories. The repair keeps the base appraisal equations generic and adds only three currently demonstrated decision-owned effects: `challenge` adds `0.02` tension, `withdraw` adds `0.02` guardedness, and `protect_boundary` adds `0.02` tension. After four manipulation turns, Pretorius ends at guardedness `0.724`, Friendly at guardedness `0.644`, and Rival at tension `0.32` versus `0.24` for the others. A typed `decision_effects` trace is persisted and returned, and renderer wording cannot alter it. No per-character relationship sensitivity matrix was introduced.\n\nEvidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Design documentation: `CHARACTER_DISPOSITIONS.md` and `RELATIONSHIP_DECISION_CONSEQUENCES.md`.",
+    )
+
+    progress = "persona_engine/docs/WAYFARER_PROGRESS.md"
+    replace_once(
+        progress,
+        "Phase C1 now separates soft social response preference from global engine policy. The engine owns a small bounded response vocabulary and hard identity invariants; cartridges own seven soft trigger preferences. The same manipulation stimulus produces three different pre-render semantic acts in the current fixtures: Pretorius `withdraw`, Friendly `deflect`, and Rival `challenge`. Identical identity mutation still produces core-owned `character_refusal` for all three.\n\nFull branch verification after C1: Python 3.11 `366 passed, 1 skipped, 1 warning`; Python 3.12 also green with the same inventory. Evidence is `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`; design notes are `CHARACTER_DISPOSITIONS.md`. Relationship appraisal dynamics remain shared and are the next Phase C convergence experiment.",
+        "Phase C1 separates soft social response preference from global engine policy. The engine owns a small bounded response vocabulary and hard identity invariants; cartridges own seven soft trigger preferences. The same manipulation stimulus produces three different pre-render semantic acts in the current fixtures: Pretorius `withdraw`, Friendly `deflect`, and Rival `challenge`. Identical identity mutation still produces core-owned `character_refusal` for all three.\n\nPhase C2 then froze a concrete relationship-convergence failure: those different semantic acts still produced identical final relationship state under identical histories. The repair leaves incoming-event appraisal generic and adds only bounded consequences of the subject's own already-resolved conduct. `challenge` contributes `+0.02` tension, `withdraw` contributes `+0.02` guardedness, and `protect_boundary` contributes `+0.02` tension. The engine persists and returns a typed `decision_effects` causal trace; renderer wording remains outside the state write path. Repeated manipulation now ends with Pretorius guardedness `0.724`, Friendly guardedness `0.644`, and Rival tension `0.32` versus `0.24` for the others.\n\nFull C2 branch verification: Python 3.11 `371 passed, 1 skipped, 1 warning`; Python 3.12 `371 passed, 1 skipped, 1 warning`. The permanent relationship convergence probe passed on both. Evidence is `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md` and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`; design notes are `RELATIONSHIP_DECISION_CONSEQUENCES.md`. Priority 6 executable values is the next Phase C experiment.",
+    )
+    replace_once(
+        progress,
+        "Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.",
+        "Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.",
+    )
+    replace_once(progress, "Full deterministic suite: 366 passed, 1 skipped, 1 warning", "Full deterministic suite: 371 passed, 1 skipped, 1 warning")
+    replace_once(
+        progress,
+        "Evidence: `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`, `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.",
+        "Evidence: `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`, `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`, `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.",
+    )
+
+
+if __name__ == "__main__":
+    main()
