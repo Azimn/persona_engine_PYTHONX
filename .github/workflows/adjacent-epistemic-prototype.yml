@@ -41,5 +41,19 @@ jobs:
           assert data['subject_context_is_input'] is False
           print(json.dumps(data, indent=2, sort_keys=True))
           PY
+      - name: Run memory encoding subjectivity baseline
+        shell: bash
+        run: |
+          python -m persona_engine.evaluation.memory_encoding_subjectivity > memory-encoding-subjectivity-baseline.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('memory-encoding-subjectivity-baseline.json').read_text())
+          assert data['case_count'] == 3
+          assert data['unique_memory_signatures'] == 1
+          assert data['all_memory_signatures_identical'] is True
+          assert data['character_profile_is_encoding_input'] is False
+          print(json.dumps(data, indent=2, sort_keys=True))
+          PY
       - name: Verify deterministic suite
         run: python -m pytest persona_engine/tests -q
