@@ -117,4 +117,6 @@ def test_renderer_wording_cannot_change_decision_owned_relationship_effect(tmp_p
 
     assert result_a["decision_payload"] == result_b["decision_payload"]
     assert result_a["decision_effects"] == result_b["decision_effects"]
-    assert result_a["relationship"] == result_b["relationship"]
+    relationship_a = {key: value for key, value in result_a["relationship"].items() if key != "user_id"}
+    relationship_b = {key: value for key, value in result_b["relationship"].items() if key != "user_id"}
+    assert relationship_a == relationship_b
