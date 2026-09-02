@@ -12,7 +12,7 @@ Phase A is complete and merged into `wayfarer` at `42f9158aa0fcbf7dd6b65064204e2
 
 Phase B is complete and merged into `wayfarer` at `983301332b72cf639cea82bba13bd168668703d3`. It established typed behavioral realization validation so a renderer cannot silently reverse or omit an already-resolved character decision. Evidence: `persona_engine/evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`.
 
-Phase C is active. C1 has separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. The same manipulation stimulus now resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering, while hard identity mutation remains core-owned. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Relationship appraisal dynamics and executable values remain active Phase C work.
+Phase C is active. C1 separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. C2 then demonstrated and repaired a relationship-convergence defect without adding per-character relationship equations: the subject's already-resolved semantic conduct now has a tiny generic causal effect vocabulary (`challenge` sustains tension, `withdraw` sustains guardedness, and `protect_boundary` sustains tension). The same four manipulation turns now end with Pretorius guardedness `0.724`, Friendly guardedness `0.644`, and Rival tension `0.32`, while renderer wording remains outside the write path. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `persona_engine/evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `persona_engine/evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Executable values remain the active Phase C work.
 
 This file is durable project memory. Do not treat the originating chat as the authoritative plan. A future coding agent should be able to continue this work from the repository alone.
 
@@ -295,7 +295,7 @@ Implement in this order unless a failing test reveals a dependency:
 
 - [x] Phase A: versioned renderer trust boundary, raw-input separation, disclosure-aware projection, first-person subject position.
 - [x] Phase B: behavioral contract validation against rendered output.
-- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection is complete; relationship dynamics and executable values remain.
+- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection and C2 decision-owned relationship consequences are complete; executable values remain.
 - [ ] Phase D: real local/frontier model collection using frozen cases.
 - [ ] Phase E: independent adversarial multi-character cross-model benchmark.
 - [ ] Phase F: ablation and resource measurement to identify the minimum sufficient character kernel.
@@ -313,11 +313,11 @@ Implement in this order unless a failing test reveals a dependency:
 
 ## Immediate Active Work
 
-Phase C is the current implementation target. C1 has demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants.
+Phase C is the current implementation target. C1 demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants. C2 demonstrated that different decisions were still converging to identical relationship trajectories, froze that negative result, and repaired the failure with bounded generic consequences of the subject's own semantic conduct rather than per-character relationship equations.
 
-The next controlled question is relationship convergence. Friendly, Rival, and Pretorius still pass through the same base trust, tension, attachment, respect, guardedness, and unresolved-conflict equations before their later conduct can diverge. Do not add broad personality constants merely because this is visible in code. First create controlled identical-history comparisons that demonstrate a behaviorally meaningful failure, then introduce the smallest character-owned sensitivity contract that repairs that failure.
+Priority 6 is now the active controlled question: make authored values and moral boundaries executable decision inputs. Start from the existing cartridge identity data and normalized `phenotype.values` namespace. First construct a controlled cross-character case showing that descriptive values currently fail to change semantic conduct. Then introduce the smallest typed representation that repairs that demonstrated failure. A sparse rule, enum, or small bounded numeric value is preferable to a broad trait matrix when it is causally sufficient. Do not introduce OCEAN, Big Five, or another generalized personality model solely for standardization or descriptive completeness.
 
-After relationship dynamics are supported by evidence, continue Priority 6 by making authored values and moral boundaries executable decision inputs. Host safety and capability remain separate from character willingness.
+Keep host safety and capability separate from character willingness. Hard identity invariants remain distinct from authored moral preferences. Preserve renderer independence by resolving any value conflict before language realization and exposing the cause in typed decision evidence.
 
 Phase D real-model collection follows once the Phase C semantic kernel is stable enough that model failures can be attributed to the renderer rather than unresolved shared-character policy.
 

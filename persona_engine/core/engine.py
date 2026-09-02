@@ -39,7 +39,13 @@ from .cold_biography import (
 from .decision_memory import evaluate_history_for_decision
 from .decision_commitment import evaluate_commitments_for_decision
 from .persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
-from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative
+from .relationship import (
+    RelationshipState,
+    appraise_event,
+    apply_appraisal,
+    apply_decision_relationship_effect,
+    relationship_to_qualitative,
+)
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
 from .consistency import ConsistencyLayer, regeneration_constraints
@@ -1449,7 +1455,7 @@ class InteriorEngine:
                 "memory_types": ["validation"],
             })
 
-        self._appraise_decision_effect(decision_payload, risk, bucket)
+        decision_effects = self._appraise_decision_effect(decision_payload, risk, bucket)
         self.interface.mark_output(now)
 
         self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
@@ -1472,6 +1478,7 @@ class InteriorEngine:
             "bucket": bucket,
             "dominant_pressure": dominant_name,
             "decision_payload": decision_payload,
+            "decision_effects": decision_effects,
             "cognitive_application_report": cognition_report_payload,
             "appraisal": vars(appraisal),
             "violations": violations,
@@ -1507,6 +1514,7 @@ class InteriorEngine:
             "interpretive_belief_trace": [b.to_dict() for b in interpretive_beliefs],
             "interpretation_source_digest": interpretation_result.source_digest,
             "decision_payload": decision_payload,
+            "decision_effects": decision_effects,
             "cognitive_application_report": cognition_report_payload,
             "retrieved_memory_trace": retrieved_memory_trace,
             "public_status": self.public_status(bucket, dominant_name),
@@ -1531,12 +1539,19 @@ class InteriorEngine:
         """
 
         dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))
+        relationship_effects = apply_decision_relationship_effect(self.relationship, dialogue_act)
+        pressure_relief = 0.0
         if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:
             top = self.pressures.top()
             if top:
+                before = float(top.magnitude)
                 top.magnitude = max(0.0, top.magnitude - 0.08)
-            if dialogue_act in {"protect_boundary", "challenge"}:
-                self.relationship.tension = min(1.0, self.relationship.tension + 0.02)
+                pressure_relief = round(before - float(top.magnitude), 6)
+        return {
+            "dialogue_act": dialogue_act,
+            "relationship": relationship_effects,
+            "pressure_relief": pressure_relief,
+        }
 
     def _post_speech_update(self, user_text, response, risk, appraisal, now, identity_violation: bool, suppression_traces: list[SuppressionTrace] | None = None):
         # Memory firewall: generated wording is logged as speech evidence, not

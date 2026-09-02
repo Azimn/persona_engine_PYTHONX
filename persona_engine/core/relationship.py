@@ -99,6 +99,37 @@ def _cap(delta: float, cap: float) -> float:
     return max(-cap, min(cap, delta))
 
 
+# Bounded consequences of the subject's own resolved conduct. These are generic
+# semantics of an act, not personality constants. Character-specific variance
+# enters earlier when the core selects which act this subject takes.
+#
+# Keep this map deliberately narrow. Each effect must be earned by a controlled
+# continuity failure rather than by plausibility alone. ``protect_boundary``
+# retains the tension consequence that already existed in the engine before C2.
+DECISION_RELATIONSHIP_EFFECTS: dict[str, dict[str, float]] = {
+    "challenge": {"tension": 0.02},
+    "withdraw": {"guardedness": 0.02},
+    "protect_boundary": {"tension": 0.02},
+}
+
+
+def apply_decision_relationship_effect(rel: RelationshipState, dialogue_act: str) -> dict[str, float]:
+    """Apply small typed consequences of character-owned semantic conduct.
+
+    Renderer wording has no role here. The only input is the dialogue act already
+    resolved by the character core. Returned deltas are diagnostic evidence.
+    """
+
+    effects = DECISION_RELATIONSHIP_EFFECTS.get(str(dialogue_act), {})
+    applied: dict[str, float] = {}
+    for field, delta in effects.items():
+        before = float(getattr(rel, field))
+        after = max(0.0, min(1.0, before + float(delta)))
+        setattr(rel, field, after)
+        applied[field] = round(after - before, 6)
+    return applied
+
+
 def apply_appraisal(rel: RelationshipState, appraisal: AppraisalResult, major_event: bool = False):
     trust_cap = 1.0 if major_event else MAX_TRUST_DELTA
     attach_cap = 1.0 if major_event else MAX_ATTACHMENT_DELTA
