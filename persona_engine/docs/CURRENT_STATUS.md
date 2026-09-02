@@ -10,7 +10,7 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 **This block is the only live numeric status source in project prose.** Historical phase sections may retain dated measurements, but current deterministic-suite totals belong here. CI verifies this count against the suite that just ran with `tools/check_current_status_sync.py`.
 
-Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v1` renderer independence, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
+Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
@@ -18,16 +18,28 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 362 passed, 1 skipped, 1 warning
+Full deterministic suite: 366 passed, 1 skipped, 1 warning
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
+
+## Character-control plane checkpoint
+
+The current renderer boundary is `wayfarer-expression-brief-v2`. Trusted character-control state is separated from untrusted current input and natural-language evidence, the model receives deterministic first-person subject framing derived from structured state, and protected values can be withheld from renderer-visible context.
+
+The consistency layer now validates behavioral realization of the already-resolved decision. A direct decision reversal is critical; omission of a required refusal or boundary is hard and receives one bounded constrained retry before fallback. The validator remains a fidelity checker rather than a second planner.
+
+Character disposition C1 moves seven soft social-response preferences out of universal engine policy and into cartridge-owned data. In the current cross-character regression, identical manipulation resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering. Hard identity mutation remains a core-owned `character_refusal` for all three. Relationship appraisal equations remain generic and are the next explicit convergence question.
+
+Evidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, and `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Design documentation: `CHARACTER_DISPOSITIONS.md`.
 
 The authoritative renderer-degradation evidence is `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`; renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
 ## Expression-substrate continuity checkpoint
 
-`expression-brief-v1` makes the already-resolved character moment the common language-rendering boundary. Ollama, local-HF completion, host-supplied external/frontier callbacks, and deterministic offline realization now consume the same JSON-safe brief carrying the semantic decision, selected relevant memories, relationship posture, developmental state, affect, voice constraints, continuity cues, and expression limits. The brief is explicitly noncanonical and expression-only.
+The `expression-brief-v1` material in this section is preserved as historical checkpoint evidence. Current production uses `wayfarer-expression-brief-v2` as described above.
+
+`expression-brief-v1` made the already-resolved character moment the common language-rendering boundary. Ollama, local-HF completion, host-supplied external/frontier callbacks, and deterministic offline realization now consume the same JSON-safe brief carrying the semantic decision, selected relevant memories, relationship posture, developmental state, affect, voice constraints, continuity cues, and expression limits. The brief is explicitly noncanonical and expression-only.
 
 The deterministic offline renderer may select optional cartridge-authored `group__guarded`, `group__conflicted`, `group__trusted`, or `group__close` variants. Missing variants fall back to the existing base dialogue bank, so generic core code does not acquire character-specific prose. Pretorius now uses this seam for several high-value relational acts so visibly different accumulated relationship histories alter offline performance rather than merely internal state.
 

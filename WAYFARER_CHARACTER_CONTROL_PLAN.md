@@ -6,6 +6,14 @@ Branch target: `wayfarer`
 
 Created from external adversarial architecture review, 2026-09-02.
 
+## Implementation Ledger
+
+Phase A is complete and merged into `wayfarer` at `42f9158aa0fcbf7dd6b65064204e20f4825bc1de`. It established the versioned renderer trust boundary, deterministic first-person subject projection, and least-privilege protected-value disclosure. Evidence: `persona_engine/evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`.
+
+Phase B is complete and merged into `wayfarer` at `983301332b72cf639cea82bba13bd168668703d3`. It established typed behavioral realization validation so a renderer cannot silently reverse or omit an already-resolved character decision. Evidence: `persona_engine/evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`.
+
+Phase C is active. C1 has separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. The same manipulation stimulus now resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering, while hard identity mutation remains core-owned. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Relationship appraisal dynamics and executable values remain active Phase C work.
+
 This file is durable project memory. Do not treat the originating chat as the authoritative plan. A future coding agent should be able to continue this work from the repository alone.
 
 ## North Star
@@ -285,9 +293,9 @@ Existing verified contracts in these areas must not be weakened.
 
 Implement in this order unless a failing test reveals a dependency:
 
-- [ ] Phase A: versioned renderer trust boundary, raw-input separation, disclosure-aware projection, first-person subject position.
-- [ ] Phase B: behavioral contract validation against rendered output.
-- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them.
+- [x] Phase A: versioned renderer trust boundary, raw-input separation, disclosure-aware projection, first-person subject position.
+- [x] Phase B: behavioral contract validation against rendered output.
+- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection is complete; relationship dynamics and executable values remain.
 - [ ] Phase D: real local/frontier model collection using frozen cases.
 - [ ] Phase E: independent adversarial multi-character cross-model benchmark.
 - [ ] Phase F: ablation and resource measurement to identify the minimum sufficient character kernel.
@@ -305,16 +313,12 @@ Implement in this order unless a failing test reveals a dependency:
 
 ## Immediate Active Work
 
-The next implementation phase starts with Priority 0, Priority 1, and Priority 2 together because they share the renderer boundary:
+Phase C is the current implementation target. C1 has demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants.
 
-- [ ] Introduce a versioned expression contract that keeps raw user input out of the privileged control block.
-- [ ] Separate trusted control state from untrusted evidence/memory text.
-- [ ] Add a deterministic first-person subject-position projection.
-- [ ] Redact protected values from renderer-visible state when the decision does not permit disclosure.
-- [ ] Add regression tests for prompt-injection text in current input and retrieved memory.
-- [ ] Add regression tests proving protected values are absent from renderer messages.
-- [ ] Preserve the existing frozen v1 benchmark artifacts as historical evidence.
-- [ ] Run the focused renderer/consistency tests, then the full deterministic suite.
-- [ ] Update project status and evidence before merging.
+The next controlled question is relationship convergence. Friendly, Rival, and Pretorius still pass through the same base trust, tension, attachment, respect, guardedness, and unresolved-conflict equations before their later conduct can diverge. Do not add broad personality constants merely because this is visible in code. First create controlled identical-history comparisons that demonstrate a behaviorally meaningful failure, then introduce the smallest character-owned sensitivity contract that repairs that failure.
+
+After relationship dynamics are supported by evidence, continue Priority 6 by making authored values and moral boundaries executable decision inputs. Host safety and capability remain separate from character willingness.
+
+Phase D real-model collection follows once the Phase C semantic kernel is stable enough that model failures can be attributed to the renderer rather than unresolved shared-character policy.
 
 A future agent should begin here rather than inventing a new priority list from chat history.
