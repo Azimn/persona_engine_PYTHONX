@@ -158,11 +158,43 @@ Evidence on the experimental branch:
 
 Next gate: demonstrate an actual shared-world failure where subject A witnesses an event, subject B does not, and B nevertheless receives the event through the current visibility projection. If that occurs, extend World Authority minimally with actor-scoped visibility or observation receipts rather than creating another memory store.
 
+### Character-relative autobiographical encoding
+
+Status: **write-time convergence demonstrated; no subjective encoding mechanism implemented**
+
+Wayfarer already allows characters to diverge after an event through relationship state, pressures, behavioral dispositions, private cognition, retrieval, decision constraints, and rendering. The ordinary autobiographical write itself is narrower. `InteriorEngine._post_speech_update` constructs `USER_TOLD` memories from the incoming event, appraisal/risk values, and identity-violation status; it does not consult cartridge temperament, values, goals, cognitive themes, or a character-owned encoding profile. `private_cognition.validate_and_apply` explicitly does not mutate memory.
+
+The experimental `memory-encoding-subjectivity-baseline-v1` sends the same neutral event to Friendly, Pretorius, and Rival:
+
+```text
+I found a small silver locket in the hallway.
+```
+
+All three stored the same typed autobiographical signature, excluding generated IDs and timestamps:
+
+```text
+case_count = 3
+unique_memory_signatures = 1
+all_memory_signatures_identical = true
+character_profile_is_encoding_input = false
+```
+
+The shared record was `I heard you say: I found a small silver locket in the hallway.` with emotional intensity `0.0`, valence `0.2`, identity relevance `0.2`, relationship relevance `0.6`, source `user_told`, and the generic `canonical_user_statement` tag. This remained identical for Friendly (`Warm, patient, grounded`), Pretorius (`Melancholic and defensive`), and Rival (`Competitive, sharp, unsentimental`). The baseline and the complete experimental workflow passed on Python 3.11 and 3.12. The experimental suite remained `397 passed, 1 skipped, 2 warnings` on each runtime.
+
+Evidence on the experimental branch:
+
+- `persona_engine/evaluation/memory_encoding_subjectivity.py`
+- `persona_engine/evidence/mvi/MEMORY_ENCODING_SUBJECTIVITY_GAP.md`
+
+This result establishes a representation fact, not a defect by itself. Different characters may already diverge sufficiently through later appraisal, retrieval, cognition, and decision layers. A personality-conditioned encoder would therefore be premature.
+
+Next gate: freeze a longitudinal case in which two contrasting subjects experience the same event, substantial unrelated interference follows, and current later behavior converges because the original record preserved no subject-relative salience or interpretation. Only if that behavioral failure appears should the smallest subject-relative encoding projection be tested. The immutable experience must remain separate from any revisable interpretation or salience annotation.
+
 ## Deliberately not implemented yet
 
-Character-mediated subjective memory encoding remains an open research candidate. Subject-relative appraisal has a demonstrated gap but no replacement subsystem. Witness scope has a plausible multi-subject limitation but no demonstrated shared-world failure. Causal associative retrieval has a verified read-only primitive but no production link-creation policy.
+Subject-relative appraisal has a demonstrated gap but no replacement subsystem. Character-relative autobiographical encoding now has a demonstrated write-time convergence baseline but no demonstrated longitudinal behavioral failure. Witness scope has a plausible multi-subject limitation but no demonstrated shared-world failure. Causal associative retrieval has a verified read-only primitive but no production link-creation policy.
 
-The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, per-actor visibility ACL machinery before a shared-world failure exists, recursive spreading activation, or automatic persona rewriting.
+The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, per-actor visibility ACL machinery before a shared-world failure exists, recursive spreading activation, personality-weighted memory rewriting, or automatic persona rewriting.
 
 ## Promotion rule
 
