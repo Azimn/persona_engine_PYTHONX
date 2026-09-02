@@ -13,6 +13,7 @@ from enum import IntEnum
 from typing import Any
 
 from .identity import SelfModel, SelfModelClaim
+from .decision_values import validate_value_decision_rules
 
 V1_SCHEMA_VERSION = "1.0"
 V2_SCHEMA_VERSION = "2.0"
@@ -164,6 +165,12 @@ def validate_phenotype(data: Any) -> None:
     for namespace in PHENOTYPE_NAMESPACES:
         if namespace in data and not isinstance(data[namespace], dict):
             raise ValueError(f"[phenotype.{namespace}] must be a table")
+    values = data.get("values", {})
+    if "decision_rules" in values:
+        try:
+            validate_value_decision_rules(values["decision_rules"])
+        except ValueError as exc:
+            raise ValueError(f"[phenotype.values].decision_rules: {exc}") from exc
 
 
 def validate_portability(data: Any) -> None:
@@ -214,7 +221,10 @@ def migrate_v1_to_v2_data(data: dict[str, Any]) -> dict[str, Any]:
         "state_semantics": "authored_baseline",
         "personality": {"temperament": identity.get("temperament", ""), "core_beliefs": copy.deepcopy(identity.get("core_beliefs", []))},
         "social_behavior": {},
-        "values": {"moral_boundaries": copy.deepcopy(identity.get("moral_boundaries", []))},
+        "values": {
+            "moral_boundaries": copy.deepcopy(identity.get("moral_boundaries", [])),
+            "decision_rules": copy.deepcopy(migrated.get("value_profile", {})),
+        },
         "behavioral_tendencies": {"prohibited_mutations": copy.deepcopy(identity.get("prohibited_mutations", []))},
         "communication": {"speech_constraints": copy.deepcopy(identity.get("speech_constraints", [])), "voice": copy.deepcopy(migrated.get("voice", {}))},
         "preferences": {},

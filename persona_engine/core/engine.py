@@ -38,6 +38,7 @@ from .cold_biography import (
 )
 from .decision_memory import evaluate_history_for_decision
 from .decision_commitment import evaluate_commitments_for_decision
+from .decision_values import evaluate_values_for_decision
 from .persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .relationship import (
     RelationshipState,
@@ -833,7 +834,7 @@ class InteriorEngine:
         raw = top.magnitude * inhibition_weakness * depletion_multiplier * restlessness_multiplier * trigger_match
         return max(0.0, min(1.0, raw))
 
-    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None, commitment_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None, commitment_evidence: dict[str, Any] | None = None, value_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
         """Resolve semantic conduct independently from expression intensity.
 
         A HIGH risk bucket may shorten/guard expression, but arousal alone is not
@@ -846,6 +847,7 @@ class InteriorEngine:
         dialogue_act = "challenge" if suspicion_value >= 0.60 else "respond"
         history_payload = dict(history_evidence or {})
         commitment_payload = dict(commitment_evidence or {})
+        value_payload = dict(value_evidence or {})
         # Retrieved lived history may qualify a present trust/commitment decision,
         # but it never outranks explicit identity/resistance policy and never
         # mutates relationship state on its own.
@@ -858,6 +860,9 @@ class InteriorEngine:
             dialogue_act = "decline"
         if resistance == "character_refusal":
             dialogue_act = "protect_boundary"
+        elif bool(value_payload.get("active")):
+            if str(value_payload.get("response", "none")) == "decline":
+                dialogue_act = "decline"
         elif resistance == "challenge":
             dialogue_act = "challenge"
         elif resistance == "go_quiet":
@@ -878,6 +883,7 @@ class InteriorEngine:
             "risk_bucket": bucket_risk(risk),
             "history_evidence": history_payload or {"active": False, "strength": 0.0, "memory_ids": [], "reason": "none"},
             "commitment_evidence": commitment_payload or {"active": False, "commitment_kind": "none", "commitment_target": "", "intention_name": "", "reason": "none"},
+            "value_evidence": value_payload or {"active": False, "concern": "none", "response": "none", "source": "none", "reason": "none"},
         }
 
     # ---------------- v10 sensory and embodiment plumbing ----------------
@@ -1175,6 +1181,10 @@ class InteriorEngine:
             user_text,
             self.intentions.active_commitments(now),
         )
+        value_rules = (
+            ((self.cartridge_data or {}).get("phenotype", {}).get("values", {}) or {}).get("decision_rules", {})
+        )
+        value_evidence = evaluate_values_for_decision(user_text, value_rules)
 
         triggers = []
         if forced_rewrite:
@@ -1206,12 +1216,20 @@ class InteriorEngine:
             resistance,
             history_evidence=history_evidence.to_dict(),
             commitment_evidence=commitment_evidence.to_dict(),
+            value_evidence=value_evidence.to_dict(),
         )
         if commitment_evidence.active:
             suppression_traces.append(_suppression_trace(
                 "commitment_constraint",
                 "constrained",
                 f"{commitment_evidence.commitment_kind}:{commitment_evidence.commitment_target}",
+                "info",
+            ))
+        if value_evidence.active:
+            suppression_traces.append(_suppression_trace(
+                "value_constraint",
+                "constrained",
+                f"{value_evidence.concern}:{value_evidence.response}",
                 "info",
             ))
         if resistance:
