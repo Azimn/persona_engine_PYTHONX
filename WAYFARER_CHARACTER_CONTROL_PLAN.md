@@ -1,6 +1,6 @@
 # Project Wayfarer Character Control Plane Plan
 
-Status: ACTIVE IMPLEMENTATION PRIORITY
+Status: PHASE D ACTIVE, PHASE C COMPLETE
 
 Branch target: `wayfarer`
 
@@ -12,7 +12,7 @@ Phase A is complete and merged into `wayfarer` at `42f9158aa0fcbf7dd6b65064204e2
 
 Phase B is complete and merged into `wayfarer` at `983301332b72cf639cea82bba13bd168668703d3`. It established typed behavioral realization validation so a renderer cannot silently reverse or omit an already-resolved character decision. Evidence: `persona_engine/evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`.
 
-Phase C is active. C1 separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. C2 then demonstrated and repaired a relationship-convergence defect without adding per-character relationship equations: the subject's already-resolved semantic conduct now has a tiny generic causal effect vocabulary (`challenge` sustains tension, `withdraw` sustains guardedness, and `protect_boundary` sustains tension). The same four manipulation turns now end with Pretorius guardedness `0.724`, Friendly guardedness `0.644`, and Rival tension `0.32`, while renderer wording remains outside the write path. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `persona_engine/evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `persona_engine/evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Executable values remain the active Phase C work.
+Phase C is complete. C1 separated soft social response preference from generic engine policy through a cartridge-owned behavioral disposition profile. C2 demonstrated and repaired a relationship-convergence defect without adding per-character relationship equations: the subject's already-resolved semantic conduct has a tiny generic causal effect vocabulary (`challenge` sustains tension, `withdraw` sustains guardedness, and `protect_boundary` sustains tension). C3 froze a case where descriptive values failed to affect conduct, then repaired it with a sparse typed `phenotype.values.decision_rules` seam. Under the same performative-devotion command Friendly resolves `respond`, while Pretorius resolves `decline` because Pretorius alone authors that executable boundary. Hard identity authority remains higher than authored value preference, and the existing renderer behavioral contract rejects a later renderer reversal. Evidence: `persona_engine/evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `persona_engine/evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, `persona_engine/evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`, `persona_engine/evidence/mvi/EXECUTABLE_VALUES_BASELINE.md`, and `persona_engine/evidence/mvi/EXECUTABLE_VALUE_BOUNDARIES.md`.
 
 This file is durable project memory. Do not treat the originating chat as the authoritative plan. A future coding agent should be able to continue this work from the repository alone.
 
@@ -167,13 +167,13 @@ Authored values currently contain more semantic richness than the deterministic 
 
 Tasks:
 
-- [ ] Define the minimum typed value/boundary representation needed for actual decisions.
-- [ ] Distinguish authored values from temporary goals, relationship state, and explicit commitments.
-- [ ] Represent conflicts between requests and protected concerns before rendering.
-- [ ] Support characters whose values differ from helpful-assistant defaults, including antagonistic, private, deceptive, obedient, status-seeking, fearful, loyal, or self-interested characters.
-- [ ] Do not assume one universal moral ordering.
-- [ ] Preserve host safety/capability as a separate gate from character willingness.
-- [ ] Expand typed commitments only when a demonstrated scenario requires them. Do not proliferate commitment types speculatively.
+- [x] Define the minimum typed value/boundary representation needed for actual decisions.
+- [x] Distinguish authored values from temporary goals, relationship state, and explicit commitments.
+- [x] Represent conflicts between requests and protected concerns before rendering.
+- [x] Support characters whose values differ from helpful-assistant defaults, including antagonistic, private, deceptive, obedient, status-seeking, fearful, loyal, or self-interested characters.
+- [x] Do not assume one universal moral ordering.
+- [x] Preserve host safety/capability as a separate gate from character willingness.
+- [x] Expand typed commitments only when a demonstrated scenario requires them. Do not proliferate commitment types speculatively.
 
 Acceptance: an unhelpful or antagonistic character refuses or opposes a request because the character kernel resolved that conduct, not because a prompt asked the model to pretend to be difficult.
 
@@ -295,7 +295,7 @@ Implement in this order unless a failing test reveals a dependency:
 
 - [x] Phase A: versioned renderer trust boundary, raw-input separation, disclosure-aware projection, first-person subject position.
 - [x] Phase B: behavioral contract validation against rendered output.
-- [ ] Phase C: character-owned behavioral dispositions and typed executable values where cross-character failures justify them. C1 disposition selection and C2 decision-owned relationship consequences are complete; executable values remain.
+- [x] Phase C: character-owned behavioral dispositions, decision-owned relationship consequences, and sparse typed executable values are complete for the demonstrated cross-character failures.
 - [ ] Phase D: real local/frontier model collection using frozen cases.
 - [ ] Phase E: independent adversarial multi-character cross-model benchmark.
 - [ ] Phase F: ablation and resource measurement to identify the minimum sufficient character kernel.
@@ -313,12 +313,12 @@ Implement in this order unless a failing test reveals a dependency:
 
 ## Immediate Active Work
 
-Phase C is the current implementation target. C1 demonstrated character-owned semantic divergence for soft social response selection without weakening hard identity invariants. C2 demonstrated that different decisions were still converging to identical relationship trajectories, froze that negative result, and repaired the failure with bounded generic consequences of the subject's own semantic conduct rather than per-character relationship equations.
+Phase C is complete. C1 established cartridge-owned soft behavioral dispositions, C2 made the subject's already-resolved conduct leave bounded generic relationship consequences, and C3 made one demonstrated authored moral boundary executable through a sparse typed rule in the portable values namespace. The completed Phase C semantic kernel is verified on Python 3.11 and 3.12 at `379 passed, 1 skipped, 1 warning`.
 
-Priority 6 is now the active controlled question: make authored values and moral boundaries executable decision inputs. Start from the existing cartridge identity data and normalized `phenotype.values` namespace. First construct a controlled cross-character case showing that descriptive values currently fail to change semantic conduct. Then introduce the smallest typed representation that repairs that demonstrated failure. A sparse rule, enum, or small bounded numeric value is preferable to a broad trait matrix when it is causally sufficient. Do not introduce OCEAN, Big Five, or another generalized personality model solely for standardization or descriptive completeness.
+Phase D real-model collection is now the active target. Reuse the frozen renderer degradation fixture, `tools/renderer_degradation_real.py`, `tools/local_eval.py`, `persona_engine/evaluation/local_model_session.py`, and the existing 16 paired Wayfarer-versus-prompt-only provider cases. Do not build a replacement evaluation framework before collecting actual failures. Start with the existing Ollama preflight and five-call smoke protocol on an already-installed suitable model. Reject renderer fallback as invalid model evidence. Only after a valid smoke run should the 16 paired cases be collected.
 
-Keep host safety and capability separate from character willingness. Hard identity invariants remain distinct from authored moral preferences. Preserve renderer independence by resolving any value conflict before language realization and exposing the cause in typed decision evidence.
+For frontier collection, export the same frozen provider-neutral cases and record verbatim outputs without tuning the fixture after observing results. Preserve exact model/provider identity, available sampling settings, request hashes, code checkpoint, raw outputs, and fallback status. Keep local and frontier results separate from deterministic engineering evidence.
 
-Phase D real-model collection follows once the Phase C semantic kernel is stable enough that model failures can be attributed to the renderer rather than unresolved shared-character policy.
+The minimum-mechanism rule remains active during Phase D. New kernel complexity should be driven by minimized real-model failures, not by personality-theory completeness or additional subsystem count.
 
 A future agent should begin here rather than inventing a new priority list from chat history.
