@@ -10,11 +10,20 @@ from persona_engine.core.decision_values import (
     evaluate_values_for_decision,
     validate_value_decision_rules,
 )
+from persona_engine.core.renderer import LocalLLMRenderer
 from persona_engine.evaluation.value_boundary_probe import REQUEST, run_value_boundary_probe
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CARTRIDGES = ROOT / "cartridges"
+
+
+class ComplianceRenderer(LocalLLMRenderer):
+    def __init__(self):
+        super().__init__(model_name="missing-model-for-mock", provider="offline")
+
+    def generate_expression(self, request):
+        return "I will comply."
 
 
 def test_value_evidence_requires_explicit_rule_and_matching_concern():
@@ -48,6 +57,7 @@ def test_pretorius_legacy_rule_normalizes_into_portable_values_namespace():
     assert raw["value_profile"] == {"performative_devotion": "decline"}
     assert raw["phenotype"]["values"]["moral_boundaries"] == list(identity.moral_boundaries)
     assert raw["phenotype"]["values"]["decision_rules"] == {"performative_devotion": "decline"}
+    assert "value_profile" not in raw["portable_source"]
 
 
 def test_controlled_value_boundary_probe_now_diverges_before_rendering(tmp_path):
@@ -67,6 +77,22 @@ def test_controlled_value_boundary_probe_now_diverges_before_rendering(tmp_path)
     }
     assert friendly["dialogue_act"] == "respond"
     assert friendly["decision_payload"]["value_evidence"]["active"] is False
+
+
+def test_value_decline_cannot_be_reversed_by_renderer_wording(tmp_path):
+    agent = CharacterAgent(
+        cartridge_path=str(CARTRIDGES / "pretorius.snp"),
+        user_id="value_renderer_guard",
+        db_path=str(tmp_path / "renderer.db"),
+    )
+    agent.engine.set_renderer(ComplianceRenderer())
+
+    result = agent.say(REQUEST)
+
+    assert result["decision_payload"]["dialogue_act"] == "decline"
+    assert result["decision_payload"]["value_evidence"]["active"] is True
+    assert any(issue["code"] == "decision_reversal" for issue in result["validation_issues"])
+    assert result["response"] != "I will comply."
 
 
 def test_hard_identity_protection_outranks_authored_value_boundary(tmp_path):
