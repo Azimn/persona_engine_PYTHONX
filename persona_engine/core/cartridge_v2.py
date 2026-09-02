@@ -235,6 +235,9 @@ def migrate_v1_to_v2_data(data: dict[str, Any]) -> dict[str, Any]:
         "self_model": {"legacy_forbidden_expressions": legacy_forbidden},
         "extensions": {},
     }
+    # The v1 compatibility section is only an authoring bridge. Once copied into
+    # the portable values namespace it must not survive as a second authority.
+    migrated.pop("value_profile", None)
     migrated["portability"] = {
         "minimum_fidelity_level": int(FidelityLevel.IDENTITY_CONTINUITY),
         "preserve_unknown_fields": True,
