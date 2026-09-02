@@ -105,11 +105,64 @@ Evidence on the experimental branch:
 
 Next gate: demonstrate a downstream behavior that requires subject-relative appraisal. If earned, preserve the existing interaction-signal detector and add only the minimum second-stage subject meaning needed to produce the missing behavior.
 
+### Bounded causal associative retrieval
+
+Status: **isolated one-hop retrieval contract verified; link-production policy not yet justified**
+
+The continuity schema already contains `causal_parents`, and persistence already stores, transfers, and reloads those links. Resident memory and cold-biography retrieval currently use semantic/topical relevance and do not traverse canonical causal links. The normal `InteriorEngine` also does not populate causal parents during ordinary turn writes.
+
+The experimental `core/causal_retrieval.py` therefore tests only whether Wayfarer can reuse links it already owns as a bounded retrieval primitive. It does not infer new associations.
+
+V1 guarantees:
+
+- one-hop traversal only;
+- direct parent and direct child recovery;
+- same-subject filtering;
+- canonical-event filtering;
+- deterministic bounded output;
+- no graph database;
+- no recursive spreading activation;
+- no resident-memory promotion;
+- no authority mutation.
+
+Verified checkpoint after adding this prototype:
+
+```text
+Python 3.11 focused adjacent tests: 18 passed
+Python 3.12 focused adjacent tests: 18 passed
+Python 3.11 full experimental suite: 397 passed, 1 skipped, 2 warnings
+Python 3.12 full experimental suite: 397 passed, 1 skipped, 2 warnings
+```
+
+Evidence on the experimental branch:
+
+- `persona_engine/core/causal_retrieval.py`
+- `persona_engine/tests/test_causal_retrieval.py`
+- `persona_engine/evidence/mvi/CAUSAL_ASSOCIATIVE_RETRIEVAL_PROTOTYPE.md`
+
+Next gate: freeze a longitudinal counterexample in which ordinary semantic retrieval misses behaviorally relevant evidence but a previously authorized causal link recovers it. Only then decide whether production should create causal links, and at which authority boundary. Renderer text must not be allowed to invent causal parents.
+
+### Witness / point-of-view scope
+
+Status: **existing architecture covers the single-subject case; possible multi-subject gap identified; no code added**
+
+Source inspection showed that Wayfarer already separates objective world truth from character-visible context. `WorldFact.visible_to_character` controls whether a fact enters the subject-visible projection, sensor observations pass through World Authority, and subjective interpretation reads visible sources rather than hidden server truth.
+
+A separate witness-memory subsystem would therefore duplicate existing authority boundaries.
+
+The narrower unresolved issue is multi-subject visibility. `WorldFact.visible_to_character` is currently a single boolean, and `WorldAuthority.get_visible_context(actor_id)` accepts an actor identifier but does not use it to filter facts. That is sufficient for the current single-subject host profile but may be insufficient if a future Society Lab or shared-world host uses one World Authority for multiple subjects with different observations.
+
+Evidence on the experimental branch:
+
+- `persona_engine/evidence/mvi/WITNESS_SCOPE_GAP.md`
+
+Next gate: demonstrate an actual shared-world failure where subject A witnesses an event, subject B does not, and B nevertheless receives the event through the current visibility projection. If that occurs, extend World Authority minimally with actor-scoped visibility or observation receipts rather than creating another memory store.
+
 ## Deliberately not implemented yet
 
-The comparative review also identified potentially useful future tests for character-mediated subjective memory encoding, bounded associative retrieval over existing causal links, and witness/POV scope.
+Character-mediated subjective memory encoding remains an open research candidate. Subject-relative appraisal has a demonstrated gap but no replacement subsystem. Witness scope has a plausible multi-subject limitation but no demonstrated shared-world failure. Causal associative retrieval has a verified read-only primitive but no production link-creation policy.
 
-Those remain research candidates rather than code. The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, or automatic persona rewriting.
+The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, per-actor visibility ACL machinery before a shared-world failure exists, recursive spreading activation, or automatic persona rewriting.
 
 ## Promotion rule
 
