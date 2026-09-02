@@ -28,8 +28,11 @@ from persona_engine.evaluation.local_model_session import (
 try:
     from tools.renderer_degradation_real import run_ollama as run_degradation_ollama
 except ModuleNotFoundError:
-    # Direct script execution places the tools directory, rather than the
-    # repository root, on the leading import path.
+    # Sibling evaluation tools historically use direct imports. Make that
+    # execution layout available when this CLI is imported as tools.local_eval.
+    tools_dir = str(Path(__file__).resolve().parent)
+    if tools_dir not in sys.path:
+        sys.path.insert(0, tools_dir)
     from renderer_degradation_real import run_ollama as run_degradation_ollama
 
 
