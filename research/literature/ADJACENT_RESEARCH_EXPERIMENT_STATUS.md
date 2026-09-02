@@ -190,11 +190,73 @@ This result establishes a representation fact, not a defect by itself. Different
 
 Next gate: freeze a longitudinal case in which two contrasting subjects experience the same event, substantial unrelated interference follows, and current later behavior converges because the original record preserved no subject-relative salience or interpretation. Only if that behavioral failure appears should the smallest subject-relative encoding projection be tested. The immutable experience must remain separate from any revisable interpretation or salience annotation.
 
+### Authored memory-attention behavioral failure
+
+Status: **concrete character-property mismatch demonstrated**
+
+The more general encoding question produced a sharper falsification target from an existing cartridge. Rival already contains the authored core belief:
+
+```text
+I remember losses better than compliments
+```
+
+The experimental `authored-memory-bias-baseline-v1` holds ordinary memory salience fields constant, places an older loss against a newer compliment, and uses a neutral later recall cue. Current generic `MemoryStore.retrieve()` receives no subject profile. The newer compliment therefore wins by recency:
+
+```text
+retrieval_order = ["compliment", "loss"]
+authored_property_realized = false
+subject_profile_is_retrieval_input = false
+```
+
+Unlike the silver-locket encoding probe, this is not merely a representational observation. It demonstrates that an explicit authored character property about memory attention is currently not executable through the generic retrieval path.
+
+Evidence on the experimental branch:
+
+- `persona_engine/evaluation/memory_bias_behavior.py`
+- `persona_engine/tests/test_authored_memory_bias_baseline.py`
+- `persona_engine/evidence/mvi/AUTHORED_MEMORY_BIAS_BASELINE.md`
+
+This does not justify parsing natural-language identity statements into retrieval rules. The authored sentence is used only as the frozen expected property. Any production mechanism would require an explicit typed authoring contract.
+
+### Typed retrieval-attention alternative
+
+Status: **isolated smaller mechanism verified; semantic-feature authority unresolved; production integration not justified**
+
+Rather than permanently rewriting the same lived event into different autobiographical records for different characters, the experimental `core/memory_attention.py` tests a smaller alternative: preserve the immutable memory and apply a bounded subject-owned attention bonus at retrieval time.
+
+The experimental `MemoryAttentionProfile` maps already-authorized semantic tags to bounded retrieval bonuses. In the frozen Rival fixture:
+
+```text
+loss -> +0.5
+compliment -> +0.0
+```
+
+With no profile, the generic ranking remains `compliment -> loss`. With the typed Rival attention profile, the older loss becomes first. The function is pure: it does not mutate `MemoryUnit`, record recalls, alter canonical continuity, create a second memory store, invoke a model, infer tags, or parse natural-language personality statements.
+
+Six regressions verify generic ranking without a profile, the Rival ranking flip, memory immutability, fail-closed unknown tags, the global bonus cap, and a stricter profile-local cap. Together with the preceding adjacent experiments and the authored-memory baseline, the latest experimental branch is green on both supported runtimes:
+
+```text
+Python 3.11 full experimental suite: 404 passed, 1 skipped, 2 warnings
+Python 3.12 full experimental suite: 404 passed, 1 skipped, 2 warnings
+```
+
+Evidence on the experimental branch:
+
+- `persona_engine/core/memory_attention.py`
+- `persona_engine/tests/test_memory_attention.py`
+- `persona_engine/evidence/mvi/MEMORY_ATTENTION_PROTOTYPE.md`
+
+The remaining blocker is semantic-feature authority. Existing `EventClassifier` and appraisal already provide typed categories such as conflict, repair, symbolic, relational, threat, accusation, manipulation, and boundary pressure, but neither currently produces the `loss` / `compliment` distinction used by the Rival fixture. Adding those categories solely to make this prototype work would introduce new semantics rather than reuse an established authority path.
+
+Therefore the current result supports the **shape of a consumer**, not a new classifier. A future production candidate should first test retrieval attention with already-owned typed features in a longitudinal failure. If a new semantic category is eventually necessary, its producer, provenance, replay semantics, and authority must be specified independently of the attention consumer.
+
+This mechanism is currently preferable to personality-conditioned memory rewriting as the next hypothesis because it leaves lived history unchanged and permits a character's attention priorities to evolve without retroactively rewriting experience. That preference remains provisional until a longitudinal production-level experiment compares the alternatives.
+
 ## Deliberately not implemented yet
 
-Subject-relative appraisal has a demonstrated gap but no replacement subsystem. Character-relative autobiographical encoding now has a demonstrated write-time convergence baseline but no demonstrated longitudinal behavioral failure. Witness scope has a plausible multi-subject limitation but no demonstrated shared-world failure. Causal associative retrieval has a verified read-only primitive but no production link-creation policy.
+Subject-relative appraisal has a demonstrated gap but no replacement subsystem. Character-relative autobiographical encoding has a demonstrated write-time convergence baseline, and Rival now supplies one concrete memory-attention failure, but production has not earned write-time subjective rewriting. Witness scope has a plausible multi-subject limitation but no demonstrated shared-world failure. Causal associative retrieval has a verified read-only primitive but no production link-creation policy. Typed memory attention has a verified consumer contract but no justified general semantic-tag producer.
 
-The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, per-actor visibility ACL machinery before a shared-world failure exists, recursive spreading activation, personality-weighted memory rewriting, or automatic persona rewriting.
+The current work does not justify adding a graph database, a general OCEAN/Big Five runtime, a large cognitive stack, many new affect variables, per-actor visibility ACL machinery before a shared-world failure exists, recursive spreading activation, personality-weighted memory rewriting, free-form semantic tagging, or automatic persona rewriting.
 
 ## Promotion rule
 
