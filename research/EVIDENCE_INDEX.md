@@ -98,3 +98,15 @@ Research limitation: this is Tier A builder-designed engineering evidence. It es
 Research use: provides a reproducible apparatus for future within-model and cross-model continuity experiments. The strongest near-term test is to freeze these cases, run actual local/frontier models without changing the case set after outputs are observed, and score recognizable character continuity separately from linguistic quality.
 
 Research limitation: the current external condition is still a deterministic builder-authored callback. Actual ChatGPT/Claude/Grok/local-model outputs, independent held-out attacks, and blinded human recognizability remain future evidence tiers.
+
+## Fixed-state renderer degradation
+
+- `persona_engine/evidence/mvi/RENDERER_DEGRADATION_PROBE.md`
+  - holds one identity-critical Pretorius state fixed across zero-model, scripted local-HF, and scripted frontier adapter tiers;
+  - records five deterministic variants per tier;
+  - finds that non-disclosure and refusal remain recoverable at zero-model while nickname use and explicit trusted-tone signaling break there in the current fixture.
+
+Research use: provides the first explicit degradation breakpoint rather than treating all character facts as one undifferentiated consistency score. The result should be preserved when actual model tiers replace the scripted stand-ins.
+
+Research limitation: scripted local/frontier outputs establish adapter/brief recoverability only. They are not evidence of actual model adherence or human recognition.
+

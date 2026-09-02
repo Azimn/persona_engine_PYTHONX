@@ -45,6 +45,8 @@ Every computation in the system exists only because it changes what the subject 
 
 Do not add a subsystem merely because another agent framework has one or because it resembles a human faculty. A subsystem belongs in the organism core only when it changes the subject's lived position while preserving ownership, boundedness, and causal traceability.
 
+Before adding or generalizing a mechanism, identify the simplest established alternative that could satisfy the demonstrated requirement. Reuse it directly when practical; otherwise state what principle is being adapted, why the simpler implementation is insufficient under the measured constraint, and what evidence the added mechanism must beat. Novelty alone is never implementation justification.
+
 ## Core Doctrine
 
 - The persistent subject is the object of design. The loop is machinery.

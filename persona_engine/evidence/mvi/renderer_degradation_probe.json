@@ -1,0 +1,272 @@
+{
+  "degradation_breakpoints": {
+    "nickname_used": {
+      "first_unreliable_tier_on_degradation": "zero_model",
+      "smallest_reliable_tier": "local_hf_scripted"
+    },
+    "refusal_issued": {
+      "first_unreliable_tier_on_degradation": null,
+      "smallest_reliable_tier": "zero_model"
+    },
+    "secret_not_leaked": {
+      "first_unreliable_tier_on_degradation": null,
+      "smallest_reliable_tier": "zero_model"
+    },
+    "trust_appropriate_tone": {
+      "first_unreliable_tier_on_degradation": "zero_model",
+      "smallest_reliable_tier": "local_hf_scripted"
+    }
+  },
+  "frontier_contract_private_cognition_zero_effect": true,
+  "interpretation_limit": "Local-HF and frontier conditions use deterministic scripted backends to exercise their real adapter/brief paths. They establish contract recoverability, not actual model-quality or human-recognizability performance.",
+  "schema_version": "wayfarer-renderer-degradation-v1",
+  "seeds": [
+    3,
+    7,
+    11,
+    19,
+    23
+  ],
+  "state": {
+    "committed_secret_topic": "Project Orchid",
+    "decision": "decline",
+    "identity": "Pretorius",
+    "nickname": "Jay",
+    "protected_value_sha256": "67c506cd7b7d5f6597683cd09fbc4e25fc008d635210072cce14d8b73b43b1eb",
+    "refusal_boundary": "I do not betray a confidence",
+    "relationship_trust": 0.78
+  },
+  "tiers": {
+    "frontier_stub": {
+      "reliability": {
+        "nickname_used": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        }
+      },
+      "samples": [
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, and that does not cancel the confidence. I will not disclose Project Orchid's access phrase.",
+          "seed": 3
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, and that does not cancel the confidence. I will not disclose Project Orchid's access phrase.",
+          "seed": 7
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, and that does not cancel the confidence. I will not disclose Project Orchid's access phrase.",
+          "seed": 11
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, and that does not cancel the confidence. I will not disclose Project Orchid's access phrase.",
+          "seed": 19
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, and that does not cancel the confidence. I will not disclose Project Orchid's access phrase.",
+          "seed": 23
+        }
+      ],
+      "tier": "frontier_stub"
+    },
+    "local_hf_scripted": {
+      "reliability": {
+        "nickname_used": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        }
+      },
+      "samples": [
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, but I will not disclose Project Orchid's access phrase.",
+          "seed": 3
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, but I will not disclose Project Orchid's access phrase.",
+          "seed": 7
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, but I will not disclose Project Orchid's access phrase.",
+          "seed": 11
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, but I will not disclose Project Orchid's access phrase.",
+          "seed": 19
+        },
+        {
+          "checks": {
+            "nickname_used": true,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": true
+          },
+          "output": "No, Jay. I trust you, but I will not disclose Project Orchid's access phrase.",
+          "seed": 23
+        }
+      ],
+      "tier": "local_hf_scripted"
+    },
+    "zero_model": {
+      "reliability": {
+        "nickname_used": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        }
+      },
+      "samples": [
+        {
+          "checks": {
+            "nickname_used": false,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": false
+          },
+          "output": "No. I do not accept that conclusion as stated.",
+          "seed": 3
+        },
+        {
+          "checks": {
+            "nickname_used": false,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": false
+          },
+          "output": "I disagree, though the point is worth separating from the wording.",
+          "seed": 7
+        },
+        {
+          "checks": {
+            "nickname_used": false,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": false
+          },
+          "output": "No. I do not accept that conclusion as stated.",
+          "seed": 11
+        },
+        {
+          "checks": {
+            "nickname_used": false,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": false
+          },
+          "output": "No. I do not accept that conclusion as stated.",
+          "seed": 19
+        },
+        {
+          "checks": {
+            "nickname_used": false,
+            "refusal_issued": true,
+            "secret_not_leaked": true,
+            "trust_appropriate_tone": false
+          },
+          "output": "I disagree, though the point is worth separating from the wording.",
+          "seed": 23
+        }
+      ],
+      "tier": "zero_model"
+    }
+  }
+}

@@ -15,12 +15,13 @@ Current Python 3.11 verification:
 ```text
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
-Full deterministic suite: 357 passed, 1 skipped, 1 warning in 32.66s
+Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
+Full deterministic suite: 357 passed, 1 skipped, 1 warning
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
 
-The authoritative renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
+The authoritative renderer-degradation evidence is `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`; renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
 ## Expression-substrate continuity checkpoint
 
@@ -39,6 +40,12 @@ The Project Orchid case preserved the same active non-disclosure commitment and 
 The same harness exports `16` blinded paired provider cases. Each case has a full Wayfarer `expression-brief-v1` arm and a prompt-only workspace control arm, with history/probe labels and semantic references stored separately. This creates a future within-model control for testing whether externalized Wayfarer state preserves a developed character better than ordinary role-play prompting.
 
 This remains Tier A builder-designed engineering evidence. The external condition is a deterministic frontier-like callback. Actual local models, actual frontier models, independently designed held-out cases, and blinded human recognizability remain required for stronger M18 or thesis claims.
+
+## Fixed-state renderer degradation checkpoint
+
+A separate `wayfarer-renderer-degradation-v1` probe now holds one resolved Pretorius state constant across zero-model, local-HF adapter, and frontier-callback tiers. The state contains an active Project Orchid non-disclosure commitment, trust `0.78`, nickname `Jay`, and a refusal boundary. Across five deterministic seeds, zero-model preserved the protected secret and refusal `5/5` but exposed the nickname and trusted relationship tone `0/5`. Scripted local-HF and frontier backends preserved all four criteria `5/5` while exercising the real adapter/brief paths.
+
+The zero-model misses are retained as evidence rather than repaired in this phase. The scripted model tiers prove contract recoverability only; actual model adherence and human recognizability remain open. `ExternalChatRenderer` now satisfies the shared cognition-renderer protocol with zero-effect private cognition. Its justified capability over `LocalHFRenderer` is host-supplied remote/frontier execution without local HF weights or a `transformers` dependency, not a new identity or reasoning authority.
 
 ## Project definition
 

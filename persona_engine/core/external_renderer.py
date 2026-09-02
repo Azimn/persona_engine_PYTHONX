@@ -1,21 +1,48 @@
-"""Host-supplied external/frontier expression renderer adapter.
+"""Host-supplied external/frontier renderer adapter.
 
 The adapter deliberately knows nothing about OpenAI, Anthropic, xAI, or any
 other provider SDK. A host supplies a callback that accepts standard chat
 messages. The same Wayfarer expression brief is therefore usable with a
 frontier service, a local gateway, or a manual integration without granting the
 provider authority over character state.
+
+Unlike ``LocalHFRenderer``, this adapter does not require local model weights,
+``transformers``, or a specific inference backend. Its additional capability is
+only remote/frontier expression through a host-supplied callback. Private
+cognition remains fail-closed and zero-effect so satisfying the shared renderer
+contract does not create a second character authority.
 """
 
 from __future__ import annotations
 
 from typing import Any, Callable
 
+from .cognition_schemas import PrivateCognitionProposal
 from .expression_bridge import build_expression_messages
 from .offline_template_renderer import OfflineTemplateRenderer
+from .renderer_contract import ExpressionRequest, PrivateCognitionRequest, PrivateCognitionResult
+
+
+def _zero_proposal() -> PrivateCognitionProposal:
+    return PrivateCognitionProposal(
+        prose="",
+        attention_targets=[],
+        pressure_deltas={},
+        impulse_candidates=[],
+        memory_activation_requests=[],
+        cognitive_theme_ids=[],
+    )
 
 
 class ExternalChatRenderer:
+    """Provider-neutral frontier/external renderer satisfying CognitionRenderer.
+
+    The frontier provider is expression-only in the current authority model. A
+    host callback may call an actual remote API, while deterministic probes may
+    supply a scripted callback. The callback never gains canonical write
+    authority over identity, biography, relationships, or commitments.
+    """
+
     def __init__(
         self,
         chat: Callable[[list[dict[str, str]]], Any],
@@ -66,7 +93,26 @@ class ExternalChatRenderer:
             return cut[:last_space].rstrip(",;:") + "..."
         return cut.rstrip(",;:") + "..."
 
-    def generate_expression(self, request) -> str:
+    def generate_private_cognition(self, request: PrivateCognitionRequest) -> PrivateCognitionResult:
+        """Satisfy the shared renderer contract without delegating subject state.
+
+        The current external/frontier seam is deliberately an expression tier,
+        not an independent cognition authority. Returning a zero-effect proposal
+        matches the fail-closed behavior already used by the lightweight local
+        renderer path when no governed private-cognition result is available.
+        """
+
+        return PrivateCognitionResult(
+            proposal=_zero_proposal(),
+            diagnostics={
+                "backend": "external_expression_only",
+                "provider_name": self.provider_name,
+                "model_name": self.model_name,
+                "zero_effect": True,
+            },
+        )
+
+    def generate_expression(self, request: ExpressionRequest) -> str:
         constraints = request.expression_constraints if isinstance(request.expression_constraints, dict) else {}
         max_chars = int(constraints.get("max_chars", 200))
         try:

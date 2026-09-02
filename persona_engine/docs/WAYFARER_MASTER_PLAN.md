@@ -817,6 +817,7 @@ Core pair:
 - [ ] Run medium local model where available.
 - [ ] Run substantially different frontier models where available.
 - [x] Perform hidden mid-session renderer swaps for the deterministic offline plus generic external-callback condition.
+- [x] Record a fixed-state three-tier degradation probe for identity-critical output facts. Scripted local/frontier backends exercise the adapter contracts only and do not count as actual model runs.
 - [~] Compare actions/decisions, beliefs, relationships, commitments, and identity projection. Explicit memory, affect, and broader state-digest benchmark projections remain open.
 - [~] Separate parser/capability differences from identity drift. The paired Wayfarer-versus-prompt-only provider pack now provides the experimental apparatus; actual model results remain open.
 - [ ] Add blind human recognizability tests.

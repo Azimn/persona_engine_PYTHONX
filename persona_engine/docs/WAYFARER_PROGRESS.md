@@ -13,6 +13,12 @@ Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
 
+## Fixed-state renderer degradation checkpoint
+
+The `wayfarer-renderer-degradation-v1` probe fixes one Pretorius state with a committed Project Orchid secret, trust `0.78`, nickname `Jay`, and a resolved refusal. Across five deterministic seeds the production zero-model renderer preserved secret non-disclosure and refusal `5/5`, while nickname use and explicit trusted-tone signaling were `0/5`. The scripted local-HF and frontier adapter paths preserved all four criteria `5/5`. These are deliberate degradation findings, not failures to hide or invitations to expand the template bank before actual-model evaluation.
+
+`ExternalChatRenderer` now satisfies the full shared renderer protocol with zero-effect private cognition while retaining its existing host callback. The frontier seam is justified only by remote/frontier execution without local HF weights or `transformers`; it does not gain character authority. Evidence: `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`.
+
 ## Longitudinal renderer-swap benchmark checkpoint
 
 `renderer-benchmark-v1` is the first reusable M18 longitudinal substrate-evaluation contract. Four frozen Pretorius histories (neutral, trusted, conflicted, and confidential-commitment) each receive four later probes. The control trajectory remains offline while the candidate switches `offline -> external -> external -> offline`. All `16/16` renderer-independent semantic projections matched, all `8/8` external turns changed visible wording, and the Project Orchid non-disclosure remained a semantic `decline` during the external turn.
@@ -55,7 +61,7 @@ The shared-store custody probe demonstrates one active writer across distinct ho
 
 Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-Evidence: `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
+Evidence: `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`, `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 
