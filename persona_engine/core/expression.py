@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
+from .disposition import BehavioralDispositionProfile
+
 
 @dataclass
 class ExpressionEnvelope:
@@ -16,22 +18,39 @@ class ExpressionEnvelope:
     tone_label: str
 
 
-RESISTANCE_POLICY = {
+# Identity mutation is not a personality preference. It remains a core-owned
+# invariant whenever the requested mutation conflicts with authored identity.
+HARD_RESISTANCE_POLICY = {
     "identity_violation": "character_refusal",
-    "intimacy_too_fast": "deflect",
-    "accusation": "challenge",
-    "contradiction": "challenge",
-    "manipulation": "go_quiet",
-    "boredom": "shift_topic",
-    "disrespect": "shorten",
-    "emotional_overload": "go_quiet",
+}
+
+# Compatibility projection of the legacy default policy. New character-specific
+# variation belongs in BehavioralDispositionProfile rather than in this module.
+RESISTANCE_POLICY = {
+    **HARD_RESISTANCE_POLICY,
+    **BehavioralDispositionProfile().to_dict(),
 }
 
 
-def select_resistance(triggers: List[str]) -> Optional[str]:
-    for t in triggers:
-        if t in RESISTANCE_POLICY:
-            return RESISTANCE_POLICY[t]
+def select_resistance(
+    triggers: List[str],
+    profile: BehavioralDispositionProfile | None = None,
+) -> Optional[str]:
+    """Select the first applicable response without making personality global.
+
+    Hard invariant responses are evaluated first. Soft trigger responses come
+    from the subject's authored profile. A profile response of ``none`` is
+    represented by ``response_for`` returning None, so later simultaneous
+    triggers may still contribute a response.
+    """
+
+    authored = profile or BehavioralDispositionProfile()
+    for trigger in triggers:
+        if trigger in HARD_RESISTANCE_POLICY:
+            return HARD_RESISTANCE_POLICY[trigger]
+        response = authored.response_for(trigger)
+        if response is not None:
+            return response
     return None
 
 
@@ -52,6 +71,7 @@ def build_envelope(risk_bucket: str, relationship, dominant_pressure_name: str) 
 
     env.vulnerability_allowed = relationship.trust > 0.55 and relationship.tension < 0.35 and risk_bucket == "LOW"
     return env
+
 
 def relationship_expression_stance(relationship) -> str:
     """Return a coarse history-conditioned stance for language realization."""
