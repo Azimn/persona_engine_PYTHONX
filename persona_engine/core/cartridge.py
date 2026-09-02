@@ -31,6 +31,7 @@ from .cartridge_v2 import (
     validate_self_model,
 )
 from .identity import CoreIdentity, IdentityLedger
+from .disposition import ALLOWED_DISPOSITION_RESPONSES
 from .offline_dialogue import register_dialogue
 
 
@@ -76,7 +77,7 @@ def _validate_dialogue_group_keys(dialogue: dict[str, Any]) -> None:
         raise CartridgeError(f"unknown field in [dialogue]: {unknown[0]}")
 _OPTIONAL_SECTIONS = {
     "sensory_profile", "voice_profile", "avatar_profile", "cognitive_themes",
-    "concealment", "arc", "dialogue",
+    "concealment", "arc", "dialogue", "behavior_profile",
 }
 _V2_SECTIONS = {"self_model", "phenotype", "portability"}
 _ALLOWED_TOP_LEVEL = set(_REQUIRED) | {"beliefs", "belief_rules"} | _OPTIONAL_SECTIONS | _V2_SECTIONS
@@ -91,6 +92,10 @@ _ALLOWED_SECTION_FIELDS.update({
     "concealment": {"weights"},
     "arc": {"earned_changes"},
     "dialogue": _DIALOGUE_GROUPS,
+    "behavior_profile": {
+        "intimacy_too_fast", "accusation", "contradiction", "manipulation",
+        "boredom", "disrespect", "emotional_overload",
+    },
 })
 _REQUIRED_BELIEF = ("id", "initial", "min", "max", "decay_rate", "description")
 _ALLOWED_BELIEF = set(_REQUIRED_BELIEF) | {"fixed", "disclosure"}
@@ -248,6 +253,11 @@ def validate_cartridge_data(data: dict[str, Any]) -> None:
         _require_string_list(data["cognitive_themes"], "allowed", "[cognitive_themes]")
     if "dialogue" in data:
         _validate_dialogue(data["dialogue"])
+    if "behavior_profile" in data:
+        for field, raw_value in data["behavior_profile"].items():
+            value = str(raw_value).strip().lower()
+            if value not in ALLOWED_DISPOSITION_RESPONSES:
+                raise CartridgeError(f"[behavior_profile].{field} has unsupported value: {raw_value}")
     for field in ("core_beliefs", "moral_boundaries", "speech_constraints", "prohibited_mutations"):
         _require_string_list(identity_data, field, "[identity]")
     if "forbidden_self_claims" in identity_data:
@@ -331,7 +341,8 @@ def load_cartridge(path: str) -> tuple[CoreIdentity, IdentityLedger, dict[str, A
         "interpretation_bias": data["interpretation_bias"], "sensory_profile": data.get("sensory_profile", {}),
         "voice_profile": data.get("voice_profile", {}), "avatar_profile": data.get("avatar_profile", {}),
         "cognitive_themes": data.get("cognitive_themes", {}), "concealment": data.get("concealment", {}),
-        "arc": data.get("arc", {}), "dialogue": dialogue, "entity_uuid": core.entity_uuid,
+        "arc": data.get("arc", {}), "dialogue": dialogue, "behavior_profile": data.get("behavior_profile", {}),
+        "entity_uuid": core.entity_uuid,
         "source_schema_version": source_schema_version, "normalized_schema_version": V2_SCHEMA_VERSION,
         "migration_semantics": portable_metadata.get("migration_semantics", "native-v2"),
         "self_model": portable["self_model"], "phenotype": portable["phenotype"], "portability": portable["portability"],

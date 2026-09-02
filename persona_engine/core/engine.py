@@ -21,6 +21,7 @@ from .cartridge import load_cartridge
 from .deception_ledger import DeceptionLedger
 from .dream_engine import DreamEngine
 from .expression import build_envelope, relationship_expression_stance, select_resistance
+from .disposition import BehavioralDispositionProfile
 from .habit import Habit, HabitTracker
 from .identity import CoreIdentity, EarnedTrait, IdentityLedger, classify_user_identity_command
 from .intention import Intention, IntentionQueue, OpenLoop
@@ -149,6 +150,7 @@ class InteriorEngine:
         self.symbols = SymbolStore()
         self.habits = HabitTracker()
         profile_source = self.cartridge_data or {}
+        self.behavior_profile = BehavioralDispositionProfile.from_dict(profile_source.get("behavior_profile"))
         self.body_profile = BodyProfile.from_dict(profile_source.get("body_profile"))
         self.world_profile = WorldProfile.from_dict(profile_source.get("world_profile"))
         self.body = BodyState.from_profile(self.body_profile)
@@ -858,6 +860,8 @@ class InteriorEngine:
             dialogue_act = "deflect"
         elif resistance == "shift_topic":
             dialogue_act = "redirect"
+        elif resistance == "decline":
+            dialogue_act = "decline"
         return {
             "dialogue_act": dialogue_act,
             "concealment_mode": "none",
@@ -1189,7 +1193,7 @@ class InteriorEngine:
         selected_intention = self.intentions.select_top(now)
         open_loop = self.intentions.due_open_loop(now)
         symbol = self.symbols.most_relevant(now)
-        resistance = select_resistance(triggers)
+        resistance = select_resistance(triggers, self.behavior_profile)
         decision_payload = self._resolve_decision_payload(
             triggers,
             risk,
