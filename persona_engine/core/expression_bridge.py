@@ -190,6 +190,10 @@ def build_expression_brief(request: Any) -> dict[str, Any]:
         "evidence": _json_safe(request.evidence),
         "relevant_memories": _json_safe(request.retrieved_memories),
         "private_thought_context": str(request.private_thought_context or ""),
+        # Retained only so the frozen prompt-only benchmark can reproduce its
+        # historical control arm. Wayfarer renderers never place this legacy
+        # free-form workspace prompt in the privileged control message in v2.
+        "legacy_workspace_context": str(resolved.get("system_prompt", "")),
     }
     untrusted_context = _redact(untrusted_context, protected_values)
 
