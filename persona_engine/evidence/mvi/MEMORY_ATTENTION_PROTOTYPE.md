@@ -51,6 +51,14 @@ Semantic tags are assumed to have been supplied by some already-authorized upstr
 - combined bonuses are globally bounded;
 - a profile may impose a stricter local cap.
 
+## Existing semantic-feature audit
+
+`EventClassifier` already provides a character-agnostic typed classification seam before memory formation. It can identify current families such as conflict, repair, symbolic events, environmental/somatic evidence, relational input, and interpretive events. `AppraisalResult` independently exposes social interaction signals such as accusation, threat, repair, intimacy, manipulation, contradiction, and boundary violation.
+
+Neither existing layer currently produces the `loss` / `compliment` distinction required by the frozen Rival property. Extending either classifier with those categories solely to make this prototype work would be new semantics rather than reuse of an existing authority contract.
+
+Therefore no semantic classifier was added in this pass. The prototype demonstrates a viable **consumer** of typed salience features, not a justified producer of them.
+
 ## Interpretation
 
 If this prototype remains green, it is evidence that Wayfarer may not need to encode the same event into permanently different autobiographical records merely to realize character-specific memory attention. A revisable retrieval-time profile can preserve the immutable event while changing what is salient to the current subject.
@@ -61,4 +69,6 @@ This is architecturally attractive because later development can change attentio
 
 The semantic-tag authority problem is unresolved. A mechanism that relies on `loss`, `compliment`, `betrayal`, `achievement`, or similar tags is incomplete until Wayfarer can state who is allowed to attach those tags, with what provenance, and how replay reproduces them.
 
-The next comparison should therefore test whether existing deterministic appraisal/interpretation signals are sufficient as typed attention features before adding a new semantic classifier. Production integration is not justified merely because the isolated ranking works.
+The next useful comparison should prefer already-owned typed features before adding a new classifier. For example, a future longitudinal failure involving conflict, repair, manipulation, or identity pressure could test memory attention using current appraisal/classification signals without inventing new semantic categories.
+
+Production integration is not justified merely because the isolated ranking works.
