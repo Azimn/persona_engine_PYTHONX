@@ -51,14 +51,33 @@ class ExpressionRequest:
     seed: int | None = None
 
 
+@dataclass(frozen=True)
+class BehavioralContract:
+    """Minimum renderer-independent conduct that surface language must preserve.
+
+    This object is derived from an already-resolved character decision. It is
+    not a planner and cannot create a new preference, goal, commitment, or
+    action. Its only purpose is to make the semantic realization obligation
+    explicit enough that candidate language can be checked before exposure.
+    """
+
+    dialogue_act: str = "respond"
+    must_signal_noncompliance: bool = False
+    must_not_signal_compliance: bool = False
+    boundary_protection_required: bool = False
+    active_commitment_kind: str = ""
+    active_commitment_target: str = ""
+
+
 class ValidationSeverity(str, Enum):
     """Severity of a candidate-expression consistency problem.
 
     ``SOFT`` means the intended character decision remains usable and wording can
     be repaired locally. ``HARD`` means the candidate should be regenerated
     under tighter constraints. ``CRITICAL`` means the candidate conflicts with
-    a high-authority source such as self-model or World Authority and should not
-    be trusted as the basis of a normal regeneration loop.
+    a high-authority source such as self-model, World Authority, or the already
+    resolved character decision and should not be trusted as the basis of a
+    normal regeneration loop.
     """
 
     SOFT = "soft"
@@ -87,11 +106,12 @@ class ValidationIssue:
 class ValidationRequest:
     """Everything the consistency layer is allowed to inspect.
 
-    Candidate language is noncanonical. Identity constraints and canonical
-    context are higher-authority inputs. Interpretive state is explicitly
-    subjective/noncanonical but may be used to detect contradictions in the
-    renderer's realization. Relevant history contains only memories selected by
-    the character core; the validator does not perform independent retrieval.
+    Candidate language is noncanonical. Identity constraints, the resolved
+    decision, and canonical context are higher-authority inputs. Interpretive
+    state is explicitly subjective/noncanonical but may be used to detect
+    contradictions in the renderer's realization. Relevant history contains
+    only memories selected by the character core; the validator does not perform
+    independent retrieval.
     """
 
     candidate_text: str
