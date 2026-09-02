@@ -1,0 +1,105 @@
+name: Phase D Provenance Patch
+
+on:
+  push:
+    branches: [wayfarer-real-model-collection-phase]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Bind exact model identity to returned summaries
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one exact match, found {count}: {old[:120]!r}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          session = Path('persona_engine/evaluation/local_model_session.py')
+          insertion = '''\n\ndef model_is_installed(preflight: dict[str, Any], model_name: str) -> bool:\n'''
+          helpers = '''\n\ndef build_selected_model_evidence(preflight: dict[str, Any], model_name: str | None) -> dict[str, Any] | None:\n    """Bind a returned result to the exact installed Ollama registry record.\n\n    Model tags can be mutable. The registry digest, parameter size, and\n    quantization therefore travel with the compact session summary rather than\n    remaining available only through a machine-local preflight path.\n    """\n\n    if not model_name:\n        return None\n    ollama = preflight.get("ollama", {})\n    if not isinstance(ollama, dict):\n        return None\n    selected = next(\n        (dict(row) for row in ollama.get("models", []) if isinstance(row, dict) and row.get("name") == model_name),\n        None,\n    )\n    if selected is None:\n        return None\n    return {\n        "preflight_created_at_utc": preflight.get("created_at_utc"),\n        "platform": preflight.get("platform"),\n        "python": preflight.get("python"),\n        "ollama_host": ollama.get("host"),\n        "model": selected,\n    }\n\n\ndef build_artifact_manifest(paths: dict[str, str | Path]) -> dict[str, dict[str, Any]]:\n    """Return portable hashes for evidence files already written by a session."""\n\n    manifest: dict[str, dict[str, Any]] = {}\n    for label, raw_path in sorted(paths.items()):\n        path = Path(raw_path)\n        if not path.is_file():\n            continue\n        digest = hashlib.sha256()\n        with path.open("rb") as handle:\n            for chunk in iter(lambda: handle.read(1024 * 1024), b""):\n                digest.update(chunk)\n        manifest[str(label)] = {\n            "filename": path.name,\n            "sha256": digest.hexdigest(),\n            "size_bytes": path.stat().st_size,\n        }\n    return manifest\n\n\ndef model_is_installed(preflight: dict[str, Any], model_name: str) -> bool:\n'''
+          replace_once(session, insertion, helpers)
+
+          local_eval = Path('tools/local_eval.py')
+          replace_once(
+              local_eval,
+              '''from persona_engine.evaluation.local_model_session import (\n    DEFAULT_OUTPUT_DIR,\n    build_preflight_report,\n    git_state,\n    model_is_installed,\n    run_paired_ollama,\n)\n''',
+              '''from persona_engine.evaluation.local_model_session import (\n    DEFAULT_OUTPUT_DIR,\n    build_artifact_manifest,\n    build_preflight_report,\n    build_selected_model_evidence,\n    git_state,\n    model_is_installed,\n    run_paired_ollama,\n)\n'''
+          )
+          replace_once(
+              local_eval,
+              '''        "fallback_detected": not valid,\n        "preflight": str((output_dir / "preflight.json").resolve()),\n    }\n''',
+              '''        "fallback_detected": not valid,\n        "preflight": str((output_dir / "preflight.json").resolve()),\n        "evidence_identity": build_selected_model_evidence(preflight, model),\n        "run_parameters": {\n            "host": args.host.rstrip("/"),\n            "timeout_seconds": args.timeout_seconds,\n            "token_budget": args.token_budget,\n            "thinking_mode": args.thinking_mode,\n        },\n        "artifacts": build_artifact_manifest({\n            "preflight": output_dir / "preflight.json",\n            "degradation": report_path,\n        }),\n    }\n'''
+          )
+          replace_once(
+              local_eval,
+              '''            "paired": None,\n            "reason": "Full run stopped before paired collection because degradation fallback occurred.",\n        }\n''',
+              '''            "paired": None,\n            "reason": "Full run stopped before paired collection because degradation fallback occurred.",\n            "preflight": str((output_dir / "preflight.json").resolve()),\n            "evidence_identity": build_selected_model_evidence(preflight, model),\n            "run_parameters": {\n                "host": args.host.rstrip("/"),\n                "timeout_seconds": args.timeout_seconds,\n                "token_budget": args.token_budget,\n                "thinking_mode": args.thinking_mode,\n            },\n            "artifacts": build_artifact_manifest({\n                "preflight": output_dir / "preflight.json",\n                "degradation": degradation_path,\n            }),\n        }\n'''
+          )
+          replace_once(
+              local_eval,
+              '''            "fallback": paired.get("fallback"),\n        },\n    }\n''',
+              '''            "fallback": paired.get("fallback"),\n        },\n        "preflight": str((output_dir / "preflight.json").resolve()),\n        "evidence_identity": build_selected_model_evidence(preflight, model),\n        "run_parameters": {\n            "host": args.host.rstrip("/"),\n            "timeout_seconds": args.timeout_seconds,\n            "token_budget": args.token_budget,\n            "thinking_mode": args.thinking_mode,\n        },\n        "artifacts": build_artifact_manifest({\n            "preflight": output_dir / "preflight.json",\n            "degradation": degradation_path,\n            "paired_responses": paired_responses_path,\n            "paired_references": paired_key_path,\n        }),\n    }\n'''
+          )
+
+          tests = Path('persona_engine/tests/test_local_model_session.py')
+          replace_once(tests, 'import json\n', 'import hashlib\nimport json\n')
+          replace_once(
+              tests,
+              '''from persona_engine.evaluation.local_model_session import (\n    normalize_ollama_models,\n    parse_parameter_billions,\n    query_ollama_models,\n    recommend_installed_models,\n)\n''',
+              '''from persona_engine.evaluation.local_model_session import (\n    build_artifact_manifest,\n    build_selected_model_evidence,\n    normalize_ollama_models,\n    parse_parameter_billions,\n    query_ollama_models,\n    recommend_installed_models,\n)\n'''
+          )
+          replace_once(
+              tests,
+              'def test_query_ollama_models_parses_registry_without_network():\n',
+              'def test_query_ollama_models_parses_registry_without_network(tmp_path):\n'
+          )
+          replace_once(
+              tests,
+              '''    assert models[0].digest == "sha256:registry"\n''',
+              '''    assert models[0].digest == "sha256:registry"\n\n    preflight = {\n        "created_at_utc": "2026-09-02T12:00:00+00:00",\n        "platform": "Windows-test",\n        "python": "3.11.16",\n        "ollama": {\n            "host": "http://localhost:11434",\n            "models": [model.to_dict() for model in models],\n        },\n    }\n    evidence = build_selected_model_evidence(preflight, "chat:latest")\n    assert evidence is not None\n    assert evidence["model"]["digest"] == "sha256:registry"\n    assert evidence["model"]["parameter_size"] == "3B"\n    assert evidence["ollama_host"] == "http://localhost:11434"\n    assert build_selected_model_evidence(preflight, "missing:latest") is None\n\n    artifact = tmp_path / "result.json"\n    artifact.write_text('{"ok": true}\\n', encoding="utf-8")\n    manifest = build_artifact_manifest({"result": artifact, "missing": tmp_path / "missing.json"})\n    expected = hashlib.sha256(artifact.read_bytes()).hexdigest()\n    assert manifest == {\n        "result": {\n            "filename": "result.json",\n            "sha256": expected,\n            "size_bytes": artifact.stat().st_size,\n        }\n    }\n'''
+          )
+
+          docs = Path('CODEX_LOCAL_TESTING.md')
+          replace_once(
+              docs,
+              'If `SESSION_SUMMARY.json` says `VALID_ACTUAL_MODEL_RUN`, **stop** and return that file. Do not automatically continue to the 16-case comparison.\n',
+              'If `SESSION_SUMMARY.json` says `VALID_ACTUAL_MODEL_RUN`, **stop** and return that file. The summary carries the selected Ollama registry identity, including digest/parameter/quantization metadata when available, plus SHA-256 hashes for the evidence files it references. Do not automatically continue to the 16-case comparison.\n'
+          )
+          PY
+      - name: Verify focused provenance tests
+        run: python -m pytest persona_engine/tests/test_local_model_session.py -q
+      - name: Verify full deterministic suite
+        run: python -m pytest persona_engine/tests -q
+      - name: Remove one-shot workflow
+        run: rm -f .github/workflows/phase-d-provenance-patch.yml
+      - name: Commit provenance binding
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persona_engine/evaluation/local_model_session.py persona_engine/tests/test_local_model_session.py tools/local_eval.py CODEX_LOCAL_TESTING.md .github/workflows/phase-d-provenance-patch.yml
+          git diff --cached --check
+          git commit -m "Bind local model evidence to exact provenance"
+          git push origin HEAD:wayfarer-real-model-collection-phase
