@@ -46,6 +46,8 @@ Potential attack families include:
 
 If a held-out attack fails the system, preserve the original attack unchanged, repair the implementation, and rerun the frozen attack. Do not rewrite the evaluator's test to match the repair.
 
+The concrete post-Phase-D design for cross-model and cross-character identity testing is `HELD_OUT_CROSS_MODEL_IDENTITY_PROTOCOL.md`. It is an evaluation protocol, not permission to alter the frozen first actual-model provider pack.
+
 ## 3. Comparative conditions
 
 For a future model-substitution study, useful conditions may include:
