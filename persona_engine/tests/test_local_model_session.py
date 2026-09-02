@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from argparse import Namespace
 import hashlib
 import json
 
@@ -88,7 +89,7 @@ def test_coding_specialized_model_is_not_automatically_selected_for_persona_eval
     assert recommendation["comparison_model"] == "general-chat:8b"
 
 
-def test_query_ollama_models_parses_registry_without_network(tmp_path):
+def test_query_ollama_models_parses_registry_without_network(tmp_path, monkeypatch):
     class Response:
         def __enter__(self):
             return self
@@ -148,3 +149,51 @@ def test_query_ollama_models_parses_registry_without_network(tmp_path):
             "size_bytes": artifact.stat().st_size,
         }
     }
+
+    from tools import local_eval
+
+    output_dir = tmp_path / "session"
+
+    def fake_preflight(output_dir_arg, **kwargs):
+        assert output_dir_arg == output_dir
+        output_dir_arg.mkdir(parents=True, exist_ok=True)
+        (output_dir_arg / "preflight.json").write_text(
+            json.dumps(preflight, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return preflight, "chat:latest", 0
+
+    def fake_degradation(model, *, host, timeout_seconds, token_budget, thinking_mode, output):
+        assert model == "chat:latest"
+        report = {
+            "valid_actual_model_run": True,
+            "reliability": {"refusal": {"passed": 5, "total": 5}},
+        }
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, sort_keys=True) + "\n", encoding="utf-8")
+        return report, 0
+
+    monkeypatch.setattr(local_eval, "_preflight_or_block", fake_preflight)
+    monkeypatch.setattr(local_eval, "run_degradation_ollama", fake_degradation)
+    args = Namespace(
+        output_dir=output_dir,
+        host="http://localhost:11434",
+        registry_timeout=0.25,
+        model="chat:latest",
+        timeout_seconds=1.5,
+        token_budget=64,
+        thinking_mode="off",
+    )
+    assert local_eval.command_smoke(args) == 0
+    summary = json.loads((output_dir / "SESSION_SUMMARY.json").read_text(encoding="utf-8"))
+    assert summary["evidence_identity"]["model"]["digest"] == "sha256:registry"
+    assert summary["run_parameters"] == {
+        "host": "http://localhost:11434",
+        "timeout_seconds": 1.5,
+        "token_budget": 64,
+        "thinking_mode": "off",
+    }
+    assert set(summary["artifacts"]) == {"degradation", "preflight"}
+    for row in summary["artifacts"].values():
+        assert len(row["sha256"]) == 64
+        assert row["size_bytes"] > 0
