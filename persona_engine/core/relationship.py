@@ -102,11 +102,14 @@ def _cap(delta: float, cap: float) -> float:
 # Bounded consequences of the subject's own resolved conduct. These are generic
 # semantics of an act, not personality constants. Character-specific variance
 # enters earlier when the core selects which act this subject takes.
+#
+# Keep this map deliberately narrow. Each effect must be earned by a controlled
+# continuity failure rather than by plausibility alone. ``protect_boundary``
+# retains the tension consequence that already existed in the engine before C2.
 DECISION_RELATIONSHIP_EFFECTS: dict[str, dict[str, float]] = {
     "challenge": {"tension": 0.02},
     "withdraw": {"guardedness": 0.02},
-    "protect_boundary": {"tension": 0.02, "guardedness": 0.02},
-    "decline": {"guardedness": 0.005},
+    "protect_boundary": {"tension": 0.02},
 }
 
 
