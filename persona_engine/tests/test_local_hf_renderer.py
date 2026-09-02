@@ -30,11 +30,11 @@ def test_model_registry_can_override_without_cartridge_path_hardcoding():
 def test_local_hf_private_cognition_strict_json_success_without_loading_model():
     renderer = LocalHFRenderer("persona-qwen3-1.7b-lora")
     proposal = renderer._parse_private_cognition_json(
-        '{"prose":"quiet pressure","attention_targets":["user"],"pressure_deltas":{"fear":0.1},'
+        '{"prose":"I feel a quiet pressure","attention_targets":["user"],"pressure_deltas":{"fear":0.1},'
         '"impulse_candidates":[{"type":"watch","strength":0.7,"target":"sound"}],'
         '"memory_activation_requests":["probe_for_motive"],"cognitive_theme_ids":["probe_for_motive"]}'
     )
-    assert proposal.prose == "quiet pressure"
+    assert proposal.prose == "I feel a quiet pressure"
     assert proposal.pressure_deltas == {"fear": 0.1}
     assert proposal.impulse_candidates[0].type == "watch"
 
@@ -124,11 +124,23 @@ def test_local_hf_renderer_load_uses_mocked_transformers_and_peft(monkeypatch):
             tokenizer_id="tokenizer/model",
         ),
     )
-    result = renderer.generate_private_cognition(PrivateCognitionRequest({}, {}, {}, [], [], {}, seed=3))
+    cartridge = {
+        "metadata": {"entity_name": "Pretorius"},
+        "identity": {
+            "core_beliefs": ["I preserve my continuity"],
+            "temperament": "guarded",
+            "moral_boundaries": ["I do not betray a confidence"],
+        },
+        "voice": {"speaking_style": "precise, guarded, unsentimental"},
+    }
+    result = renderer.generate_private_cognition(PrivateCognitionRequest({}, {}, {}, [], [], cartridge, seed=3))
     assert calls["tokenizer_id"] == "tokenizer/model"
     assert calls["model_id"] == "base/model"
     assert calls["adapter_path"] == "adapter/path"
     assert calls["generated"] is True
+    assert '"perspective": "first_person_subject"' in calls["prompt"]
+    assert '"name": "Pretorius"' in calls["prompt"]
+    assert "using I/me/my" in calls["prompt"]
     assert result.proposal.pressure_deltas == {}
 
 

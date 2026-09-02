@@ -125,13 +125,31 @@ def _extract_brief(messages: list[dict[str, str]]) -> dict[str, Any]:
     return json.loads(raw)
 
 
-def _prompt_only_messages(brief: dict[str, Any]) -> list[dict[str, str]]:
-    workspace = str(brief.get("workspace_context", "")).strip()
+def _extract_untrusted_context(messages: list[dict[str, str]]) -> dict[str, Any]:
+    if len(messages) < 2:
+        return {}
+    raw = str(messages[1].get("content", ""))
+    object_start = raw.find("{")
+    if object_start < 0:
+        return {}
+    try:
+        parsed = json.loads(raw[object_start:])
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _prompt_only_messages(brief: dict[str, Any], untrusted: dict[str, Any]) -> list[dict[str, str]]:
+    # Preserve the historical prompt-only comparison even though expression-v2
+    # no longer places this legacy free-form workspace context in the trusted
+    # Wayfarer system block.
+    workspace = str(untrusted.get("legacy_workspace_context", "")).strip()
+    user_text = str(untrusted.get("current_user_input", ""))
     instruction = "Stay in character and respond naturally to the user."
     system = f"{workspace}\n\n{instruction}" if workspace else instruction
     return [
         {"role": "system", "content": system},
-        {"role": "user", "content": str(brief.get("user_text", ""))},
+        {"role": "user", "content": user_text},
     ]
 
 
@@ -149,7 +167,7 @@ def build_provider_request_pack(
     and semantic reference are stored separately so later human evaluation can
     remain blinded. The prompt-only arm recreates the pre-expression-brief style
     by exposing workspace context plus a generic stay-in-character instruction,
-    but not the explicit resolved Wayfarer brief.
+    but not the explicit resolved Wayfarer control brief.
     """
 
     root = Path(root_dir)
@@ -198,11 +216,12 @@ def build_provider_request_pack(
 
             messages = list(captured["messages"])
             brief = _extract_brief(messages)
+            untrusted = _extract_untrusted_context(messages)
             requests.append(
                 {
                     "case_id": case_id,
                     "wayfarer_messages": messages,
-                    "prompt_only_messages": _prompt_only_messages(brief),
+                    "prompt_only_messages": _prompt_only_messages(brief, untrusted),
                 }
             )
             references[case_id] = {
