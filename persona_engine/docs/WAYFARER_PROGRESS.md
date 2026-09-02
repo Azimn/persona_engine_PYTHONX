@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 ## Current branch
 
@@ -12,6 +12,14 @@ Development branch: `wayfarer`
 Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
+
+## 2026-09-02 character-control-plane checkpoint
+
+Phase A and Phase B of `WAYFARER_CHARACTER_CONTROL_PLAN.md` are complete. Phase A established `wayfarer-expression-brief-v2`, trusted versus untrusted renderer context, deterministic first-person subject projection, and least-privilege protected-value disclosure. Phase B added typed behavioral realization validation for decision reversal and required-decision omission.
+
+Phase C1 now separates soft social response preference from global engine policy. The engine owns a small bounded response vocabulary and hard identity invariants; cartridges own seven soft trigger preferences. The same manipulation stimulus produces three different pre-render semantic acts in the current fixtures: Pretorius `withdraw`, Friendly `deflect`, and Rival `challenge`. Identical identity mutation still produces core-owned `character_refusal` for all three.
+
+Full branch verification after C1: Python 3.11 `366 passed, 1 skipped, 1 warning`; Python 3.12 also green with the same inventory. Evidence is `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`; design notes are `CHARACTER_DISPOSITIONS.md`. Relationship appraisal dynamics remain shared and are the next Phase C convergence experiment.
 
 ## Fixed-state renderer degradation checkpoint
 
@@ -50,14 +58,14 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 ## Latest implemented checkpoint
 
-Current production contracts include `renderer-benchmark-v1`, `expression-brief-v1`, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
+Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
 Latest deterministic verification on Python 3.11:
 
 ```text
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
-Full deterministic suite: 357 passed, 1 skipped, 1 warning in 32.66s
+Full deterministic suite: 366 passed, 1 skipped, 1 warning
 ```
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
