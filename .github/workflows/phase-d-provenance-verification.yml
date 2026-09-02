@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
 
+# Temporary matrix for the final Phase D provenance-handoff checkpoint.
 jobs:
   test:
     runs-on: ubuntu-latest
