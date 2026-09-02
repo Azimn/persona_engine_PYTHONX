@@ -27,6 +27,39 @@ def _zero_proposal() -> PrivateCognitionProposal:
     )
 
 
+def _private_subject_frame(cartridge: dict[str, Any] | None) -> dict[str, Any]:
+    """Project authored identity into a compact first-person cognition frame.
+
+    The model may propose private cognition, but the frame does not grant it
+    state authority. Only the separately validated structured proposal can have
+    bounded effects on the continuing subject.
+    """
+
+    cartridge = cartridge if isinstance(cartridge, dict) else {}
+    metadata = cartridge.get("metadata", {}) if isinstance(cartridge.get("metadata", {}), dict) else {}
+    identity = cartridge.get("identity", {}) if isinstance(cartridge.get("identity", {}), dict) else {}
+    voice = cartridge.get("voice", {}) if isinstance(cartridge.get("voice", {}), dict) else {}
+    name = str(metadata.get("entity_name") or metadata.get("entity_id") or "").strip()
+    return {
+        "perspective": "first_person_subject",
+        "instruction": (
+            "If prose is produced, write it as my first-person inner perspective using I/me/my, not as a third-person "
+            "description of a character. Do not claim certainty or memory that is absent from the supplied state."
+        ),
+        "identity": {
+            "name": name,
+            "core_beliefs": list(identity.get("core_beliefs", []) or []),
+            "temperament": str(identity.get("temperament", "")),
+            "moral_boundaries": list(identity.get("moral_boundaries", []) or []),
+            "speech_constraints": list(identity.get("speech_constraints", []) or []),
+        },
+        "voice": {
+            "speaking_style": str(voice.get("speaking_style", "")),
+            "address_user_as": str(voice.get("address_user_as", "")),
+        },
+    }
+
+
 class LocalHFRenderer:
     """HF/PEFT-backed renderer seam.
 
@@ -99,13 +132,15 @@ class LocalHFRenderer:
     def _private_cognition_prompt(self, request: PrivateCognitionRequest) -> str:
         payload = {
             "task": "private_cognition",
+            "authority": "proposal_only_noncanonical",
+            "subject_frame": _private_subject_frame(request.cartridge),
             "ledger_digest": request.ledger_digest,
             "active_state": request.active_state,
             "arc_context": request.arc_context,
             "evidence": request.evidence,
             "retrieved_memories": request.retrieved_memories,
             "allowed_output_schema": {
-                "prose": "string",
+                "prose": "first-person string using I/me/my, or empty string",
                 "attention_targets": ["string"],
                 "pressure_deltas": {"pressure_name": "float"},
                 "impulse_candidates": [{"type": "string", "strength": "float", "target": "string"}],
