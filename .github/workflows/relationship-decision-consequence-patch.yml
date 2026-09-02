@@ -1,0 +1,62 @@
+name: Relationship Decision Consequence Patch
+
+on:
+  push:
+    branches: [wayfarer-relationship-dispositions-phase]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply narrow causal relationship patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one match in {path}, found {count}: {old[:100]!r}")
+              file.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          relationship = "persona_engine/core/relationship.py"
+          replace_once(
+              relationship,
+              "def _cap(delta: float, cap: float) -> float:\n    return max(-cap, min(cap, delta))\n\n\ndef apply_appraisal(rel: RelationshipState, appraisal: AppraisalResult, major_event: bool = False):\n",
+              "def _cap(delta: float, cap: float) -> float:\n    return max(-cap, min(cap, delta))\n\n\n# Bounded consequences of the subject's own resolved conduct. These are generic\n# semantics of an act, not personality constants. Character-specific variance\n# enters earlier when the core selects which act this subject takes.\nDECISION_RELATIONSHIP_EFFECTS: dict[str, dict[str, float]] = {\n    \"challenge\": {\"tension\": 0.02},\n    \"withdraw\": {\"guardedness\": 0.02},\n    \"protect_boundary\": {\"tension\": 0.02, \"guardedness\": 0.02},\n    \"decline\": {\"guardedness\": 0.005},\n}\n\n\ndef apply_decision_relationship_effect(rel: RelationshipState, dialogue_act: str) -> dict[str, float]:\n    \"\"\"Apply small typed consequences of character-owned semantic conduct.\n\n    Renderer wording has no role here. The only input is the dialogue act already\n    resolved by the character core. Returned deltas are diagnostic evidence.\n    \"\"\"\n\n    effects = DECISION_RELATIONSHIP_EFFECTS.get(str(dialogue_act), {})\n    applied: dict[str, float] = {}\n    for field, delta in effects.items():\n        before = float(getattr(rel, field))\n        after = max(0.0, min(1.0, before + float(delta)))\n        setattr(rel, field, after)\n        applied[field] = round(after - before, 6)\n    return applied\n\n\ndef apply_appraisal(rel: RelationshipState, appraisal: AppraisalResult, major_event: bool = False):\n",
+          )
+
+          engine = "persona_engine/core/engine.py"
+          replace_once(
+              engine,
+              "from .relationship import RelationshipState, appraise_event, apply_appraisal, relationship_to_qualitative\n",
+              "from .relationship import (\n    RelationshipState,\n    appraise_event,\n    apply_appraisal,\n    apply_decision_relationship_effect,\n    relationship_to_qualitative,\n)\n",
+          )
+          replace_once(
+              engine,
+              "        dialogue_act = str((decision_payload or {}).get(\"dialogue_act\", \"respond\"))\n        if bucket == \"HIGH\" and dialogue_act in {\"protect_boundary\", \"withdraw\", \"challenge\"}:\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n            if dialogue_act in {\"protect_boundary\", \"challenge\"}:\n                self.relationship.tension = min(1.0, self.relationship.tension + 0.02)\n",
+              "        dialogue_act = str((decision_payload or {}).get(\"dialogue_act\", \"respond\"))\n        apply_decision_relationship_effect(self.relationship, dialogue_act)\n        if bucket == \"HIGH\" and dialogue_act in {\"protect_boundary\", \"withdraw\", \"challenge\"}:\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n",
+          )
+          PY
+
+      - name: Commit causal relationship patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persona_engine/core/relationship.py persona_engine/core/engine.py
+          git diff --cached --check
+          git commit -m "Couple resolved conduct to relationship trajectory"
+          git push origin HEAD:wayfarer-relationship-dispositions-phase
