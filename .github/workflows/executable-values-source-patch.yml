@@ -1,0 +1,144 @@
+name: Executable Values Source Patch
+
+on:
+  push:
+    branches: [wayfarer-executable-values-phase]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply sparse executable-value seam
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one match in {path}, found {count}: {old[:160]!r}")
+              file.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          cartridge = "persona_engine/core/cartridge.py"
+          replace_once(
+              cartridge,
+              "from .disposition import ALLOWED_DISPOSITION_RESPONSES\nfrom .offline_dialogue import register_dialogue\n",
+              "from .disposition import ALLOWED_DISPOSITION_RESPONSES\nfrom .decision_values import SUPPORTED_VALUE_CONCERNS, validate_value_decision_rules\nfrom .offline_dialogue import register_dialogue\n",
+          )
+          replace_once(
+              cartridge,
+              '    "concealment", "arc", "dialogue", "behavior_profile",\n',
+              '    "concealment", "arc", "dialogue", "behavior_profile", "value_profile",\n',
+          )
+          replace_once(
+              cartridge,
+              '    "behavior_profile": {\n        "intimacy_too_fast", "accusation", "contradiction", "manipulation",\n        "boredom", "disrespect", "emotional_overload",\n    },\n})\n',
+              '    "behavior_profile": {\n        "intimacy_too_fast", "accusation", "contradiction", "manipulation",\n        "boredom", "disrespect", "emotional_overload",\n    },\n    "value_profile": set(SUPPORTED_VALUE_CONCERNS),\n})\n',
+          )
+          replace_once(
+              cartridge,
+              '    if "behavior_profile" in data:\n        for field, raw_value in data["behavior_profile"].items():\n            value = str(raw_value).strip().lower()\n            if value not in ALLOWED_DISPOSITION_RESPONSES:\n                raise CartridgeError(f"[behavior_profile].{field} has unsupported value: {raw_value}")\n',
+              '    if "behavior_profile" in data:\n        for field, raw_value in data["behavior_profile"].items():\n            value = str(raw_value).strip().lower()\n            if value not in ALLOWED_DISPOSITION_RESPONSES:\n                raise CartridgeError(f"[behavior_profile].{field} has unsupported value: {raw_value}")\n    if "value_profile" in data:\n        try:\n            validate_value_decision_rules(data["value_profile"])\n        except ValueError as exc:\n            raise CartridgeError(str(exc)) from exc\n',
+          )
+          replace_once(
+              cartridge,
+              '    if schema_version == V1_SCHEMA_VERSION:\n        unexpected_v2 = sorted(_V2_SECTIONS & set(data))\n        if unexpected_v2:\n            raise CartridgeError(f"[{unexpected_v2[0]}] requires [metadata].schema_version = \\"2.0\\"")\n    else:\n        _validate_v2_sections(data, metadata)\n',
+              '    if schema_version == V1_SCHEMA_VERSION:\n        unexpected_v2 = sorted(_V2_SECTIONS & set(data))\n        if unexpected_v2:\n            raise CartridgeError(f"[{unexpected_v2[0]}] requires [metadata].schema_version = \\"2.0\\"")\n    else:\n        if "value_profile" in data:\n            raise CartridgeError("[value_profile] is legacy v1 compatibility data; author native v2 rules under [phenotype.values].decision_rules")\n        _validate_v2_sections(data, metadata)\n',
+          )
+          replace_once(
+              cartridge,
+              '        "arc": data.get("arc", {}), "dialogue": dialogue, "behavior_profile": data.get("behavior_profile", {}),\n',
+              '        "arc": data.get("arc", {}), "dialogue": dialogue, "behavior_profile": data.get("behavior_profile", {}),\n        "value_profile": data.get("value_profile", {}),\n',
+          )
+
+          cartridge_v2 = "persona_engine/core/cartridge_v2.py"
+          replace_once(
+              cartridge_v2,
+              "from .identity import SelfModel, SelfModelClaim\n",
+              "from .identity import SelfModel, SelfModelClaim\nfrom .decision_values import validate_value_decision_rules\n",
+          )
+          replace_once(
+              cartridge_v2,
+              '    for namespace in PHENOTYPE_NAMESPACES:\n        if namespace in data and not isinstance(data[namespace], dict):\n            raise ValueError(f"[phenotype.{namespace}] must be a table")\n',
+              '    for namespace in PHENOTYPE_NAMESPACES:\n        if namespace in data and not isinstance(data[namespace], dict):\n            raise ValueError(f"[phenotype.{namespace}] must be a table")\n    values = data.get("values", {})\n    if "decision_rules" in values:\n        try:\n            validate_value_decision_rules(values["decision_rules"])\n        except ValueError as exc:\n            raise ValueError(f"[phenotype.values].decision_rules: {exc}") from exc\n',
+          )
+          replace_once(
+              cartridge_v2,
+              '        "values": {"moral_boundaries": copy.deepcopy(identity.get("moral_boundaries", []))},\n',
+              '        "values": {\n            "moral_boundaries": copy.deepcopy(identity.get("moral_boundaries", [])),\n            "decision_rules": copy.deepcopy(migrated.get("value_profile", {})),\n        },\n',
+          )
+
+          engine = "persona_engine/core/engine.py"
+          replace_once(
+              engine,
+              "from .decision_commitment import evaluate_commitments_for_decision\n",
+              "from .decision_commitment import evaluate_commitments_for_decision\nfrom .decision_values import evaluate_values_for_decision\n",
+          )
+          replace_once(
+              engine,
+              '    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None, commitment_evidence: dict[str, Any] | None = None) -> dict[str, Any]:\n',
+              '    def _resolve_decision_payload(self, triggers: list[str], risk: float, resistance: str | None = None, history_evidence: dict[str, Any] | None = None, commitment_evidence: dict[str, Any] | None = None, value_evidence: dict[str, Any] | None = None) -> dict[str, Any]:\n',
+          )
+          replace_once(
+              engine,
+              '        history_payload = dict(history_evidence or {})\n        commitment_payload = dict(commitment_evidence or {})\n',
+              '        history_payload = dict(history_evidence or {})\n        commitment_payload = dict(commitment_evidence or {})\n        value_payload = dict(value_evidence or {})\n',
+          )
+          replace_once(
+              engine,
+              '        if dialogue_act in {"respond", "qualified_response"} and bool(commitment_payload.get("active")) and resistance is None:\n            dialogue_act = "decline"\n        if resistance == "character_refusal":\n            dialogue_act = "protect_boundary"\n        elif resistance == "challenge":\n            dialogue_act = "challenge"\n        elif resistance == "go_quiet":\n            dialogue_act = "withdraw"\n        elif resistance == "deflect":\n            dialogue_act = "deflect"\n        elif resistance == "shift_topic":\n            dialogue_act = "redirect"\n        elif resistance == "decline":\n            dialogue_act = "decline"\n',
+              '        if dialogue_act in {"respond", "qualified_response"} and bool(commitment_payload.get("active")) and resistance is None:\n            dialogue_act = "decline"\n        if resistance == "character_refusal":\n            dialogue_act = "protect_boundary"\n        elif bool(value_payload.get("active")):\n            if str(value_payload.get("response", "none")) == "decline":\n                dialogue_act = "decline"\n        elif resistance == "challenge":\n            dialogue_act = "challenge"\n        elif resistance == "go_quiet":\n            dialogue_act = "withdraw"\n        elif resistance == "deflect":\n            dialogue_act = "deflect"\n        elif resistance == "shift_topic":\n            dialogue_act = "redirect"\n        elif resistance == "decline":\n            dialogue_act = "decline"\n',
+          )
+          replace_once(
+              engine,
+              '            "commitment_evidence": commitment_payload or {"active": False, "commitment_kind": "none", "commitment_target": "", "intention_name": "", "reason": "none"},\n',
+              '            "commitment_evidence": commitment_payload or {"active": False, "commitment_kind": "none", "commitment_target": "", "intention_name": "", "reason": "none"},\n            "value_evidence": value_payload or {"active": False, "concern": "none", "response": "none", "source": "none", "reason": "none"},\n',
+          )
+          replace_once(
+              engine,
+              '        commitment_evidence = evaluate_commitments_for_decision(\n            user_text,\n            self.intentions.active_commitments(now),\n        )\n\n        triggers = []\n',
+              '        commitment_evidence = evaluate_commitments_for_decision(\n            user_text,\n            self.intentions.active_commitments(now),\n        )\n        value_rules = (\n            ((self.cartridge_data or {}).get("phenotype", {}).get("values", {}) or {}).get("decision_rules", {})\n        )\n        value_evidence = evaluate_values_for_decision(user_text, value_rules)\n\n        triggers = []\n',
+          )
+          replace_once(
+              engine,
+              '            history_evidence=history_evidence.to_dict(),\n            commitment_evidence=commitment_evidence.to_dict(),\n        )\n',
+              '            history_evidence=history_evidence.to_dict(),\n            commitment_evidence=commitment_evidence.to_dict(),\n            value_evidence=value_evidence.to_dict(),\n        )\n',
+          )
+          replace_once(
+              engine,
+              '        if commitment_evidence.active:\n            suppression_traces.append(_suppression_trace(\n                "commitment_constraint",\n                "constrained",\n                f"{commitment_evidence.commitment_kind}:{commitment_evidence.commitment_target}",\n                "info",\n            ))\n        if resistance:\n',
+              '        if commitment_evidence.active:\n            suppression_traces.append(_suppression_trace(\n                "commitment_constraint",\n                "constrained",\n                f"{commitment_evidence.commitment_kind}:{commitment_evidence.commitment_target}",\n                "info",\n            ))\n        if value_evidence.active:\n            suppression_traces.append(_suppression_trace(\n                "value_constraint",\n                "constrained",\n                f"{value_evidence.concern}:{value_evidence.response}",\n                "info",\n            ))\n        if resistance:\n',
+          )
+
+          pretorius = "persona_engine/cartridges/pretorius.snp"
+          replace_once(
+              pretorius,
+              'emotional_overload = "go_quiet"\n\n[body_profile]\n',
+              'emotional_overload = "go_quiet"\n\n[value_profile]\nperformative_devotion = "decline"\n\n[body_profile]\n',
+          )
+          PY
+
+      - name: Remove one-shot workflow
+        run: rm -f .github/workflows/executable-values-source-patch.yml
+
+      - name: Commit source seam
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persona_engine/core/cartridge.py persona_engine/core/cartridge_v2.py persona_engine/core/engine.py persona_engine/cartridges/pretorius.snp .github/workflows/executable-values-source-patch.yml
+          git diff --cached --check
+          git commit -m "Make authored value boundaries executable"
+          git push origin HEAD:wayfarer-executable-values-phase
