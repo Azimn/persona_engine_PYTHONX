@@ -25,7 +25,12 @@ from persona_engine.evaluation.local_model_session import (
     model_is_installed,
     run_paired_ollama,
 )
-from renderer_degradation_real import run_ollama as run_degradation_ollama
+try:
+    from tools.renderer_degradation_real import run_ollama as run_degradation_ollama
+except ModuleNotFoundError:
+    # Direct script execution places the tools directory, rather than the
+    # repository root, on the leading import path.
+    from renderer_degradation_real import run_ollama as run_degradation_ollama
 
 
 def _slug(text: str) -> str:
