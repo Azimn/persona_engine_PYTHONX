@@ -61,6 +61,9 @@ boredom = "shift_topic"
 disrespect = "shorten"
 emotional_overload = "go_quiet"
 
+[value_profile]
+performative_devotion = "decline"
+
 [body_profile]
 baseline_energy = 0.72
 baseline_tension = 0.35

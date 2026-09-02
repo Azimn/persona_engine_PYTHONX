@@ -21,7 +21,9 @@ Phase C1 separates soft social response preference from global engine policy. Th
 
 Phase C2 then froze a concrete relationship-convergence failure: those different semantic acts still produced identical final relationship state under identical histories. The repair leaves incoming-event appraisal generic and adds only bounded consequences of the subject's own already-resolved conduct. `challenge` contributes `+0.02` tension, `withdraw` contributes `+0.02` guardedness, and `protect_boundary` contributes `+0.02` tension. The engine persists and returns a typed `decision_effects` causal trace; renderer wording remains outside the state write path. Repeated manipulation now ends with Pretorius guardedness `0.724`, Friendly guardedness `0.644`, and Rival tension `0.32` versus `0.24` for the others.
 
-Full C2 branch verification: Python 3.11 `371 passed, 1 skipped, 1 warning`; Python 3.12 `371 passed, 1 skipped, 1 warning`. The permanent relationship convergence probe passed on both. Evidence is `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md` and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`; design notes are `RELATIONSHIP_DECISION_CONSEQUENCES.md`. Priority 6 executable values is the next Phase C experiment.
+Full C2 branch verification: Python 3.11 `371 passed, 1 skipped, 1 warning`; Python 3.12 `371 passed, 1 skipped, 1 warning`. The permanent relationship convergence probe passed on both. Evidence is `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md` and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`; design notes are `RELATIONSHIP_DECISION_CONSEQUENCES.md`.
+
+Phase C3 then froze a value-causality failure and repaired it with one sparse typed executable concern rather than a generalized trait system. Pretorius alone authors `performative_devotion = decline`; under the same command Friendly resolves `respond` while Pretorius resolves `decline` before rendering. Hard identity protection remains higher authority, and the existing behavioral contract prevents renderer reversal. Final Phase C3 verification on Python 3.11 and 3.12 is `379 passed, 1 skipped, 1 warning`, with eight focused executable-value regressions and the cross-character value probe passing on both. Evidence is `evidence/mvi/EXECUTABLE_VALUES_BASELINE.md` and `evidence/mvi/EXECUTABLE_VALUE_BOUNDARIES.md`; design notes are `EXECUTABLE_VALUES.md`. Phase C is complete and Phase D real-model collection is active.
 
 ## Fixed-state renderer degradation checkpoint
 
@@ -60,14 +62,14 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 ## Latest implemented checkpoint
 
-Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
+Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
 Latest deterministic verification on Python 3.11:
 
 ```text
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
-Full deterministic suite: 371 passed, 1 skipped, 1 warning
+Full deterministic suite: 379 passed, 1 skipped, 1 warning
 ```
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
@@ -76,7 +78,7 @@ The shared-store custody probe demonstrates one active writer across distinct ho
 
 Memory policy remains semantic rather than numeric. The completed production-only 5,000-turn plateau stabilized at `12,707 B` active serialized state with `134 B` growth from turn 250 to turn 5,000 and seven resident memories in that fixture. Seven is an observation, not a universal capacity.
 
-Evidence: `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`, `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`, `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
+Evidence: `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`, `evidence/mvi/EXECUTABLE_VALUES_BASELINE.md`, `evidence/mvi/EXECUTABLE_VALUE_BOUNDARIES.md`, `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`, `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`, `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`, `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`, `NON_USER_MEMORY_POLICY.md`, and `PRODUCTION_RESIDENT_PLATEAU.md`.
 
 ## Baseline history
 

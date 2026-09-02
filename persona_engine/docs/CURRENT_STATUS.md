@@ -10,7 +10,7 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 **This block is the only live numeric status source in project prose.** Historical phase sections may retain dated measurements, but current deterministic-suite totals belong here. CI verifies this count against the suite that just ran with `tools/check_current_status_sync.py`.
 
-Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
+Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
@@ -18,7 +18,7 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 371 passed, 1 skipped, 1 warning
+Full deterministic suite: 379 passed, 1 skipped, 1 warning
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
@@ -33,7 +33,9 @@ Character disposition C1 moves seven soft social-response preferences out of uni
 
 C2 froze a remaining convergence defect: despite those different decisions, identical social histories originally produced identical relationship trajectories. The repair keeps the base appraisal equations generic and adds only three currently demonstrated decision-owned effects: `challenge` adds `0.02` tension, `withdraw` adds `0.02` guardedness, and `protect_boundary` adds `0.02` tension. After four manipulation turns, Pretorius ends at guardedness `0.724`, Friendly at guardedness `0.644`, and Rival at tension `0.32` versus `0.24` for the others. A typed `decision_effects` trace is persisted and returned, and renderer wording cannot alter it. No per-character relationship sensitivity matrix was introduced.
 
-Evidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Design documentation: `CHARACTER_DISPOSITIONS.md` and `RELATIONSHIP_DECISION_CONSEQUENCES.md`.
+C3 froze a value-causality defect: Pretorius authored `I do not pretend devotion on command`, Friendly did not, yet both originally resolved the same command to ordinary `respond`. The repair adds a sparse typed rule under normalized `phenotype.values.decision_rules` rather than parsing prose or adding a generalized personality model. Under the frozen request Friendly remains `respond`, while Pretorius resolves `decline` with typed `performative_devotion` evidence. Hard identity protection still outranks the authored value, the authored value outranks softer social dispositions for the demonstrated conflict, and the Phase B behavioral contract rejects a renderer that later signals compliance.
+
+Evidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`, `evidence/mvi/EXECUTABLE_VALUES_BASELINE.md`, and `evidence/mvi/EXECUTABLE_VALUE_BOUNDARIES.md`. Design documentation: `CHARACTER_DISPOSITIONS.md`, `RELATIONSHIP_DECISION_CONSEQUENCES.md`, and `EXECUTABLE_VALUES.md`.
 
 The authoritative renderer-degradation evidence is `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`; renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
