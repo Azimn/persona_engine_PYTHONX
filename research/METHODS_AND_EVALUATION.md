@@ -64,6 +64,8 @@ The first actual-model renderer runs should preserve the frozen builder-designed
 
 Fixed-state degradation and Wayfarer-versus-prompt-only comparison answer different questions. The former asks which identity-critical signals remain recoverable as renderer capability decreases. The latter holds the underlying model constant and asks whether the externalized Wayfarer subject state preserves the developed character better than ordinary prompt-based role-play. Mechanical semantic checks and human recognizability/linguistic-quality judgments should remain separate outcomes.
 
+For local collection, the execution agent should be treated as an operator rather than an evaluator: environment discovery and installed-model selection are machine-generated, model downloads are prohibited during collection, the smoke gate is completed before the larger paired run, and raw outputs are preserved unchanged for later scoring. This separation reduces both coding-agent intervention and the risk of tuning the implementation while observing evaluation responses.
+
 ## 4. Outcome families
 
 Do not collapse every result into one "lifelikeness" score.

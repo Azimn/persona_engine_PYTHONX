@@ -33,3 +33,6 @@ persona_state.db
 Thumbs.db
 .idea/
 .vscode/
+
+# Local model evaluation outputs
+.wayfarer-local-eval/

@@ -18,7 +18,7 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 357 passed, 1 skipped, 1 warning
+Full deterministic suite: 362 passed, 1 skipped, 1 warning
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
@@ -53,6 +53,8 @@ The zero-model misses are retained as evidence rather than repaired in this phas
 `tools/renderer_degradation_real.py` now carries that frozen five-seed fixture into actual-model collection without changing its state or scoring criteria. It can run the existing `LocalLLMRenderer` against Ollama, export the exact provider-neutral expression messages for manual frontier runs, and score verbatim imported responses with the same four mechanical checks. An Ollama run is marked invalid as actual-model evidence if any sample falls back to the zero-model renderer. No actual local or frontier model result is claimed yet.
 
 This fixed-state protocol answers where identity-critical output signals degrade across renderer capability. It is deliberately separate from the larger Wayfarer-versus-prompt-only comparison. The existing 16 paired provider cases remain the apparatus for asking whether the same model preserves the developed character better with Wayfarer state than with ordinary persona prompting.
+
+`tools/local_eval.py` now provides the low-token Windows/local operator path around those frozen experiments. Preflight checks branch cleanliness, Ollama reachability, and installed model metadata; excludes obvious embedding/reranking models; recommends only already-installed small/medium candidates; and writes the exact next command. The smoke phase performs only the five fixed-state calls. The full phase is gated behind a valid smoke/degradation run and then captures the 16 paired Wayfarer-versus-prompt-only cases. The harness never pulls a model, never auto-selects a large model, stops immediately on renderer fallback, and writes compact summary artifacts so a coding agent does not need to interpret raw output. No actual local-model result is claimed by this infrastructure phase.
 
 ## Project definition
 

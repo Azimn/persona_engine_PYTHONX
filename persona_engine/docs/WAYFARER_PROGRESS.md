@@ -22,6 +22,8 @@ The `wayfarer-renderer-degradation-v1` probe fixes one Pretorius state with a co
 
 The frozen degradation fixture can now be executed against real substrates with `tools/renderer_degradation_real.py`. `ollama` mode uses the existing `LocalLLMRenderer` and rejects any zero-model fallback as invalid actual-model evidence. `export-frontier` and `score-frontier` support copy/paste collection from frontier chat systems without adding provider SDKs or API cost to Wayfarer. The current repository contains execution apparatus only; no actual local/frontier result has been recorded yet.
 
+For the local Windows/Codex handoff, `tools/local_eval.py` and `CODEX_LOCAL_TESTING.md` reduce the operator task to preflight -> five-call smoke -> stop/return summary, with the 16-case paired run reserved for an explicit later instruction. Preflight records the installed Ollama model tag/digest, parameter size, quantization, branch/head, and machine metadata. It never pulls models or auto-selects a large model. `.wayfarer-local-eval/` is ignored so evidence collection does not dirty the checkout.
+
 ## Longitudinal renderer-swap benchmark checkpoint
 
 `renderer-benchmark-v1` is the first reusable M18 longitudinal substrate-evaluation contract. Four frozen Pretorius histories (neutral, trusted, conflicted, and confidential-commitment) each receive four later probes. The control trajectory remains offline while the candidate switches `offline -> external -> external -> offline`. All `16/16` renderer-independent semantic projections matched, all `8/8` external turns changed visible wording, and the Project Orchid non-disclosure remained a semantic `decline` during the external turn.

@@ -32,6 +32,10 @@ Optional host, timeout, token-budget, and thinking-mode flags expose existing `L
 
 A local run is valid actual-model evidence only when every sample records `actual_model_response: true` and the report records `valid_actual_model_run: true`. If Ollama is unreachable, the model is unavailable, or any request falls back to zero-model rendering, the tool exits with status `2`. The fallback output remains in the report for diagnosis but does not count as the requested model tier.
 
+### Low-token local operator wrapper
+
+`python tools/local_eval.py preflight` is the preferred first command on the local test laptop. It records the current Wayfarer commit, dirty/clean state, Ollama reachability, and installed model tag/digest/parameter/quantization metadata. It selects no model above the medium tier and performs no download. The generated `NEXT_STEPS.txt` names the exact five-call smoke command. A coding agent must stop after a successful smoke run and return `SESSION_SUMMARY.json`; the 16-case paired comparison is a separate explicitly approved step. This makes environment/model discovery deterministic rather than a coding-agent reasoning task.
+
 ## Manual frontier model
 
 Export the exact provider-neutral messages:

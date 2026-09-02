@@ -2,6 +2,12 @@
 
 These instructions are mandatory for Codex agents and other automated coding assistants working in this repository.
 
+## Local actual-model operator exception
+
+If the requested task is **only** to execute the already-frozen local actual-model evaluation and does not request source changes, use `CODEX_LOCAL_TESTING.md` as the execution contract instead of reading the full Wayfarer roadmap/document stack below. In that mode, do not redesign, debug, tune, or modify Wayfarer. Run preflight, execute only the exact command emitted by the harness, stop on the documented stop conditions, and return the generated summary artifact. If the harness reports a code-level defect, stop and escalate rather than spending an execution session investigating the repository.
+
+This exception exists to keep local evidence collection cheap and reproducible. It does not apply to implementation work, architectural review, test repair, or any task that asks the agent to change source code.
+
 ## Wayfarer branch notice
 
 When working on the `wayfarer` branch, read these files before making changes, in this order:
