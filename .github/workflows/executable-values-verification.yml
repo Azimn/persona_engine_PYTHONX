@@ -1,0 +1,35 @@
+name: Executable Values Verification
+
+on:
+  push:
+    branches: [wayfarer-executable-values-phase]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+      - name: Run executable-value regressions
+        run: python -m pytest persona_engine/tests/test_executable_values.py -q
+      - name: Run full deterministic suite
+        run: python -m pytest persona_engine/tests -q
+      - name: Run value-boundary probe
+        run: python -m persona_engine.evaluation.value_boundary_probe
