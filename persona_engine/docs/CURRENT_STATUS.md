@@ -10,7 +10,7 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 **This block is the only live numeric status source in project prose.** Historical phase sections may retain dated measurements, but current deterministic-suite totals belong here. CI verifies this count against the suite that just ran with `tools/check_current_status_sync.py`.
 
-Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
+Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
 Current Python 3.11 verification:
 
@@ -18,7 +18,7 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 366 passed, 1 skipped, 1 warning
+Full deterministic suite: 371 passed, 1 skipped, 1 warning
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The remaining warning is the existing Starlette/httpx TestClient deprecation, not a Wayfarer behavioral failure.
@@ -29,9 +29,11 @@ The current renderer boundary is `wayfarer-expression-brief-v2`. Trusted charact
 
 The consistency layer now validates behavioral realization of the already-resolved decision. A direct decision reversal is critical; omission of a required refusal or boundary is hard and receives one bounded constrained retry before fallback. The validator remains a fidelity checker rather than a second planner.
 
-Character disposition C1 moves seven soft social-response preferences out of universal engine policy and into cartridge-owned data. In the current cross-character regression, identical manipulation resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering. Hard identity mutation remains a core-owned `character_refusal` for all three. Relationship appraisal equations remain generic and are the next explicit convergence question.
+Character disposition C1 moves seven soft social-response preferences out of universal engine policy and into cartridge-owned data. In the cross-character regression, identical manipulation resolves to `withdraw` for Pretorius, `deflect` for Friendly, and `challenge` for Rival before rendering. Hard identity mutation remains a core-owned `character_refusal` for all three.
 
-Evidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, and `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`. Design documentation: `CHARACTER_DISPOSITIONS.md`.
+C2 froze a remaining convergence defect: despite those different decisions, identical social histories originally produced identical relationship trajectories. The repair keeps the base appraisal equations generic and adds only three currently demonstrated decision-owned effects: `challenge` adds `0.02` tension, `withdraw` adds `0.02` guardedness, and `protect_boundary` adds `0.02` tension. After four manipulation turns, Pretorius ends at guardedness `0.724`, Friendly at guardedness `0.644`, and Rival at tension `0.32` versus `0.24` for the others. A typed `decision_effects` trace is persisted and returned, and renderer wording cannot alter it. No per-character relationship sensitivity matrix was introduced.
+
+Evidence: `evidence/mvi/EXPRESSION_TRUST_BOUNDARY_V2.md`, `evidence/mvi/BEHAVIORAL_CONTRACT_VALIDATION.md`, `evidence/mvi/CHARACTER_DISPOSITION_DIVERGENCE.md`, `evidence/mvi/RELATIONSHIP_CONVERGENCE_BASELINE.md`, and `evidence/mvi/RELATIONSHIP_DECISION_CONSEQUENCES.md`. Design documentation: `CHARACTER_DISPOSITIONS.md` and `RELATIONSHIP_DECISION_CONSEQUENCES.md`.
 
 The authoritative renderer-degradation evidence is `evidence/mvi/RENDERER_DEGRADATION_PROBE.md`; renderer-benchmark evidence is `evidence/mvi/RENDERER_SWAP_BENCHMARK.md`; expression-substrate evidence is `evidence/mvi/EXPRESSION_SUBSTRATE_CONTINUITY.md`; custody evidence is `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`; disconnected-store migration evidence is `evidence/mvi/DISCONNECTED_STORE_TRANSFER.md`. Exact final commit identity and cross-version CI belong in repository history/Actions rather than duplicated self-referential prose here.
 
