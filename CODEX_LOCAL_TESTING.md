@@ -61,7 +61,7 @@ A successful smoke run writes:
   SESSION_SUMMARY.md
 ```
 
-If `SESSION_SUMMARY.json` says `VALID_ACTUAL_MODEL_RUN`, **stop** and return that file. Do not automatically continue to the 16-case comparison.
+If `SESSION_SUMMARY.json` says `VALID_ACTUAL_MODEL_RUN`, **stop** and return that file. The summary carries the selected Ollama registry identity, including digest/parameter/quantization metadata when available, plus SHA-256 hashes for the evidence files it references. Do not automatically continue to the 16-case comparison.
 
 If it says `INVALID_MODEL_RUN`, stop and return the summary. The harness has already captured whether Ollama fell back and why.
 
