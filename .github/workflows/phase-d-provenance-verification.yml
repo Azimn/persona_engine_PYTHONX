@@ -1,0 +1,36 @@
+name: Phase D Provenance Verification
+
+on:
+  push:
+    branches: [wayfarer-real-model-collection-phase]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Verify local collection provenance path
+        run: python -m pytest persona_engine/tests/test_local_model_session.py -q
+      - name: Verify deterministic suite
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pytest persona_engine/tests -q | tee .wayfarer-pytest-summary.txt
+      - name: Verify current-status synchronization
+        run: python tools/check_current_status_sync.py --pytest-output .wayfarer-pytest-summary.txt
