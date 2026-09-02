@@ -30,7 +30,7 @@ jobs:
               global text
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f"expected one match, found {count}: {old[:120]!r}")
+                  raise SystemExit(f"expected one match, found {count}: {old[:140]!r}")
               text = text.replace(old, new, 1)
 
           replace_once(
@@ -38,12 +38,12 @@ jobs:
               "        decision_effects = self._appraise_decision_effect(decision_payload, risk, bucket)\n        self.interface.mark_output(now)\n",
           )
           replace_once(
-              '            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n',
-              '            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n',
+              '            "dominant_pressure": dominant_name,\n            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n',
+              '            "dominant_pressure": dominant_name,\n            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n',
           )
           replace_once(
-              '            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n            "retrieved_memory_trace": retrieved_memory_trace,\n',
-              '            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n            "retrieved_memory_trace": retrieved_memory_trace,\n',
+              '            "interpretation_source_digest": interpretation_result.source_digest,\n            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n',
+              '            "interpretation_source_digest": interpretation_result.source_digest,\n            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n',
           )
           replace_once(
               '        dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))\n        apply_decision_relationship_effect(self.relationship, dialogue_act)\n        if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n',
