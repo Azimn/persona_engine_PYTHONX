@@ -1,0 +1,64 @@
+name: C2 Decision Effect Trace Patch
+
+on:
+  push:
+    branches: [wayfarer-relationship-dispositions-phase]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add typed effect trace
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("persona_engine/core/engine.py")
+          text = path.read_text(encoding="utf-8")
+
+          def replace_once(old, new):
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one match, found {count}: {old[:120]!r}")
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              "        self._appraise_decision_effect(decision_payload, risk, bucket)\n        self.interface.mark_output(now)\n",
+              "        decision_effects = self._appraise_decision_effect(decision_payload, risk, bucket)\n        self.interface.mark_output(now)\n",
+          )
+          replace_once(
+              '            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n',
+              '            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n',
+          )
+          replace_once(
+              '            "decision_payload": decision_payload,\n            "cognitive_application_report": cognition_report_payload,\n            "retrieved_memory_trace": retrieved_memory_trace,\n',
+              '            "decision_payload": decision_payload,\n            "decision_effects": decision_effects,\n            "cognitive_application_report": cognition_report_payload,\n            "retrieved_memory_trace": retrieved_memory_trace,\n',
+          )
+          replace_once(
+              '        dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))\n        apply_decision_relationship_effect(self.relationship, dialogue_act)\n        if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:\n            top = self.pressures.top()\n            if top:\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n',
+              '        dialogue_act = str((decision_payload or {}).get("dialogue_act", "respond"))\n        relationship_effects = apply_decision_relationship_effect(self.relationship, dialogue_act)\n        pressure_relief = 0.0\n        if bucket == "HIGH" and dialogue_act in {"protect_boundary", "withdraw", "challenge"}:\n            top = self.pressures.top()\n            if top:\n                before = float(top.magnitude)\n                top.magnitude = max(0.0, top.magnitude - 0.08)\n                pressure_relief = round(before - float(top.magnitude), 6)\n        return {\n            "dialogue_act": dialogue_act,\n            "relationship": relationship_effects,\n            "pressure_relief": pressure_relief,\n        }\n',
+          )
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Commit effect trace
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add persona_engine/core/engine.py
+          git diff --cached --check
+          git commit -m "Trace resolved decision effects on relationship state"
+          git push origin HEAD:wayfarer-relationship-dispositions-phase
