@@ -54,9 +54,10 @@ class EngineAuthorityCandidateGate:
         ))
 
     def status(self) -> dict:
+        identity = getattr(self.engine, "identity", None)
         return {
             "version": self.version,
             "authority": "live_interior_engine",
-            "subject_uuid": str(getattr(self.engine.identity, "entity_uuid", "") or ""),
+            "subject_uuid": str(getattr(identity, "entity_uuid", "") or ""),
             "user_id": str(getattr(self.engine, "user_id", "")),
         }
