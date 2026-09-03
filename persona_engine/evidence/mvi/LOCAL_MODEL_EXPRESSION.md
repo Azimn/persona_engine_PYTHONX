@@ -2,7 +2,7 @@
 
 Date: 2026-09-03. Status: locally verified development candidate; broad effectiveness remains unproven.
 
-Continuation at preserved `57469a7`: [MODEL_HARDENING_V2.md](MODEL_HARDENING_V2.md) records the subsequent failure freeze, diagnostics, v3 expression projection, recall/provenance validation, and cross-model checks. The historical results below remain unchanged.
+Continuation at preserved `57469a7`: [MODEL_HARDENING_V2.md](MODEL_HARDENING_V2.md) records the subsequent failure freeze, diagnostics, v3 expression projection, recall/provenance validation, and cross-model checks. [ENSEMBLE_ACTUAL_MODEL_RESULTS.md](ENSEMBLE_ACTUAL_MODEL_RESULTS.md) records the later integrated single-shot/Ensemble and Scene Lab collections. The historical results below remain unchanged.
 
 ## Scope and evidence custody
 
