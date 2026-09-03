@@ -10,7 +10,7 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 **This block is the only live numeric status source in project prose.** Historical phase sections may retain dated measurements, but current deterministic-suite totals belong here. CI verifies this count against the suite that just ran with `tools/check_current_status_sync.py`.
 
-Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
+Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.** The integrated development candidate also carries Ensemble's live-engine candidate gate, subject-scoped epistemic state, subject-relative event appraisal, delivery receipts, and bounded Scene Lab composition; promotion depends on the model-testing evidence described below.
 
 Local development successor to frozen `9408351aac938441523534974fc299a75c961604`, 2026-09-03: actual-model testing has run and the owner has authorized test-driven source changes. The original clean-checkout evidence remains preserved separately. This working-tree checkpoint is locally verified; no new Python 3.12 or CI result is claimed.
 
@@ -20,12 +20,14 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 406 passed, 1 skipped, 2 warnings
+Full deterministic suite: 473 passed, 1 skipped, 2 warnings
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The two current warnings are dependency deprecations in the FastAPI/Starlette/httpx/anyio test stack: the existing TestClient/httpx warning and the anyio `BlockingPortal` alias warning. Neither is a Wayfarer behavioral failure.
 
 ## Local actual-model development checkpoint, 2026-09-03
+
+The Wayfarer hardening and Ensemble lines are now integrated on `wayfarer-local-model-hardening`. The final pre-integration Ensemble harness checkpoint `b30f4904595d8f5be0cc11e0b1e28193cd94e7f7` passed CI run `33779833026` on Python 3.11 and 3.12. The integrated Python 3.11 suite is green at the count above. The model collection harness now forks matched offline/model arms from one closed pre-probe subject snapshot; rebuilding repaired histories independently was shown to create an irrelevant difference in the canonical repair timestamp.
 
 The first Gemma smoke and full paired collection are complete at the original frozen head. `thinking_mode=off` avoids the observed exhaustion of the small generation budget by reasoning without final text. That is a tested host profile, not a universal model setting.
 

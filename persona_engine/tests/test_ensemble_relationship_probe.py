@@ -1,8 +1,12 @@
+from dataclasses import asdict
+
 from persona_engine.agent import CharacterAgent
 from persona_engine.core.identity import CoreIdentity
 from tools.ensemble_relationship_probe import (
     CapturingEnsembleRenderer,
     _invalid_reason,
+    build_live_history_agent,
+    fork_restarted_subject,
 )
 
 
@@ -61,3 +65,14 @@ def test_probe_invalid_reason_fails_closed_on_collection_integrity():
     assert _invalid_reason(good_status, {"candidate_authority": "request_reconstruction"}, good_result, True) == "trace_candidate_authority_not_engine_live"
     assert _invalid_reason(good_status, good_trace, {"expression_delivery": {"validation_fallback": True}}, True) == "engine_validation_fallback"
     assert _invalid_reason(good_status, good_trace, good_result, False) == "semantic_projection_mismatch"
+
+
+def test_matched_probe_arms_fork_one_restarted_subject_snapshot(tmp_path):
+    cartridge = 'persona_engine/cartridges/pretorius.snp'
+    source = build_live_history_agent(tmp_path/'source.db', 'repaired', cartridge)
+    source.engine.persistence.close()
+    left = fork_restarted_subject(tmp_path/'source.db', tmp_path/'left.db', cartridge)
+    right = fork_restarted_subject(tmp_path/'source.db', tmp_path/'right.db', cartridge)
+    assert asdict(left.engine.relationship) == asdict(right.engine.relationship)
+    assert left.engine.identity.entity_uuid == right.engine.identity.entity_uuid
+    left.engine.persistence.close(); right.engine.persistence.close()

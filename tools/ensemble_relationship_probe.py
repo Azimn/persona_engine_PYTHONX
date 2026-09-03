@@ -20,6 +20,7 @@ from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,9 +36,9 @@ from persona_engine.core.renderer import LocalLLMRenderer
 from persona_engine.evaluation.local_model_session import query_ollama_models
 from persona_engine.evaluation.renderer_swap import semantic_projection
 try:
-    from tools.relationship_expression_probe import HISTORIES, SPLITS, capture_request, digest, symptoms
+    from tools.relationship_expression_probe import HISTORIES, SPLITS, digest, symptoms
 except ModuleNotFoundError:
-    from relationship_expression_probe import HISTORIES, SPLITS, capture_request, digest, symptoms
+    from relationship_expression_probe import HISTORIES, SPLITS, digest, symptoms
 
 
 SCHEMA = "ensemble-relationship-expression-probe-v2"
@@ -76,6 +77,22 @@ def build_live_history_agent(path: Path, history: str, cartridge: Path) -> Chara
     )
 
 
+def fork_restarted_subject(snapshot: Path, target: Path, cartridge: Path) -> CharacterAgent:
+    """Fork one closed evaluation snapshot so matched arms share causal time.
+
+    Rebuilding a repaired history twice gives its canonical repair receipt two
+    different wall-clock timestamps. That is a real difference between two
+    executions, but it is unrelated to the renderer under test. Evaluation
+    branches therefore start from the same closed subject snapshot.
+    """
+    shutil.copy2(snapshot, target)
+    return CharacterAgent(
+        cartridge_path=str(cartridge),
+        user_id="relationship_probe",
+        db_path=str(target),
+    )
+
+
 def _invalid_reason(status: dict, trace: dict, result: dict, projection_matches: bool) -> str | None:
     if status.get("actual_provider") != "ollama":
         return "actual_provider_not_ollama"
@@ -111,14 +128,35 @@ def main() -> int:
         "cartridge": str(args.cartridge),
         "cartridge_sha256": hashlib.sha256(args.cartridge.read_bytes()).hexdigest(),
         "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "source_sha256": {
+            name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+            for name in (
+                "tools/ensemble_relationship_probe.py",
+                "persona_engine/agent.py",
+                "persona_engine/core/engine.py",
+                "persona_engine/core/ensemble_renderer.py",
+                "persona_engine/core/expression_bridge.py",
+                "persona_engine/core/consistency.py",
+            )
+        },
         "registry": _json_safe(query_ollama_models()),
+        "configuration": {
+            "thinking_mode": "off",
+            "token_budget": 256,
+            "timeout_seconds": 60.0,
+            "temperature": 0.7,
+            "top_p": 0.9,
+        },
         "protocol": {
             "histories": HISTORIES,
             "split": split,
             "candidate_authority_required": "engine_live",
             "semantic_projection_must_match_offline_reference": True,
             "validation_fallback_allowed": False,
-            "history_replay": "fresh deterministic public-input replay and restart for every model seed",
+            "history_replay": (
+                "history created through public inputs, restarted, closed, then forked from one persisted "
+                "pre-probe snapshot for matched offline/model arms"
+            ),
             "comparison_note": (
                 "Use tools/relationship_expression_probe.py with the same model, split, cartridge, and seeds "
                 "as the single-shot control. Surface comparison is separate from the semantic projection invariant."
@@ -134,17 +172,21 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="ensemble-relationship-") as temp:
         root = Path(temp)
         for history in HISTORIES:
+            snapshot = root / f"snapshot-{history}.db"
+            snapshot_agent = build_live_history_agent(snapshot, history, args.cartridge)
+            snapshot_agent.engine.persistence.close()
             for prompt_id, prompt in enumerate(split["prompts"]):
-                _, reference, offline = capture_request(
-                    root / f"reference-{history}-{prompt_id}.db",
-                    history,
-                    prompt,
-                    args.cartridge,
-                )
+                reference_agent = fork_restarted_subject(
+                    snapshot, root / f"reference-{history}-{prompt_id}.db", args.cartridge)
+                reference_agent.set_renderer(LocalLLMRenderer(provider="offline"))
+                reference_result = reference_agent.say(prompt)
+                reference = semantic_projection(reference_agent, reference_result)
+                offline = reference_result["response"]
+                reference_agent.engine.persistence.close()
 
                 for seed in split["seeds"]:
                     db_path = root / f"live-{history}-{prompt_id}-{seed}.db"
-                    agent = build_live_history_agent(db_path, history, args.cartridge)
+                    agent = fork_restarted_subject(snapshot, db_path, args.cartridge)
                     renderer = CapturingEnsembleRenderer(
                         model_name=args.model,
                         thinking_mode="off",
