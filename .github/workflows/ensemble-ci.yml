@@ -36,8 +36,20 @@ jobs:
       - name: Run deterministic test suite
         run: python -m pytest persona_engine/tests -q
 
-      - name: Run focused Ensemble tests
-        run: python -m pytest persona_engine/tests/test_ensemble_realization.py persona_engine/tests/test_ensemble_renderer.py -q
+      - name: Run focused Ensemble architecture tests
+        run: |
+          python -m pytest \
+            persona_engine/tests/test_ensemble_realization.py \
+            persona_engine/tests/test_ensemble_renderer.py \
+            persona_engine/tests/test_conversational_agenda.py \
+            persona_engine/tests/test_delivery.py \
+            persona_engine/tests/test_scene_lab.py \
+            persona_engine/tests/test_subject_appraisal.py \
+            persona_engine/tests/test_agent_ensemble_renderer.py \
+            persona_engine/tests/test_compare_ensemble_reports.py \
+            -q
 
-      - name: Verify local Ensemble probe starts
-        run: python tools/ensemble_relationship_probe.py --help > /dev/null
+      - name: Verify Ensemble evaluation entry points start
+        run: |
+          python tools/ensemble_relationship_probe.py --help > /dev/null
+          python tools/compare_ensemble_reports.py --help > /dev/null
