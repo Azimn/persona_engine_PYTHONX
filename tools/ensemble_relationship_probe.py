@@ -137,6 +137,7 @@ def main() -> int:
             name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
             for name in (
                 "tools/ensemble_relationship_probe.py",
+                "tools/relationship_expression_probe.py",
                 "persona_engine/agent.py",
                 "persona_engine/core/engine.py",
                 "persona_engine/core/ensemble_renderer.py",

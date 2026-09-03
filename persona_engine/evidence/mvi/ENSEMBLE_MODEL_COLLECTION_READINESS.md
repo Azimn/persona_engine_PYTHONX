@@ -16,4 +16,6 @@ The corrected probe still creates histories solely through public character inpu
 
 Reports record the exact git head, source-file hashes, cartridge hash, installed model registry/digest, generation settings, captured `ExpressionRequest`, live renderer status, every surviving or rejected candidate text and its validation/ranking trace, final delivery status, and renderer-independent semantic projection. Collection fails closed if Ollama falls back, candidate authority is not `engine_live`, engine validation falls back, or semantic projection differs.
 
+Surface diagnostics treat observed phrases such as `process information` and `operate on parameters` as mechanistic speech. This is a reported prose symptom, not a semantic rejection by itself; a character can use technical language without surrendering subject authority.
+
 This is a collection-integrity repair, not evidence that Ensemble improves prose. The failed report remains under the ignored local evaluation directory and will be indexed by hash with the completed model results.

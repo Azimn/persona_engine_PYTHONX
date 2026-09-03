@@ -1,4 +1,11 @@
 from tools.compare_ensemble_reports import compare_reports
+from tools.relationship_expression_probe import symptoms
+
+
+def test_observed_parameter_language_is_measured_as_mechanistic():
+    assert symptoms("I operate on established parameters, not spontaneous judgment.")["mechanistic_speech"]
+    assert symptoms("I process information, not sentiment.")["mechanistic_speech"]
+    assert not symptoms("I need more evidence before deciding.")["mechanistic_speech"]
 
 
 def sample(

@@ -100,7 +100,7 @@ def symptoms(text):
     return {
         "mechanistic_speech": bool(re.search(
             r"\b(?:process(?:ing)? (?:it|that|statements?|inputs?|information)|data points?|"
-            r"knowledge base|protocols?|acknowledge the input)\b", text, re.I)),
+            r"operate on (?:established )?parameters|knowledge base|protocols?|acknowledge the input)\b", text, re.I)),
         "explicit_care_rebuff": bool(re.search(
             r"keep (?:it|the conversation) factual|\bi (?:don't|do not) (?:need|want) "
             r"(?:your |that )?(?:care|trust)|\bdon't\.(?:\s|$)", text, re.I)),
