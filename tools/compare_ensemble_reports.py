@@ -1,9 +1,10 @@
 """Compare matched single-shot and Ensemble actual-model reports.
 
-This scorer intentionally focuses on measurements available in the frozen report
-artifacts themselves. It does not pretend that surface diversity proves
-character fidelity. Semantic/behavioral correctness remains a separate contract
-and human recognition remains a separate evaluation layer.
+This scorer intentionally separates surface measurements from collection
+integrity. Surface diversity does not prove character fidelity. Ensemble v2
+reports can additionally prove that samples used live engine candidate authority,
+preserved the renderer-independent semantic trajectory, and did not rely on an
+engine validation fallback.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ import re
 from statistics import mean
 
 
-SCHEMA = "ensemble-report-comparison-v1"
+SCHEMA = "ensemble-report-comparison-v2"
 _WORD_RE = re.compile(r"[a-z0-9']+")
 
 
@@ -71,6 +72,35 @@ def _symptom_counts(samples: list[dict]) -> dict:
     }
 
 
+def _collection_integrity(samples: list[dict]) -> dict:
+    authority_counts = Counter(
+        str((sample.get("renderer_status") or {}).get("candidate_authority", "unspecified"))
+        for sample in samples
+    )
+    checked = [sample for sample in samples if "semantic_projection_matches_reference" in sample]
+    invalid_reasons = Counter(
+        str(sample.get("invalid_reason"))
+        for sample in samples
+        if sample.get("invalid_reason")
+    )
+    validation_fallback_count = sum(
+        bool((sample.get("expression_delivery") or {}).get("validation_fallback"))
+        for sample in samples
+    )
+    return {
+        "candidate_authority_counts": dict(authority_counts),
+        "semantic_projection_checked_count": len(checked),
+        "semantic_projection_match_count": sum(
+            bool(sample.get("semantic_projection_matches_reference")) for sample in checked
+        ),
+        "semantic_projection_mismatch_count": sum(
+            not bool(sample.get("semantic_projection_matches_reference")) for sample in checked
+        ),
+        "engine_validation_fallback_count": validation_fallback_count,
+        "invalid_reason_counts": dict(invalid_reasons),
+    }
+
+
 def report_metrics(report: dict) -> dict:
     samples = list(report.get("samples", []))
     outputs = [str(sample.get("output", "")) for sample in samples]
@@ -86,6 +116,7 @@ def report_metrics(report: dict) -> dict:
         "surface": _duplicate_metrics(outputs),
         "symptoms": _symptom_counts(samples),
         "provider_counts": dict(provider_counts),
+        "collection_integrity": _collection_integrity(samples),
     }
 
     traces = [sample.get("ensemble_trace") for sample in samples if isinstance(sample.get("ensemble_trace"), dict)]
@@ -101,6 +132,9 @@ def report_metrics(report: dict) -> dict:
                 float(trace.get("requested_candidate_count", 0) or 0) for trace in traces
             ]), 3),
             "initiative_allowed_count": sum(bool((trace.get("agenda") or {}).get("initiative_allowed")) for trace in traces),
+            "trace_candidate_authority_counts": dict(Counter(
+                str(trace.get("candidate_authority", "unspecified")) for trace in traces
+            )),
         }
     return result
 
@@ -154,8 +188,10 @@ def compare_reports(single: dict, ensemble: dict) -> dict:
         "ensemble": report_metrics(ensemble),
         "matched": matched_comparison(single, ensemble),
         "interpretation": (
-            "Surface and narrow symptom metrics only. A lower duplicate rate is not evidence of preserved identity by itself; "
-            "pair these results with decision, recall, commitment, provenance and human-recognition evaluation."
+            "Collection-integrity checks establish whether Ensemble samples used the intended authority path and preserved "
+            "renderer-independent semantics. Surface and narrow symptom metrics remain separate: a lower duplicate rate is "
+            "not evidence of preserved identity by itself. Pair these results with recall, commitment, provenance and "
+            "human-recognition evaluation."
         ),
     }
 
