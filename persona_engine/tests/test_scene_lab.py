@@ -64,7 +64,7 @@ def test_interruption_records_partial_world_delivery():
         character_actor_id="pretorius",
         interlocutor_actor_id="jay",
         interlocutor_text="Tell me.",
-        delivered_characters=14,
+        delivered_characters=15,
     )
     receipt = result["delivery_receipt"]
     assert receipt["status"] == "partial"
