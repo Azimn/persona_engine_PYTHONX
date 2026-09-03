@@ -97,6 +97,8 @@ def test_provider_pack_exports_blinded_wayfarer_and_prompt_only_arms(tmp_path):
     assert set(first) == {"case_id", "wayfarer_messages", "prompt_only_messages"}
     assert "WAYFARER EXPRESSION BRIEF" in first["wayfarer_messages"][0]["content"]
     assert "WAYFARER EXPRESSION BRIEF" not in first["prompt_only_messages"][0]["content"]
+    assert "Character name: Pretorius." in first["prompt_only_messages"][0]["content"]
+    assert "legacy_workspace_context" not in first["wayfarer_messages"][1]["content"]
     assert "history_id" not in first
     assert "probe_id" not in first
 

@@ -2,9 +2,9 @@ name: Wayfarer CI
 
 on:
   push:
-    branches: [wayfarer]
+    branches: [wayfarer, 'wayfarer-*']
   pull_request:
-    branches: [main]
+    branches: [main, wayfarer]
 
 permissions:
   contents: read

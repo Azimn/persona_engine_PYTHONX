@@ -16,6 +16,7 @@ from typing import Any, Callable
 
 from persona_engine.agent import CharacterAgent
 from persona_engine.core.external_renderer import ExternalChatRenderer
+from persona_engine.core.expression_bridge import build_expression_brief
 from persona_engine.core.renderer import LocalLLMRenderer
 
 
@@ -196,6 +197,13 @@ def build_provider_request_pack(
                 captured["messages"] = messages
                 return response
 
+            class CaptureRenderer(ExternalChatRenderer):
+                def generate_expression(self, request):
+                    # The control still receives its frozen workspace even when
+                    # that duplicate text is absent from Wayfarer wire messages.
+                    captured["untrusted_context"] = build_expression_brief(request)["untrusted_context"]
+                    return super().generate_expression(request)
+
             external = build_developed_agent(
                 cartridge_path,
                 user_id=user_id,
@@ -203,7 +211,7 @@ def build_provider_request_pack(
                 history=history,
             )
             external.engine.set_renderer(
-                ExternalChatRenderer(
+                CaptureRenderer(
                     capture,
                     provider_name="benchmark-capture",
                     model_name="benchmark-capture",
@@ -216,7 +224,7 @@ def build_provider_request_pack(
 
             messages = list(captured["messages"])
             brief = _extract_brief(messages)
-            untrusted = _extract_untrusted_context(messages)
+            untrusted = captured["untrusted_context"]
             requests.append(
                 {
                     "case_id": case_id,

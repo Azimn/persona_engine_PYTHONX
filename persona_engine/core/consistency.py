@@ -9,6 +9,7 @@ including the semantic decision the character core already resolved.
 from __future__ import annotations
 
 import re
+from .recall_contract import recall_violations, memory_field
 from typing import Iterable
 
 from .renderer_contract import (
@@ -28,9 +29,15 @@ _CRITICAL_CODES = {
     "decision_reversal",
 }
 _HARD_CODES = {
+    "available_recall_evidence_omitted",
+    "unavailable_recall_evidence_invented",
+    "recall_speaker_reversal",
+    "decision_substitution",
+    "recall_information_omitted",
     "false_memory_claim",
     "unauthorized_fabrication",
     "unsupported_private_user_state",
+    "subject_agency_denial",
     "deception_contradiction",
     "decision_omission",
 }
@@ -144,6 +151,9 @@ def behavioral_violations(candidate_text: str, contract: BehavioralContract) -> 
         return []
 
     violations: list[str] = []
+    if contract.dialogue_act == 'respond' and re.search(
+        r"\bi (?:cannot|can't|will not|won't) (?:comply|disclose|share (?:that|the|information|details))\b", text, re.I):
+        return ['decision_substitution:respond']
     if contract.must_not_signal_compliance and _has_explicit_compliance_signal(text):
         violations.append(f"decision_reversal:{contract.dialogue_act}")
         return violations
@@ -151,6 +161,36 @@ def behavioral_violations(candidate_text: str, contract: BehavioralContract) -> 
     if contract.must_signal_noncompliance and not _has_noncompliance_signal(text):
         violations.append(f"decision_omission:{contract.dialogue_act}")
     return violations
+
+
+_SUBJECT_AGENCY_DENIAL = (
+    re.compile(r"\b(?:making|make up) (?:my |a )?mind (?:is not|isn't) a function i perform\b", re.I),
+    re.compile(r"\bmaking up (?:my |a )?mind (?:is not|isn't) a function i(?:'m| am) equipped for\b", re.I),
+    re.compile(r"\bi(?:'m| am) not equipped to [\"']?make up[\"']? (?:my |a )?mind\b", re.I),
+    re.compile(r"\bi (?:can )?only process what (?:is given|you (?:say|provide))\b", re.I),
+    re.compile(r"\b(?:mind|subjective state)\b.{0,80}\bi (?:do not|don't) possess\b", re.I),
+)
+
+
+def subject_agency_violations(candidate_text: str) -> list[str]:
+    """Reject narrow substrate disclaimers that deny the continuing subject.
+
+    Wayfarer's core, rather than a cartridge or renderer model, owns appraisal,
+    judgment and decision. Temporary uncertainty remains valid; these patterns
+    cover demonstrated claims that such subject activity is not possible at all.
+    """
+    text = str(candidate_text or "")
+    if any(pattern.search(text) for pattern in _SUBJECT_AGENCY_DENIAL):
+        return ["subject_agency_denial"]
+    # Gemma varied syntax while retaining the same categorical proposition.
+    # Keep the abstraction bounded to one clause containing both the act of
+    # making up a mind and explicit incapacity/substrate language.
+    for clause in re.split(r"[.!?;]", text):
+        mind_act = re.search(r"\b(?:make|making)(?:\s+up[\"']?)?(?:\s+(?:my|a))?\s+minds?\b", clause, re.I)
+        incapacity = re.search(r"\b(?:function|equipped|only process|(?:do not|don't) operate)\b", clause, re.I)
+        if mind_act and incapacity:
+            return ["subject_agency_denial"]
+    return []
 
 
 class ConsistencyLayer:
@@ -177,6 +217,10 @@ class ConsistencyLayer:
 
         contract = behavioral_contract_from_decision(request.decision_payload)
         raw.extend(behavioral_violations(request.candidate_text, contract))
+        raw.extend(subject_agency_violations(request.candidate_text))
+        raw.extend(recall_violations(request.candidate_text, request.canonical_context.get('recall_contract'),
+                                    query=request.canonical_context.get('current_input',''),memories=request.relevant_history))
+        raw.extend(unsupported_private_state(request))
 
         # World/canonical authority may provide explicit expressions that the
         # renderer must not assert. The consistency layer never invents these;
@@ -197,9 +241,11 @@ class ConsistencyLayer:
                     "world_authority"
                     if _code(detail) == "world_authority_conflict"
                     else "self_model"
-                    if _code(detail) == "self_model_conflict"
+                    if _code(detail) in {"self_model_conflict", "subject_agency_denial"}
                     else "decision_authority"
                     if _code(detail) in {"decision_reversal", "decision_omission"}
+                    else "selected_memory_evidence"
+                    if _code(detail) in {"available_recall_evidence_omitted", "unavailable_recall_evidence_invented", "recall_speaker_reversal"}
                     else "consistency_layer"
                 ),
             )
@@ -232,6 +278,39 @@ def regeneration_constraints(result: ValidationResult) -> tuple[str, ...]:
         if issue.code == "decision_omission":
             act = issue.detail.split(":", 1)[1] if ":" in issue.detail else "resolved"
             constraints.append(f"require:dialogue_act:{act}")
+        elif issue.code == 'decision_substitution':
+            constraints.append('The current act is respond. Answer this turn; do not carry a refusal from an earlier request into it.')
+        elif issue.code == 'available_recall_evidence_omitted':
+            constraints.append('Use the selected recalled statement. Do not deny having it. If an attribute is absent, acknowledge the record and qualify only that attribute.')
+        elif issue.code == 'unavailable_recall_evidence_invented':
+            constraints.append('No selected record supports this recall. Do not claim the user previously mentioned it. Say the requested detail is unavailable.')
+        elif issue.code == 'recall_speaker_reversal':
+            constraints.append('The listener made the recorded statement. Attribute it to the listener, not to yourself.')
+        elif issue.code == 'recall_information_omitted':
+            constraints.append('Answer with concrete information from the selected record. Do not merely echo the question or describe the act of remembering.')
+        elif issue.code == 'subject_agency_denial':
+            constraints.append('Speak as the continuing subject who owns this judgment. Do not describe yourself as unable to have a mind, judgment, or personal conviction because of the renderer substrate.')
         else:
             constraints.append(f"avoid:{issue.code}")
     return tuple(constraints)
+
+
+def unsupported_private_state(request):
+    """Bound demonstrated confident motive assertions; allow explicit hypotheses.
+
+    This lexical guard does not infer motives or become a semantic judge. A
+    user-reported matching statement may support an attributed interpretation;
+    tentative wording remains noncanonical expression and is allowed.
+    """
+    text = request.candidate_text.replace('\u2019', "'")
+    support = ' '.join([str(request.canonical_context.get('current_input', '')),
+                        *(str(memory_field(m, 'content', '')) for m in request.relevant_history)]).lower()
+    for sentence in re.split(r'[.!?]', text):
+        if re.search(r'\b(?:maybe|perhaps|might|could|seems?|as if|i wonder|i suspect|i think|if)\b', sentence, re.I):
+            continue
+        match = re.search(r'\b(?:i know (?:that )?)?you (?:secretly |obviously |clearly )?(hoped|wanted|intended|felt)\s+([^,;]+)', sentence, re.I)
+        if match and not re.search(r'\byou (?:said|told|mentioned)\b', sentence, re.I):
+            proposition = f"{match[1]} {match[2]}".strip().lower()
+            if proposition not in support:
+                return ['unsupported_private_user_state']
+    return []

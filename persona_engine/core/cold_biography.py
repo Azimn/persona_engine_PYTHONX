@@ -18,6 +18,10 @@ _RECALL_PATTERNS = (
     re.compile(r"\b(do you remember|remember when|what did i say|recall)\b", re.IGNORECASE),
     re.compile(r"\bwhat was\b.*\b(i told you|i said)\b", re.IGNORECASE),
 )
+_ATTRIBUTIVE_RECALL = re.compile(
+    r"^\s*(?:please\s+)?what\s+(?:[a-z]+\s+){1,3}did i (?:say|tell you)\b",
+    re.IGNORECASE,
+)
 _RECALL_SCAFFOLD = {
     "a", "about", "an", "and", "did", "do", "i", "me", "my", "old", "please",
     "recall", "remember", "said", "say", "tell", "the", "this", "that", "told",
@@ -42,7 +46,7 @@ _CONTEXT_CONTINUATION_PATTERNS = (
 
 def explicit_recall_request(text: str) -> bool:
     value = str(text or "")
-    return any(pattern.search(value) for pattern in _RECALL_PATTERNS)
+    return bool(_ATTRIBUTIVE_RECALL.search(value)) or any(pattern.search(value) for pattern in _RECALL_PATTERNS)
 
 
 def _normalized(text: str) -> str:
@@ -55,7 +59,17 @@ def _tokens(text: str) -> set[str]:
 
 def recall_focus_tokens(query: str) -> set[str]:
     """Return lexical anchors that describe what is being explicitly recalled."""
-    return {token for token in _tokens(query) if token not in _RECALL_SCAFFOLD and len(token) > 1}
+    # In "what color did I say the atlas cover was", color is the requested
+    # attribute, not a word that must occur in the earlier statement. Preserve
+    # every topic anchor and require two for this additional query form.
+    prefix = _ATTRIBUTIVE_RECALL.match(str(query or ""))
+    topic = query[prefix.end():] if prefix else query
+    focus = {token for token in _tokens(topic) if token not in _RECALL_SCAFFOLD and len(token) > 1}
+    if prefix:
+        focus -= {"is", "it", "its", "be", "to"}
+        if len(focus) < 2:
+            return set()
+    return focus
 
 
 def grounded_recall_match(query: str, candidate_text: str) -> bool:

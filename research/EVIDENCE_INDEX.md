@@ -2,6 +2,15 @@
 
 This is a map for future thesis/paper work. It is **not** the authoritative current-status document. Always inspect the linked evidence and current code before making a claim.
 
+## Actual local-model expression development, 2026-09-03
+
+- [Hardening v2](../persona_engine/evidence/mvi/MODEL_HARDENING_V2.md) preserves exact replayable failures and separates retrieval coverage, model disregard, repetitive expression, and tentative versus confident inference. This remains builder-designed evidence.
+- [Ensemble model-collection readiness](../persona_engine/evidence/mvi/ENSEMBLE_MODEL_COLLECTION_READINESS.md) records the green live-authority harness checkpoint and the first actual-run correction that makes matched arms share one pre-probe causal snapshot.
+- [Integrated Ensemble actual-model result](../persona_engine/evidence/mvi/ENSEMBLE_ACTUAL_MODEL_RESULTS.md) and [artifact manifest](../persona_engine/evidence/mvi/ensemble_model_results.json): paired Qwen/Gemma surface and integrity results, frozen subject-agency failures, and situated Scene Lab runs. Builder-designed development evidence only.
+
+- [Engineering account](../persona_engine/evidence/mvi/LOCAL_MODEL_EXPRESSION.md) and [artifact manifest](../persona_engine/evidence/mvi/local_model_expression.json): frozen first collection, subsequent model/projection ablations, bounded recall repair, and continuing speech-fidelity failures.
+- [Research interpretation](evidence_summaries/2026-09-03_LOCAL_MODEL_EXPRESSION.md): distinguishes execution validity, retrieval success, canonical-state preservation, and faithful expression; documents consumed holdouts, copying, failed interventions, and lack of independent/human validation.
+
 ## Canonical continuity and replay
 
 - `persona_engine/evidence/mvi/CANONICAL_ROOT_PROJECTION.md`

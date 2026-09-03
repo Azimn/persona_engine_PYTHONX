@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## Current branch
 
@@ -13,7 +13,29 @@ Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
 
-## 2026-09-02 character-control-plane checkpoint
+## 2026-09-03 local actual-model development
+
+Continuation: `57469a7` is preserved and backed up on `wayfarer-local-model-hardening`. The v2 failure freeze and diagnostic protocol are in `evidence/mvi/MODEL_HARDENING_V2.md`. Exact-message replay reproduced Gemma's denial twice; retrieval/projection coverage is present. Repetition and provenance are separate workstreams. The owner authorizes iterative repair, branch pushes, PR, and merge after the documented deterministic, cross-model, cross-character, and CI gates. Human testing remains deferred.
+
+Integration: the complete `ensemble` line through `b30f490` is merged into the hardening branch. Its final independent CI run `33779833026` passed on Python 3.11 and 3.12. The merged deterministic suite is green; the live model probe then exposed a collection-only timestamp mismatch because repaired histories were rebuilt separately. Matched arms now fork one closed restarted subject snapshot, preserving the exact pre-probe causal state while still exercising the public history path. Actual Qwen/Gemma single-shot versus live-authority Ensemble collection is the active gate.
+
+Actual-model result: Qwen completed the corrected 24-pair Pretorius relationship comparison with `engine_live` authority, 24/24 semantic matches, and no fallback. Exact duplicates fell from 4 to 2 and repeated openings from 10 to 7, but every independent Ensemble sample selected its first direct candidate, so this protocol credits the direct performance instruction rather than multi-candidate ranking. Gemma's matched single-shot control then produced three substrate disclaimers denying the subject's capacity for a mind or personal conviction. Those exact cases are frozen in `subject_agency_failures_v3.json`; a generic subject-agency fidelity guard is under cross-model regression.
+
+Completed result: Gemma's final Ensemble relationship run also achieved 24/24 live-authority semantic matches with no fallback; duplicates fell from 1 to 0 and repeated openings from 6 to 3. Four invalid candidates were rejected, and alternate candidates were selected twice. Mechanistic symptom hits remained 3/24 in both arms, so Ensemble has not solved that surface-quality problem. Qwen and Gemma Scene Lab v2 runs each completed three situated turns and three delivery receipts without fallback. Evidence and limitations are frozen in `evidence/mvi/ENSEMBLE_ACTUAL_MODEL_RESULTS.md` and `ensemble_model_results.json`.
+
+Hardening candidate: v3 model-facing messages separate the current turn, compact source-labeled evidence, and character control without authored answer sentences. The original v2 builder remains for historical tests. Typed recall evidence duties and bounded consistency checks reject available-evidence denial, unsupported prior-mention claims, and speaker reversal; tentative interpretation is allowed. `expression_delivery` reports actual validation fallback separately from the configured model. Final reserved cross-model confirmation and normal CI are the next promotion gates.
+
+The frozen first test at `9408351aac938441523534974fc299a75c961604` is complete, including the later owner-authorized full Gemma comparison. Preserve its reports in the separate clean clone. The owner subsequently authorized autonomous test-driven adjustments and explicitly deferred human testing until automated results are solid. The older execution-only stop-after-smoke instructions do not define this development phase.
+
+Local changes expose authored self-model constraints through the trusted expression projection, reuse bounded cartridge care examples selected by existing act/stance rules, remove duplicate workspace prose from structured model requests, and repair bounded attributive recall parsing. The frozen prompt-only arm still receives its original workspace through a separate capture path. No cartridge edits, new dependencies, canonical-state mechanisms, or adjacent experimental modules were added.
+
+The broad diagnosis is now separable: (1) reasoning-token exhaustion caused the initial no-final-text runs; (2) incomplete/competing expression context contributed to model voice and recall problems; (3) the atlas-cover question exposed an actual deterministic retrieval gap. Correct retrieval does not guarantee faithful speech. Gemma still intermittently denies available evidence, and Qwen's correct recall can carry unsupported interpretation. Existing validation accepts some of these outputs; green mechanical checks are not a quality score.
+
+All current deterministic totals belong in `CURRENT_STATUS.md`. The local experiment manifest and engineering findings are `evidence/mvi/local_model_expression.json` and `LOCAL_MODEL_EXPRESSION.md`; the research interpretation is `research/evidence_summaries/2026-09-03_LOCAL_MODEL_EXPRESSION.md`.
+
+Next: preserve this candidate and the observed failures; test recall fidelity with absent facts, misleading memory instructions, changed interlocutors, and multiple characters; distinguish factual answers from unsupported embellishment. Reuse consumed cases only as regressions. Reserve fresh prompts before another efficacy estimate. Do not advance to human testing or claim cross-model effectiveness on the current evidence.
+
+## 2026-09-02 character-control-plane checkpoint (historical)
 
 Phase A and Phase B of `WAYFARER_CHARACTER_CONTROL_PLAN.md` are complete. Phase A established `wayfarer-expression-brief-v2`, trusted versus untrusted renderer context, deterministic first-person subject projection, and least-privilege protected-value disclosure. Phase B added typed behavioral realization validation for decision reversal and required-decision omission.
 
@@ -64,13 +86,7 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
-Latest deterministic verification on Python 3.11:
-
-```text
-Focused renderer benchmark/expression set: 11 passed in 2.22s
-Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
-Full deterministic suite: 379 passed, 1 skipped, 1 warning
-```
+Current deterministic verification is maintained in `CURRENT_STATUS.md`. Historical phase-local measurements below are not the live inventory.
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
 

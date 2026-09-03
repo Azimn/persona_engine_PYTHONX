@@ -1,0 +1,93 @@
+{
+  "schema": "ensemble-actual-model-results-v1",
+  "date": "2026-09-03",
+  "evidence_tier": "builder-designed local engineering evidence",
+  "models": {
+    "qwen3:14b": {
+      "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+      "parameters": "14.8B",
+      "quantization": "Q4_K_M"
+    },
+    "gemma4:latest": {
+      "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+      "parameters": "8.0B",
+      "quantization": "Q4_K_M"
+    }
+  },
+  "generation": {
+    "thinking_mode": "off",
+    "token_budget": 256,
+    "context_tokens": 4096,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "ensemble_candidate_count": 3
+  },
+  "relationship_probe": {
+    "histories": ["neutral", "trusted", "conflicted", "repaired"],
+    "prompts_per_history": 2,
+    "seeds_per_prompt": 3,
+    "samples_per_arm": 24,
+    "qwen": {
+      "single_head": "c3827ca",
+      "ensemble_head": "c3827ca",
+      "single_exact_duplicates": 4,
+      "ensemble_exact_duplicates": 2,
+      "single_repeated_openings": 10,
+      "ensemble_repeated_openings": 7,
+      "semantic_matches": 24,
+      "engine_live_samples": 24,
+      "fallbacks": 0,
+      "selected_modes": {"direct": 24},
+      "current_rubric_mechanistic_single": 0,
+      "current_rubric_mechanistic_ensemble": 0
+    },
+    "gemma": {
+      "single_head": "c3827ca",
+      "ensemble_head": "88d1f53",
+      "single_exact_duplicates": 1,
+      "ensemble_exact_duplicates": 0,
+      "single_repeated_openings": 6,
+      "ensemble_repeated_openings": 3,
+      "semantic_matches": 24,
+      "engine_live_samples": 24,
+      "fallbacks": 0,
+      "prevalidation_rejections": 4,
+      "selected_modes": {"direct": 22, "contextual": 1, "initiative": 1},
+      "current_rubric_mechanistic_single": 3,
+      "current_rubric_mechanistic_ensemble": 3
+    },
+    "interpretation": "The direct performance instruction reduced repetition in both models. Qwen's independent samples always selected the direct candidate, so its reduction cannot be attributed to multi-candidate ranking. Gemma used alternate candidates after live validation rejected categorical subject-agency denials. Mechanistic phrasing did not improve overall."
+  },
+  "scene_lab": {
+    "git_head": "e081a82f1a896aa1bc314973a7987108fd4e0fb8",
+    "qwen": {"turns": 3, "ollama_turns": 3, "fallbacks": 0, "delivery_receipts": 3},
+    "gemma": {"turns": 3, "ollama_turns": 3, "fallbacks": 0, "delivery_receipts": 3},
+    "interpretation": "Both situated runs completed through live engine authority and host delivery. The three-turn samples are execution evidence, not an efficacy estimate."
+  },
+  "cross_character_regression": {
+    "characters": ["Pretorius", "Friendly"],
+    "models": ["qwen3:14b", "gemma4:latest"],
+    "turns_per_character_model": 9,
+    "result": "All four trajectories retained matched causal projections; both characters had nine unique outputs in the final single-shot regression. These prompts were consumed during development and are not independent holdouts."
+  },
+  "artifacts": [
+    {"path": ".wayfarer-local-eval/final-c3827ca-qwen-pretorius-single/report.json", "sha256": "5c20f79f869aba8d906099d4871fdad89dfb510119704d8bfde485f3a792e15e"},
+    {"path": ".wayfarer-local-eval/final-c3827ca-qwen-pretorius-ensemble/report.json", "sha256": "a42db216c16bf9f7b977bcc0eeea51f882e76a000c091c59d07ca49667123a83"},
+    {"path": ".wayfarer-local-eval/final-qwen-comparison.json", "sha256": "b68629378f5ab48c68dd29f5f232196b1f2082779229320ba30e3b9842075a1d"},
+    {"path": ".wayfarer-local-eval/final-c3827ca-gemma-pretorius-single/report.json", "sha256": "81d94a9a3f4650e9ce71e94eea8b9f2252682b31e10375db83b6d9ad8b22b784"},
+    {"path": ".wayfarer-local-eval/final-88d1f53-gemma-pretorius-ensemble/report.json", "sha256": "55d848de55e004114db70edfe220a4adf749be567c563967cd0d466458cea60f"},
+    {"path": ".wayfarer-local-eval/final-gemma-comparison.json", "sha256": "39ce6e111309d6cffeba36f52383b2bdc604a827a562891829171569aebeefef"},
+    {"path": ".wayfarer-local-eval/final-e081a82-qwen-scene-lab.json", "sha256": "dca85f99840210a78c07894e24673ee438e508374971be301db93cf5855b3a1e"},
+    {"path": ".wayfarer-local-eval/final-e081a82-gemma-scene-lab.json", "sha256": "21a6bbb8c3700a3de87b3c00128df011c8da0600360dcd4b09469e6752263fc1"},
+    {"path": ".wayfarer-local-eval/v2-qwen-candidate-regression/report.json", "sha256": "c7a02830f3226d31c08a3383cfff2c02446c1b2c4ed31b618b3767b762e3dd68"},
+    {"path": ".wayfarer-local-eval/v2-gemma-candidate-regression/report.json", "sha256": "cd078611b9d5ab2a36e3b61d56b46d86b9b67a4614161d131ebb3b2608b153f8"}
+  ],
+  "limitations": [
+    "All prompts and rubrics were designed by the builder.",
+    "The relationship set is consumed development evidence rather than an independent holdout.",
+    "Mechanistic Gemma phrasing remains frequent and is not a hard semantic violation by itself.",
+    "Deterministic guards cover observed categorical agency denials and can miss novel paraphrases.",
+    "No human recognizability or naturalness claim is made.",
+    "No heterogeneous within-subject renderer-swap collection was run in this phase."
+  ]
+}
