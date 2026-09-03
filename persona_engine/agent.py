@@ -8,6 +8,12 @@ from .core.audio_sensor import AudioObservation
 from .core.vision_sensor import VisionObservation
 from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .core.ensemble_renderer import EnsembleLLMRenderer
+from .core.memory import KnowledgeSource, MemoryUnit
+from .core.subject_appraisal import (
+    SemanticEventAnnotation,
+    SubjectAppraisalContext,
+    appraise_subjectively,
+)
 import time
 
 
@@ -92,6 +98,110 @@ class CharacterAgent:
         )
         self.engine.set_renderer(renderer)
         return self.engine.renderer_status()
+
+    def observe_semantic_event(
+        self,
+        annotation: SemanticEventAnnotation | dict,
+        observed_text: str,
+        *,
+        goal_preference: float = 0.0,
+        identity_sensitivity: float = 0.5,
+        perceived_control: float = 0.5,
+        record_event: bool = True,
+    ) -> dict:
+        """Let one typed event leave a subject-relative lived trace.
+
+        The host supplies bounded event semantics rather than free-form authority.
+        Existing relationship state and explicit current goal preference determine
+        what the event means to this subject. The resulting appraisal then affects
+        memory salience and a small set of existing pressure vessels.
+
+        This is a causal consumer for ``SubjectRelativeAppraisal``. It does not
+        rewrite the source event, relationship state, identity, or world truth.
+        """
+        if isinstance(annotation, dict):
+            annotation = SemanticEventAnnotation(**annotation)
+        if not isinstance(annotation, SemanticEventAnnotation):
+            raise TypeError("annotation must be SemanticEventAnnotation or dict")
+
+        with self.engine.state_transaction():
+            self.engine._require_writer()
+            relationship = self.engine.relationship
+            context = SubjectAppraisalContext(
+                relationship_importance=max(
+                    float(getattr(relationship, "familiarity", 0.0) or 0.0),
+                    float(getattr(relationship, "attachment", 0.0) or 0.0),
+                ),
+                trust=float(getattr(relationship, "trust", 0.5) or 0.0),
+                attachment=float(getattr(relationship, "attachment", 0.0) or 0.0),
+                guardedness=float(getattr(relationship, "guardedness", 0.0) or 0.0),
+                goal_preference=float(goal_preference),
+                identity_sensitivity=float(identity_sensitivity),
+                perceived_control=float(perceived_control),
+            )
+            appraisal = appraise_subjectively(annotation, context)
+            now = time.time()
+            detail = str(observed_text or annotation.topic or annotation.event_type).strip()
+            memory = MemoryUnit(
+                content=f"I experienced: {detail}",
+                created_at=now,
+                emotional_valence=appraisal.threat_opportunity,
+                emotional_intensity=appraisal.salience,
+                relationship_relevance=appraisal.relationship_relevance,
+                identity_relevance=appraisal.identity_relevance,
+                unresolved=(appraisal.threat_opportunity <= -0.35 and appraisal.salience >= 0.45),
+                source=KnowledgeSource.OBSERVED,
+                tags={
+                    "semantic_event",
+                    f"event:{annotation.event_type}",
+                    f"meaning:{appraisal.social_meaning}",
+                },
+            )
+            self.engine.memory.add(memory)
+
+            pressure_before = {
+                name: pressure.magnitude
+                for name, pressure in self.engine.pressures.pressures.items()
+            }
+            if appraisal.threat_opportunity <= -0.20:
+                self.engine.pressures._bump("fear", min(0.30, abs(appraisal.threat_opportunity) * 0.25))
+            if annotation.boundary_pressure >= 0.50:
+                self.engine.pressures._bump("anger", min(0.22, annotation.boundary_pressure * 0.18))
+            if appraisal.social_meaning in {"betrayal", "opposition"}:
+                self.engine.pressures._bump("trust_wound", min(0.25, appraisal.salience * 0.20))
+            if appraisal.threat_opportunity >= 0.20:
+                self.engine.pressures._bump("curiosity", min(0.18, appraisal.threat_opportunity * 0.15))
+            if appraisal.social_meaning in {"cooperation", "repair"} and appraisal.relationship_relevance > 0.0:
+                self.engine.pressures._bump("attachment", min(0.12, appraisal.relationship_relevance * 0.08))
+
+            payload = {
+                "annotation": annotation.to_dict(),
+                "appraisal": appraisal.to_dict(),
+                "memory_id": memory.id,
+                "memory_salience": {
+                    "emotional_valence": memory.emotional_valence,
+                    "emotional_intensity": memory.emotional_intensity,
+                    "relationship_relevance": memory.relationship_relevance,
+                    "identity_relevance": memory.identity_relevance,
+                    "unresolved": memory.unresolved,
+                },
+                "pressure_before": pressure_before,
+                "pressure_after": {
+                    name: pressure.magnitude
+                    for name, pressure in self.engine.pressures.pressures.items()
+                },
+                "memory_types": ["semantic_event", "subject_appraisal", "episodic"],
+            }
+            if record_event:
+                self.engine.persistence.log_event(
+                    self.engine.identity.name,
+                    self.engine.user_id,
+                    self.engine.timestep,
+                    "subject_semantic_event",
+                    payload,
+                )
+            self.engine._persist()
+            return payload
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
         with self.engine.state_transaction():
