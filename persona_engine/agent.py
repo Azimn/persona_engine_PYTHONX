@@ -8,6 +8,7 @@ from .core.audio_sensor import AudioObservation
 from .core.vision_sensor import VisionObservation
 from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .core.ensemble_renderer import EnsembleLLMRenderer
+from .core.ensemble_engine_gate import EngineAuthorityCandidateGate
 from .core.memory import KnowledgeSource, MemoryUnit
 from .core.delivery import (
     DeliveryStatus,
@@ -71,8 +72,14 @@ class CharacterAgent:
     def activate_disconnected_transfer(self, final_receipt: dict) -> dict:
         return self.engine.activate_disconnected_transfer(final_receipt)
 
+    def _bind_renderer_authority(self, renderer) -> None:
+        binder = getattr(renderer, "bind_candidate_evaluator", None)
+        if callable(binder):
+            binder(EngineAuthorityCandidateGate(self.engine))
+
     def set_renderer(self, renderer) -> dict:
         """Install an explicit host-selected renderer without changing subject state."""
+        self._bind_renderer_authority(renderer)
         self.engine.set_renderer(renderer)
         return self.engine.renderer_status()
 
@@ -88,7 +95,12 @@ class CharacterAgent:
         prevalidate_candidates: bool = True,
         include_authored_landmarks: bool = True,
     ) -> dict:
-        """Enable Project Ensemble's broadened Ollama realization path."""
+        """Enable Project Ensemble's broadened Ollama realization path.
+
+        Candidate generation and surface ranking remain renderer responsibilities.
+        Candidate semantic admission is bound to the live InteriorEngine so the
+        renderer cannot substitute a weaker reconstruction of subject authority.
+        """
         renderer = EnsembleLLMRenderer(
             model_name=model_name,
             host=host,
@@ -100,6 +112,7 @@ class CharacterAgent:
             prevalidate_candidates=prevalidate_candidates,
             include_authored_landmarks=include_authored_landmarks,
         )
+        self._bind_renderer_authority(renderer)
         self.engine.set_renderer(renderer)
         return self.engine.renderer_status()
 
