@@ -38,3 +38,6 @@ jobs:
 
       - name: Run focused Ensemble tests
         run: python -m pytest persona_engine/tests/test_ensemble_realization.py persona_engine/tests/test_ensemble_renderer.py -q
+
+      - name: Verify local Ensemble probe starts
+        run: python tools/ensemble_relationship_probe.py --help > /dev/null
