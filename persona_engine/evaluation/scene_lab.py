@@ -252,7 +252,9 @@ class SceneLab:
 
         The agent receives only the scene context visible to the character plus
         complete server truth through the already-separated host channel. The
-        returned expression is an intention until Scene Lab records delivery.
+        returned expression remains an intention until Scene Lab records delivery.
+        If the agent exposes ``record_delivery_receipt``, actual delivery is then
+        written back as lived subject evidence.
         """
 
         if character_actor_id not in self.actors or interlocutor_actor_id not in self.actors:
@@ -283,10 +285,17 @@ class SceneLab:
                 intended_text=intended,
                 delivered_characters=delivered_characters,
             )
+
+        subject_delivery_experience = None
+        record_delivery = getattr(agent, "record_delivery_receipt", None)
+        if callable(record_delivery):
+            subject_delivery_experience = record_delivery(receipt)
+
         return {
             "scene_schema": SCENE_LAB_SCHEMA,
             "engine_result": result,
             "intended_response": intended,
             "delivery_receipt": receipt.to_dict(),
+            "subject_delivery_experience": subject_delivery_experience,
             "visible_context": self.visible_context_for(character_actor_id),
         }
