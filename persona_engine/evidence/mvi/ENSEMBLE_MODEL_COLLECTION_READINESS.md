@@ -18,4 +18,6 @@ Reports record the exact git head, source-file hashes, cartridge hash, installed
 
 Surface diagnostics treat observed phrases such as `process information` and `operate on parameters` as mechanistic speech. This is a reported prose symptom, not a semantic rejection by itself; a character can use technical language without surrendering subject authority.
 
+The comparator can explicitly rescore both saved arms under the current symptom rubric. Default comparison preserves each historical report's original labels; current-rubric rescoring is opt-in and recorded in the command used, so a changed diagnostic definition cannot silently rewrite old evidence.
+
 This is a collection-integrity repair, not evidence that Ensemble improves prose. The failed report remains under the ignored local evaluation directory and will be indexed by hash with the completed model results.

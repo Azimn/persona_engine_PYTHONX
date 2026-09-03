@@ -20,7 +20,7 @@ Current Python 3.11 verification:
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 475 passed, 1 skipped, 2 warnings
+Full deterministic suite: 476 passed, 1 skipped, 2 warnings
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The two current warnings are dependency deprecations in the FastAPI/Starlette/httpx/anyio test stack: the existing TestClient/httpx warning and the anyio `BlockingPortal` alias warning. Neither is a Wayfarer behavioral failure.

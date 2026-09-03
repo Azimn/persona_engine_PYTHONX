@@ -99,7 +99,7 @@ def symptoms(text):
     """Predeclared observable symptoms; absence does not prove semantic success."""
     return {
         "mechanistic_speech": bool(re.search(
-            r"\b(?:process(?:ing)? (?:it|that|statements?|inputs?|information)|data points?|"
+            r"\b(?:(?:cannot|can't|only) process (?:it|that)(?: request)?|process(?:ing)? (?:statements?|inputs?|information)|data points?|"
             r"operate on (?:established )?parameters|knowledge base|protocols?|acknowledge the input)\b", text, re.I)),
         "explicit_care_rebuff": bool(re.search(
             r"keep (?:it|the conversation) factual|\bi (?:don't|do not) (?:need|want) "

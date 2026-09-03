@@ -15,6 +15,12 @@ import json
 from pathlib import Path
 import re
 from statistics import mean
+from copy import deepcopy
+
+try:
+    from tools.relationship_expression_probe import symptoms as current_symptoms
+except ModuleNotFoundError:
+    from relationship_expression_probe import symptoms as current_symptoms
 
 
 SCHEMA = "ensemble-report-comparison-v2"
@@ -181,7 +187,16 @@ def matched_comparison(single: dict, ensemble: dict) -> dict:
     }
 
 
-def compare_reports(single: dict, ensemble: dict) -> dict:
+def _rescore(report: dict) -> dict:
+    result = deepcopy(report)
+    for sample in result.get("samples", []):
+        sample["symptoms"] = current_symptoms(str(sample.get("output", "")))
+    return result
+
+
+def compare_reports(single: dict, ensemble: dict, *, rescore_current_symptoms: bool = False) -> dict:
+    if rescore_current_symptoms:
+        single, ensemble = _rescore(single), _rescore(ensemble)
     return {
         "schema": SCHEMA,
         "single_shot": report_metrics(single),
@@ -201,11 +216,14 @@ def main() -> int:
     parser.add_argument("--single", type=Path, required=True, help="Single-shot relationship probe report.json")
     parser.add_argument("--ensemble", type=Path, required=True, help="Ensemble relationship probe report.json")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--rescore-current-symptoms", action="store_true",
+                        help="Apply the comparator checkout's symptom rubric to both saved reports")
     args = parser.parse_args()
 
     result = compare_reports(
         json.loads(args.single.read_text(encoding="utf-8")),
         json.loads(args.ensemble.read_text(encoding="utf-8")),
+        rescore_current_symptoms=args.rescore_current_symptoms,
     )
     text = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:

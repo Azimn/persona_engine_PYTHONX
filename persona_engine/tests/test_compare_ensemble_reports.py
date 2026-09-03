@@ -6,6 +6,14 @@ def test_observed_parameter_language_is_measured_as_mechanistic():
     assert symptoms("I operate on established parameters, not spontaneous judgment.")["mechanistic_speech"]
     assert symptoms("I process information, not sentiment.")["mechanistic_speech"]
     assert not symptoms("I need more evidence before deciding.")["mechanistic_speech"]
+    assert not symptoms("I need time to process that.")["mechanistic_speech"]
+
+
+def test_comparator_can_rescore_both_reports_under_current_symptom_rubric():
+    old = sample("a", "p", 1, "I operate on parameters, not judgment.", symptom=False)
+    result = compare_reports({"samples":[old]}, {"samples":[old]}, rescore_current_symptoms=True)
+    assert result["single_shot"]["symptoms"]["mechanistic_speech"] == 1
+    assert result["ensemble"]["symptoms"]["mechanistic_speech"] == 1
 
 
 def sample(
