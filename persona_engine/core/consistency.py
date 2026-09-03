@@ -9,6 +9,7 @@ including the semantic decision the character core already resolved.
 from __future__ import annotations
 
 import re
+from .recall_contract import recall_violations, memory_field
 from typing import Iterable
 
 from .renderer_contract import (
@@ -28,6 +29,9 @@ _CRITICAL_CODES = {
     "decision_reversal",
 }
 _HARD_CODES = {
+    "available_recall_evidence_omitted",
+    "unavailable_recall_evidence_invented",
+    "recall_speaker_reversal",
     "false_memory_claim",
     "unauthorized_fabrication",
     "unsupported_private_user_state",
@@ -177,6 +181,8 @@ class ConsistencyLayer:
 
         contract = behavioral_contract_from_decision(request.decision_payload)
         raw.extend(behavioral_violations(request.candidate_text, contract))
+        raw.extend(recall_violations(request.candidate_text, request.canonical_context.get('recall_contract')))
+        raw.extend(unsupported_private_state(request))
 
         # World/canonical authority may provide explicit expressions that the
         # renderer must not assert. The consistency layer never invents these;
@@ -200,6 +206,8 @@ class ConsistencyLayer:
                     if _code(detail) == "self_model_conflict"
                     else "decision_authority"
                     if _code(detail) in {"decision_reversal", "decision_omission"}
+                    else "selected_memory_evidence"
+                    if _code(detail) in {"available_recall_evidence_omitted", "unavailable_recall_evidence_invented", "recall_speaker_reversal"}
                     else "consistency_layer"
                 ),
             )
@@ -232,6 +240,33 @@ def regeneration_constraints(result: ValidationResult) -> tuple[str, ...]:
         if issue.code == "decision_omission":
             act = issue.detail.split(":", 1)[1] if ":" in issue.detail else "resolved"
             constraints.append(f"require:dialogue_act:{act}")
+        elif issue.code == 'available_recall_evidence_omitted':
+            constraints.append('Use the selected recalled statement. Do not deny having it. If an attribute is absent, acknowledge the record and qualify only that attribute.')
+        elif issue.code == 'unavailable_recall_evidence_invented':
+            constraints.append('No selected record supports this recall. Do not claim the user previously mentioned it. Say the requested detail is unavailable.')
+        elif issue.code == 'recall_speaker_reversal':
+            constraints.append('The listener made the recorded statement. Attribute it to the listener, not to yourself.')
         else:
             constraints.append(f"avoid:{issue.code}")
     return tuple(constraints)
+
+
+def unsupported_private_state(request):
+    """Bound demonstrated confident motive assertions; allow explicit hypotheses.
+
+    This lexical guard does not infer motives or become a semantic judge. A
+    user-reported matching statement may support an attributed interpretation;
+    tentative wording remains noncanonical expression and is allowed.
+    """
+    text = request.candidate_text.replace('\u2019', "'")
+    support = ' '.join([str(request.canonical_context.get('current_input', '')),
+                        *(str(memory_field(m, 'content', '')) for m in request.relevant_history)]).lower()
+    for sentence in re.split(r'[.!?]', text):
+        if re.search(r'\b(?:maybe|perhaps|might|could|seems?|as if|i wonder|i suspect|i think|if)\b', sentence, re.I):
+            continue
+        match = re.search(r'\b(?:i know (?:that )?)?you (?:secretly |obviously |clearly )?(hoped|wanted|intended|felt)\s+([^,;]+)', sentence, re.I)
+        if match and not re.search(r'\byou (?:said|told|mentioned)\b', sentence, re.I):
+            proposition = f"{match[1]} {match[2]}".strip().lower()
+            if proposition not in support:
+                return ['unsupported_private_user_state']
+    return []

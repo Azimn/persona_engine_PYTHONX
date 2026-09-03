@@ -23,6 +23,8 @@ This file is the canonical long-form roadmap for the Wayfarer development line. 
 
 2026-09-03 update: frozen local actual-model collection at `9408351aac938441523534974fc299a75c961604` is complete. Owner-authorized automated development now follows that preserved baseline. The current candidate improves expression projection and bounded recall parsing; actual Gemma, Qwen, and exploratory Mistral results expose continuing speech-fidelity limitations. See `WAYFARER_PROGRESS.md` and `evidence/mvi/LOCAL_MODEL_EXPRESSION.md`. M18 remains in progress. Human testing is deliberately deferred until stronger automated evidence; adjacent experimental modules remain isolated.
 
+Hardening continuation: `57469a7` is preserved remotely. V3 expression messages now carry character state and compact attributed evidence without complete answer examples. Selected-evidence recall duties, speaker checks, and bounded assertion checks remain outside canonical authority. `evidence/mvi/MODEL_HARDENING_V2.md` records positive/negative real-model checks; the immediate gate is model-independent fidelity and cross-character distinction, not sentence beauty or random variation.
+
 Wayfarer has completed the current semantic resident-memory pass, cooperative shared/disconnected custody work, the first concrete M12 expression-substrate brief contract, and the first reusable M18 longitudinal renderer-swap benchmark contract.
 
 Current verified production contracts include:

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from persona_engine.agent import CharacterAgent
-from persona_engine.core.expression_bridge import build_expression_messages
+from persona_engine.core.expression_bridge import build_expression_messages_v2 as build_expression_messages
 from persona_engine.core.offline_dialogue import register_dialogue
 from persona_engine.core.offline_template_renderer import authored_relational_voice_examples
 from persona_engine.core.renderer import LocalLLMRenderer

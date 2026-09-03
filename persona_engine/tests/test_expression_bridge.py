@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from persona_engine.agent import CharacterAgent
-from persona_engine.core.expression_bridge import build_expression_brief, build_expression_messages
+from persona_engine.core.expression_bridge import build_expression_brief, build_expression_messages_v2 as build_expression_messages
 from persona_engine.core.external_renderer import ExternalChatRenderer
 from persona_engine.core.local_hf_renderer import LocalHFRenderer
 from persona_engine.core.memory import KnowledgeSource, MemoryUnit

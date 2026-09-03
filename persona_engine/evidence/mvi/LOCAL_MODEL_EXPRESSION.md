@@ -2,6 +2,8 @@
 
 Date: 2026-09-03. Status: locally verified development candidate; broad effectiveness remains unproven.
 
+Continuation at preserved `57469a7`: [MODEL_HARDENING_V2.md](MODEL_HARDENING_V2.md) records the subsequent failure freeze, diagnostics, v3 expression projection, recall/provenance validation, and cross-model checks. The historical results below remain unchanged.
+
 ## Scope and evidence custody
 
 The original production freeze is `9408351aac938441523534974fc299a75c961604`. Its clean clone at `C:/Users/jratican/wayfarer-local-test-9408351/repo` preserves the original smoke failures, successful Gemma smoke with thinking disabled, and later explicitly authorized full paired run. Subsequent source changes and experiments occurred in the main development checkout with the owner's authorization. Human testing is deferred until automated evidence is substantially stronger.

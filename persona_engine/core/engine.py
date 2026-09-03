@@ -50,6 +50,7 @@ from .relationship import (
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
 from .offline_template_renderer import authored_relational_voice_examples
+from .recall_contract import recall_contract
 from .consistency import ConsistencyLayer, regeneration_constraints
 from .renderer_contract import ValidationAction, ValidationRequest
 from .symbols import SharedSymbol, SymbolStore
@@ -1341,7 +1342,12 @@ class InteriorEngine:
             "system_prompt": system_prompt,
             "user_text": user_text,
             "experience_context": experience_context,
+            "recall_contract": asdict(recall_contract(user_text, retrieved)),
         }
+        validation_context = {"world": self.world.to_dict(), "current_input": user_text,
+                              "recall_contract": resolved_expression_state["recall_contract"]}
+        delivery_renderer = self.renderer
+        expression_attempts = 1
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
         seed = turn_seed(self.user_id, self.timestep, "expression")
         # The legacy workspace is lower-trust context in expression-v2. Supply
@@ -1377,7 +1383,7 @@ class InteriorEngine:
             interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),
             relevant_history=tuple(retrieved),
             decision_payload=dict(decision_payload),
-            canonical_context={"world": self.world.to_dict()},
+            canonical_context=validation_context,
             deception_ledger=self.deception_ledger,
         )
         validation = self.consistency.evaluate(validation_request)
@@ -1394,6 +1400,7 @@ class InteriorEngine:
                 "warning",
             ))
         elif validation.action == ValidationAction.REGENERATE_CONSTRAINED:
+            expression_attempts += 1
             constraints = regeneration_constraints(validation)
             retry_prompt = system_prompt
             if constraints:
@@ -1417,11 +1424,12 @@ class InteriorEngine:
                 interpretive_state=tuple(b.to_dict() for b in interpretive_beliefs),
                 relevant_history=tuple(retrieved),
                 decision_payload=dict(decision_payload),
-                canonical_context={"world": self.world.to_dict()},
+                canonical_context=validation_context,
                 deception_ledger=self.deception_ledger,
             ))
             if retry_validation.issues:
                 fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
+                delivery_renderer = fallback_renderer
                 response = render_expression(
                     fallback_renderer,
                     ledger_digest=expression_identity,
@@ -1443,6 +1451,7 @@ class InteriorEngine:
             ))
         elif validation.action == ValidationAction.FALLBACK_IDENTITY_ONLY:
             fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
+            delivery_renderer = fallback_renderer
             response = render_expression(
                 fallback_renderer,
                 ledger_digest=expression_identity,
@@ -1461,7 +1470,7 @@ class InteriorEngine:
                 identity_constraints=tuple(self.identity.forbidden_self_claims),
                 relevant_history=tuple(retrieved),
                 decision_payload=dict(decision_payload),
-                canonical_context={"world": self.world.to_dict()},
+                canonical_context=validation_context,
                 deception_ledger=self.deception_ledger,
             ))
             if fallback_validation.issues:
@@ -1497,6 +1506,12 @@ class InteriorEngine:
         self.interface.mark_output(now)
 
         self._post_speech_update(user_text, response, risk, appraisal, now, forced_rewrite is not None, suppression_traces)
+        expression_delivery = {
+            "provider": delivery_renderer.runtime_status().get("actual_provider", "custom")
+                if hasattr(delivery_renderer, "runtime_status") else "custom",
+            "validation_fallback": delivery_renderer is not self.renderer,
+            "model_attempts": expression_attempts,
+        }
         self._persist()
         suppression_payload = [trace.to_dict() for trace in suppression_traces]
         memory_types = []
@@ -1529,6 +1544,7 @@ class InteriorEngine:
 
         return {
             "response": response,
+            "expression_delivery": expression_delivery,
             "risk": round(risk, 3),
             "bucket": bucket,
             "dominant_pressure": dominant_name,
