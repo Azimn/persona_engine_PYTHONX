@@ -284,6 +284,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
                 rejected.append({
                     "ordinal": record.candidate.ordinal,
                     "source": record.candidate.source.value,
+                    "text": record.candidate.text,
                     "action": record.result.action.value,
                     "issue_codes": [issue.code for issue in record.result.issues],
                 })
@@ -316,6 +317,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
                 {
                     "ordinal": row.candidate.ordinal,
                     "source": row.candidate.source.value,
+                    "text": row.candidate.text,
                     "seed": row.candidate.seed,
                     "performance_mode": row.candidate.metadata.get("performance_mode"),
                     "prevalidation_action": row.candidate.metadata.get("prevalidation_action"),

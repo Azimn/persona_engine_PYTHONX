@@ -107,9 +107,11 @@ def test_hard_or_critical_model_candidate_is_removed_before_ranking():
     assert output == "I can give you my view without pretending to know yours."
     trace = renderer.last_ensemble_trace()
     assert len(trace["prevalidation_rejections"]) == 2
+    assert all(row["text"] for row in trace["prevalidation_rejections"])
     rejected_codes = {code for row in trace["prevalidation_rejections"] for code in row["issue_codes"]}
     assert "self_model_conflict" in rejected_codes
     assert "unsupported_private_user_state" in rejected_codes
+    assert all(row["text"] for row in trace["ranked"])
 
 
 def test_decision_reversal_cannot_win_diversity_ranking():
