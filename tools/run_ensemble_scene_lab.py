@@ -8,16 +8,20 @@ Ensemble candidate-ecology renderer against an installed Ollama model.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 
 from persona_engine.agent import CharacterAgent
+from persona_engine.core.expression_bridge import _json_safe
+from persona_engine.evaluation.local_model_session import query_ollama_models
 from persona_engine.evaluation.scene_lab import SceneLab
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = "ensemble-scene-lab-run-v1"
+SCHEMA = "ensemble-scene-lab-run-v2"
 
 
 def build_scene() -> SceneLab:
@@ -101,6 +105,32 @@ def main() -> int:
 
     try:
         report = run_scenario(agent, interrupt_second_turn=args.interrupt_second_turn)
+        report.update({
+            "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+            "cartridge": str(args.cartridge),
+            "cartridge_sha256": hashlib.sha256(args.cartridge.read_bytes()).hexdigest(),
+            "registry": _json_safe(query_ollama_models()),
+            "configuration": {
+                "model": args.model,
+                "candidate_count": args.candidate_count,
+                "thinking_mode": "off" if args.model else None,
+                "token_budget": 256,
+                "timeout_seconds": 60.0,
+                "temperature": 0.7,
+                "top_p": 0.9,
+            },
+            "source_sha256": {
+                name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+                for name in (
+                    "tools/run_ensemble_scene_lab.py",
+                    "persona_engine/agent.py",
+                    "persona_engine/evaluation/scene_lab.py",
+                    "persona_engine/core/ensemble_renderer.py",
+                    "persona_engine/core/engine.py",
+                    "persona_engine/core/delivery.py",
+                )
+            },
+        })
     finally:
         agent.engine.persistence.close()
         if temporary is not None:

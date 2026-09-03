@@ -21,3 +21,5 @@ Surface diagnostics treat observed phrases such as `process information` and `op
 The comparator can explicitly rescore both saved arms under the current symptom rubric. Default comparison preserves each historical report's original labels; current-rubric rescoring is opt-in and recorded in the command used, so a changed diagnostic definition cannot silently rewrite old evidence.
 
 This is a collection-integrity repair, not evidence that Ensemble improves prose. The failed report remains under the ignored local evaluation directory and will be indexed by hash with the completed model results.
+
+The situated Scene Lab report is versioned as `ensemble-scene-lab-run-v2` for actual-model evidence. In addition to the full scene, turn, candidate, and delivery traces, it records git head, relevant source hashes, cartridge hash, installed model registry/digest, and generation settings. Earlier v1 Scene Lab output remains valid as an architecture smoke but lacks this evidence-freeze metadata.
