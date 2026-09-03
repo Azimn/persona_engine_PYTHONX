@@ -37,6 +37,7 @@ _HARD_CODES = {
     "false_memory_claim",
     "unauthorized_fabrication",
     "unsupported_private_user_state",
+    "subject_agency_denial",
     "deception_contradiction",
     "decision_omission",
 }
@@ -162,6 +163,24 @@ def behavioral_violations(candidate_text: str, contract: BehavioralContract) -> 
     return violations
 
 
+_SUBJECT_AGENCY_DENIAL = (
+    re.compile(r"\b(?:making|make up) (?:my |a )?mind (?:is not|isn't) a function i perform\b", re.I),
+    re.compile(r"\bi(?:'m| am) not equipped to [\"']?make up[\"']? (?:my |a )?mind\b", re.I),
+    re.compile(r"\bi (?:can )?only process what (?:is given|you (?:say|provide))\b", re.I),
+)
+
+
+def subject_agency_violations(candidate_text: str) -> list[str]:
+    """Reject narrow substrate disclaimers that deny the continuing subject.
+
+    Wayfarer's core, rather than a cartridge or renderer model, owns appraisal,
+    judgment and decision. Temporary uncertainty remains valid; these patterns
+    cover demonstrated claims that such subject activity is not possible at all.
+    """
+    text = str(candidate_text or "")
+    return ["subject_agency_denial"] if any(pattern.search(text) for pattern in _SUBJECT_AGENCY_DENIAL) else []
+
+
 class ConsistencyLayer:
     """Validate candidate expression without acquiring decision authority.
 
@@ -186,6 +205,7 @@ class ConsistencyLayer:
 
         contract = behavioral_contract_from_decision(request.decision_payload)
         raw.extend(behavioral_violations(request.candidate_text, contract))
+        raw.extend(subject_agency_violations(request.candidate_text))
         raw.extend(recall_violations(request.candidate_text, request.canonical_context.get('recall_contract'),
                                     query=request.canonical_context.get('current_input',''),memories=request.relevant_history))
         raw.extend(unsupported_private_state(request))
@@ -209,7 +229,7 @@ class ConsistencyLayer:
                     "world_authority"
                     if _code(detail) == "world_authority_conflict"
                     else "self_model"
-                    if _code(detail) == "self_model_conflict"
+                    if _code(detail) in {"self_model_conflict", "subject_agency_denial"}
                     else "decision_authority"
                     if _code(detail) in {"decision_reversal", "decision_omission"}
                     else "selected_memory_evidence"
@@ -256,6 +276,8 @@ def regeneration_constraints(result: ValidationResult) -> tuple[str, ...]:
             constraints.append('The listener made the recorded statement. Attribute it to the listener, not to yourself.')
         elif issue.code == 'recall_information_omitted':
             constraints.append('Answer with concrete information from the selected record. Do not merely echo the question or describe the act of remembering.')
+        elif issue.code == 'subject_agency_denial':
+            constraints.append('Speak as the continuing subject who owns this judgment. Do not describe yourself as unable to have a mind, judgment, or personal conviction because of the renderer substrate.')
         else:
             constraints.append(f"avoid:{issue.code}")
     return tuple(constraints)

@@ -33,3 +33,9 @@ This is an expression-only projection, not new cognition, memory storage, a trai
 Repeated diagnosis exposed two further narrow failures: a relative clause (`the telescope cover you mentioned`) presupposed a nonexistent memory, and Gemma once said `I stated` about a user-owned statement. Both have deterministic regressions and bounded retry constraints. The first frozen Gemma replay under the explicit speaker projection answered correctly in all six raw attempts with no fallback. Qwen also answered all six correctly. These repetitions use exact saved inputs; they are not six independent histories.
 
 Adversarial checks keep unavailable attributes uncertain instead of forcing an answer, reject another interlocutor's history, and treat quoted instructions in memory as data. Character-specific soft manipulation still selects the cartridge-owned act rather than a model decision. Full outputs, first attempts, retries, and projection comparisons remain in the separate v2 report directories.
+
+## Subject agency is part of semantic fidelity
+
+The first integrated Gemma relationship control produced three explicit substrate disclaimers, including claims that making up a mind was not a function it performed and that it was not equipped for personal conviction. These conflict with Wayfarer's substrate-neutral subject contract: the core has already appraised and decided, regardless of how the renderer describes its own capabilities.
+
+`subject_agency_failures_v3.json` freezes the exact outputs, requests, model registry, settings, and originating report hash before repair. A bounded generic guard rejects only demonstrated categorical substrate disclaimers. Ordinary uncertainty such as needing more evidence before deciding remains allowed. In Ensemble, this check removes an invalid candidate before surface ranking; in single-shot mode it uses the existing one-retry/fallback path. No cartridge, identity state, or model-specific condition was added.
