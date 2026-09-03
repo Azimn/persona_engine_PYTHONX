@@ -9,6 +9,11 @@ from .core.vision_sensor import VisionObservation
 from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .core.ensemble_renderer import EnsembleLLMRenderer
 from .core.memory import KnowledgeSource, MemoryUnit
+from .core.delivery import (
+    DeliveryStatus,
+    SpeechDeliveryReceipt,
+    first_person_delivery_experience,
+)
 from .core.subject_appraisal import (
     SemanticEventAnnotation,
     SubjectAppraisalContext,
@@ -98,6 +103,75 @@ class CharacterAgent:
         )
         self.engine.set_renderer(renderer)
         return self.engine.renderer_status()
+
+    def record_delivery_receipt(
+        self,
+        receipt: SpeechDeliveryReceipt | dict,
+        *,
+        record_event: bool = True,
+    ) -> dict:
+        """Record what actually happened to one intended speech action.
+
+        The engine's renderer output is noncanonical speech evidence. A delivery
+        receipt comes from the host/world boundary and tells the subject whether
+        that intended speech was fully delivered, interrupted, or not delivered.
+        This method turns that actual consequence into lived episodic evidence.
+        """
+        if isinstance(receipt, dict):
+            receipt = SpeechDeliveryReceipt.from_dict(receipt)
+        if not isinstance(receipt, SpeechDeliveryReceipt):
+            raise TypeError("receipt must be SpeechDeliveryReceipt or dict")
+
+        with self.engine.state_transaction():
+            self.engine._require_writer()
+            if receipt.status == DeliveryStatus.DELIVERED:
+                intensity = 0.05
+                valence = 0.0
+                unresolved = False
+            elif receipt.status == DeliveryStatus.PARTIAL:
+                intensity = 0.45
+                valence = -0.25
+                unresolved = True
+            else:
+                intensity = 0.35
+                valence = -0.20
+                unresolved = True
+
+            memory = MemoryUnit(
+                content=first_person_delivery_experience(receipt),
+                created_at=float(receipt.created_at),
+                emotional_valence=valence,
+                emotional_intensity=intensity,
+                relationship_relevance=0.20,
+                identity_relevance=0.05,
+                unresolved=unresolved,
+                source=KnowledgeSource.OBSERVED,
+                tags={
+                    "speech_delivery",
+                    f"delivery:{receipt.status.value}",
+                    f"channel:{receipt.channel}",
+                },
+            )
+            self.engine.memory.add(memory)
+            if receipt.status != DeliveryStatus.DELIVERED:
+                self.engine.pressures._bump("startle", 0.12 if receipt.status == DeliveryStatus.PARTIAL else 0.08)
+
+            payload = {
+                "receipt": receipt.to_dict(),
+                "memory_id": memory.id,
+                "lived_experience": memory.content,
+                "memory_types": ["speech_delivery", "episodic"],
+            }
+            if record_event:
+                self.engine.persistence.log_event(
+                    self.engine.identity.name,
+                    self.engine.user_id,
+                    self.engine.timestep,
+                    "speech_delivery_receipt",
+                    payload,
+                )
+            self.engine._persist()
+            return payload
 
     def observe_semantic_event(
         self,
