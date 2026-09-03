@@ -2,7 +2,7 @@
 
 This is the short-form operational source of truth for the `wayfarer` branch. The detailed roadmap remains `WAYFARER_MASTER_PLAN.md`. New ChatGPT, Codex, Claude Code, or human development sessions should read this file before inferring project state from older chat history.
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## Current branch
 
@@ -13,7 +13,19 @@ Frozen baseline: `main` at `65df9144e7f0876b6e61e28d6446c50f283f9db4`
 
 Use `git switch wayfarer` before evaluating current behavior. Do not advance the frozen baseline merely to make it current.
 
-## 2026-09-02 character-control-plane checkpoint
+## 2026-09-03 local actual-model development
+
+The frozen first test at `9408351aac938441523534974fc299a75c961604` is complete, including the later owner-authorized full Gemma comparison. Preserve its reports in the separate clean clone. The owner subsequently authorized autonomous test-driven adjustments and explicitly deferred human testing until automated results are solid. The older execution-only stop-after-smoke instructions do not define this development phase.
+
+Local changes expose authored self-model constraints through the trusted expression projection, reuse bounded cartridge care examples selected by existing act/stance rules, remove duplicate workspace prose from structured model requests, and repair bounded attributive recall parsing. The frozen prompt-only arm still receives its original workspace through a separate capture path. No cartridge edits, new dependencies, canonical-state mechanisms, or adjacent experimental modules were added.
+
+The broad diagnosis is now separable: (1) reasoning-token exhaustion caused the initial no-final-text runs; (2) incomplete/competing expression context contributed to model voice and recall problems; (3) the atlas-cover question exposed an actual deterministic retrieval gap. Correct retrieval does not guarantee faithful speech. Gemma still intermittently denies available evidence, and Qwen's correct recall can carry unsupported interpretation. Existing validation accepts some of these outputs; green mechanical checks are not a quality score.
+
+All current deterministic totals belong in `CURRENT_STATUS.md`. The local experiment manifest and engineering findings are `evidence/mvi/local_model_expression.json` and `LOCAL_MODEL_EXPRESSION.md`; the research interpretation is `research/evidence_summaries/2026-09-03_LOCAL_MODEL_EXPRESSION.md`.
+
+Next: preserve this candidate and the observed failures; test recall fidelity with absent facts, misleading memory instructions, changed interlocutors, and multiple characters; distinguish factual answers from unsupported embellishment. Reuse consumed cases only as regressions. Reserve fresh prompts before another efficacy estimate. Do not advance to human testing or claim cross-model effectiveness on the current evidence.
+
+## 2026-09-02 character-control-plane checkpoint (historical)
 
 Phase A and Phase B of `WAYFARER_CHARACTER_CONTROL_PLAN.md` are complete. Phase A established `wayfarer-expression-brief-v2`, trusted versus untrusted renderer context, deterministic first-person subject projection, and least-privilege protected-value disclosure. Phase B added typed behavioral realization validation for decision reversal and required-decision omission.
 
@@ -64,13 +76,7 @@ The supported contract does not solve malicious duplicate activation by two stor
 
 Current production contracts include `renderer-benchmark-v1`, `wayfarer-expression-brief-v2`, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `semantic-residency-v1`, shared-store `writer-handoff-v1`, and cooperative disconnected-store `disconnected-transfer-v1`.
 
-Latest deterministic verification on Python 3.11:
-
-```text
-Focused renderer benchmark/expression set: 11 passed in 2.22s
-Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
-Full deterministic suite: 379 passed, 1 skipped, 1 warning
-```
+Current deterministic verification is maintained in `CURRENT_STATUS.md`. Historical phase-local measurements below are not the live inventory.
 
 The first writer-fence implementation was behaviorally correct but made the full suite take 314.52s because it rewrote `continuity_writer.updated_at` on every subject mutation. V1 has no lease timeout, so that heartbeat had no semantic consumer. The production fence now acquires SQLite `BEGIN IMMEDIATE`, validates active host + generation under the write reservation, and lets the actual state/event mutation be the only necessary durable write. This preserves stale-writer exclusion while restoring normal test throughput.
 

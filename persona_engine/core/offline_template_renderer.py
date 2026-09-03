@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .offline_dialogue import dialogue_for
-from .cold_biography import grounded_context_match
+from .cold_biography import explicit_recall_request, grounded_context_match
 
 
 @dataclass(frozen=True)
@@ -64,6 +64,28 @@ _STOPWORDS = {
     "then", "there", "these", "they", "thing", "think", "this", "those", "through", "very", "want",
     "what", "when", "where", "which", "while", "with", "would", "your", "youre", "you're",
 }
+
+
+def authored_relational_voice_examples(identity: str, user_text: str, decision: dict, stance: str, *, max_chars: int = 320) -> list[str]:
+    """Read bounded cartridge examples for the demonstrated care-expression gap.
+
+    Reuse offline act/stance selection without advancing renderer usage or filling
+    any slots from user text or memories. Examples remain authored voice guidance,
+    not lived evidence, a new decision, or a replacement for the selected act.
+    Other dialogue families need their own grounding evidence before inclusion.
+    """
+    renderer = OfflineTemplateRenderer()
+    if renderer._classify(user_text, "", decision) != "care":
+        return []
+    bank = dialogue_for(identity)
+    for group in renderer._stance_groups("care", stance) + ["care"]:
+        authored = bank.get(group, [])
+        if authored:
+            # Unfilled templates are not useful voice evidence; never substitute
+            # lower-trust input into a privileged authored example.
+            return [text for text in authored if "{" not in text and "}" not in text
+                    and len(text) <= min(max_chars, 320)][:2]
+    return []
 
 
 class OfflineTemplateRenderer:
@@ -173,7 +195,7 @@ class OfflineTemplateRenderer:
             return "care"
         if any(phrase in lowered for phrase in ["thank you", "thanks", "appreciate it"]):
             return "thanks"
-        if re.search(r"\b(do you remember|remember when|what did i say|recall)\b", lowered):
+        if explicit_recall_request(lowered):
             return "memory"
         if re.search(r"\b(how are you|how do you feel|how have you been)\b", lowered):
             return "how_are_you"

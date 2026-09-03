@@ -8,6 +8,7 @@ from persona_engine.agent import CharacterAgent
 from persona_engine.core.cold_biography import (
     context_focus_tokens,
     contextual_readthrough_request,
+    explicit_recall_request,
     grounded_context_match,
     grounded_recall_match,
     recall_focus_tokens,
@@ -53,6 +54,35 @@ def test_recall_focus_uses_topic_not_retrieval_scaffolding():
         "Do you remember the brass telescope serial number I told you?",
         "Please remember this neutral detail: the old observatory code word is amber-otter.",
     ) is False
+
+
+def test_attributive_recall_preserves_topic_anchors():
+    query = "What color did I say the atlas cover was?"
+    assert explicit_recall_request(query)
+    assert recall_focus_tokens(query) == {"atlas", "cover"}
+    assert grounded_recall_match(query, "Remember this: the atlas cover is amber.")
+    assert not grounded_recall_match(query, "The telescope cover is amber.")
+    assert not grounded_recall_match("What color did I say it was?", "The atlas cover is amber.")
+    assert not explicit_recall_request("What color is the atlas cover?")
+
+
+def test_attributive_recall_survives_restart_and_remains_interlocutor_scoped(tmp_path):
+    db = str(tmp_path / "state.db")
+    agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+    agent.say("Remember this: the atlas cover is amber.")
+    agent.engine.persistence.close()
+    agent = CharacterAgent(cartridge_path=str(CART), user_id="alice", db_path=db)
+    result = agent.say("What color did I say the atlas cover was?")
+    assert "amber" in result["response"].lower()
+    assert any("atlas cover is amber" in item["content"] for item in result["retrieved_memory_trace"])
+    negative = agent.say("What color did I say the telescope cover was?")
+    assert negative["retrieved_memory_trace"] == []
+    agent.engine.persistence.close()
+    bob = CharacterAgent(cartridge_path=str(CART), user_id="bob", db_path=db)
+    result = bob.say("What color did I say the atlas cover was?")
+    assert result["retrieved_memory_trace"] == []
+    assert "amber" not in result["response"].lower()
+    bob.engine.persistence.close()
 
 
 def test_explicit_recall_reads_cold_biography_without_rehydrating_resident_cache():

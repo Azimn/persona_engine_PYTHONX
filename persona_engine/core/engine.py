@@ -49,6 +49,7 @@ from .relationship import (
 )
 from .private_cognition import generate_private_cognition, report_to_dict, validate_and_apply
 from .renderer import LocalLLMRenderer, OutputValidator, render_expression
+from .offline_template_renderer import authored_relational_voice_examples
 from .consistency import ConsistencyLayer, regeneration_constraints
 from .renderer_contract import ValidationAction, ValidationRequest
 from .symbols import SharedSymbol, SymbolStore
@@ -1330,6 +1331,12 @@ class InteriorEngine:
                 "refusal_mode": envelope.refusal_mode,
             },
         }
+        authored_examples = authored_relational_voice_examples(
+            self.identity.name, user_text, decision_payload, experience_context["relationship"]["stance"],
+            max_chars=envelope.max_chars,
+        )
+        if authored_examples:
+            experience_context["voice"]["authored_examples"] = authored_examples
         resolved_expression_state = {
             "system_prompt": system_prompt,
             "user_text": user_text,
@@ -1337,9 +1344,22 @@ class InteriorEngine:
         }
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}]
         seed = turn_seed(self.user_id, self.timestep, "expression")
+        # The legacy workspace is lower-trust context in expression-v2. Supply
+        # authored self-model constraints through the trusted projection too;
+        # provider identity must never fill a missing character identity.
+        expression_identity = {
+            "identity": self.identity.name,
+            "beliefs": self.belief_ledger.values,
+            "authored_identity": {
+                "core_beliefs": list(self.identity.core_beliefs),
+                "moral_boundaries": list(self.identity.moral_boundaries),
+                "self_model": asdict(self.identity.self_model),
+                "forbidden_self_claims": list(self.identity.forbidden_self_claims),
+            },
+        }
         response = render_expression(
             self.renderer,
-            ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+            ledger_digest=expression_identity,
             resolved_state=resolved_expression_state,
             arc_context={},
             evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
@@ -1380,7 +1400,7 @@ class InteriorEngine:
                 retry_prompt += "\nCONSISTENCY RETRY CONSTRAINTS: " + "; ".join(constraints)
             response = render_expression(
                 self.renderer,
-                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                ledger_digest=expression_identity,
                 resolved_state={**resolved_expression_state, "system_prompt": retry_prompt},
                 arc_context={},
                 evidence=[{"type": "input", "text": user_text}, {"type": "interpretation", "beliefs": [b.to_dict() for b in interpretive_beliefs]}],
@@ -1404,7 +1424,7 @@ class InteriorEngine:
                 fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
                 response = render_expression(
                     fallback_renderer,
-                    ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                    ledger_digest=expression_identity,
                     resolved_state=resolved_expression_state,
                     arc_context={},
                     evidence=[{"type": "input", "text": user_text}],
@@ -1425,7 +1445,7 @@ class InteriorEngine:
             fallback_renderer = LocalLLMRenderer(model_name="missing-model-for-mock", provider="offline")
             response = render_expression(
                 fallback_renderer,
-                ledger_digest={"identity": self.identity.name, "beliefs": self.belief_ledger.values},
+                ledger_digest=expression_identity,
                 resolved_state=resolved_expression_state,
                 arc_context={},
                 evidence=[{"type": "input", "text": user_text}],

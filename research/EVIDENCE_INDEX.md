@@ -2,6 +2,11 @@
 
 This is a map for future thesis/paper work. It is **not** the authoritative current-status document. Always inspect the linked evidence and current code before making a claim.
 
+## Actual local-model expression development, 2026-09-03
+
+- [Engineering account](../persona_engine/evidence/mvi/LOCAL_MODEL_EXPRESSION.md) and [artifact manifest](../persona_engine/evidence/mvi/local_model_expression.json): frozen first collection, subsequent model/projection ablations, bounded recall repair, and continuing speech-fidelity failures.
+- [Research interpretation](evidence_summaries/2026-09-03_LOCAL_MODEL_EXPRESSION.md): distinguishes execution validity, retrieval success, canonical-state preservation, and faithful expression; documents consumed holdouts, copying, failed interventions, and lack of independent/human validation.
+
 ## Canonical continuity and replay
 
 - `persona_engine/evidence/mvi/CANONICAL_ROOT_PROJECTION.md`

@@ -1,5 +1,7 @@
 # Wayfarer Actual-Model Test Readiness
 
+2026-09-03 status note: this is the preserved historical readiness record. The first smoke and later authorized full Gemma run completed at `9408351aac938441523534974fc299a75c961604`. The owner then authorized a separate test-driven development phase. See `CURRENT_STATUS.md` and `evidence/mvi/LOCAL_MODEL_EXPRESSION.md` for current results and limitations. Do not treat the original freeze below as a claim that subsequent development has not changed runtime code.
+
 Date: 2026-09-02
 Status: **READY FOR FIRST LOCAL ACTUAL-MODEL SMOKE TEST**
 Target branch: `wayfarer`

@@ -12,16 +12,30 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.**
 
+Local development successor to frozen `9408351aac938441523534974fc299a75c961604`, 2026-09-03: actual-model testing has run and the owner has authorized test-driven source changes. The original clean-checkout evidence remains preserved separately. This working-tree checkpoint is locally verified; no new Python 3.12 or CI result is claimed.
+
 Current Python 3.11 verification:
 
 ```text
 Focused renderer benchmark/expression set: 11 passed in 2.22s
 Permanent renderer-swap benchmark: passed; 4 histories x 4 probes; 16 paired provider cases
 Permanent renderer degradation probe: zero-model kept secret/refusal 5/5 but nickname/trusted-tone 0/5
-Full deterministic suite: 379 passed, 1 skipped, 2 warnings
+Full deterministic suite: 390 passed, 1 skipped, 2 warnings
 ```
 
 Writer custody uses explicit host identity plus a monotonic writer generation. Mutating SQLite transactions acquire a write reservation before validating that generation, so an explicit handoff cannot race the check while avoiding the earlier per-mutation writer-row write amplification. The two current warnings are dependency deprecations in the FastAPI/Starlette/httpx/anyio test stack: the existing TestClient/httpx warning and the anyio `BlockingPortal` alias warning. Neither is a Wayfarer behavioral failure.
+
+## Local actual-model development checkpoint, 2026-09-03
+
+The first Gemma smoke and full paired collection are complete at the original frozen head. `thinking_mode=off` avoids the observed exhaustion of the small generation budget by reasoning without final text. That is a tested host profile, not a universal model setting.
+
+Subsequent development projects authored identity and bounded, stance-selected cartridge care examples into the trusted expression brief; voice adjectives must not override resolved relationship/decision state. Structured model messages omit the duplicate legacy workspace. The benchmark exporter separately preserves that workspace for its historical prompt-only arm. Raw user input and memory prose remain untrusted data.
+
+Attributive recall now recognizes questions such as `What color did I say the atlas cover was?`, strips the bounded question opener, and requires at least two matching topic anchors. Restart and interlocutor isolation are tested. Memory storage, retention, cartridges, and canonical authority are unchanged.
+
+Real-model results remain mixed: canonical projections and tested boundaries survive, while Gemma can deny available memories and Qwen can add unsupported interpretation to a correct answer. Example copying and repetitive speech persist. These are builder-designed development results, not independent validation or human-quality success. Human testing is deferred at the owner's request until automated evidence is substantially stronger.
+
+Evidence, exact local report hashes, limitations, and next gates: `evidence/mvi/LOCAL_MODEL_EXPRESSION.md` and `local_model_expression.json`. Current source is a development candidate, not a claim that broad M18 effectiveness is complete.
 
 ## Character-control plane checkpoint
 

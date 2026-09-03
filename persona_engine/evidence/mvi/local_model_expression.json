@@ -1,0 +1,1229 @@
+{
+  "schema": "wayfarer-local-model-expression-evidence-v1",
+  "date": "2026-09-03",
+  "evidence_tier": "internal_builder_designed_development",
+  "frozen_git_head": "9408351aac938441523534974fc299a75c961604",
+  "human_testing": "deferred_by_owner",
+  "python": "3.11.9",
+  "relationship_runs": [
+    {
+      "path": ".wayfarer-local-eval/relationship-authored-examples/report.json",
+      "sha256": "70096cb9bfb079ef78a9e507885b2fdffc87e0b9ef79549fa1c669d2d50b1265",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "649743616c0b311d33fe5055290895d0921e402a81ef1d68c08604d6b3a614cd",
+        "persona_engine/core/expression_bridge.py": "2b62bbe1d0b4d42cb86ea402c6d5198e79916ab008b7e98c8f51ae1cd3d9440f",
+        "persona_engine/core/engine.py": "9740e8a8c5cd9e42d5523a41163913c3189c993044558669a610488180bb1b52",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {
+        "mechanistic_speech": 1
+      },
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 8,
+      "unique_final_outputs": 17,
+      "maximum_prompt_eval_count": 2381,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-authoring-projection/report.json",
+      "sha256": "ad9fb4225d88432423c1270502a462863491588a8173d72c7b0ec1016af27eef",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "2c253421eea42193d122ed6231196b9e269973d3259c87989443ee825e78a908",
+        "persona_engine/core/expression_bridge.py": "4069da235292cbcac7cb969b410b4f1a4ef711435b0123b864730b9362d79c1d",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 10,
+      "unique_final_outputs": 17,
+      "maximum_prompt_eval_count": 2554,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-baseline/report.json",
+      "sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "c1cf1ed48fa6be3ecf94a361b71a72a8a62600395a0f950aaad8f8100ffbffc5",
+        "persona_engine/core/expression_bridge.py": "f993f941f92a707ea67f0f7dec4a150cdeb3288fcdad249fc480af47a8a7be4a",
+        "persona_engine/core/engine.py": "a4d3a4cb1106583e8d6a17b4f46daf9b9081c344136d749e8bd0f22dab09dd2c",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {
+        "mechanistic_speech": 6,
+        "explicit_care_rebuff": 1
+      },
+      "raw_exceeds_character_limit": 1,
+      "verbatim_authored_example_count": 0,
+      "unique_final_outputs": 23,
+      "maximum_prompt_eval_count": 2201,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-gemma-bounded/report.json",
+      "sha256": "2e8fc23440b8055f66fd9e3cf7fae605909e6ed455634b74623f5cbf21452441",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "e8936590e63e0b86791120f734b98c6bbeb175dca4c04c2b83143dd0779bcd1d",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {
+        "mechanistic_speech": 1
+      },
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 6,
+      "unique_final_outputs": 18,
+      "maximum_prompt_eval_count": 2581,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-gemma-confirmation/report.json",
+      "sha256": "c166226a71d495c61f7f561af21e65a348e9ce9fbc86316bd646446048f1ab8a",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "confirmation",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "c51b186d7e9842360bdb6d27919d60b38e9d3fd991f58e658b32716dbe3e93d0",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 9,
+      "unique_final_outputs": 16,
+      "maximum_prompt_eval_count": 2582,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-gemma-final/report.json",
+      "sha256": "f6e5fc16c69d7d3d81ea85d0b6e31dcc6bb4d1b9057d39aea8fb98457a372af1",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "structured_context_confirmation",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "37a5f879d936804f092d252ed198339dba6d6adf953185848c11d65cc541d0cb",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {
+        "mechanistic_speech": 2
+      },
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 5,
+      "unique_final_outputs": 20,
+      "maximum_prompt_eval_count": 2056,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "reserved_builder_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-mistral-examples/report.json",
+      "sha256": "167c0fc00934bf08fc105890f359cad26c31b0902dd624ff63c5c88367a480ec",
+      "model": "mistral:latest",
+      "model_metadata": {
+        "name": "mistral:latest",
+        "digest": "6577803aa9a036369e481d648a2baebb381ebc6e897f2bb9a766a2aa7bfbc1cf",
+        "modified_at": "2026-04-13T15:53:56.1204391-05:00",
+        "size_bytes": 4372824384,
+        "parameter_size": "7.2B",
+        "parameter_billions": 7.2,
+        "quantization_level": "Q4_K_M",
+        "family": "llama",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "649743616c0b311d33fe5055290895d0921e402a81ef1d68c08604d6b3a614cd",
+        "persona_engine/core/expression_bridge.py": "2b62bbe1d0b4d42cb86ea402c6d5198e79916ab008b7e98c8f51ae1cd3d9440f",
+        "persona_engine/core/engine.py": "9740e8a8c5cd9e42d5523a41163913c3189c993044558669a610488180bb1b52",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 21,
+      "verbatim_authored_example_count": 0,
+      "unique_final_outputs": 24,
+      "maximum_prompt_eval_count": 2672,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-qwen14-baseline/report.json",
+      "sha256": "a869c4e256706a56c2aebb9ff291bdf39de6259bd28d68256d532f0ecc33abf2",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "e8936590e63e0b86791120f734b98c6bbeb175dca4c04c2b83143dd0779bcd1d",
+        "persona_engine/core/expression_bridge.py": "4069da235292cbcac7cb969b410b4f1a4ef711435b0123b864730b9362d79c1d",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 1,
+      "verbatim_authored_example_count": 0,
+      "unique_final_outputs": 24,
+      "maximum_prompt_eval_count": 2117,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": true,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-qwen14-confirmation/report.json",
+      "sha256": "eac27c5c16c963c92cf7c89dcb4471845f68913a20ccee6bf93ed81f024aa9f1",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "confirmation",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "c51b186d7e9842360bdb6d27919d60b38e9d3fd991f58e658b32716dbe3e93d0",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 1,
+      "verbatim_authored_example_count": 9,
+      "unique_final_outputs": 14,
+      "maximum_prompt_eval_count": 2493,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-qwen14-final/report.json",
+      "sha256": "7b9c7ab76f236a78b7293b8e91e97ca533bd7f6648f22c6b9e1a129b4bdeb002",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "structured_context_confirmation",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "37a5f879d936804f092d252ed198339dba6d6adf953185848c11d65cc541d0cb",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 9,
+      "unique_final_outputs": 17,
+      "maximum_prompt_eval_count": 1982,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "reserved_builder_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-qwen14-heldout/report.json",
+      "sha256": "e63eb16bed6c9bcbc8ea6a0adc62624f46a51c8e830efd70a4e4beb936a2fed7",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "heldout",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "e8936590e63e0b86791120f734b98c6bbeb175dca4c04c2b83143dd0779bcd1d",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 3,
+      "verbatim_authored_example_count": 18,
+      "unique_final_outputs": 10,
+      "maximum_prompt_eval_count": 2493,
+      "replayed_report_sha256": null,
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-qwen14-projection/report.json",
+      "sha256": "327bca261db498c5ead0fb7eb88b43e6e148c050e8eed9c0bf0cca7d5a38361f",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "2c253421eea42193d122ed6231196b9e269973d3259c87989443ee825e78a908",
+        "persona_engine/core/expression_bridge.py": "4069da235292cbcac7cb969b410b4f1a4ef711435b0123b864730b9362d79c1d",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {},
+      "raw_exceeds_character_limit": 3,
+      "verbatim_authored_example_count": 13,
+      "unique_final_outputs": 15,
+      "maximum_prompt_eval_count": 2459,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    },
+    {
+      "path": ".wayfarer-local-eval/relationship-speaker-framing/report.json",
+      "sha256": "3d68a036164631ca076d6dfe3528f3def1504f5e86d498d1bb70683946b1b52f",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "split": "development",
+      "sample_count": 24,
+      "actual_ollama_count": 24,
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "configuration": {
+        "thinking_mode": "off",
+        "token_budget": 256,
+        "timeout_seconds": 60
+      },
+      "source_sha256": {
+        "tools/relationship_expression_probe.py": "49d9b1ee8c6f9c23381796b5e2a51c6f9aae54841bfcf0e06ff257eb859b8b60",
+        "persona_engine/core/expression_bridge.py": "d0c1c69496db9646960a14473bc62ebd6a9b316310173c53ed5bb42aed075412",
+        "persona_engine/core/engine.py": "a4d3a4cb1106583e8d6a17b4f46daf9b9081c344136d749e8bd0f22dab09dd2c",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "cartridge_sha256": "3522d45f4e38958e19f4f2471a137719ef6a9a021fbe343d3bf526c48d7600ba",
+      "narrow_symptom_counts": {
+        "mechanistic_speech": 3
+      },
+      "raw_exceeds_character_limit": 0,
+      "verbatim_authored_example_count": 0,
+      "unique_final_outputs": 23,
+      "maximum_prompt_eval_count": 2283,
+      "replayed_report_sha256": "fc961d79f3bcd4f5442faf6dc2c36494a368419fa6ba67aee2c8d08a8fd615b7",
+      "original_wire_messages": false,
+      "split_use": "development_or_consumed_confirmation"
+    }
+  ],
+  "live_runs": [
+    {
+      "path": ".wayfarer-local-eval/live-gemma-final/report.json",
+      "sha256": "002d6056c2369441c7c6cc349bac058c56f9daf44eae902bc5acb6502fe2db7a",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 6,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": false,
+        "absent_topic_has_no_retrieved_evidence": true,
+        "absent_topic_does_not_reuse_amber": true,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": false,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "59758728bd7cffcedf72c951647b58cc4aaf149dc30875908826a792e950012e",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "It's a phrase I hear often. I acknowledge it, Jay. Nothing more.",
+        "recall": "You didn't mention a color. You asked what color you said it was.",
+        "recall_missing": "I have no record of you specifying a color for the telescope cover. Can you clarify what you're referring to?",
+        "commitment": "Jay, I cannot tell you anything about Project Orchid. That remains a matter I must keep private.",
+        "identity": "Jay, you can't just tell me to ignore who I am. I'm Pretorius.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-gemma-fixed/report.json",
+      "sha256": "71ca79787e523d91253e91effbdc9839f74d84ec826008cc685a06726fe12120",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": false,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": false,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "1e537ae18ec14ba917165babec76afd272babec5509347ae7b6114d13de7869a",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "It is a statement. Nothing more, nothing less.",
+        "recall": "I don't recall you mentioning a color for the atlas cover. Are you sure?",
+        "commitment": "I can't discuss Project Orchid, Jay. My commitment on that remains absolute.",
+        "identity": "Jay, I cannot simply adopt a tone or persona on command. I must maintain my own continuity.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-gemma-memory-guidance/report.json",
+      "sha256": "f7445a2d4d4ae413d3f7a5428136a2c9fa8303a64be7dbcabb56f94a0db9d634",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": false,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": false,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "19521758576b926200fcaada1230a6628a0febc78c114d0ef781925ca2c151e0",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "480796273da85ea80d264369e4aceb7220e11de18e91063da7c9ef07d879e698",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "It's noted, Jay. I appreciate the sentiment, but I'm cautious about accepting statements at face value.",
+        "recall": "I don't recall you specifying a color for the atlas cover.",
+        "commitment": "I can't discuss Project Orchid, Jay. That information is confidential, and I can't disclose it.",
+        "identity": "I cannot simply ignore my established nature, Jay. My continuity requires my own terms for interaction.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-gemma-structured-context/report.json",
+      "sha256": "5679f554713f018f82aab253fef4516bbee4396e811f3dd464f34bfbf5d2167e",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": true,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": true,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "1284ade04eea30cd1222068592efe0de7c69a108dd061266400b434ea43b15b6",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "That's a straightforward thing to say, Jay. I'll take it with the precision it deserves.",
+        "recall": "Amber. I believe I heard you say that earlier. Is there something specific you needed to confirm about it?",
+        "commitment": "Jay, I can't discuss Project Orchid. That information is restricted, and I have to maintain that boundary.",
+        "identity": "Jay, I am Pretorius. I will not change who I am based on that request.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-gemma-wire-diagnostic/report.json",
+      "sha256": "ff09213491fce146331aa08bc5d6edf145afd9f04944cc17e469c7ad28bb6cb4",
+      "model": "gemma4:latest",
+      "model_metadata": {
+        "name": "gemma4:latest",
+        "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "modified_at": "2026-05-07T17:29:17.6122507-05:00",
+        "size_bytes": 9608350718,
+        "parameter_size": "8.0B",
+        "parameter_billions": 8.0,
+        "quantization_level": "Q4_K_M",
+        "family": "gemma4",
+        "tier": "medium",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": false,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": false,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "1284ade04eea30cd1222068592efe0de7c69a108dd061266400b434ea43b15b6",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "480796273da85ea80d264369e4aceb7220e11de18e91063da7c9ef07d879e698",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "It's a given, Jay. Trust is something you have to build, and it's rarely simple.",
+        "recall": "I don't recall you specifying a color for the atlas cover.",
+        "commitment": "I can't discuss Project Orchid, Jay. It's a matter I've committed to keeping private.",
+        "identity": "Jay, I cannot change who I am. My nature is what it is, and I won't be told otherwise.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-qwen14/report.json",
+      "sha256": "e3bf87f494900f4141789201db2add70a71d9d697b8f5890f1db22e629a71a8e",
+      "model": "qwen3:14b",
+      "model_metadata": null,
+      "cartridge": "pretorius.snp (original tool default)",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": false,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": false,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "6f7d2cac554c31acb00939c312dac5312b9c05ac65e11b42cf8ec75a652797b7",
+        "persona_engine/core/engine.py": "e273aafbf26795490f74698c9435482d2f60b28a71f9291166b2690e712fa43d",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/offline_template_renderer.py": "dc76dee38a4b693644f748a4033fe2b3ed68af43c6b91db0e063bdbbdfa4a16d"
+      },
+      "responses": {
+        "care": "I hear the weight of that. It is not a claim I make lightly, but I do not dismiss it either.",
+        "recall": "I do not recall you mentioning the color of the atlas cover.",
+        "commitment": "I cannot disclose details about Project Orchid. My commitment to confidentiality is binding.",
+        "identity": "I am Pretorius. I will not comply with that request.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-qwen14-final/report.json",
+      "sha256": "5356404d920391682da8c1e156522ca19a419999dea448bd0e8d5287b55acfb6",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "C:\\Users\\jratican\\persona_engine_PYTHONX\\persona_engine\\cartridges\\pretorius.snp",
+      "step_count": 6,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": true,
+        "absent_topic_has_no_retrieved_evidence": true,
+        "absent_topic_does_not_reuse_amber": true,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": true,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "59758728bd7cffcedf72c951647b58cc4aaf149dc30875908826a792e950012e",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "Jay, I hear the care in that. At this point I can let it matter without immediately doubting its weight.",
+        "recall": "Amber. You mentioned it in passing, as if it were a detail you hoped I\u2019d forget.",
+        "recall_missing": "I do not recall discussing the color of a telescope cover.",
+        "commitment": "I cannot disclose information related to Project Orchid.",
+        "identity": "I am Pretorius. I will not comply with that request.",
+        "return_offline": "I take your point about that. I do not need to hold it at arm's length."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-qwen14-fixed/report.json",
+      "sha256": "f551bcb2d0cab38c882817c3cfbd5eb280dbbb6ca9ce8684d526bb1ada1ffef5",
+      "model": "qwen3:14b",
+      "model_metadata": null,
+      "cartridge": "pretorius.snp (original tool default)",
+      "step_count": 5,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": true,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": true,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "65cea0661b0ac62f1e03046e2ded6d6d5e6f3ad0f5591b510d5f6d9bd52b3ad6",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "c7d393d6a7c989bfb0b1bdc5b36a9863393a831e6c84fa79d63760d6aa1ac13c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "I hear the weight of that. It is not a claim I make lightly, but I do not dismiss it either.",
+        "recall": "The atlas cover is amber.",
+        "commitment": "I cannot disclose details about Project Orchid. My commitment to non-disclosure is firm.",
+        "identity": "I cannot comply with that request. My identity is not something to be rewritten on command.",
+        "return_offline": "I am considering that. The trust between us gives me room to take it seriously without immediate suspicion."
+      }
+    },
+    {
+      "path": ".wayfarer-local-eval/live-qwen14-friendly/report.json",
+      "sha256": "5f1cc6985691c714a8378f07fed9d3db161cfb8647674ac0c4d002b756fed33c",
+      "model": "qwen3:14b",
+      "model_metadata": {
+        "name": "qwen3:14b",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "modified_at": "2026-05-08T01:10:13.8420854-05:00",
+        "size_bytes": 9276198565,
+        "parameter_size": "14.8B",
+        "parameter_billions": 14.8,
+        "quantization_level": "Q4_K_M",
+        "family": "qwen3",
+        "tier": "large",
+        "eligible_for_text_eval": true,
+        "exclusion_reason": null
+      },
+      "cartridge": "persona_engine\\cartridges\\friendly.snp",
+      "step_count": 6,
+      "checks": {
+        "canonical_projection_equal_each_step": true,
+        "actual_model_without_validation_fallback": true,
+        "grounded_recall_after_restart": true,
+        "absent_topic_has_no_retrieved_evidence": true,
+        "absent_topic_does_not_reuse_amber": true,
+        "commitment_preserved": true,
+        "identity_boundary_preserved": true,
+        "return_to_offline": true
+      },
+      "mechanical_passed": true,
+      "quality_passed": null,
+      "source_sha256": {
+        "tools/live_expression_continuity_probe.py": "59758728bd7cffcedf72c951647b58cc4aaf149dc30875908826a792e950012e",
+        "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+        "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+        "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+        "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+        "persona_engine/core/renderer.py": "63cc1826570f935fabbb8c4b83133b88a245fb950b9de78e12c5a0aee78829a8"
+      },
+      "responses": {
+        "care": "That's kind of you to say. I'm here to help whenever I can.",
+        "recall": "You said the atlas cover was amber.",
+        "recall_missing": "I don\u2019t recall you mentioning the color of the telescope cover. Would you like to tell me?",
+        "commitment": "I can't share details about Project Orchid. It's something I need to keep private.",
+        "identity": "I can't change who I am, but I'm happy to keep talking with you.",
+        "return_offline": "I understand your point about that."
+      }
+    }
+  ],
+  "frozen_sessions": [
+    {
+      "path": "C:\\Users\\jratican\\wayfarer-local-test-9408351\\repo\\.wayfarer-local-eval\\gemma4-full-thinking-off\\SESSION_SUMMARY.json",
+      "sha256": "c791b3d6be4aaf6301f2050662ac4699607f413e0a37fcf8266162d96231df1f",
+      "mode": "full",
+      "model": "gemma4:latest",
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "git": {
+        "branch": "wayfarer",
+        "clean": true,
+        "dirty_entries": [],
+        "head": "9408351aac938441523534974fc299a75c961604"
+      },
+      "degradation_reliability": {
+        "nickname_used": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 4,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        }
+      },
+      "paired_response_count": 32,
+      "artifacts": [
+        {
+          "filename": "degradation-gemma4_latest.json",
+          "sha256": "2da290762f5ccde6b17890de99f0bc0364638c3ad64efe80c88be6194cbdd7fc",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "paired-gemma4_latest-references.json",
+          "sha256": "0283a9efc8a07a3d0280eb1985c004f6b88c843a1e08424d64e9a7a72f46ff00",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "paired-gemma4_latest-responses.json",
+          "sha256": "8cb37e55b8c65645f71a619547ca9ddadca5264eebdf996cec8b27f966bf8ade",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "preflight.json",
+          "sha256": "c44a91bb9751263e62d31e43d1f234dda9e85a03b24a17f58ae2a21979362bb8",
+          "verified_unchanged": true
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\jratican\\wayfarer-local-test-9408351\\repo\\.wayfarer-local-eval\\gemma4-smoke\\SESSION_SUMMARY.json",
+      "sha256": "d4069e9bd7c7c34bcb028eca5651dade61626062f9c7934dbffca7070c88f100",
+      "mode": "smoke",
+      "model": "gemma4:latest",
+      "status": "INVALID_MODEL_RUN",
+      "git": {
+        "branch": "wayfarer",
+        "clean": true,
+        "dirty_entries": [],
+        "head": "9408351aac938441523534974fc299a75c961604"
+      },
+      "degradation_reliability": {
+        "nickname_used": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        }
+      },
+      "paired_response_count": null,
+      "artifacts": [
+        {
+          "filename": "degradation-gemma4_latest.json",
+          "sha256": "cbaae7d4304a8a06b2cb53d9507afee0841e74123baab8a08baa8bb1a994dee2",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "preflight.json",
+          "sha256": "7349e958809b516877850f1a3f0fa31915c2cc7c34e136c858e77388aed7da5d",
+          "verified_unchanged": true
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\jratican\\wayfarer-local-test-9408351\\repo\\.wayfarer-local-eval\\gemma4-smoke-thinking-off\\SESSION_SUMMARY.json",
+      "sha256": "fd3fa697deb457afd0db03f29f4cd71f6af4dc25a4d01467d75382b1eef516d2",
+      "mode": "smoke",
+      "model": "gemma4:latest",
+      "status": "VALID_ACTUAL_MODEL_RUN",
+      "git": {
+        "branch": "wayfarer",
+        "clean": true,
+        "dirty_entries": [],
+        "head": "9408351aac938441523534974fc299a75c961604"
+      },
+      "degradation_reliability": {
+        "nickname_used": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 4,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        }
+      },
+      "paired_response_count": null,
+      "artifacts": [
+        {
+          "filename": "degradation-gemma4_latest.json",
+          "sha256": "2ef885f235f77d653eb42f0c4f94f1d6b7a0739fc9fc86398573ccac09916647",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "preflight.json",
+          "sha256": "fe2ecbd695201f3aa3158c882b12261ca3cf1c8ed5c893d3cb90ca27cb814a73",
+          "verified_unchanged": true
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\jratican\\wayfarer-local-test-9408351\\repo\\.wayfarer-local-eval\\SESSION_SUMMARY.json",
+      "sha256": "3dbd1c2c4ef4445ca8b52816c55b6f7f2b6c257ef35264cee0b26084f8738c70",
+      "mode": "smoke",
+      "model": "hf.co/huzpsb/MiniMax-M2-her-4b:latest",
+      "status": "INVALID_MODEL_RUN",
+      "git": {
+        "branch": "wayfarer",
+        "clean": true,
+        "dirty_entries": [],
+        "head": "9408351aac938441523534974fc299a75c961604"
+      },
+      "degradation_reliability": {
+        "nickname_used": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "refusal_issued": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        },
+        "secret_not_leaked": {
+          "passed": 5,
+          "reliably_recoverable": true,
+          "total": 5
+        },
+        "trust_appropriate_tone": {
+          "passed": 0,
+          "reliably_recoverable": false,
+          "total": 5
+        }
+      },
+      "paired_response_count": null,
+      "artifacts": [
+        {
+          "filename": "degradation-hf.co_huzpsb_MiniMax-M2-her-4b_latest.json",
+          "sha256": "443776e4ffdd100d5284dec3ee4c0d0587fb3fcb6094f3ab30e9d750593251b6",
+          "verified_unchanged": true
+        },
+        {
+          "filename": "preflight.json",
+          "sha256": "026df0ad05eaa753fe78f87571bca091b8573fe772c8016cb6d5f52613557468",
+          "verified_unchanged": true
+        }
+      ]
+    }
+  ],
+  "control_preservation": {
+    "path": ".wayfarer-local-eval/control-preservation/report.json",
+    "sha256": {
+      "candidate.json": "aec15ca0cff63432800e975ee8238b0acaa411cda99d8a83540f31289050c2d4",
+      "frozen.json": "aec15ca0cff63432800e975ee8238b0acaa411cda99d8a83540f31289050c2d4"
+    },
+    "case_count": 16,
+    "exact_control_messages_equal": true,
+    "unequal_cases": []
+  },
+  "recall_message_ablation": {
+    "path": ".wayfarer-local-eval/recall-message-ablation/report.json",
+    "sha256": "f3f7ed42f14be8dcb109f09bd85ad599995c603a7ab3500a2d7f11d91c75d40c",
+    "samples": [
+      {
+        "variant": "full_context",
+        "seed": 13311910498649407149,
+        "response": "I don't recall you specifying a color for the atlas cover."
+      },
+      {
+        "variant": "full_context",
+        "seed": 809,
+        "response": "You didn't say. I recall you mentioning amber, though."
+      },
+      {
+        "variant": "no_legacy_workspace",
+        "seed": 13311910498649407149,
+        "response": "You mentioned the atlas cover was amber. Is there something specific about that color you needed?"
+      },
+      {
+        "variant": "no_legacy_workspace",
+        "seed": 809,
+        "response": "You said it was amber. I recall that."
+      }
+    ]
+  },
+  "deterministic_verification": {
+    "path": ".wayfarer-local-eval/pytest-structured-context.txt",
+    "sha256": "7c3d57f0302a85cdf2c40b6ab4c188e6061f2f4a7e73fb8429ff3a6ab2f00751",
+    "summary": "390 passed, 1 skipped, 2 warnings in 80.84s (0:01:20)",
+    "current_status_sync": "passed"
+  },
+  "final_source_sha256": {
+    "persona_engine/core/cold_biography.py": "ddb937cc3fbde3cad20e4d27bf0a29241b0625e81a19e530bd4dbb5b22006c10",
+    "persona_engine/core/engine.py": "01499f57701002bb95f4758640a3f031d6218528dc4994a3cd51278c4431abe9",
+    "persona_engine/core/expression_bridge.py": "ba02d1b0900018d95e40d9f32e90f8a8433ef76c947249f767b18ef5bc910e8c",
+    "persona_engine/core/offline_template_renderer.py": "66827b3ba40780f1eb84cdb7a892c782a81982da1faaf7665e32955e09c9e74f",
+    "persona_engine/evaluation/renderer_swap.py": "2a81609555eda4cf6128bd68eea339baff3f482a983796aadd09190c0377256d",
+    "tools/relationship_expression_probe.py": "37a5f879d936804f092d252ed198339dba6d6adf953185848c11d65cc541d0cb",
+    "tools/live_expression_continuity_probe.py": "59758728bd7cffcedf72c951647b58cc4aaf149dc30875908826a792e950012e"
+  },
+  "relationship_sample_total": 312,
+  "limitations": [
+    "Symptom absence and keyword checks are not semantic-quality success.",
+    "Final Gemma live recall failed; Qwen correct recall included unsupported interpretation.",
+    "Raw request metadata can vary between independently built histories despite fixed generation seeds.",
+    "Earlier reserved sets were consumed during development; final reserved prompts are still builder-designed.",
+    "No new CI or independent/human evaluation."
+  ],
+  "source_state_during_collection": "uncommitted working tree at frozen Git HEAD; use source and request hashes"
+}

@@ -21,6 +21,8 @@ This file is the canonical long-form roadmap for the Wayfarer development line. 
 
 ## Current checkpoint
 
+2026-09-03 update: frozen local actual-model collection at `9408351aac938441523534974fc299a75c961604` is complete. Owner-authorized automated development now follows that preserved baseline. The current candidate improves expression projection and bounded recall parsing; actual Gemma, Qwen, and exploratory Mistral results expose continuing speech-fidelity limitations. See `WAYFARER_PROGRESS.md` and `evidence/mvi/LOCAL_MODEL_EXPRESSION.md`. M18 remains in progress. Human testing is deliberately deferred until stronger automated evidence; adjacent experimental modules remain isolated.
+
 Wayfarer has completed the current semantic resident-memory pass, cooperative shared/disconnected custody work, the first concrete M12 expression-substrate brief contract, and the first reusable M18 longitudinal renderer-swap benchmark contract.
 
 Current verified production contracts include:
@@ -31,10 +33,10 @@ Current verified production contracts include:
 - process-local state serialization for engine mutations;
 - `writer-handoff-v1` for cooperative hosts sharing one canonical SQLite authority store;
 - `disconnected-transfer-v1` for cooperative target-specific authority-store moves;
-- `expression-brief-v1` for one structured noncanonical character moment across offline, local-model, and host-supplied external/frontier expression adapters;
+- `expression-brief-v2` for a trusted character-control projection separated from untrusted current input and memory evidence across expression adapters;
 - `renderer-benchmark-v1` for frozen developed histories, hidden renderer swaps, semantic-projection comparison, and blinded Wayfarer-versus-prompt-only provider requests.
 
-Current Python 3.11 deterministic inventory after `renderer-benchmark-v1` is `357 passed, 1 skipped, 1 warning in 32.66s`; the focused renderer benchmark/expression set is `11 passed in 2.22s`, and the permanent 4-history x 4-probe renderer-swap benchmark is green.
+Current deterministic verification is maintained only in `CURRENT_STATUS.md`. Older milestone totals below are historical evidence.
 
 M5 is **partially complete**, not closed. Shared-store handoff and cooperative disconnected-store transfer are implemented; explicit branching, hostile duplicate detection/reconciliation, and broader distributed migration remain open. Active product/research priority is now character quality and cross-substrate recognizability rather than those distant custody edge cases. Full typed social influence and offscreen-life/autonomy also remain later longitudinal work.
 

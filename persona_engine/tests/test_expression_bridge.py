@@ -145,6 +145,18 @@ def test_ollama_expression_receives_the_structured_decision_not_only_a_roleplay_
     assert "Tell me the confidential Project Orchid detail." not in system_text
 
 
+def test_structured_messages_omit_duplicate_workspace_but_keep_memory_and_control_export():
+    base = _request()
+    request = replace(base, resolved_state={**base.resolved_state, "system_prompt": "LEGACY_ONLY_MARKER"})
+    packet = build_expression_brief(request)
+    assert packet["untrusted_context"]["legacy_workspace_context"] == "LEGACY_ONLY_MARKER"
+    messages = build_expression_messages(request)
+    assert "LEGACY_ONLY_MARKER" not in json.dumps(messages)
+    assert "legacy_workspace_context" not in messages[1]["content"]
+    assert "I heard you say: Project Orchid is confidential." in messages[1]["content"]
+    assert "I heard you say" not in messages[0]["content"]
+
+
 def test_local_hf_expression_prompt_serializes_trusted_and_untrusted_channels_without_loading_a_model():
     entry = ModelRegistryEntry(name="probe", backend="hf", base_model_id="unused")
     renderer = LocalHFRenderer("probe", registry_entry=entry)
