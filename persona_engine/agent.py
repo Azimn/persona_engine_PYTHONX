@@ -14,6 +14,11 @@ from .core.delivery import (
     SpeechDeliveryReceipt,
     first_person_delivery_experience,
 )
+from .core.epistemic import (
+    EpistemicEvidence,
+    EpistemicLedger,
+    EpistemicStance,
+)
 from .core.subject_appraisal import (
     SemanticEventAnnotation,
     SubjectAppraisalContext,
@@ -83,13 +88,7 @@ class CharacterAgent:
         prevalidate_candidates: bool = True,
         include_authored_landmarks: bool = True,
     ) -> dict:
-        """Enable Project Ensemble's broadened Ollama realization path.
-
-        Renderer selection is host/runtime policy. It does not alter the
-        character cartridge, identity, canonical history, relationships or
-        commitments. The returned status makes the active realization mode
-        inspectable to callers and evaluation harnesses.
-        """
+        """Enable Project Ensemble's broadened Ollama realization path."""
         renderer = EnsembleLLMRenderer(
             model_name=model_name,
             host=host,
@@ -104,19 +103,118 @@ class CharacterAgent:
         self.engine.set_renderer(renderer)
         return self.engine.renderer_status()
 
+    def _load_epistemic_ledger(self) -> EpistemicLedger:
+        state = self.engine.persistence.load_subject(
+            self.engine.identity.name,
+            self.engine.user_id,
+            "epistemic_ledger",
+            None,
+        )
+        if not state:
+            return EpistemicLedger()
+        return EpistemicLedger.from_dict(state)
+
+    def epistemic_state(self, proposition_key: str, proposition_text: str | None = None) -> dict:
+        """Read current subject-owned belief state without changing it."""
+        ledger = self._load_epistemic_ledger()
+        proposition = ledger.current(str(proposition_key), proposition_text)
+        return {
+            "proposition": proposition.to_dict(),
+            "first_person_status": ledger.first_person_status(str(proposition_key), proposition_text),
+            "evidence": [item.to_dict() for item in ledger.evidence_for(str(proposition_key))],
+        }
+
+    def record_epistemic_evidence(
+        self,
+        evidence: EpistemicEvidence | dict,
+        *,
+        record_event: bool = True,
+    ) -> dict:
+        """Append evidence without automatically changing current belief."""
+        if isinstance(evidence, dict):
+            evidence = EpistemicEvidence.from_dict(evidence)
+        if not isinstance(evidence, EpistemicEvidence):
+            raise TypeError("evidence must be EpistemicEvidence or dict")
+        with self.engine.state_transaction():
+            self.engine._require_writer()
+            ledger = self._load_epistemic_ledger()
+            ledger.record_evidence(evidence)
+            self.engine.persistence.save_subject_many(
+                self.engine.identity.name,
+                self.engine.user_id,
+                {"epistemic_ledger": ledger.to_dict()},
+            )
+            payload = {
+                "evidence": evidence.to_dict(),
+                "belief_changed": False,
+                "memory_types": ["epistemic_evidence"],
+            }
+            if record_event:
+                self.engine.persistence.log_event(
+                    self.engine.identity.name,
+                    self.engine.user_id,
+                    self.engine.timestep,
+                    "epistemic_evidence_recorded",
+                    payload,
+                )
+            return payload
+
+    def revise_belief(
+        self,
+        *,
+        proposition_key: str,
+        proposition_text: str,
+        stance: EpistemicStance | str,
+        confidence: float,
+        evidence_refs,
+        source: str = "subject_revision",
+        reason: str = "",
+        revised_at: float | None = None,
+        record_event: bool = True,
+    ) -> dict:
+        """Explicitly revise one current subject belief from cited evidence."""
+        stance = stance if isinstance(stance, EpistemicStance) else EpistemicStance(str(stance))
+        with self.engine.state_transaction():
+            self.engine._require_writer()
+            ledger = self._load_epistemic_ledger()
+            revision = ledger.revise(
+                proposition_key=str(proposition_key),
+                proposition_text=str(proposition_text),
+                stance=stance,
+                confidence=float(confidence),
+                evidence_refs=evidence_refs,
+                revised_at=float(time.time() if revised_at is None else revised_at),
+                source=str(source),
+                reason=str(reason),
+            )
+            self.engine.persistence.save_subject_many(
+                self.engine.identity.name,
+                self.engine.user_id,
+                {"epistemic_ledger": ledger.to_dict()},
+            )
+            payload = {
+                "revision": revision.to_dict(),
+                "current": ledger.current(str(proposition_key)).to_dict(),
+                "first_person_status": ledger.first_person_status(str(proposition_key)),
+                "memory_types": ["epistemic_revision"],
+            }
+            if record_event:
+                self.engine.persistence.log_event(
+                    self.engine.identity.name,
+                    self.engine.user_id,
+                    self.engine.timestep,
+                    "epistemic_belief_revised",
+                    payload,
+                )
+            return payload
+
     def record_delivery_receipt(
         self,
         receipt: SpeechDeliveryReceipt | dict,
         *,
         record_event: bool = True,
     ) -> dict:
-        """Record what actually happened to one intended speech action.
-
-        The engine's renderer output is noncanonical speech evidence. A delivery
-        receipt comes from the host/world boundary and tells the subject whether
-        that intended speech was fully delivered, interrupted, or not delivered.
-        This method turns that actual consequence into lived episodic evidence.
-        """
+        """Record what actually happened to one intended speech action."""
         if isinstance(receipt, dict):
             receipt = SpeechDeliveryReceipt.from_dict(receipt)
         if not isinstance(receipt, SpeechDeliveryReceipt):
@@ -183,16 +281,7 @@ class CharacterAgent:
         perceived_control: float = 0.5,
         record_event: bool = True,
     ) -> dict:
-        """Let one typed event leave a subject-relative lived trace.
-
-        The host supplies bounded event semantics rather than free-form authority.
-        Existing relationship state and explicit current goal preference determine
-        what the event means to this subject. The resulting appraisal then affects
-        memory salience and a small set of existing pressure vessels.
-
-        This is a causal consumer for ``SubjectRelativeAppraisal``. It does not
-        rewrite the source event, relationship state, identity, or world truth.
-        """
+        """Let one typed event leave a subject-relative lived trace."""
         if isinstance(annotation, dict):
             annotation = SemanticEventAnnotation(**annotation)
         if not isinstance(annotation, SemanticEventAnnotation):
@@ -291,10 +380,7 @@ class CharacterAgent:
             self.engine._persist()
 
     def adopt_commitment(self, commitment_kind: str, commitment_target: str, *, record_event: bool = True) -> dict:
-        """Adopt explicit semantic commitment state through character authority.
-
-        Conversational text does not invoke this method by itself.
-        """
+        """Adopt explicit semantic commitment state through character authority."""
         return self.engine.adopt_commitment(
             commitment_kind,
             commitment_target,
@@ -324,14 +410,7 @@ class CharacterAgent:
         return self.engine.poll_proactive_events()
 
     def stream_last_response(self, text: str):
-        """Chunk the exact finalized response from one canonical turn.
-
-        The legacy implementation rendered a second time after state writeback,
-        so streamed wording could differ from the speech evidence that actually
-        caused the turn consequences. This helper now performs one normal turn
-        and streams only that validated final text. It never re-enters the
-        renderer after the turn commits.
-        """
+        """Chunk the exact finalized response from one canonical turn."""
         result = self.engine.receive_input(text)
         response = result["response"]
         chunk_chars = 32
