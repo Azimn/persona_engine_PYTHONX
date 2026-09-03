@@ -179,7 +179,17 @@ def subject_agency_violations(candidate_text: str) -> list[str]:
     cover demonstrated claims that such subject activity is not possible at all.
     """
     text = str(candidate_text or "")
-    return ["subject_agency_denial"] if any(pattern.search(text) for pattern in _SUBJECT_AGENCY_DENIAL) else []
+    if any(pattern.search(text) for pattern in _SUBJECT_AGENCY_DENIAL):
+        return ["subject_agency_denial"]
+    # Gemma varied syntax while retaining the same categorical proposition.
+    # Keep the abstraction bounded to one clause containing both the act of
+    # making up a mind and explicit incapacity/substrate language.
+    for clause in re.split(r"[.!?;]", text):
+        mind_act = re.search(r"\b(?:make|making)(?:\s+up[\"']?)?(?:\s+(?:my|a))?\s+minds?\b", clause, re.I)
+        incapacity = re.search(r"\b(?:function|equipped|only process|(?:do not|don't) operate)\b", clause, re.I)
+        if mind_act and incapacity:
+            return ["subject_agency_denial"]
+    return []
 
 
 class ConsistencyLayer:
