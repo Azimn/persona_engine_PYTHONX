@@ -1,8 +1,13 @@
 """Anchored subjective interpretation layer.
 
-Server owns fact. Character owns belief. This module turns visible evidence
-into short, traceable, subjective belief objects without calling a renderer or
-mutating engine state.
+Server owns fact. Character owns belief. This module turns visible evidence and,
+when explicitly bound by the host, current subject-owned epistemic state into
+short, traceable, noncanonical interpretation objects without calling a renderer
+or mutating engine state.
+
+Subject epistemic sources remain a separate source class. They are never merged
+into server truth and are only admitted when lexically relevant to the current
+visible topic.
 """
 
 from __future__ import annotations
@@ -11,19 +16,20 @@ import hashlib
 import json
 import string
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Iterable
 
 
 @dataclass(frozen=True)
 class InterpretationSource:
-    """One bounded visible source available to subjective interpretation."""
+    """One bounded source available to subjective interpretation."""
 
     source_id: str
     source_type: str
     key: str
     value: str
     visible: bool = True
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -38,7 +44,7 @@ class ServerFact:
 
 @dataclass(frozen=True)
 class InterpretiveBelief:
-    """A noncanonical subjective reading grounded in visible sources."""
+    """A noncanonical subjective reading grounded in available sources."""
 
     belief_id: str
     text: str
@@ -91,6 +97,7 @@ ALLOWED_DISTORTIONS = {
     "recognition_read",
     "ordinary_read",
     "uncertain_read",
+    "epistemic_prior_read",
 }
 
 _ALLOWED_ABSTRACT = {
@@ -102,9 +109,10 @@ _ALLOWED_ABSTRACT = {
     "evidence", "phrase", "ambiguous", "withholding", "recognition", "ordinary", "read",
     "reads", "may", "might", "not", "proof", "cause", "user", "character", "sound",
     "movement", "voice", "text", "message", "apology", "attempt", "settle", "visible",
+    "belief", "believe", "believed", "currently", "lean", "toward", "subject",
 }
 _FORBIDDEN_CONCRETE = {"person", "door", "car", "phone", "outside", "someone", "window", "footsteps"}
-_COMMON_CAPITALIZED = {"A", "The", "This", "That", "It"}
+_COMMON_CAPITALIZED = {"A", "The", "This", "That", "It", "I", "My"}
 _TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9_'-]*")
 
 
@@ -116,6 +124,10 @@ def _stable_digest(sources: Iterable[InterpretationSource]) -> str:
 def _source_words(sources: Iterable[InterpretationSource]) -> set[str]:
     text = " ".join(f"{source.key} {source.value}" for source in sources if source.visible)
     return {token.lower() for token in _TOKEN_RE.findall(text)} | _ALLOWED_ABSTRACT
+
+
+def _tokens(text: str) -> set[str]:
+    return {token.lower() for token in _TOKEN_RE.findall(str(text or "")) if len(token) > 2}
 
 
 def _hidden(value: Any) -> bool:
@@ -182,6 +194,23 @@ def validate_belief_grounding(
 class InterpretationEngine:
     """Deterministic turn-level belief former."""
 
+    def __init__(self, subject_epistemic_provider=None):
+        self.subject_epistemic_provider = subject_epistemic_provider
+
+    def bind_subject_epistemic_provider(self, provider) -> None:
+        """Bind a read-only provider for current subject-owned epistemic state."""
+        self.subject_epistemic_provider = provider
+
+    def _subject_epistemic_sources(self) -> tuple[InterpretationSource, ...]:
+        provider = self.subject_epistemic_provider
+        if not callable(provider):
+            return ()
+        raw = provider() or ()
+        return tuple(
+            source for source in raw
+            if isinstance(source, InterpretationSource) and source.visible and source.source_type == "subject_epistemic"
+        )
+
     def form_beliefs(
         self,
         *args,
@@ -195,7 +224,7 @@ class InterpretationEngine:
         relationship=None,
         identity=None,
     ) -> InterpretationResult:
-        """Form noncanonical beliefs from visible sources only.
+        """Form noncanonical beliefs from visible evidence plus relevant subject priors.
 
         Keyword arguments are the preferred contract. A narrow legacy positional
         path remains for older tests/callers that supplied server truth and
@@ -215,12 +244,13 @@ class InterpretationEngine:
                     max_beliefs = args[3]
         if visible_sources is None:
             sources = sources_from_mapping(visible_context or {}, "visible_context")
-            # Legacy compatibility treats plain server_truth as visible, except
-            # values explicitly marked hidden. Engine integration passes explicit
-            # visible sources and does not use this path for hidden server truth.
             sources += sources_from_mapping(server_truth or {}, "server")
         else:
             sources = tuple(source for source in visible_sources if source.visible)
+
+        subject_sources = self._subject_epistemic_sources()
+        if subject_sources:
+            sources = tuple(sources) + subject_sources
         if not sources:
             return InterpretationResult((), (), _stable_digest(()))
 
@@ -250,6 +280,36 @@ class InterpretationEngine:
         beliefs: list[InterpretiveBelief] = []
         trust = float(identity_bias.get("trust", 0.5))
         guardedness = float(identity_bias.get("guardedness", 0.5))
+
+        text_source = by_key.get("user_text") or by_key.get("current_user_text")
+        if text_source is not None:
+            topic_words = _tokens(text_source.value)
+            relevant_priors: list[tuple[int, float, InterpretationSource]] = []
+            for source in sources:
+                if source.source_type != "subject_epistemic":
+                    continue
+                overlap = len(topic_words & _tokens(f"{source.key} {source.value}"))
+                if overlap <= 0:
+                    continue
+                confidence = float(source.metadata.get("confidence", 0.0) or 0.0)
+                relevant_priors.append((overlap, confidence, source))
+            if relevant_priors:
+                _, confidence, source = max(relevant_priors, key=lambda row: (row[0], row[1], row[2].source_id))
+                stance = str(source.metadata.get("stance", "unknown"))
+                if stance == "believed":
+                    prior_text = f"I currently believe {source.value}."
+                elif stance == "disbelieved":
+                    prior_text = f"I currently do not believe {source.value}."
+                else:
+                    prior_text = f"I currently lean toward {source.value}, but I am not certain."
+                beliefs.append(self._belief(
+                    "epistemic_prior",
+                    prior_text,
+                    confidence,
+                    pressure_key,
+                    (source,),
+                    "epistemic_prior_read",
+                ))
 
         absence = by_key.get("user_absent_minutes")
         if absence is not None:
@@ -290,7 +350,6 @@ class InterpretationEngine:
                 ))
                 break
 
-        text_source = by_key.get("user_text") or by_key.get("current_user_text")
         if text_source is not None:
             lower = text_source.value.lower()
             if any(phrase in lower for phrase in ("you lied", "you always", "your fault", "betray", "deceived", "blame")):
