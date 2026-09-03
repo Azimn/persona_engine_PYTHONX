@@ -7,6 +7,7 @@ from .core.symbols import SharedSymbol
 from .core.audio_sensor import AudioObservation
 from .core.vision_sensor import VisionObservation
 from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
+from .core.ensemble_renderer import EnsembleLLMRenderer
 import time
 
 
@@ -53,6 +54,44 @@ class CharacterAgent:
 
     def activate_disconnected_transfer(self, final_receipt: dict) -> dict:
         return self.engine.activate_disconnected_transfer(final_receipt)
+
+    def set_renderer(self, renderer) -> dict:
+        """Install an explicit host-selected renderer without changing subject state."""
+        self.engine.set_renderer(renderer)
+        return self.engine.renderer_status()
+
+    def use_ensemble_renderer(
+        self,
+        model_name: str,
+        *,
+        candidate_count: int = 3,
+        thinking_mode: str = "off",
+        host: str = "http://localhost:11434",
+        timeout_seconds: float = 60.0,
+        token_budget: int = 256,
+        prevalidate_candidates: bool = True,
+        include_authored_landmarks: bool = True,
+    ) -> dict:
+        """Enable Project Ensemble's broadened Ollama realization path.
+
+        Renderer selection is host/runtime policy. It does not alter the
+        character cartridge, identity, canonical history, relationships or
+        commitments. The returned status makes the active realization mode
+        inspectable to callers and evaluation harnesses.
+        """
+        renderer = EnsembleLLMRenderer(
+            model_name=model_name,
+            host=host,
+            provider="ollama",
+            thinking_mode=thinking_mode,
+            timeout_seconds=timeout_seconds,
+            token_budget=token_budget,
+            candidate_count=candidate_count,
+            prevalidate_candidates=prevalidate_candidates,
+            include_authored_landmarks=include_authored_landmarks,
+        )
+        self.engine.set_renderer(renderer)
+        return self.engine.renderer_status()
 
     def add_pressure(self, name: str, magnitude: float, inhibition_strength: float = 0.5, trigger_sensitivity: float = 1.0):
         with self.engine.state_transaction():
@@ -114,7 +153,6 @@ class CharacterAgent:
         chunk_chars = 32
         for start in range(0, len(response), chunk_chars):
             yield response[start:start + chunk_chars]
-
 
     def observe_audio(self, observation: AudioObservation | dict) -> dict:
         if isinstance(observation, dict):
