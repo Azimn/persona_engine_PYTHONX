@@ -48,6 +48,7 @@ jobs:
             persona_engine/tests/test_subject_appraisal.py \
             persona_engine/tests/test_semantic_event_memory.py \
             persona_engine/tests/test_epistemic.py \
+            persona_engine/tests/test_epistemic_subject_persistence.py \
             persona_engine/tests/test_agent_ensemble_renderer.py \
             persona_engine/tests/test_compare_ensemble_reports.py \
             -q
