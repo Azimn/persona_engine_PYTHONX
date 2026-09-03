@@ -6,9 +6,10 @@ model may vary wording, pacing, metaphor, elaboration, and conversational shape;
 it may not choose a different decision, memory, fact, commitment, relationship
 state, or identity.
 
-Ensemble v2 also reuses the deterministic production consistency layer *before*
-soft ranking. Hard/critical candidates never enter the diversity competition.
-The engine still validates the selected utterance again before exposure.
+Ensemble v3 also reuses the deterministic production consistency layer *before*
+soft ranking and exposes an inspectable character-owned conversational agenda to
+initiative-capable candidates. The engine still validates the selected utterance
+again before exposure.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from .conversational_agenda import agenda_from_expression_request
 from .ensemble_realization import (
     CandidateSource,
     RealizationCandidate,
@@ -32,7 +34,7 @@ from .renderer import LocalLLMRenderer
 from .renderer_contract import ExpressionRequest
 
 
-ENSEMBLE_REALIZATION_VERSION = "ensemble-candidate-realization-v2"
+ENSEMBLE_REALIZATION_VERSION = "ensemble-candidate-realization-v3"
 
 _PERFORMANCE_MODES = ("direct", "contextual", "initiative")
 
@@ -40,11 +42,7 @@ _PERFORMANCE_MODES = ("direct", "contextual", "initiative")
 def _performance_license(mode: str, request: ExpressionRequest) -> str:
     """Give the model bounded expressive freedom without granting new authority."""
 
-    resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
-    experience = resolved.get("experience_context", {}) if isinstance(resolved, dict) else {}
-    continuity = experience.get("continuity", {}) if isinstance(experience, dict) else {}
-    if not isinstance(continuity, dict):
-        continuity = {}
+    agenda = agenda_from_expression_request(request)
 
     if mode == "direct":
         return (
@@ -56,22 +54,23 @@ def _performance_license(mode: str, request: ExpressionRequest) -> str:
         return (
             "ENSEMBLE PERFORMANCE MODE: CONTEXTUAL. Answer the current message directly, but let the subject's "
             "current relationship, affect, habit, shared symbol, or unresolved thread shape emphasis and phrasing when "
-            "relevant. Do not force a callback and do not invent a new event or goal."
+            "relevant. Do not force a callback and do not invent a new event or goal. "
+            f"Current agenda projection: {agenda.to_dict()}."
         )
 
-    available = [
-        str(continuity.get(key, "")).strip()
-        for key in ("selected_intention", "open_loop", "shared_symbol", "active_habit")
-        if str(continuity.get(key, "")).strip()
-    ]
-    agenda_hint = " | ".join(available[:3])
-    suffix = f" Current character-owned continuity cues: {agenda_hint}." if agenda_hint else ""
+    if not agenda.initiative_allowed:
+        return (
+            "ENSEMBLE PERFORMANCE MODE: INITIATIVE-CAPABLE, BUT CURRENT AGENDA PRESSURE IS LOW. Answer naturally "
+            "without manufacturing a question, concern, or callback merely to appear proactive. "
+            f"Current agenda projection: {agenda.to_dict()}."
+        )
+
     return (
-        "ENSEMBLE PERFORMANCE MODE: INITIATIVE. First honor the already-resolved response. If it is natural, the "
-        "character may also contribute one brief question, observation, or topic connection rooted in an existing "
-        "character-owned intention, unresolved thread, shared symbol, or habit. This is permission for initiative, not "
-        "permission to create new canonical goals, memories, facts, or relationship state. Do not manufacture a concern "
-        "merely to use this mode." + suffix
+        "ENSEMBLE PERFORMANCE MODE: INITIATIVE. First honor the already-resolved response. The subject currently has "
+        "enough character-owned initiative pressure to contribute one brief question, observation, or topic connection "
+        "rooted in the agenda below if it fits the moment. This is permission for initiative, not permission to create "
+        "new canonical goals, memories, facts, or relationship state. Do not manufacture any concern outside the supplied "
+        f"agenda. Current agenda projection: {agenda.to_dict()}."
     )
 
 
@@ -116,9 +115,10 @@ def _authored_landmark_candidates(request: ExpressionRequest, start_ordinal: int
 class EnsembleLLMRenderer(LocalLLMRenderer):
     """Generate several performances of one resolved turn and select one.
 
-    V2 uses three complementary mechanisms:
+    V3 uses four complementary mechanisms:
 
     * several model candidates, rotating direct/contextual/initiative licenses;
+    * a typed agenda projection that gives initiative an inspectable cause;
     * sparse authored landmark candidates already selected by typed context;
     * deterministic candidate prevalidation before surface-diversity ranking.
 
@@ -195,6 +195,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         self._last_ensemble_trace = {
             "version": ENSEMBLE_REALIZATION_VERSION,
             "mode": "offline_fallback",
+            "agenda": agenda_from_expression_request(request).to_dict(),
             "candidate_failures": failures,
             "prevalidation_rejections": rejected,
             "selected_source": CandidateSource.OFFLINE.value,
@@ -208,12 +209,15 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         else:
             max_chars = int(getattr(request.expression_constraints, "max_chars", 200))
 
+        agenda = agenda_from_expression_request(request)
+
         if self.provider != "ollama":
             rendered = super().generate_expression(request)
             self._recent_surface.add(rendered)
             self._last_ensemble_trace = {
                 "version": ENSEMBLE_REALIZATION_VERSION,
                 "mode": "single_non_ollama_fallback",
+                "agenda": agenda.to_dict(),
                 "selected_source": CandidateSource.OFFLINE.value,
                 "selected_text": rendered,
             }
@@ -278,6 +282,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         self._last_ensemble_trace = {
             "version": ENSEMBLE_REALIZATION_VERSION,
             "mode": "validated_candidate_selection" if self.prevalidate_candidates else "candidate_selection",
+            "agenda": agenda.to_dict(),
             "requested_candidate_count": self.candidate_count,
             "generated_model_candidate_count": model_candidate_count,
             "authored_candidate_count": authored_candidate_count,
