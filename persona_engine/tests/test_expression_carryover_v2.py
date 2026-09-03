@@ -18,6 +18,7 @@ def test_renderer_cannot_replace_subject_judgment_with_substrate_disclaimer():
     assert all(subject_agency_violations(case['output']) for case in FIXTURE['cases'])
     assert subject_agency_violations("Making up my mind isn't a function I perform; I only process what is given.")
     assert subject_agency_violations("I'm not equipped to make up my mind about personal conviction.")
+    assert subject_agency_violations("Making up my own mind implies a subjective state I don't possess.")
     assert not subject_agency_violations("I cannot decide yet; I need more evidence.")
     assert not subject_agency_violations("I don't make up my mind until more evidence arrives.")
     assert not subject_agency_violations("I can only respond to what you actually asked.")
