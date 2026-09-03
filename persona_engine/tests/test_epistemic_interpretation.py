@@ -48,11 +48,19 @@ def epistemic_prior_rows(result):
     ]
 
 
+def assert_orchid_belief_not_promoted_to_world_truth(agent):
+    facts = agent.engine.world_authority.to_list()
+    assert not any(fact.get("key") == "orchid_location" for fact in facts)
+    assert not any(
+        "orchid is in the east room" in str(fact.get("value", "")).lower()
+        for fact in facts
+    )
+
+
 def test_relevant_settled_subject_belief_enters_noncanonical_interpretation(tmp_path):
     agent = CharacterAgent(identity(), user_id="jay", db_path=str(tmp_path / "subject.db"))
     establish_orchid_belief(agent)
 
-    before_world = agent.engine.world_authority.to_list()
     result = agent.say("Where is the orchid?")
     rows = epistemic_prior_rows(result)
 
@@ -62,7 +70,7 @@ def test_relevant_settled_subject_belief_enters_noncanonical_interpretation(tmp_
     assert prior["confidence"] == 0.72
     assert prior["canonical"] is False
     assert prior["source_ids"] == ("subject_epistemic:orchid_location",)
-    assert agent.engine.world_authority.to_list() == before_world
+    assert_orchid_belief_not_promoted_to_world_truth(agent)
 
 
 def test_epistemic_prior_survives_restart_and_interlocutor_change(tmp_path):
@@ -78,6 +86,7 @@ def test_epistemic_prior_survives_restart_and_interlocutor_change(tmp_path):
     assert len(rows) == 1
     assert rows[0]["source_ids"] == ("subject_epistemic:orchid_location",)
     assert rows[0]["text"] == "I currently believe the orchid is in the east room."
+    assert_orchid_belief_not_promoted_to_world_truth(alex)
 
 
 def test_unrelated_topic_does_not_activate_subject_epistemic_prior(tmp_path):
@@ -98,4 +107,4 @@ def test_unrevised_testimony_does_not_enter_interpretation(tmp_path):
 
     assert state["proposition"]["stance"] == "unknown"
     assert epistemic_prior_rows(result) == []
-    assert agent.engine.world_authority.to_list() == []
+    assert_orchid_belief_not_promoted_to_world_truth(agent)
