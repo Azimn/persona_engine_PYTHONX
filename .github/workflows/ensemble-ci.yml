@@ -45,6 +45,7 @@ jobs:
             persona_engine/tests/test_delivery.py \
             persona_engine/tests/test_scene_lab.py \
             persona_engine/tests/test_subject_appraisal.py \
+            persona_engine/tests/test_epistemic.py \
             persona_engine/tests/test_agent_ensemble_renderer.py \
             persona_engine/tests/test_compare_ensemble_reports.py \
             -q
@@ -53,3 +54,7 @@ jobs:
         run: |
           python tools/ensemble_relationship_probe.py --help > /dev/null
           python tools/compare_ensemble_reports.py --help > /dev/null
+          python tools/run_ensemble_scene_lab.py --help > /dev/null
+
+      - name: Run deterministic offline Scene Lab smoke
+        run: python tools/run_ensemble_scene_lab.py --output /tmp/ensemble-scene-lab.json
