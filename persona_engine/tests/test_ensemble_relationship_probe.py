@@ -2,11 +2,13 @@ from dataclasses import asdict
 
 from persona_engine.agent import CharacterAgent
 from persona_engine.core.identity import CoreIdentity
+from persona_engine.evaluation.renderer_swap import semantic_projection
 from tools.ensemble_relationship_probe import (
     CapturingEnsembleRenderer,
     _invalid_reason,
     build_live_history_agent,
     fork_restarted_subject,
+    synchronize_probe_clock,
 )
 
 
@@ -75,4 +77,9 @@ def test_matched_probe_arms_fork_one_restarted_subject_snapshot(tmp_path):
     right = fork_restarted_subject(tmp_path/'source.db', tmp_path/'right.db', cartridge)
     assert asdict(left.engine.relationship) == asdict(right.engine.relationship)
     assert left.engine.identity.entity_uuid == right.engine.identity.entity_uuid
+    left.engine.clock.last_wall_time -= 10.0
+    synchronize_probe_clock(left); synchronize_probe_clock(right)
+    left_result = left.say('I care about you, and I can give you space.')
+    right_result = right.say('I care about you, and I can give you space.')
+    assert semantic_projection(left, left_result) == semantic_projection(right, right_result)
     left.engine.persistence.close(); right.engine.persistence.close()

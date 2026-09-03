@@ -93,6 +93,11 @@ def fork_restarted_subject(snapshot: Path, target: Path, cartridge: Path) -> Cha
     )
 
 
+def synchronize_probe_clock(agent: CharacterAgent) -> None:
+    """Exclude model latency while retaining the exact pre-probe subject state."""
+    agent.advance_time(0.0, source="evaluation_clock_sync", record_event=False)
+
+
 def _invalid_reason(status: dict, trace: dict, result: dict, projection_matches: bool) -> str | None:
     if status.get("actual_provider") != "ollama":
         return "actual_provider_not_ollama"
@@ -157,6 +162,7 @@ def main() -> int:
                 "history created through public inputs, restarted, closed, then forked from one persisted "
                 "pre-probe snapshot for matched offline/model arms"
             ),
+            "evaluation_clock": "public advance_time(0), noncanonical, immediately before each matched probe",
             "comparison_note": (
                 "Use tools/relationship_expression_probe.py with the same model, split, cartridge, and seeds "
                 "as the single-shot control. Surface comparison is separate from the semantic projection invariant."
@@ -179,6 +185,7 @@ def main() -> int:
                 reference_agent = fork_restarted_subject(
                     snapshot, root / f"reference-{history}-{prompt_id}.db", args.cartridge)
                 reference_agent.set_renderer(LocalLLMRenderer(provider="offline"))
+                synchronize_probe_clock(reference_agent)
                 reference_result = reference_agent.say(prompt)
                 reference = semantic_projection(reference_agent, reference_result)
                 offline = reference_result["response"]
@@ -194,6 +201,7 @@ def main() -> int:
                         forced_seed=seed,
                     )
                     agent.set_renderer(renderer)
+                    synchronize_probe_clock(agent)
                     try:
                         result = agent.say(prompt)
                         if not renderer.requests:
