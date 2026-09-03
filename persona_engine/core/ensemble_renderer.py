@@ -6,10 +6,12 @@ model may vary wording, pacing, metaphor, elaboration, and conversational shape;
 it may not choose a different decision, memory, fact, commitment, relationship
 state, or identity.
 
-Ensemble v3 also reuses the deterministic production consistency layer *before*
-soft ranking and exposes an inspectable character-owned conversational agenda to
-initiative-capable candidates. The engine still validates the selected utterance
-again before exposure.
+Ensemble v4 supports a live engine-authority candidate gate. Normal
+CharacterAgent integration binds the renderer to the continuing InteriorEngine,
+so candidate admission uses the exact live consistency authority before surface
+ranking. Direct renderer/tool use retains the portable request-reconstruction
+validator as a fallback. The engine still validates the selected utterance again
+before exposure.
 """
 
 from __future__ import annotations
@@ -34,7 +36,7 @@ from .renderer import LocalLLMRenderer
 from .renderer_contract import ExpressionRequest
 
 
-ENSEMBLE_REALIZATION_VERSION = "ensemble-candidate-realization-v3"
+ENSEMBLE_REALIZATION_VERSION = "ensemble-candidate-realization-v4"
 
 _PERFORMANCE_MODES = ("direct", "contextual", "initiative")
 
@@ -82,13 +84,7 @@ def _messages_for_mode(request: ExpressionRequest, mode: str) -> list[dict[str, 
 
 
 def _authored_landmark_candidates(request: ExpressionRequest, start_ordinal: int) -> list[RealizationCandidate]:
-    """Promote sparse authored relational examples into peer candidates.
-
-    These strings were already selected upstream from typed act/stance context.
-    They are no longer shown to the model as sentences to imitate in V3. In
-    Ensemble they may compete directly as authored performances, but they must
-    pass the same candidate consistency contracts as model output.
-    """
+    """Promote sparse authored relational examples into peer candidates."""
 
     resolved = request.resolved_state if isinstance(request.resolved_state, dict) else {}
     experience = resolved.get("experience_context", {}) if isinstance(resolved, dict) else {}
@@ -115,12 +111,13 @@ def _authored_landmark_candidates(request: ExpressionRequest, start_ordinal: int
 class EnsembleLLMRenderer(LocalLLMRenderer):
     """Generate several performances of one resolved turn and select one.
 
-    V3 uses four complementary mechanisms:
+    V4 uses five complementary mechanisms:
 
     * several model candidates, rotating direct/contextual/initiative licenses;
     * a typed agenda projection that gives initiative an inspectable cause;
     * sparse authored landmark candidates already selected by typed context;
-    * deterministic candidate prevalidation before surface-diversity ranking.
+    * deterministic candidate admission before surface-diversity ranking;
+    * an optional live engine-authority evaluator for exact subject constraints.
 
     This class still does not choose the character's conduct. Every candidate is
     a realization of the same immutable ``ExpressionRequest``.
@@ -134,6 +131,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         candidate_seed_stride: int = 7919,
         prevalidate_candidates: bool = True,
         include_authored_landmarks: bool = True,
+        candidate_evaluator=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -145,16 +143,27 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         self.candidate_seed_stride = int(candidate_seed_stride)
         self.prevalidate_candidates = bool(prevalidate_candidates)
         self.include_authored_landmarks = bool(include_authored_landmarks)
+        self.candidate_evaluator = candidate_evaluator
         self._recent_surface = RecentSurfaceWindow(max_items=int(recent_surface_window))
         self._last_ensemble_trace: dict[str, Any] | None = None
 
+    def bind_candidate_evaluator(self, evaluator) -> None:
+        """Bind a higher-authority semantic gate without changing subject state."""
+        self.candidate_evaluator = evaluator
+
     def runtime_status(self) -> dict:
         status = dict(super().runtime_status())
+        gate_status = None
+        if self.candidate_evaluator is not None:
+            status_fn = getattr(self.candidate_evaluator, "status", None)
+            gate_status = status_fn() if callable(status_fn) else {"authority": "external_evaluator"}
         status.update({
             "realization_mode": ENSEMBLE_REALIZATION_VERSION,
             "candidate_count": self.candidate_count,
             "prevalidation": self.prevalidate_candidates,
             "prevalidation_version": ENSEMBLE_PREVALIDATION_VERSION if self.prevalidate_candidates else None,
+            "candidate_authority": "engine_live" if self.candidate_evaluator is not None else "request_reconstruction",
+            "candidate_gate": gate_status,
             "authored_landmarks": self.include_authored_landmarks,
             "recent_surface_count": len(self._recent_surface.snapshot()),
             "last_ensemble_trace": self._last_ensemble_trace,
@@ -166,7 +175,6 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
 
     def remember_surface(self, text: str) -> None:
         """Seed noncanonical expression history for evaluation or host handoff."""
-
         self._recent_surface.add(text)
 
     def last_ensemble_trace(self) -> dict[str, Any] | None:
@@ -186,7 +194,11 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
             ordinal=10_000,
             metadata={"candidate_kind": "deterministic_fallback"},
         )
-        offline_record = validate_candidate(offline_candidate, request) if self.prevalidate_candidates else None
+        offline_record = validate_candidate(
+            offline_candidate,
+            request,
+            evaluator=self.candidate_evaluator if self.prevalidate_candidates else None,
+        ) if self.prevalidate_candidates else None
         if offline_record is not None and not offline_record.accepted:
             rendered = "..."
         elif offline_record is not None:
@@ -195,6 +207,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         self._last_ensemble_trace = {
             "version": ENSEMBLE_REALIZATION_VERSION,
             "mode": "offline_fallback",
+            "candidate_authority": "engine_live" if self.candidate_evaluator is not None else "request_reconstruction",
             "agenda": agenda_from_expression_request(request).to_dict(),
             "candidate_failures": failures,
             "prevalidation_rejections": rejected,
@@ -217,6 +230,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
             self._last_ensemble_trace = {
                 "version": ENSEMBLE_REALIZATION_VERSION,
                 "mode": "single_non_ollama_fallback",
+                "candidate_authority": "engine_live" if self.candidate_evaluator is not None else "request_reconstruction",
                 "agenda": agenda.to_dict(),
                 "selected_source": CandidateSource.OFFLINE.value,
                 "selected_text": rendered,
@@ -261,7 +275,11 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
 
         rejected: list[dict[str, Any]] = []
         if self.prevalidate_candidates and candidates:
-            batch = filter_candidate_pool(candidates, request)
+            batch = filter_candidate_pool(
+                candidates,
+                request,
+                evaluator=self.candidate_evaluator,
+            )
             for record in batch.rejected:
                 rejected.append({
                     "ordinal": record.candidate.ordinal,
@@ -282,6 +300,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
         self._last_ensemble_trace = {
             "version": ENSEMBLE_REALIZATION_VERSION,
             "mode": "validated_candidate_selection" if self.prevalidate_candidates else "candidate_selection",
+            "candidate_authority": "engine_live" if self.candidate_evaluator is not None else "request_reconstruction",
             "agenda": agenda.to_dict(),
             "requested_candidate_count": self.candidate_count,
             "generated_model_candidate_count": model_candidate_count,
@@ -300,6 +319,7 @@ class EnsembleLLMRenderer(LocalLLMRenderer):
                     "seed": row.candidate.seed,
                     "performance_mode": row.candidate.metadata.get("performance_mode"),
                     "prevalidation_action": row.candidate.metadata.get("prevalidation_action"),
+                    "prevalidation_authority": row.candidate.metadata.get("prevalidation_authority"),
                     "score": row.score,
                     "exact_recent_match": row.exact_recent_match,
                     "normalized_recent_match": row.normalized_recent_match,
