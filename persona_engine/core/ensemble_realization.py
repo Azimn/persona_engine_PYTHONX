@@ -1,12 +1,12 @@
 """Noncanonical candidate-expression ecology for Project Ensemble.
 
 The subject core has already resolved the character moment before this module is
-used.  Candidates are alternative *performances* of that same moment.  This
+used. Candidates are alternative *performances* of that same moment. This
 module owns no identity, memory, relationship, commitment, belief, goal, or
 world-truth authority.
 
 V1 deliberately solves one demonstrated failure class: pathological surface
-repetition.  It does not invent a second planner or semantic judge.  Higher
+repetition. It does not invent a second planner or semantic judge. Higher
 layer consistency validation remains authoritative over whether the selected
 candidate faithfully realizes the already-resolved decision.
 """
@@ -92,7 +92,7 @@ def _surface_similarity(left: str, right: str) -> float:
 def score_candidate(candidate: RealizationCandidate, recent_outputs: Sequence[str]) -> CandidateScore:
     """Score surface novelty without deciding what the character should mean.
 
-    Penalties intentionally dominate tiny ordinal tie-breaking.  This prevents
+    Penalties intentionally dominate tiny ordinal tie-breaking. This prevents
     the selector from becoming stochastic while still preferring a fresh
     realization when several semantically equivalent candidates are available.
     """
@@ -142,12 +142,13 @@ def select_candidate(
     """Select the least pathologically repetitive non-empty realization.
 
     The function assumes every candidate expresses the same higher-authority
-    decision.  It therefore ranks *surface form only*.  Semantic validity is a
+    decision. It therefore ranks *surface form only*. Semantic validity is a
     separate consistency-layer responsibility.
     """
 
-    usable = [candidate for candidate in candidates if str(candidate.text or "").strip()]
-    rejected_empty = sum(1 for candidate in candidates if not str(candidate.text or "").strip()) if isinstance(candidates, list) else 0
+    materialized = tuple(candidates)
+    usable = [candidate for candidate in materialized if str(candidate.text or "").strip()]
+    rejected_empty = len(materialized) - len(usable)
     if not usable:
         raise ValueError("at least one non-empty realization candidate is required")
 
@@ -165,7 +166,7 @@ def select_candidate(
 class RecentSurfaceWindow:
     """Small noncanonical memory of delivered wording for anti-repeat ranking.
 
-    This cache is expression state, not biography.  Losing it on renderer swap
+    This cache is expression state, not biography. Losing it on renderer swap
     or process restart may reduce anti-repeat quality but cannot change the
     subject's canonical trajectory.
     """
