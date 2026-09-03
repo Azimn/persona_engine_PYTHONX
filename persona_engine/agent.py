@@ -9,6 +9,7 @@ from .core.vision_sensor import VisionObservation
 from .core.persistence import Persistence, DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT
 from .core.ensemble_renderer import EnsembleLLMRenderer
 from .core.ensemble_engine_gate import EngineAuthorityCandidateGate
+from .core.interpretation import InterpretationSource
 from .core.memory import KnowledgeSource, MemoryUnit
 from .core.delivery import (
     DeliveryStatus,
@@ -33,6 +34,7 @@ class CharacterAgent:
 
     def __init__(self, identity: CoreIdentity | None = None, user_id: str = "default_user", db_path: str = "persona_state.db", cartridge_path: str | None = None, diagnostic_event_limit: int | None = DEFAULT_RUNTIME_DIAGNOSTIC_EVENT_LIMIT, host_id: str = "local"):
         self.engine = InteriorEngine(identity, user_id=user_id, db_path=db_path, cartridge_path=cartridge_path, diagnostic_event_limit=diagnostic_event_limit, host_id=host_id)
+        self.engine.interpreter.bind_subject_epistemic_provider(self._epistemic_interpretation_sources)
 
     def writer_status(self) -> dict:
         return self.engine.writer_status()
@@ -126,6 +128,30 @@ class CharacterAgent:
         if not state:
             return EpistemicLedger()
         return EpistemicLedger.from_dict(state)
+
+    def _epistemic_interpretation_sources(self) -> tuple[InterpretationSource, ...]:
+        """Project settled subject beliefs as internal interpretation sources only."""
+        ledger = self._load_epistemic_ledger()
+        sources: list[InterpretationSource] = []
+        for proposition_key in sorted(ledger.propositions):
+            proposition = ledger.propositions[proposition_key]
+            if proposition.stance == EpistemicStance.UNKNOWN:
+                continue
+            sources.append(InterpretationSource(
+                source_id=f"subject_epistemic:{proposition.proposition_key}",
+                source_type="subject_epistemic",
+                key=f"subject_belief:{proposition.proposition_key}",
+                value=proposition.proposition_text,
+                visible=True,
+                metadata={
+                    "stance": proposition.stance.value,
+                    "confidence": float(proposition.confidence),
+                    "evidence_refs": list(proposition.evidence_refs),
+                    "revision_source": proposition.revision_source,
+                    "updated_at": float(proposition.updated_at),
+                },
+            ))
+        return tuple(sources)
 
     def epistemic_state(self, proposition_key: str, proposition_text: str | None = None) -> dict:
         """Read current subject-owned belief state without changing it."""
