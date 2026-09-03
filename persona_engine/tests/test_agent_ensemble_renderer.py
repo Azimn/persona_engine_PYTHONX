@@ -5,6 +5,7 @@ from persona_engine.core.ensemble_renderer import EnsembleLLMRenderer
 class FakeEngine:
     def __init__(self):
         self.renderer = None
+        self.user_id = "test-user"
 
     def set_renderer(self, renderer):
         self.renderer = renderer
@@ -28,14 +29,28 @@ def test_public_agent_can_enable_ensemble_renderer_without_touching_engine_inter
     assert status["candidate_count"] == 4
     assert status["prevalidation"] is True
     assert status["authored_landmarks"] is True
+    assert status["candidate_authority"] == "engine_live"
+    assert status["candidate_gate"]["authority"] == "live_interior_engine"
 
 
-def test_public_set_renderer_remains_generic():
+def test_public_set_renderer_binds_engine_authority_when_renderer_supports_it():
     agent = object.__new__(CharacterAgent)
     agent.engine = FakeEngine()
     renderer = EnsembleLLMRenderer(model_name="fake", provider="offline", candidate_count=1)
+
+    assert renderer.runtime_status()["candidate_authority"] == "request_reconstruction"
 
     status = agent.set_renderer(renderer)
 
     assert agent.engine.renderer is renderer
     assert status["realization_mode"].startswith("ensemble-candidate-realization")
+    assert status["candidate_authority"] == "engine_live"
+
+
+def test_standalone_renderer_remains_portable_without_engine_binding():
+    renderer = EnsembleLLMRenderer(model_name="fake", provider="offline", candidate_count=1)
+
+    status = renderer.runtime_status()
+
+    assert status["candidate_authority"] == "request_reconstruction"
+    assert status["candidate_gate"] is None
