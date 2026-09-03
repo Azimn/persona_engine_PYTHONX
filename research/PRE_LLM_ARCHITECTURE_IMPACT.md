@@ -4,31 +4,47 @@ Date: 2026-09-03
 
 ## Conclusion
 
-The legacy conversational-agent research does not falsify Project Wayfarer's core thesis. It reinforces the separation between a simulated individual and the mechanism that realizes language. The strongest historical systems used explicit state, goals, discourse control, authored behaviors, initiative, or candidate ranking around comparatively weak language generation.
+The legacy conversational-agent research did not merely justify a historical comparison. It changed the successor architecture.
 
-Actual Qwen/Gemma testing adds a modern reason to preserve that separation while broadening the language layer. Wayfarer has demonstrated that aggressive control can preserve decisions and continuity, but real models also expose repetition, example copying, evidence denial, and unsupported interpretation. Project Ensemble therefore tests whether strong language models can be given *more performance freedom* without acquiring more authority over the subject.
+The strongest pre-LLM systems repeatedly converged on an important pattern: believable behavior was rarely produced by unrestricted surface generation alone. Persistent state, goals, discourse control, authored landmarks, initiative, candidate generation, ranking, world state and host consequences surrounded comparatively weak language generation.
 
-## Principles adopted directly
+Modern LLMs change which component is strongest, but they do not remove the value of that surrounding architecture. Actual Qwen/Gemma testing additionally showed a modern failure mode: a control plane can become so strict that the language substrate is reduced to repetitive realization. Project Ensemble therefore keeps external subject authority while giving the model more freedom inside a candidate ecology.
+
+## Principles now implemented
 
 ### Persistent simulation outside language generation
 
-Identity, biography, relationships, commitments, values, memory provenance, world truth, and final semantic decisions remain outside the model.
+Identity, biography, relationships, commitments, authored values, memory provenance, world truth and final semantic decisions remain outside the model.
 
 ### Candidate generation plus selection
 
-A single resolved character moment may have several possible linguistic realizations. Candidate generation is noncanonical. Selection may consider hard validity, character fidelity, and surface diversity without becoming a second planner.
+One resolved character moment may now produce several alternative model performances. The default candidates use distinct direct, contextual and initiative-capable performance licenses rather than being seed-only paraphrases.
+
+### Validation before soft ranking
+
+Candidate outputs now reuse the deterministic production consistency contracts before they compete on surface diversity. Hard and critical violations are removed from the pool rather than being allowed to win because they are novel.
 
 ### Sparse authorship rather than giant response banks
 
-High-value authored behaviors may later enter as optional candidates attached to typed situations. The project does not return to exhaustive canned-response banks.
+Typed relationship/act-selected authored examples can enter Ensemble as peer candidates. They are not shown to the model as sentences to imitate and are not automatically selected.
 
 ### Initiative and agenda
 
-A believable subject should eventually be capable of carrying unresolved concerns, asking questions, returning to topics, withholding information, and initiating speech for inspectable character-owned reasons.
+`ConversationalAgenda` projects existing intentions, open loops, shared symbols, habits and relationship state into an explicit initiative pressure. This creates an inspectable cause for a model candidate to ask, observe or reconnect to something the character already carries.
+
+There is no conversation-length or engagement-maximization objective.
 
 ### Situated causal interaction
 
-A later Scene Lab should test the same persistent subject inside a small ongoing world where speech, action, interruption, goals, and consequences interact.
+Scene Lab now provides a bounded sibling host with actors, locations, actor-specific visibility, server truth, movement, events and speech delivery.
+
+### Intended speech is not automatically world reality
+
+Speech delivery receipts distinguish complete delivery, interruption and no delivery. A model-generated sentence that never reaches another actor is therefore representable as a failed action rather than as completed social history.
+
+### Subject-relative meaning
+
+A typed experimental appraisal layer now separates event annotation from subject-specific meaning. The same event can have different goal, relationship, identity, controllability and threat/opportunity significance for different subjects without rewriting the shared event record.
 
 ## Principles deliberately not adopted
 
@@ -37,39 +53,80 @@ A later Scene Lab should test the same persistent subject inside a small ongoing
 - No giant hand-authored dialogue tree.
 - No model-specific personality branch.
 - No LLM judge with hidden canonical write authority.
+- No free-form model reflection automatically promoted to canonical biography.
 - No assumption that historical architectures should be copied literally.
 
-## Immediate architectural experiment
+## Current implementation map
 
-The first implemented Ensemble slice is `ensemble-candidate-realization-v1`.
+| Legacy lesson | Ensemble mechanism |
+| --- | --- |
+| multiple response possibilities | `EnsembleLLMRenderer` candidate ecology |
+| response ranking | deterministic candidate validation + surface ranking |
+| authored high-value behaviors | sparse `AUTHORED` candidate source |
+| discourse agenda / initiative | `ConversationalAgenda` + initiative performance mode |
+| world model / situated interaction | `SceneLab` server truth + visible context |
+| actual action consequence matters | `SpeechDeliveryReceipt` |
+| same event means different things to different characters | typed `SubjectRelativeAppraisal` |
+| explicit state around weak language generation | inherited Wayfarer persistent subject kernel |
 
-For one unchanged `ExpressionRequest`, `EnsembleLLMRenderer` asks the same Ollama model for several candidates using deterministic seed variation. A noncanonical surface selector penalizes exact duplication, normalized duplication, high similarity, repeated openings, and repeated five-word phrases relative to recent delivered wording.
+## Evaluation architecture
 
-The original `LocalLLMRenderer` remains the single-shot control.
+`tools/ensemble_relationship_probe.py` reuses the hardened Wayfarer relationship histories while changing the realization substrate.
 
-This V1 selector intentionally does not judge semantic meaning. The existing engine consistency layer still owns final checks. The next architecture step, if evidence supports Ensemble, is to move full hard consistency filtering before candidate ranking so only valid candidates enter softer selection.
+`tools/compare_ensemble_reports.py` compares matched single-shot and Ensemble reports using artifact-grounded measurements including duplicate rates, repeated openings, narrow symptoms, candidate survival, selected source/mode, prevalidation rejection counts and initiative availability.
 
-## Promotion criterion
+These measurements are intentionally separated from identity-fidelity claims. A response can be novel and still be wrong.
 
-Ensemble is better than Wayfarer single-shot realization only if actual-model comparisons show a useful reduction in pathological repetition or other expression defects while preserving or improving:
+Future evaluation therefore needs three distinct layers:
 
-- resolved-decision fidelity;
-- memory-grounded correctness;
-- provenance discipline;
-- identity continuity;
-- commitment fidelity;
-- between-character distinguishability;
-- resistance to unsupported confident claims.
+1. **surface quality**: repetition, stiffness, truncation, mechanistic narration;
+2. **semantic fidelity**: decision, recall, commitment, provenance, disclosure and world truth;
+3. **perceived continuity**: paired human recognition and cross-model character identification.
 
-Latency and additional model-call cost must be recorded separately. Better prose alone is not sufficient.
+## Remaining research frontier
 
-## Longer research queue
+The architecture is no longer waiting on a candidate-selection prototype. The important open work is causal integration and ablation.
 
-1. Full validation-before-ranking candidate ecology.
-2. Sparse authored landmark behavior candidates.
-3. Typed semantic event annotation with provenance.
-4. Subject-relative appraisal and character-owned memory attention.
-5. Conversational agenda and initiative.
-6. Speech delivery receipts for interruption/host reality.
-7. Bounded Scene Lab for causal situated behavior.
-8. Cross-model and cross-character ablations comparing Wayfarer and Ensemble.
+### Engine-owned candidate orchestration
+
+Candidate prevalidation currently uses the authority already projected into `ExpressionRequest`; the engine then performs its normal final validation.
+
+A stronger endpoint is engine-owned orchestration where every candidate is evaluated against the complete live authority context without copying additional privileged state into the renderer.
+
+### Appraisal consumers
+
+The subject-relative appraisal representation is only useful if controlled tests show it changes a necessary downstream behavior. Candidate consumers include attention, memory salience, retrieval, pressure persistence, disclosure and semantic action.
+
+### Delivery consequence integration
+
+The core continuing subject still assumes normal response delivery during its canonical post-speech update. Scene Lab can now represent partial/failed delivery, so the next causal experiment is to determine which subject state should be updated from the delivery receipt rather than from intended text.
+
+### Persistent conversational agenda
+
+Current agenda is a rebuildable projection of existing state. New canonical agenda fields such as pending questions or intended disclosures should be added only when scenes demonstrate that existing intentions/open loops/symbols/habits cannot preserve the required continuity.
+
+### Cross-character / cross-model ablation
+
+The final useful question is not whether each mechanism sounds plausible. It is which combination is actually required for recognizable continuity, initiative and life-like situated behavior across different models.
+
+## Current hypothesis
+
+The emerging architecture is not “LLM plus memory” and not “deterministic character system plus text renderer.”
+
+It is closer to:
+
+```text
+persistent subject
+    +
+causal world/history authority
+    +
+replaceable generative cognitive-language organ
+    +
+multiple noncanonical proposals
+    +
+explicit validation/selection
+    +
+actual host consequences
+```
+
+The language model is allowed to contribute substantially more than phrasing, but contribution and authority remain different concepts.
