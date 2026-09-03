@@ -1,15 +1,35 @@
 from tools.compare_ensemble_reports import compare_reports
 
 
-def sample(history, prompt, seed, output, *, symptom=False, trace=None):
+def sample(
+    history,
+    prompt,
+    seed,
+    output,
+    *,
+    symptom=False,
+    trace=None,
+    candidate_authority=None,
+    projection_match=None,
+    validation_fallback=False,
+    invalid_reason=None,
+):
+    status = {"actual_provider": "ollama"}
+    if candidate_authority is not None:
+        status["candidate_authority"] = candidate_authority
     row = {
         "history": history,
         "prompt": prompt,
         "seed": seed,
         "output": output,
         "symptoms": {"mechanistic_speech": symptom},
-        "renderer_status": {"actual_provider": "ollama"},
+        "renderer_status": status,
+        "expression_delivery": {"validation_fallback": validation_fallback},
     }
+    if projection_match is not None:
+        row["semantic_projection_matches_reference"] = projection_match
+    if invalid_reason is not None:
+        row["invalid_reason"] = invalid_reason
     if trace is not None:
         row["ensemble_trace"] = trace
     return row
@@ -30,22 +50,32 @@ def test_comparator_counts_surface_duplicates_and_matched_changes():
         "model": "qwen",
         "split": "dev",
         "samples": [
-            sample("neutral", "p1", 1, "A different answer.", symptom=False, trace={
-                "selected_source": "model",
-                "selected_performance_mode": "contextual",
-                "prevalidation_rejections": [{"issue_codes": ["unsupported_private_user_state"]}],
-                "surviving_candidate_count": 2,
-                "requested_candidate_count": 3,
-                "agenda": {"initiative_allowed": True},
-            }),
-            sample("neutral", "p2", 2, "Another answer.", symptom=False, trace={
-                "selected_source": "authored",
-                "selected_performance_mode": None,
-                "prevalidation_rejections": [],
-                "surviving_candidate_count": 3,
-                "requested_candidate_count": 3,
-                "agenda": {"initiative_allowed": False},
-            }),
+            sample(
+                "neutral", "p1", 1, "A different answer.", symptom=False,
+                candidate_authority="engine_live", projection_match=True,
+                trace={
+                    "candidate_authority": "engine_live",
+                    "selected_source": "model",
+                    "selected_performance_mode": "contextual",
+                    "prevalidation_rejections": [{"issue_codes": ["unsupported_private_user_state"]}],
+                    "surviving_candidate_count": 2,
+                    "requested_candidate_count": 3,
+                    "agenda": {"initiative_allowed": True},
+                },
+            ),
+            sample(
+                "neutral", "p2", 2, "Another answer.", symptom=False,
+                candidate_authority="engine_live", projection_match=True,
+                trace={
+                    "candidate_authority": "engine_live",
+                    "selected_source": "authored",
+                    "selected_performance_mode": None,
+                    "prevalidation_rejections": [],
+                    "surviving_candidate_count": 3,
+                    "requested_candidate_count": 3,
+                    "agenda": {"initiative_allowed": False},
+                },
+            ),
         ],
     }
 
@@ -57,6 +87,35 @@ def test_comparator_counts_surface_duplicates_and_matched_changes():
     assert result["matched"]["symptom_improvements"]["mechanistic_speech"] == 1
     assert result["ensemble"]["ensemble"]["prevalidation_rejection_count"] == 1
     assert result["ensemble"]["ensemble"]["initiative_allowed_count"] == 1
+    assert result["ensemble"]["ensemble"]["trace_candidate_authority_counts"] == {"engine_live": 2}
+    assert result["ensemble"]["collection_integrity"]["candidate_authority_counts"] == {"engine_live": 2}
+    assert result["ensemble"]["collection_integrity"]["semantic_projection_match_count"] == 2
+    assert result["ensemble"]["collection_integrity"]["semantic_projection_mismatch_count"] == 0
+    assert result["ensemble"]["collection_integrity"]["engine_validation_fallback_count"] == 0
+
+
+def test_comparator_surfaces_collection_integrity_failures():
+    ensemble = {
+        "samples": [
+            sample(
+                "neutral", "p1", 1, "answer",
+                candidate_authority="request_reconstruction",
+                projection_match=False,
+                validation_fallback=True,
+                invalid_reason="semantic_projection_mismatch",
+                trace={"candidate_authority": "request_reconstruction"},
+            )
+        ]
+    }
+
+    result = compare_reports({"samples": []}, ensemble)
+    integrity = result["ensemble"]["collection_integrity"]
+
+    assert integrity["candidate_authority_counts"] == {"request_reconstruction": 1}
+    assert integrity["semantic_projection_checked_count"] == 1
+    assert integrity["semantic_projection_mismatch_count"] == 1
+    assert integrity["engine_validation_fallback_count"] == 1
+    assert integrity["invalid_reason_counts"] == {"semantic_projection_mismatch": 1}
 
 
 def test_comparator_reports_unmatched_samples_instead_of_silently_dropping_them():
