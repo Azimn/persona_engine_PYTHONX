@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from persona_engine.agent import CharacterAgent
 from persona_engine.evaluation.scene_lab import SceneLab
 
 
@@ -84,3 +87,30 @@ def test_movement_changes_which_actors_are_present_in_view():
     scene.move_actor("rival", "hall")
     after = {row["actor_id"] for row in scene.visible_context_for("pretorius")["actors_present"]}
     assert after == {"pretorius", "jay", "rival"}
+
+
+def test_scene_lab_composes_with_real_offline_character_engine(tmp_path):
+    cartridge = Path("persona_engine/cartridges/pretorius.snp")
+    agent = CharacterAgent(
+        cartridge_path=str(cartridge),
+        user_id="scene_lab_integration",
+        db_path=str(tmp_path / "scene.db"),
+    )
+    scene = SceneLab(scene_id="integration", location="study")
+    scene.add_actor("Pretorius", "Pretorius")
+    scene.add_actor("Jay", "Jay")
+    scene.set_fact("lamp_state", "on")
+    scene.set_fact("sealed_note", "Project Orchid", visible_to=["Jay"])
+
+    result = scene.character_turn(
+        agent,
+        character_actor_id="Pretorius",
+        interlocutor_actor_id="Jay",
+        interlocutor_text="Hello. What do you notice here?",
+    )
+
+    assert result["engine_result"]["response"]
+    assert result["delivery_receipt"]["status"] == "delivered"
+    assert "sealed_note" not in result["visible_context"]["visible_facts"]
+    assert agent.engine.renderer_status()["actual_provider"] == "offline"
+    agent.engine.persistence.close()
