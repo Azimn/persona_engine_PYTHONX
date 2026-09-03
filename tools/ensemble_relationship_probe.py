@@ -2,7 +2,7 @@
 
 This intentionally reuses the hardened Wayfarer relationship histories and
 ExpressionRequest capture path, but swaps only the expression substrate from a
-single-shot LocalLLMRenderer to EnsembleLLMRenderer.  It is development evidence,
+single-shot LocalLLMRenderer to EnsembleLLMRenderer. It is development evidence,
 not a replacement for frozen Wayfarer benchmarks.
 """
 
@@ -14,15 +14,22 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from persona_engine.core.ensemble_renderer import EnsembleLLMRenderer
 from persona_engine.core.expression_bridge import _json_safe
 from persona_engine.evaluation.local_model_session import query_ollama_models
-from tools.relationship_expression_probe import HISTORIES, SPLITS, capture_request, digest, symptoms
+try:
+    from tools.relationship_expression_probe import HISTORIES, SPLITS, capture_request, digest, symptoms
+except ModuleNotFoundError:
+    from relationship_expression_probe import HISTORIES, SPLITS, capture_request, digest, symptoms
 
 
-ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "ensemble-relationship-expression-probe-v1"
 
 
