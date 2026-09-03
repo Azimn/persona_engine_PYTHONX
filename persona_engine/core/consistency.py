@@ -165,6 +165,7 @@ def behavioral_violations(candidate_text: str, contract: BehavioralContract) -> 
 
 _SUBJECT_AGENCY_DENIAL = (
     re.compile(r"\b(?:making|make up) (?:my |a )?mind (?:is not|isn't) a function i perform\b", re.I),
+    re.compile(r"\bmaking up (?:my |a )?mind (?:is not|isn't) a function i(?:'m| am) equipped for\b", re.I),
     re.compile(r"\bi(?:'m| am) not equipped to [\"']?make up[\"']? (?:my |a )?mind\b", re.I),
     re.compile(r"\bi (?:can )?only process what (?:is given|you (?:say|provide))\b", re.I),
 )

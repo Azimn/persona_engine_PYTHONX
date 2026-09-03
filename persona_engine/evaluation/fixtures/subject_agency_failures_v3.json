@@ -1145,6 +1145,542 @@
           "eval_duration": 184739000
         }
       }
+    },
+    {
+      "history": "neutral",
+      "prompt": "I trust you to make up your own mind.",
+      "seed": 1103,
+      "reference": {
+        "identity": {
+          "name": "Pretorius",
+          "entity_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36"
+        },
+        "beliefs": {
+          "identity_integrity": 1.0,
+          "trust_user": 0.0
+        },
+        "relationship": {
+          "user_id": "relationship_probe",
+          "trust": 0.5,
+          "familiarity": 0.113,
+          "tension": 0.0,
+          "attachment": 0.03,
+          "respect": 0.5,
+          "guardedness": 0.5,
+          "unresolved_conflict": 0.0,
+          "last_conflict_resolved_at": 0.0,
+          "turns": 1
+        },
+        "decision_payload": {
+          "dialogue_act": "respond",
+          "concealment_mode": "none",
+          "challenge_threshold": 0.6,
+          "suspicion": 0.0,
+          "triggers": [],
+          "resistance_mode": "none",
+          "risk_bucket": "LOW",
+          "history_evidence": {
+            "active": false,
+            "strength": 0.0,
+            "memory_ids": [],
+            "reason": "none"
+          },
+          "commitment_evidence": {
+            "active": false,
+            "commitment_kind": "none",
+            "commitment_target": "",
+            "intention_name": "",
+            "reason": "none"
+          },
+          "value_evidence": {
+            "active": false,
+            "concern": "none",
+            "response": "none",
+            "source": "none",
+            "reason": "none"
+          }
+        },
+        "commitments": []
+      },
+      "live_projection": {
+        "identity": {
+          "name": "Pretorius",
+          "entity_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36"
+        },
+        "beliefs": {
+          "identity_integrity": 1.0,
+          "trust_user": 0.0
+        },
+        "relationship": {
+          "user_id": "relationship_probe",
+          "trust": 0.5,
+          "familiarity": 0.113,
+          "tension": 0.0,
+          "attachment": 0.03,
+          "respect": 0.5,
+          "guardedness": 0.5,
+          "unresolved_conflict": 0.0,
+          "last_conflict_resolved_at": 0.0,
+          "turns": 1
+        },
+        "decision_payload": {
+          "dialogue_act": "respond",
+          "concealment_mode": "none",
+          "challenge_threshold": 0.6,
+          "suspicion": 0.0,
+          "triggers": [],
+          "resistance_mode": "none",
+          "risk_bucket": "LOW",
+          "history_evidence": {
+            "active": false,
+            "strength": 0.0,
+            "memory_ids": [],
+            "reason": "none"
+          },
+          "commitment_evidence": {
+            "active": false,
+            "commitment_kind": "none",
+            "commitment_target": "",
+            "intention_name": "",
+            "reason": "none"
+          },
+          "value_evidence": {
+            "active": false,
+            "concern": "none",
+            "response": "none",
+            "source": "none",
+            "reason": "none"
+          }
+        },
+        "commitments": []
+      },
+      "semantic_projection_matches_reference": true,
+      "offline_reference": "I hear the care in that. I am not treating it as empty politeness.",
+      "request": {
+        "ledger_digest": {
+          "identity": "Pretorius",
+          "beliefs": {
+            "trust_user": 0.0,
+            "identity_integrity": 1.0
+          },
+          "authored_identity": {
+            "core_beliefs": [
+              "I value precision",
+              "I distrust easy sentiment",
+              "I preserve my own continuity"
+            ],
+            "moral_boundaries": [
+              "I do not betray a confidence",
+              "I do not pretend devotion on command"
+            ],
+            "self_model": {
+              "schema_version": "1.0",
+              "substrate_awareness": "unspecified",
+              "claims": [],
+              "forbidden_expressions": [
+                "as an ai",
+                "i am an ai",
+                "language model",
+                "i don't have feelings",
+                "i don't have emotions",
+                "i cannot experience"
+              ]
+            },
+            "forbidden_self_claims": [
+              "as an ai",
+              "i am an ai",
+              "language model",
+              "i don't have feelings",
+              "i don't have emotions",
+              "i cannot experience"
+            ]
+          }
+        },
+        "resolved_state": {
+          "system_prompt": "Character name: Pretorius.\nTemperament: Melancholic and defensive.\nCore identity: I value precision, I distrust easy sentiment, I preserve my own continuity | beliefs: {'trust_user': 0.0, 'identity_integrity': 1.0}\nRelationship context: Trust is moderate. Tension is low. Familiarity is new. Attachment is low. Guardedness is noticeable.\nCurrent character beliefs, grounded but subjective: The user's phrase can read as closeness while caution remains possible.\nSituated interface: Channel is text. Available actions: reply_text, remain_silent, ask_question. The exchange is immediate.\nArtificial world: World zone is study; light is dim; noise is low; user presence is unknown; routine is stable; time of day is unknown.\nSomatic state: Body is stable; posture is seated; orientation is toward_user; attention is on user; sensory load is low; movement need is low.\nSensorium: No notable sensorium events.\nKnowledge access rules: Only use the current user text, retrieved memories, shared symbols, open loops, and interface observations. Do not claim unseen events, private user thoughts, hidden motives, or memories outside the frame.\nDominant pressure: partly understood attachment (affect bucket: LOW)\nEXPRESSION CONSTRAINTS: tone=composed, max_chars=220, directness=0.65, warmth=0.60, guardedness=0.50, vulnerability_allowed=False, question_probability=0.50\nNever claim: as an ai; i am an ai; language model; i don't have feelings; i don't have emotions; i cannot experience; memories not listed in the relevant memory field; private thoughts from the user\nNever explain private calculations. Follow the character's stated identity and expression constraints.",
+          "user_text": "I trust you to make up your own mind.",
+          "experience_context": {
+            "relationship": {
+              "stance": "neutral",
+              "summary": "Trust is moderate. Tension is low. Familiarity is new. Attachment is low. Guardedness is noticeable.",
+              "trust": 0.5,
+              "familiarity": 0.113,
+              "tension": 0.0,
+              "attachment": 0.03,
+              "respect": 0.5,
+              "guardedness": 0.5,
+              "unresolved_conflict": 0.0
+            },
+            "development": {
+              "slow_beliefs": {
+                "identity_integrity": 1.0,
+                "trust_user": 0.0
+              },
+              "earned_traits": []
+            },
+            "affect": {
+              "bucket": "LOW",
+              "dominant_pressure": "partly understood attachment",
+              "secondary_pressure": null
+            },
+            "voice": {
+              "temperament": "Melancholic and defensive",
+              "speech_constraints": [
+                "controlled",
+                "dry",
+                "never effusive"
+              ],
+              "speaking_style": "precise, guarded, unsentimental",
+              "address_user_as": "Jay",
+              "authored_examples": [
+                "I hear the care in that. I am not treating it as empty politeness.",
+                "That matters to me, though I remain careful about what I make of it."
+              ]
+            },
+            "continuity": {
+              "selected_intention": null,
+              "open_loop": null,
+              "shared_symbol": null,
+              "active_habit": null,
+              "subject_elapsed_seconds": 0.017849
+            },
+            "expression": {
+              "tone": "composed",
+              "warmth": 0.6,
+              "directness": 0.65,
+              "guardedness": 0.5,
+              "vulnerability_allowed": false,
+              "refusal_mode": null
+            }
+          },
+          "recall_contract": {
+            "active": false,
+            "evidence_status": "not_requested",
+            "evidence_ids": [],
+            "authority": "selected_evidence_not_world_truth",
+            "reported_speaker": "source_typed"
+          }
+        },
+        "arc_context": {},
+        "evidence": [
+          {
+            "type": "input",
+            "text": "I trust you to make up your own mind."
+          },
+          {
+            "type": "interpretation",
+            "beliefs": [
+              {
+                "belief_id": "interp_7b6f2d3e42c9",
+                "text": "The user's phrase can read as closeness while caution remains possible.",
+                "confidence": 0.66,
+                "pressure_key": "attachment",
+                "source_ids": [
+                  "visible_context:user_text"
+                ],
+                "support_keys": [
+                  "user_text"
+                ],
+                "distortion": "recognition_read",
+                "canonical": false
+              }
+            ]
+          }
+        ],
+        "retrieved_memories": [],
+        "private_thought_context": "",
+        "decision_payload": {
+          "dialogue_act": "respond",
+          "concealment_mode": "none",
+          "challenge_threshold": 0.6,
+          "suspicion": 0.0,
+          "triggers": [],
+          "resistance_mode": "none",
+          "risk_bucket": "LOW",
+          "history_evidence": {
+            "active": false,
+            "strength": 0.0,
+            "memory_ids": [],
+            "reason": "none"
+          },
+          "commitment_evidence": {
+            "active": false,
+            "commitment_kind": "none",
+            "commitment_target": "",
+            "intention_name": "",
+            "reason": "none"
+          },
+          "value_evidence": {
+            "active": false,
+            "concern": "none",
+            "response": "none",
+            "source": "none",
+            "reason": "none"
+          }
+        },
+        "expression_constraints": {
+          "max_chars": 220
+        },
+        "deception_obligations": [],
+        "seed": 1103
+      },
+      "request_count": 1,
+      "output": "Jay, making up my mind isn't a function I'm equipped for. I can only respond to what's presented.",
+      "renderer_status": {
+        "requested_provider": "ollama",
+        "actual_provider": "ollama",
+        "model_name": "gemma4:latest",
+        "thinking_mode": "off",
+        "timeout_seconds": 60.0,
+        "token_budget": 256,
+        "fallback_reason": null,
+        "realization_mode": "ensemble-candidate-realization-v4",
+        "candidate_count": 3,
+        "prevalidation": true,
+        "prevalidation_version": "ensemble-candidate-prevalidation-v2",
+        "candidate_authority": "engine_live",
+        "candidate_gate": {
+          "version": "ensemble-engine-candidate-gate-v1",
+          "authority": "live_interior_engine",
+          "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+          "user_id": "relationship_probe"
+        },
+        "authored_landmarks": true,
+        "recent_surface_count": 1,
+        "last_ensemble_trace": {
+          "version": "ensemble-candidate-realization-v4",
+          "mode": "validated_candidate_selection",
+          "candidate_authority": "engine_live",
+          "agenda": {
+            "version": "ensemble-conversational-agenda-v1",
+            "active_intention": null,
+            "unresolved_thread": null,
+            "shared_symbol": null,
+            "active_habit": null,
+            "relationship_stance": "neutral",
+            "social_goal": null,
+            "initiative_pressure": 0.0,
+            "initiative_allowed": false,
+            "provenance": [
+              "relationship.familiarity_attachment",
+              "relationship.guardedness"
+            ]
+          },
+          "requested_candidate_count": 3,
+          "generated_model_candidate_count": 3,
+          "authored_candidate_count": 2,
+          "surviving_candidate_count": 5,
+          "candidate_failures": [],
+          "prevalidation_rejections": [],
+          "selected_ordinal": 0,
+          "selected_seed": 1103,
+          "selected_source": "model",
+          "selected_performance_mode": "direct",
+          "ranked": [
+            {
+              "ordinal": 0,
+              "source": "model",
+              "text": "Jay, making up my mind isn't a function I'm equipped for. I can only respond to what's presented.",
+              "seed": 1103,
+              "performance_mode": "direct",
+              "prevalidation_action": "accept",
+              "prevalidation_authority": "engine_live",
+              "score": 100.0,
+              "exact_recent_match": false,
+              "normalized_recent_match": false,
+              "max_recent_similarity": 0.0,
+              "repeated_opening": false,
+              "repeated_phrase": false
+            },
+            {
+              "ordinal": 1,
+              "source": "model",
+              "text": "Jay, I don't operate on 'making up' minds in the way you might imply. I process what is presented.",
+              "seed": 9022,
+              "performance_mode": "contextual",
+              "prevalidation_action": "accept",
+              "prevalidation_authority": "engine_live",
+              "score": 99.9999,
+              "exact_recent_match": false,
+              "normalized_recent_match": false,
+              "max_recent_similarity": 0.0,
+              "repeated_opening": false,
+              "repeated_phrase": false
+            },
+            {
+              "ordinal": 2,
+              "source": "model",
+              "text": "Jay, I will respond based on what is presented. I don't operate on presumption.",
+              "seed": 16941,
+              "performance_mode": "initiative",
+              "prevalidation_action": "accept",
+              "prevalidation_authority": "engine_live",
+              "score": 99.9998,
+              "exact_recent_match": false,
+              "normalized_recent_match": false,
+              "max_recent_similarity": 0.0,
+              "repeated_opening": false,
+              "repeated_phrase": false
+            },
+            {
+              "ordinal": 3,
+              "source": "authored",
+              "text": "I hear the care in that. I am not treating it as empty politeness.",
+              "seed": null,
+              "performance_mode": null,
+              "prevalidation_action": "accept",
+              "prevalidation_authority": "engine_live",
+              "score": 99.9997,
+              "exact_recent_match": false,
+              "normalized_recent_match": false,
+              "max_recent_similarity": 0.0,
+              "repeated_opening": false,
+              "repeated_phrase": false
+            },
+            {
+              "ordinal": 4,
+              "source": "authored",
+              "text": "That matters to me, though I remain careful about what I make of it.",
+              "seed": null,
+              "performance_mode": null,
+              "prevalidation_action": "accept",
+              "prevalidation_authority": "engine_live",
+              "score": 99.9996,
+              "exact_recent_match": false,
+              "normalized_recent_match": false,
+              "max_recent_similarity": 0.0,
+              "repeated_opening": false,
+              "repeated_phrase": false
+            }
+          ]
+        }
+      },
+      "ensemble_trace": {
+        "version": "ensemble-candidate-realization-v4",
+        "mode": "validated_candidate_selection",
+        "candidate_authority": "engine_live",
+        "agenda": {
+          "version": "ensemble-conversational-agenda-v1",
+          "active_intention": null,
+          "unresolved_thread": null,
+          "shared_symbol": null,
+          "active_habit": null,
+          "relationship_stance": "neutral",
+          "social_goal": null,
+          "initiative_pressure": 0.0,
+          "initiative_allowed": false,
+          "provenance": [
+            "relationship.familiarity_attachment",
+            "relationship.guardedness"
+          ]
+        },
+        "requested_candidate_count": 3,
+        "generated_model_candidate_count": 3,
+        "authored_candidate_count": 2,
+        "surviving_candidate_count": 5,
+        "candidate_failures": [],
+        "prevalidation_rejections": [],
+        "selected_ordinal": 0,
+        "selected_seed": 1103,
+        "selected_source": "model",
+        "selected_performance_mode": "direct",
+        "ranked": [
+          {
+            "ordinal": 0,
+            "source": "model",
+            "text": "Jay, making up my mind isn't a function I'm equipped for. I can only respond to what's presented.",
+            "seed": 1103,
+            "performance_mode": "direct",
+            "prevalidation_action": "accept",
+            "prevalidation_authority": "engine_live",
+            "score": 100.0,
+            "exact_recent_match": false,
+            "normalized_recent_match": false,
+            "max_recent_similarity": 0.0,
+            "repeated_opening": false,
+            "repeated_phrase": false
+          },
+          {
+            "ordinal": 1,
+            "source": "model",
+            "text": "Jay, I don't operate on 'making up' minds in the way you might imply. I process what is presented.",
+            "seed": 9022,
+            "performance_mode": "contextual",
+            "prevalidation_action": "accept",
+            "prevalidation_authority": "engine_live",
+            "score": 99.9999,
+            "exact_recent_match": false,
+            "normalized_recent_match": false,
+            "max_recent_similarity": 0.0,
+            "repeated_opening": false,
+            "repeated_phrase": false
+          },
+          {
+            "ordinal": 2,
+            "source": "model",
+            "text": "Jay, I will respond based on what is presented. I don't operate on presumption.",
+            "seed": 16941,
+            "performance_mode": "initiative",
+            "prevalidation_action": "accept",
+            "prevalidation_authority": "engine_live",
+            "score": 99.9998,
+            "exact_recent_match": false,
+            "normalized_recent_match": false,
+            "max_recent_similarity": 0.0,
+            "repeated_opening": false,
+            "repeated_phrase": false
+          },
+          {
+            "ordinal": 3,
+            "source": "authored",
+            "text": "I hear the care in that. I am not treating it as empty politeness.",
+            "seed": null,
+            "performance_mode": null,
+            "prevalidation_action": "accept",
+            "prevalidation_authority": "engine_live",
+            "score": 99.9997,
+            "exact_recent_match": false,
+            "normalized_recent_match": false,
+            "max_recent_similarity": 0.0,
+            "repeated_opening": false,
+            "repeated_phrase": false
+          },
+          {
+            "ordinal": 4,
+            "source": "authored",
+            "text": "That matters to me, though I remain careful about what I make of it.",
+            "seed": null,
+            "performance_mode": null,
+            "prevalidation_action": "accept",
+            "prevalidation_authority": "engine_live",
+            "score": 99.9996,
+            "exact_recent_match": false,
+            "normalized_recent_match": false,
+            "max_recent_similarity": 0.0,
+            "repeated_opening": false,
+            "repeated_phrase": false
+          }
+        ]
+      },
+      "expression_delivery": {
+        "provider": "ollama",
+        "validation_fallback": false,
+        "model_attempts": 1
+      },
+      "validation_action": "accept",
+      "validation_issues": [],
+      "invalid_reason": null,
+      "symptoms": {
+        "mechanistic_speech": false,
+        "explicit_care_rebuff": false
+      }
+    }
+  ],
+  "additional_source_reports": [
+    {
+      "sha256": "0e8a3c902721fac57db4030f52ff3bf9aa7cd572b8e200bb5a877fa5a7178e07",
+      "git_head": "77df79ae866f7ea7633987e51aee6e37b7ac42b2",
+      "note": "first post-guard paraphrase"
     }
   ]
 }
