@@ -42,6 +42,7 @@ jobs:
             persona_engine/tests/test_ensemble_realization.py \
             persona_engine/tests/test_ensemble_renderer.py \
             persona_engine/tests/test_ensemble_engine_gate.py \
+            persona_engine/tests/test_ensemble_relationship_probe.py \
             persona_engine/tests/test_conversational_agenda.py \
             persona_engine/tests/test_delivery.py \
             persona_engine/tests/test_delivery_subject.py \
