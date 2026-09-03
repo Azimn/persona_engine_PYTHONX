@@ -7,15 +7,17 @@ surface ranking. It does not introduce an LLM judge or a second semantic
 planner.
 
 The final engine validation remains authoritative and still evaluates the
-selected utterance before exposure. Candidate prevalidation is an earlier use of
-the same deterministic contracts, built only from authority already present in
-``ExpressionRequest``.
+selected utterance before exposure. Candidate prevalidation can either use the
+portable authority reconstructed from ``ExpressionRequest`` or a live
+engine-authority evaluator supplied by the host. The latter is preferred for
+normal CharacterAgent integration because it can inspect the exact current
+World Authority and deception ledger rather than a renderer-side approximation.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Iterable
+from typing import Callable, Iterable
 
 from .consistency import ConsistencyLayer
 from .ensemble_realization import RealizationCandidate
@@ -23,7 +25,8 @@ from .renderer import OutputValidator
 from .renderer_contract import ValidationAction, ValidationRequest, ValidationResult
 
 
-ENSEMBLE_PREVALIDATION_VERSION = "ensemble-candidate-prevalidation-v1"
+ENSEMBLE_PREVALIDATION_VERSION = "ensemble-candidate-prevalidation-v2"
+CandidateEvaluator = Callable[[str, object], ValidationResult]
 
 
 @dataclass(frozen=True)
@@ -85,15 +88,24 @@ def validate_candidate(
     candidate: RealizationCandidate,
     request,
     consistency: ConsistencyLayer | None = None,
+    evaluator: CandidateEvaluator | None = None,
 ) -> CandidateValidationRecord:
-    """Evaluate one candidate with the same deterministic consistency contracts.
+    """Evaluate one candidate with deterministic higher-authority contracts.
 
-    Soft sanitizer repairs are preserved as a candidate rather than discarded.
-    Hard and critical candidates are excluded from ranking.
+    ``evaluator`` is the preferred engine-bound path. It receives the candidate
+    text and the immutable ExpressionRequest and returns the live engine's
+    ValidationResult. When no evaluator is supplied, the portable standalone
+    reconstruction remains available for tools and direct renderer use.
+
+    Soft sanitizer repairs are preserved as candidates. Hard and critical
+    candidates are excluded from ranking.
     """
 
-    consistency = consistency or ConsistencyLayer(OutputValidator())
-    result = consistency.evaluate(candidate_validation_request(candidate.text, request))
+    if evaluator is not None:
+        result = evaluator(str(candidate.text or ""), request)
+    else:
+        consistency = consistency or ConsistencyLayer(OutputValidator())
+        result = consistency.evaluate(candidate_validation_request(candidate.text, request))
     accepted = result.action in {ValidationAction.ACCEPT, ValidationAction.SANITIZE_CONTINUE}
     return CandidateValidationRecord(candidate=candidate, result=result, accepted=accepted)
 
@@ -102,13 +114,14 @@ def filter_candidate_pool(
     candidates: Iterable[RealizationCandidate],
     request,
     consistency: ConsistencyLayer | None = None,
+    evaluator: CandidateEvaluator | None = None,
 ) -> CandidateValidationBatch:
     consistency = consistency or ConsistencyLayer(OutputValidator())
     records: list[CandidateValidationRecord] = []
     survivors: list[RealizationCandidate] = []
 
     for candidate in candidates:
-        record = validate_candidate(candidate, request, consistency)
+        record = validate_candidate(candidate, request, consistency, evaluator=evaluator)
         records.append(record)
         if not record.accepted:
             continue
@@ -117,6 +130,7 @@ def filter_candidate_pool(
             "prevalidation_version": ENSEMBLE_PREVALIDATION_VERSION,
             "prevalidation_action": record.result.action.value,
             "prevalidation_issue_codes": [issue.code for issue in record.result.issues],
+            "prevalidation_authority": "engine_live" if evaluator is not None else "request_reconstruction",
         })
         survivors.append(replace(
             candidate,
