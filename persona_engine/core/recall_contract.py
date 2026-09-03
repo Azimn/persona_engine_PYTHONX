@@ -42,7 +42,7 @@ _ACKNOWLEDGMENT = re.compile(
     r"(?:my|the) (?:record|note) (?:says|shows|contains))\b", re.I)
 
 
-def recall_violations(text, contract):
+def recall_violations(text, contract, *, query='', memories=()):
     """Reject an unqualified denial when grounded topic records were selected.
 
     Acknowledging a record while saying its requested attribute is unknown is
@@ -63,4 +63,16 @@ def recall_violations(text, contract):
         return ['recall_speaker_reversal']
     if _DENIAL.search(normalized) and not _ACKNOWLEDGMENT.search(normalized):
         return ['available_recall_evidence_omitted']
+    if query.lstrip().lower().startswith('what') and re.search(
+        r'\b(?:you asked|your question|you want to know)\b', normalized, re.I):
+        # A reference to the recall question is not itself recall evidence.
+        # Scope this lexical check to question-echo responses: ordinary answers
+        # may paraphrase the record without repeating its exact vocabulary.
+        tokens = lambda value: set(re.findall(r"[a-z0-9']+", value.lower()))
+        scaffolding = {'i','you','we','a','an','the','is','was','are','were','to','of','in','and','this','that',
+                       'heard','say','said','told','remember','please','neutral','detail','me','my','your'}
+        selected = [m for m in memories if str(memory_field(m,'id','')) in contract.get('evidence_ids',())]
+        information = set().union(*(tokens(str(memory_field(m,'content',''))) for m in selected)) - tokens(query) - scaffolding
+        if information and not information.intersection(tokens(text)):
+            return ['recall_information_omitted']
     return []

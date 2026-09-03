@@ -60,6 +60,14 @@ def test_recalled_user_statement_cannot_be_attributed_to_the_character():
     assert evaluate('You stated that the cover was amber.').action==ValidationAction.ACCEPT
 
 
+def test_question_echo_does_not_satisfy_available_recall():
+    result=evaluate('The record shows you asked, "What color did I say the atlas cover was?"')
+    assert any(i.code=='recall_information_omitted' for i in result.issues)
+    assert evaluate('You asked about the cover. You said it was amber.').action==ValidationAction.ACCEPT
+    # This bounded guard must not become an exact-vocabulary requirement.
+    assert evaluate('You described it as a warm yellow-orange.').action==ValidationAction.ACCEPT
+
+
 def test_repeated_denial_retries_once_reports_actual_fallback_and_preserves_history(tmp_path):
     agent=CharacterAgent(cartridge_path=str(ROOT/'persona_engine/cartridges/friendly.snp'),user_id='recall',db_path=str(tmp_path/'a.db'))
     agent.say('Remember this: the atlas cover is amber.')

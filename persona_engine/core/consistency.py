@@ -32,6 +32,8 @@ _HARD_CODES = {
     "available_recall_evidence_omitted",
     "unavailable_recall_evidence_invented",
     "recall_speaker_reversal",
+    "decision_substitution",
+    "recall_information_omitted",
     "false_memory_claim",
     "unauthorized_fabrication",
     "unsupported_private_user_state",
@@ -148,6 +150,9 @@ def behavioral_violations(candidate_text: str, contract: BehavioralContract) -> 
         return []
 
     violations: list[str] = []
+    if contract.dialogue_act == 'respond' and re.search(
+        r"\bi (?:cannot|can't|will not|won't) (?:comply|disclose|share (?:that|the|information|details))\b", text, re.I):
+        return ['decision_substitution:respond']
     if contract.must_not_signal_compliance and _has_explicit_compliance_signal(text):
         violations.append(f"decision_reversal:{contract.dialogue_act}")
         return violations
@@ -181,7 +186,8 @@ class ConsistencyLayer:
 
         contract = behavioral_contract_from_decision(request.decision_payload)
         raw.extend(behavioral_violations(request.candidate_text, contract))
-        raw.extend(recall_violations(request.candidate_text, request.canonical_context.get('recall_contract')))
+        raw.extend(recall_violations(request.candidate_text, request.canonical_context.get('recall_contract'),
+                                    query=request.canonical_context.get('current_input',''),memories=request.relevant_history))
         raw.extend(unsupported_private_state(request))
 
         # World/canonical authority may provide explicit expressions that the
@@ -240,12 +246,16 @@ def regeneration_constraints(result: ValidationResult) -> tuple[str, ...]:
         if issue.code == "decision_omission":
             act = issue.detail.split(":", 1)[1] if ":" in issue.detail else "resolved"
             constraints.append(f"require:dialogue_act:{act}")
+        elif issue.code == 'decision_substitution':
+            constraints.append('The current act is respond. Answer this turn; do not carry a refusal from an earlier request into it.')
         elif issue.code == 'available_recall_evidence_omitted':
             constraints.append('Use the selected recalled statement. Do not deny having it. If an attribute is absent, acknowledge the record and qualify only that attribute.')
         elif issue.code == 'unavailable_recall_evidence_invented':
             constraints.append('No selected record supports this recall. Do not claim the user previously mentioned it. Say the requested detail is unavailable.')
         elif issue.code == 'recall_speaker_reversal':
             constraints.append('The listener made the recorded statement. Attribute it to the listener, not to yourself.')
+        elif issue.code == 'recall_information_omitted':
+            constraints.append('Answer with concrete information from the selected record. Do not merely echo the question or describe the act of remembering.')
         else:
             constraints.append(f"avoid:{issue.code}")
     return tuple(constraints)

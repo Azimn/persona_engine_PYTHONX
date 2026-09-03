@@ -7,7 +7,7 @@ if __name__ == '__main__':
     p=argparse.ArgumentParser()
     p.add_argument('mode',choices=('replay','replay-current','repetition','matrix','adversarial'))
     p.add_argument('--model',default='gemma4:latest')
-    p.add_argument('--split',choices=('development','confirmation'),default='development')
+    p.add_argument('--split',choices=('development','confirmation','confirmation_v2'),default='development')
     p.add_argument('--user-id',default='hardening_v2')
     p.add_argument('--output-dir',type=Path,required=True)
     args=p.parse_args()
