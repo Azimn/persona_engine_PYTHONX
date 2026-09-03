@@ -15,6 +15,8 @@ Use `git switch wayfarer` before evaluating current behavior. Do not advance the
 
 ## 2026-09-03 local actual-model development
 
+Continuation: `57469a7` is preserved and backed up on `wayfarer-local-model-hardening`. The v2 failure freeze and diagnostic protocol are in `evidence/mvi/MODEL_HARDENING_V2.md`. Exact-message replay reproduced Gemma's denial twice; retrieval/projection coverage is present. Repetition and provenance are separate workstreams. The owner authorizes iterative repair, branch pushes, PR, and merge after the documented deterministic, cross-model, cross-character, and CI gates. Human testing remains deferred.
+
 The frozen first test at `9408351aac938441523534974fc299a75c961604` is complete, including the later owner-authorized full Gemma comparison. Preserve its reports in the separate clean clone. The owner subsequently authorized autonomous test-driven adjustments and explicitly deferred human testing until automated results are solid. The older execution-only stop-after-smoke instructions do not define this development phase.
 
 Local changes expose authored self-model constraints through the trusted expression projection, reuse bounded cartridge care examples selected by existing act/stance rules, remove duplicate workspace prose from structured model requests, and repair bounded attributive recall parsing. The frozen prompt-only arm still receives its original workspace through a separate capture path. No cartridge edits, new dependencies, canonical-state mechanisms, or adjacent experimental modules were added.

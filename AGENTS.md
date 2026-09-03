@@ -231,6 +231,8 @@ The frozen pre-Wayfarer baseline remains in `persona_engine/docs/WAYFARER_BASELI
 
 ## Current evidence checkpoint
 
+- Hardening continuation from preserved `57469a7`: feature branch `wayfarer-local-model-hardening` is backed up remotely. Read `persona_engine/evidence/mvi/MODEL_HARDENING_V2.md` and its frozen failures before repair. Exact Gemma recall denial reproduced twice with selected memory present; diagnose expression/validation separately from retrieval. Human testing remains deferred.
+
 - 2026-09-03 actual-model update: the frozen first smoke and authorized Gemma full comparison at `9408351aac938441523534974fc299a75c961604` are complete and preserved. The owner authorized subsequent automated development; human testing is deferred until results are solid.
 - Current local candidate adds trusted authored identity/stance examples, removes duplicate legacy workspace text from structured expression requests while preserving the benchmark control, and repairs bounded attributive recall. No cartridges or adjacent experimental modules were changed. See `persona_engine/evidence/mvi/LOCAL_MODEL_EXPRESSION.md` before tuning or quoting effectiveness.
 - Real-model execution validity is not speech-fidelity success. Available memories can still be denied or embellished; repeated authored-example copying remains visible. The first reserved sets consumed during repairs are development evidence, not independent holdouts. Current numeric verification belongs only in `CURRENT_STATUS.md`.
