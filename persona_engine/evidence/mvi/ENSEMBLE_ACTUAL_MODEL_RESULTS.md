@@ -12,6 +12,8 @@ This phase integrated the Wayfarer model-hardening line with Ensemble through `b
 
 The pre-integration Ensemble harness commit `b30f4904595d8f5be0cc11e0b1e28193cd94e7f7` passed GitHub Actions run `33779833026` on Python 3.11 and Python 3.12. The integrated deterministic suite and current CI status remain in `CURRENT_STATUS.md`.
 
+PR #10 subsequently merged the integrated phase into `wayfarer` as `c7a1b9180c14e72ce6070b439d281d8a8c4c3f30`. Normal production CI run `33790796255` passed on Python 3.11 and Python 3.12. The merge retains preserved checkpoint `57469a7` as an ancestor.
+
 The first live Qwen run exposed two evaluation confounds. Independently rebuilt repaired histories had different canonical repair timestamps, and model latency let later branches accumulate different idle time. The final relationship probe creates history through public inputs, restarts it, forks one closed pre-probe snapshot, and calls public `advance_time(0, record_event=False)` immediately before each arm. The failed collections remain in local evidence. These were harness failures rather than renderer-caused state divergence.
 
 Final relationship collections each contain four histories, two prompts, and three predefined seeds: 24 single-shot and 24 Ensemble samples per model. Every final Ensemble sample used `engine_live` candidate authority, used Ollama without fallback, avoided engine validation fallback, and matched its offline renderer-independent semantic projection.

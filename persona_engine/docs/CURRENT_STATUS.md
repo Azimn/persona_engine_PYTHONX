@@ -12,7 +12,7 @@ PythonX is the reference implementation and experimental laboratory. The long-te
 
 Current production contracts include **`renderer-benchmark-v1` longitudinal renderer evaluation, `expression-brief-v2` trusted renderer projection, typed behavioral realization validation, cartridge-owned soft behavioral dispositions, typed decision-owned relationship consequences, sparse typed executable authored-value constraints, `writer-handoff-v1` shared-store custody, `disconnected-transfer-v1` cooperative authority-store moves, and `semantic-residency-v1` memory residency.** The integrated development candidate also carries Ensemble's live-engine candidate gate, subject-scoped epistemic state, subject-relative event appraisal, delivery receipts, and bounded Scene Lab composition; promotion depends on the model-testing evidence described below.
 
-Local development successor to frozen `9408351aac938441523534974fc299a75c961604`, 2026-09-03: actual-model testing has run and the owner has authorized test-driven source changes. The original clean-checkout evidence remains preserved separately. This working-tree checkpoint is locally verified; no new Python 3.12 or CI result is claimed.
+Production checkpoint `c7a1b9180c14e72ce6070b439d281d8a8c4c3f30`, 2026-09-03: PR #10 integrated actual-model hardening and Ensemble while preserving `57469a7` in merge history. Normal Wayfarer CI run `33790796255` passed on Python 3.11 and Python 3.12, including deterministic-suite/status synchronization. The original `9408351aac938441523534974fc299a75c961604` clean-checkout evidence remains preserved separately.
 
 Current Python 3.11 verification:
 
