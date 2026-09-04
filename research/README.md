@@ -24,7 +24,7 @@ A research summary should link to those sources rather than silently replacing t
 - `METHODS_AND_EVALUATION.md` — proposed separation between development testing and thesis-grade evaluation, including held-out adversarial testing and human evaluation.
 - `EVIDENCE_INDEX.md` — research-facing map from possible claims to authoritative Wayfarer evidence files.
 - `evidence_summaries/` — dated, immutable snapshots of engineering results that may later be useful when reconstructing the research history.
-- `literature/` — scholarly notes, related-work reviews, bibliographic leads, and comparison material.
+- `literature/` — scholarly notes, related-work reviews, bibliographic leads, and comparison material. `literature/FRINGE_PERSONA_CONTINUITY_RESOURCE_MAP_2026-09-04.md` is the central capture of the current fringe-companion and artificial-personality survey, including verified sources, mechanism-level Wayfarer relevance, candidate ablations, and unresolved leads.
 
 ## Research discipline
 
