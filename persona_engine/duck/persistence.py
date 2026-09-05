@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 from .types import CycleTrace, OrganismState
 
@@ -48,3 +49,34 @@ class DuckPersistence:
             handle.write(json.dumps(trace.to_dict(), sort_keys=True) + "\n")
             handle.flush()
             os.fsync(handle.fileno())
+
+    def find_expression(self, speech_id: str) -> dict[str, Any] | None:
+        """Recover a realized utterance from durable trace evidence.
+
+        This is intentionally a cold-path linear scan. Recent expressions live in
+        the bounded hot journal; an evicted expression only pays this cost when an
+        exact historical replay is requested.
+        """
+        if not self.event_log_path.exists():
+            return None
+        target = str(speech_id)
+        found: dict[str, Any] | None = None
+        with self.event_log_path.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    trace = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(
+                        f"DUCK event log contains invalid JSON at line {line_number}"
+                    ) from exc
+                outcome = trace.get("outcome", {}) if isinstance(trace, dict) else {}
+                execution = outcome.get("execution", {}) if isinstance(outcome, dict) else {}
+                metadata = execution.get("metadata", {}) if isinstance(execution, dict) else {}
+                if str(metadata.get("speech_id", "")) != target:
+                    continue
+                expression = metadata.get("expression")
+                if isinstance(expression, dict):
+                    found = dict(expression)
+        return found
