@@ -67,6 +67,7 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
         first_speech_id: str | None = None
         first_expression_text: str | None = None
         responses = 0
+        selected_action_counts: dict[str, int] = {}
         backup_restores = 0
         process_restarts = 0
         max_observed = {
@@ -83,23 +84,36 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
             result = host.send(f"production acceptance message {index}")
             if result.get("subject_id") != subject_id:
                 raise RuntimeError("subject identity changed during conversation")
-            if result.get("selected_action") != "communicate":
-                raise RuntimeError(
-                    f"expected communicate action at cycle {index}, got {result.get('selected_action')!r}"
-                )
-            if not str(result.get("response") or "").strip():
-                raise RuntimeError(f"no delivered response at cycle {index}")
-            responses += 1
+
+            selected_action = str(result.get("selected_action") or "")
+            if not selected_action:
+                raise RuntimeError(f"no action was selected at cycle {index}")
+            selected_action_counts[selected_action] = selected_action_counts.get(selected_action, 0) + 1
 
             trace = host.runtime.organism.traces[-1]
             execution = (trace.outcome or {}).get("execution", {})
+            if not isinstance(execution, dict) or not bool(execution.get("executed", False)):
+                reason = execution.get("reason") if isinstance(execution, dict) else "missing_execution"
+                raise RuntimeError(
+                    f"selected action {selected_action!r} did not execute at cycle {index}: {reason}"
+                )
             metadata = execution.get("metadata", {}) if isinstance(execution, dict) else {}
-            if first_speech_id is None:
-                first_speech_id = str(metadata.get("speech_id") or "")
-                expression = metadata.get("expression", {})
-                first_expression_text = str(expression.get("text") or "") if isinstance(expression, dict) else ""
-                if not first_speech_id or not first_expression_text:
-                    raise RuntimeError("first delivered expression was not durably identified")
+
+            # A user message is input, not a command that DUCK must answer. The
+            # organism may autonomously select inspect/wait/etc. We only require
+            # delivered language when DUCK itself commits to communicate.
+            if selected_action == "communicate":
+                if not str(result.get("response") or "").strip():
+                    raise RuntimeError(f"communicate action produced no delivered response at cycle {index}")
+                responses += 1
+                if first_speech_id is None:
+                    first_speech_id = str(metadata.get("speech_id") or "")
+                    expression = metadata.get("expression", {})
+                    first_expression_text = (
+                        str(expression.get("text") or "") if isinstance(expression, dict) else ""
+                    )
+                    if not first_speech_id or not first_expression_text:
+                        raise RuntimeError("first delivered expression was not durably identified")
 
             bounds = _assert_bounds(host)
             for key in max_observed:
@@ -136,7 +150,12 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
                 process_restarts += 1
 
         if first_speech_id is None or first_expression_text is None:
-            raise RuntimeError("acceptance run produced no expression evidence")
+            raise RuntimeError("acceptance run produced no communicative expression evidence")
+        if responses <= expression_cache_limit:
+            raise RuntimeError(
+                "acceptance history did not select enough communicate actions to exercise expression eviction: "
+                f"responses={responses}, cache_limit={expression_cache_limit}"
+            )
 
         final_bounds = _assert_bounds(host)
         final_status = host.runtime.status()
@@ -148,10 +167,9 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
         if str(archived.get("text") or "") != first_expression_text:
             raise RuntimeError("historical expression text changed in durable trace")
 
-        eviction_expected = cycles > expression_cache_limit
         first_still_hot = first_speech_id in host.runtime.expression_journal.rows
-        if eviction_expected and first_still_hot:
-            raise RuntimeError("old expression remained in hot cache after eviction threshold")
+        if first_still_hot:
+            raise RuntimeError("old expression remained in hot cache after communicative eviction threshold")
 
         if host.runtime.tick < initial_tick + cycles:
             raise RuntimeError("cognitive clock did not advance across the acceptance history")
@@ -165,13 +183,14 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
             "subject_id": subject_id,
             "cycles_requested": cycles,
             "responses_delivered": responses,
+            "selected_action_counts": dict(sorted(selected_action_counts.items())),
             "initial_tick": initial_tick,
             "final_tick": host.runtime.tick,
             "backup_restores": backup_restores,
             "process_restarts": process_restarts,
             "expression_cache_limit": expression_cache_limit,
             "expression_cache_size": len(host.runtime.expression_journal.rows),
-            "expression_eviction_expected": eviction_expected,
+            "expression_eviction_verified": True,
             "first_expression_still_hot": first_still_hot,
             "first_expression_archive_recovered": True,
             "max_hot_state": max_observed,
