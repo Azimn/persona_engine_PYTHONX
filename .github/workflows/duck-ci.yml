@@ -41,3 +41,7 @@ jobs:
 
       - name: Verify DUCK smoke entry point
         run: python tools/run_duck_smoke.py --output /tmp/duck-smoke.json
+
+      - name: Run DUCK future-build integration probe
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python tools/run_duck_future_probe.py --cycles 200 --output /tmp/duck-future-probe.json

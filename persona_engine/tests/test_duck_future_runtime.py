@@ -5,6 +5,7 @@ from persona_engine.duck.embodiment_port import Affordance, BodySnapshot, Embodi
 from persona_engine.duck.future_runtime import FutureDuckRuntime, FutureRuntimeConfig
 from persona_engine.duck.motivation import DriveSystem
 from persona_engine.duck.persistence import DuckPersistence
+from persona_engine.duck.services import ParallelServiceRegistry
 from persona_engine.duck.temporal_patterns import TemporalPatternBank
 from persona_engine.duck.timebase import TemporalAuthority, swatch_beat
 from persona_engine.duck.types import DriveState
@@ -41,8 +42,8 @@ class FakeBody:
             location="pond_north",
             orientation="east",
             sensors=("vision", "sound"),
-            effectors=("seek_information", "communicate", "wait"),
-            state={"energy": 0.8},
+            effectors=("seek_information", "communicate", "inspect", "wait"),
+            state={"energy": 0.8, "need_for_movement": 0.1},
         )
 
     def observe(self, *, tick):
@@ -51,7 +52,12 @@ class FakeBody:
         return values
 
     def affordances(self):
-        return [Affordance("seek_information"), Affordance("communicate"), Affordance("wait")]
+        return [
+            Affordance("seek_information", expected_world_effects={"progress": 0.2}),
+            Affordance("communicate", expected_world_effects={"social_contact": 0.2}),
+            Affordance("inspect", expected_world_effects={"information": 0.2}),
+            Affordance("wait"),
+        ]
 
     def supports(self, action_type):
         return action_type in self.snapshot().effectors
@@ -60,6 +66,14 @@ class FakeBody:
         del context
         self.executed.append(action.action_type)
         return EmbodimentOutcome(True, "body_executed", dict(simulation.predicted_world_effects), dict(simulation.predicted_self_effects))
+
+
+class BrokenService:
+    service_name = "broken_service"
+
+    def propose(self, context):
+        del context
+        raise RuntimeError("intentional probe failure")
 
 
 def urgent_certainty():
@@ -118,6 +132,18 @@ def test_embodiment_sensor_events_enter_normal_cognitive_cycle():
     assert trace.trigger["payload"]["temporal_stamp"]["logical_tick"] == 0
 
 
+def test_body_state_and_affordances_enter_cognitive_candidate_field():
+    subject = FakeSubject()
+    body = FakeBody()
+    runtime = FutureDuckRuntime(subject, embodiment=body)
+    runtime.ingest_observation({"description": "still pond", "salience": 0.01}, event_id="e1")
+    trace = runtime.step()
+    body_items = [item for item in trace.cognitive_items if item["kind"] == "body_signal"]
+    assert body_items
+    assert body_items[0]["payload"]["body_id"] == "pond-body"
+    assert any(item["action_type"] == "inspect" for item in body_items[0]["payload"]["action_candidates"])
+
+
 def test_capability_registry_produces_execution_firewall():
     registry = CapabilityRegistry([
         CapabilityDescriptor("speak", "communicate", "body", requires_confirmation=False),
@@ -144,12 +170,24 @@ def test_endogenous_reflection_can_open_private_cycle_without_direct_speech():
     assert subject.elapsed == 0.0
 
 
+def test_failed_optional_service_degrades_locally_without_subject_corruption():
+    subject = FakeSubject()
+    services = ParallelServiceRegistry([BrokenService()], timeout_seconds=1.0)
+    runtime = FutureDuckRuntime(subject, services=services)
+    runtime.ingest_observation({"description": "service failure test"}, event_id="e1")
+    trace = runtime.step()
+    assert trace is not None
+    assert any("broken_service:RuntimeError" in error for error in trace.service_errors)
+    assert runtime.subject_id == "future-duck"
+    assert runtime.tick == 1
+
+
 def test_explicit_civil_time_advances_subject_by_observed_duration_not_cycle_count():
     subject = FakeSubject()
     runtime = FutureDuckRuntime(subject)
     runtime.ingest_observation({"description": "first"}, utc_epoch=1000.0, event_id="e1")
     runtime.step()
-    assert subject.elapsed == 1.0  # first civil anchor has no prior duration, so configured fallback applies
+    assert subject.elapsed == 1.0
     runtime.ingest_observation({"description": "later"}, utc_epoch=1090.0, event_id="e2")
     runtime.step()
     assert subject.elapsed == 91.0
@@ -174,7 +212,7 @@ def test_temporal_patterns_learn_across_beat_day_boundary():
     assert late["unexpected"] is True
 
 
-def test_body_swap_preserves_subject_and_routes_next_action_to_new_body():
+def test_body_swap_preserves_subject_emits_transition_and_routes_to_new_body():
     subject = FakeSubject()
     first = FakeBody("body-a")
     second = FakeBody("body-b")
@@ -182,7 +220,10 @@ def test_body_swap_preserves_subject_and_routes_next_action_to_new_body():
     install_urgent_certainty(runtime)
     runtime.ingest_observation({"description": "before swap"}, event_id="e1")
     runtime.step()
-    runtime.swap_embodiment(second)
+    event = runtime.swap_embodiment(second)
+    assert event.kind == "body_transfer"
+    transfer_trace = runtime.step()
+    assert transfer_trace.trigger["kind"] == "body_transfer"
     runtime.ingest_observation({"description": "after swap"}, event_id="e2")
     runtime.step()
     assert runtime.subject_id == "future-duck"

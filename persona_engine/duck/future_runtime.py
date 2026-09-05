@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .capabilities import CapabilityRegistry
-from .embodiment_port import EmbodiedWorldModel, EmbodimentPort, NullEmbodimentPort
+from .embodiment_port import EmbodiedWorldModel, EmbodimentCognitiveService, EmbodimentPort, NullEmbodimentPort
 from .endogenous import EndogenousReflectionService, EndogenousTriggerPolicy
 from .executor import EmbodimentCapabilities
 from .future_persistence import FutureRuntimePersistence
@@ -63,10 +63,8 @@ class FutureDuckRuntime:
         if not self.body_history or self.body_history[-1] != self.embodiment.body_id:
             self.body_history.append(self.embodiment.body_id)
 
-        if services is None:
-            services = ParallelServiceRegistry([EndogenousReflectionService()])
-        elif self.runtime_config.enable_endogenous_cognition:
-            services.add(EndogenousReflectionService())
+        services = services or ParallelServiceRegistry([])
+        self._install_builtin_services(services)
 
         body = self.embodiment.snapshot()
         world_model = EmbodiedWorldModel(self.embodiment, state.world_model_state if state else None)
@@ -89,6 +87,14 @@ class FutureDuckRuntime:
             effectors=frozenset(body.effectors),
             body_state=dict(body.state),
         )
+
+    def _install_builtin_services(self, services: ServiceRegistry) -> None:
+        names = {str(getattr(service, "service_name", type(service).__name__)) for service in services.services}
+        if self.runtime_config.enable_endogenous_cognition and "endogenous_reflection" not in names:
+            services.add(EndogenousReflectionService())
+            names.add("endogenous_reflection")
+        if "embodiment_state" not in names:
+            services.add(EmbodimentCognitiveService(lambda: self.embodiment))
 
     @property
     def subject_id(self) -> str:
@@ -171,21 +177,36 @@ class FutureDuckRuntime:
             ))
         return events
 
-    def swap_embodiment(self, embodiment: EmbodimentPort) -> None:
+    def swap_embodiment(self, embodiment: EmbodimentPort, *, announce: bool = True) -> ExternalEvent | None:
         """Attach a new body without changing the continuing subject."""
+        previous = self.embodiment.snapshot()
         self.embodiment = embodiment
+        current = embodiment.snapshot()
         if not self.body_history or self.body_history[-1] != embodiment.body_id:
             self.body_history.append(embodiment.body_id)
         current_world = self.organism.current_state().world_model_state
         world_model = EmbodiedWorldModel(embodiment, current_world)
         self.organism.world_model = world_model
         self.organism.executor.world_model = world_model
-        self.organism.executor.embodiment = self._capabilities_from_body(embodiment.snapshot())
+        self.organism.executor.embodiment = self._capabilities_from_body(current)
         self._save_runtime_state()
+        if not announce:
+            return None
+        return self.ingest_observation(
+            {
+                "description": "embodiment changed",
+                "previous_body": previous.to_dict(),
+                "current_body": current.to_dict(),
+                "self_relevance": 1.0,
+                "salience": 0.90,
+            },
+            source="embodiment",
+            kind="body_transfer",
+            event_id=f"body-transfer:{self.tick}:{current.body_id}",
+        )
 
     def set_services(self, services: ServiceRegistry) -> None:
-        if self.runtime_config.enable_endogenous_cognition:
-            services.add(EndogenousReflectionService())
+        self._install_builtin_services(services)
         self.organism.set_services(services)
 
     def _inject_endogenous_trigger(self) -> ExternalEvent | None:
@@ -219,8 +240,6 @@ class FutureDuckRuntime:
                 explicit = stamp.get("elapsed_since_prior_utc") if isinstance(stamp, dict) else None
                 elapsed = self.runtime_config.default_external_elapsed_seconds if explicit is None else max(0.0, float(explicit))
         else:
-            # A scheduler-created drive/commitment cycle is cognition occurring at
-            # the current lived moment, not proof that another second has passed.
             elapsed = 0.0
         self.subject_proxy.prepare_elapsed(elapsed)
 

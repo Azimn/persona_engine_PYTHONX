@@ -10,10 +10,11 @@ subject identity.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
+from .services import ServiceContext
 from .simulation import RuleWorldModel
-from .types import CandidateAction, SimulationResult
+from .types import CandidateAction, CognitiveItem, SimulationResult
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,10 @@ class Affordance:
     confidence: float = 1.0
     cost: float = 0.0
     risk: float = 0.0
+    uncertainty: float = 0.0
+    reversibility: float = 1.0
+    expected_world_effects: dict[str, float] = field(default_factory=dict)
+    expected_self_effects: dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -106,3 +111,78 @@ class EmbodiedWorldModel(RuleWorldModel):
         if not outcome.executed:
             return {"execution_rejected": 1.0}, {}
         return dict(outcome.world_effects), dict(outcome.self_effects)
+
+
+class EmbodimentCognitiveService:
+    """Project body state and affordances into cognition without granting authority.
+
+    The body is both an execution boundary and a source of subject-relevant
+    evidence. This specialist returns a noncanonical workspace candidate that
+    describes current body state and converts known affordances into ordinary
+    action candidates. It cannot select or execute them.
+    """
+
+    service_name = "embodiment_state"
+
+    def __init__(self, port_provider: Callable[[], EmbodimentPort]):
+        self.port_provider = port_provider
+
+    @staticmethod
+    def _body_salience(state: dict[str, Any]) -> float:
+        values = [0.05]
+        for key in ("fatigue", "sensory_load", "tension", "need_for_movement", "pain", "damage"):
+            try:
+                values.append(max(0.0, min(1.0, float(state.get(key, 0.0)))))
+            except (TypeError, ValueError):
+                pass
+        try:
+            energy = float(state.get("energy", 1.0))
+            values.append(max(0.0, min(1.0, 1.0 - energy)))
+        except (TypeError, ValueError):
+            pass
+        return max(values)
+
+    def propose(self, context: ServiceContext) -> list[CognitiveItem]:
+        port = self.port_provider()
+        snapshot = port.snapshot()
+        affordances = list(port.affordances())
+        action_candidates = []
+        for index, item in enumerate(affordances):
+            if not port.supports(item.action_type):
+                continue
+            action_candidates.append({
+                "action_id": f"body-affordance:{context.tick}:{index}:{item.action_type}",
+                "action_type": item.action_type,
+                "parameters": dict(item.parameters),
+                "expected_world_effects": dict(item.expected_world_effects),
+                "expected_self_effects": dict(item.expected_self_effects),
+                "feasibility": max(0.0, min(1.0, float(item.confidence))),
+                "cost": max(0.0, float(item.cost)),
+                "risk": max(0.0, float(item.risk)),
+                "uncertainty": max(0.0, float(item.uncertainty)),
+                "reversibility": max(0.0, min(1.0, float(item.reversibility))),
+            })
+        payload = {
+            "body_id": snapshot.body_id,
+            "location": snapshot.location,
+            "orientation": snapshot.orientation,
+            "sensors": list(snapshot.sensors),
+            "effectors": list(snapshot.effectors),
+            "body_state": dict(snapshot.state),
+            "affordances": [item.to_dict() for item in affordances],
+            "action_candidates": action_candidates,
+        }
+        return [CognitiveItem(
+            item_id=f"body:{context.tick}:{snapshot.body_id}",
+            tick=context.tick,
+            kind="body_signal",
+            source_module=self.service_name,
+            subject_id=context.subject_id,
+            payload=payload,
+            confidence=1.0,
+            salience=self._body_salience(snapshot.state),
+            self_relevance=0.85,
+            novelty=0.05,
+            provenance={"source": "embodiment_port", "body_id": snapshot.body_id, "proposal_only": True},
+            canonical=False,
+        )]

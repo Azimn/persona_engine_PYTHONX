@@ -22,18 +22,22 @@ GitHub Actions DUCK CI run `33979909723` completed successfully on Python 3.11 a
 
 ## Future-build tranche 2
 
-The second integration closes several production gaps exposed by the first pass:
+Commit `10c33e6a3616b266a81fd55e25a25597db4c06f2` separated cognitive ticks from elapsed subject time, added circular Beat-Time routine learning, persisted future-runtime operational state, made DUCK checkpoint writes atomic, and added live body transfer plus restart tests.
 
-- cognitive cycles no longer have to imply one second of lived time in the future runtime. `TimedSubjectProxy` supplies explicit elapsed duration to Wayfarer's existing subject clock, while internal reflection can consume zero civil duration.
-- Beat Time now accompanies elapsed-between-observation metadata and remains independent of logical ticks.
-- `TemporalPatternBank` learns recurring event timing using circular Beat Time statistics, including patterns around `@000`, and can mark deviations as prediction evidence.
-- future-runtime operational state is persisted atomically alongside DUCK state so temporal anchors, learned timing patterns, endogenous cooldowns, event counters, and body history survive restart.
-- DUCK checkpoints now use atomic replace plus fsync, and trace appends are flushed before return.
-- live `swap_embodiment()` can attach a different body to the same subject while preserving learned world-model state and routing later executions through the new body.
-- tests now cover temporal duration, background-time behavior, learned timing, body transfer, and future-runtime restart.
+The tranche adds `TimedSubjectProxy`, so internal cognition can occur without manufacturing elapsed time while explicit civil-time observations advance Wayfarer's existing subject clock by the observed duration. `TemporalPatternBank` can learn recurring timing patterns across the `@000` boundary and convert deviations into explicit temporal evidence.
+
+## Future-build tranche 3
+
+The third integration makes embodiment cognitively bidirectional rather than merely an execution sink. `EmbodimentCognitiveService` projects body state and affordances into the same noncanonical candidate field as drives, memories, prediction errors, and optional model hypotheses. Body affordances can therefore influence ordinary workspace competition and action proposal without bypassing the action selector.
+
+Body transfer now emits a high-self-relevance `body_transfer` event so the organism can cognitively process a changed body rather than the host silently replacing hardware underneath it. Built-in cognitive services are de-duplicated when provider sets are swapped.
+
+The focused suite adds optional-service failure isolation. A broken proposal service must appear in `service_errors` while the cycle, subject identity, and canonical state transition remain valid.
+
+`tools/run_duck_future_probe.py` adds a deterministic multi-cycle production integration probe with explicit Beat time, learned temporal routines, persistence/restart, live body transfer, action execution, subject continuity, and service-error assertions. Future-branch CI now runs that probe in addition to the inherited suite and standard DUCK smoke test.
 
 ## Evidence state
 
 Each tranche must return branch CI to green before the next is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
 
-The next high-value integration should connect more of the mature Wayfarer private-cognition, body/sensorium, relationship, dream, and temporal-continuity components through explicit adapters rather than recreating them. It should also add long-run future-runtime probes, service/model failure tests, body-loss recovery, and local-model end-to-end evaluation.
+After tranche 3 is green, remaining high-value work is no longer missing macroarchitecture. It is integration depth and validation: connect more mature Wayfarer body/private-cognition/relationship/dream state through adapters, exercise a real local model in the complete future runtime, harden external tool sandboxes, add migration/backup/restore drills, and run long-horizon plus human continuity studies.
