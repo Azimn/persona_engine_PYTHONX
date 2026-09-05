@@ -33,6 +33,18 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e '.[test]'
 
+      - name: Gate expression delivery path
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python -m pytest persona_engine/tests/test_duck_future_expression.py::test_user_message_becomes_selected_communication_and_delivery_receipt -q
+
+      - name: Gate renderer-swap canonical invariance
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python -m pytest persona_engine/tests/test_duck_future_expression.py::test_expression_model_swap_changes_surface_not_duck_canonical_state -q
+
+      - name: Gate recorded expression replay
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python -m pytest persona_engine/tests/test_duck_future_expression.py::test_recorded_expression_is_reused_without_recalling_renderer -q
+
       - name: Run full inherited deterministic suite
         run: python -m pytest persona_engine/tests -q
 
