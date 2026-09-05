@@ -18,7 +18,7 @@ class CognitiveScheduler:
     def ingest(self, event: ExternalEvent) -> None:
         self.external.append(event)
 
-    def next_trigger(self, state: OrganismState, drives: DriveSystem) -> ExternalEvent | None:
+    def next_trigger(self, state: OrganismState, drives: DriveSystem, *, allow_drive_triggers: bool = True) -> ExternalEvent | None:
         if self.external:
             self.consecutive_endogenous = 0
             return self.external.popleft()
@@ -44,23 +44,24 @@ class CognitiveScheduler:
                 timestamp=float(state.tick),
             )
 
-        urgent = [drive for drive in drives.drives.values() if drive.urgency >= self.drive_threshold]
-        if urgent:
-            urgent.sort(key=lambda drive: (-drive.urgency, drive.name))
-            drive = urgent[0]
-            self.consecutive_endogenous += 1
-            return ExternalEvent(
-                event_id=f"internal:drive:{state.tick}:{drive.name}",
-                kind="internal_drive",
-                payload={
-                    "drive": drive.name,
-                    "salience": drive.urgency,
-                    "self_relevance": 1.0,
-                    "drive_relevance": drive.urgency,
-                },
-                source="scheduler",
-                timestamp=float(state.tick),
-            )
+        if allow_drive_triggers:
+            urgent = [drive for drive in drives.drives.values() if drive.urgency >= self.drive_threshold]
+            if urgent:
+                urgent.sort(key=lambda drive: (-drive.urgency, drive.name))
+                drive = urgent[0]
+                self.consecutive_endogenous += 1
+                return ExternalEvent(
+                    event_id=f"internal:drive:{state.tick}:{drive.name}",
+                    kind="internal_drive",
+                    payload={
+                        "drive": drive.name,
+                        "salience": drive.urgency,
+                        "self_relevance": 1.0,
+                        "drive_relevance": drive.urgency,
+                    },
+                    source="scheduler",
+                    timestamp=float(state.tick),
+                )
         return None
 
     def snapshot(self) -> dict:

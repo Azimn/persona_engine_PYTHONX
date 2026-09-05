@@ -18,10 +18,14 @@ DEFAULT_DRIVES = {
 
 class DriveSystem:
     def __init__(self, drives: dict[str, DriveState] | None = None):
-        self.drives = drives or {
-            name: DriveState(name=name, target=target, level=level, decay_per_tick=decay)
-            for name, (target, level, decay) in DEFAULT_DRIVES.items()
-        }
+        self.drives = (
+            drives
+            if drives is not None
+            else {
+                name: DriveState(name=name, target=target, level=level, decay_per_tick=decay)
+                for name, (target, level, decay) in DEFAULT_DRIVES.items()
+            }
+        )
 
     def step(self) -> dict[str, dict[str, float]]:
         changes: dict[str, dict[str, float]] = {}
