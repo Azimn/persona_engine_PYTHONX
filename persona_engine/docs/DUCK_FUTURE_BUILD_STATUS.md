@@ -44,23 +44,35 @@ The hardening sequence through commit `beff946c309aad92a6a025639d9c2d382cc046c4`
 
 Commit `25d0600261e9629eb1d9ad7b3db542366e97e10e` converted `ExpressionJournal` from an unbounded operational dictionary into a bounded hot cache (256 entries by default). Older exact realizations remain durable in the append-only DUCK execution trace and can be recovered without re-calling the renderer. Legacy journal state migrates into the bounded representation. Runtime status exposes cache size/limit and archive availability.
 
-CI `33987772528` passed on Python 3.11 and 3.12. The run included delivery, renderer-swap invariance, replay, host/API/backup tests, adversarial hardening tests, the full inherited suite, the focused DUCK suite, smoke test, and the 500-cycle future integration probe.
+CI `33987772528` passed on Python 3.11 and 3.12, including delivery, renderer-swap invariance, replay, host/API/backup tests, adversarial hardening tests, the full inherited suite, the focused DUCK suite, smoke test, and the 500-cycle future integration probe.
 
-## Current release-candidate phase
+### Tranche 7: production lifecycle acceptance and embodiment-feasible intention
 
-The macroarchitecture is now treated as frozen for the production-candidate experiment. The next gate is not another cognitive box. It is the production lifecycle acceptance probe in `tools/run_duck_acceptance.py`, which exercises the actual `FutureDuckHost` through repeated conversation, checkpointing, backup/restore, process restart, bounded hot-state assertions, and historical expression recovery while enforcing a stable subject identity.
+A new production-boundary acceptance probe exercises the actual `FutureDuckHost` through repeated input, checkpointing, backup/restore, process restart, bounded hot-state checks, and durable expression recovery while enforcing a stable subject identity.
 
-The criteria are formalized in `DUCK_PRODUCTION_CANDIDATE_GATE.md`.
+The first acceptance attempt exposed an invalid test assumption: after repeated messages DUCK autonomously selected `inspect` instead of `communicate`. The test was corrected because a user message is evidence/input, not a command that the organism must answer.
 
-## Evidence state
+The corrected test then exposed a real architectural defect. The current text body has `communicate` and `wait` effectors, but an exploration drive could still cause the organism to commit to `inspect`; the executor rejected the intention as `effector_unavailable`. Commit `2e2dbf2e6b6fea053ec86fe0c4bb838109532e3f` fixes this at the correct boundary: embodiment capability now filters candidate actions before simulation/selection/commit, while the executor independently checks capability again. If no proposed candidate is supported, DUCK can commit to a safe `wait` action rather than an impossible action.
 
-Code-completeness and longitudinal evidence are separate finish lines. After all hosted release-candidate gates are green, the remaining work is predominantly empirical and operational:
+CI `33988301256` passed the complete Python 3.11 and 3.12 matrix, including production lifecycle acceptance and the 500-cycle future integration probe.
+
+## Architecture-freeze milestone
+
+As of the tranche-7 build, the hosted production-candidate gate is passing. The macroarchitecture is now frozen for the controlled research phase.
+
+This means the project should not add another named cognitive subsystem simply because MicroPsi, LIDA, another cognitive architecture, or a new paper contains one. New architecture work must now be driven by a reproducible failure, a failing metric, or an authority/state-transition requirement that the current design cannot represent.
+
+The current code-side system includes a persistent subject, autobiographical/relationship continuity, explicit situation construction and self-attribution, homeostatic motivation, memory activation, limited global broadcast, world/self simulation, action generation/selection, embodiment-feasible commitment, execution and delivery evidence, prediction error, learning, metacognition, endogenous cognition, replaceable embodiment, renderer-isolated language realization, bounded hot persistence, durable historical evidence, restart, backup/restore, CLI, and local API.
+
+## Remaining finish lines
+
+The remaining work is predominantly empirical and operational rather than architectural:
 
 - run actual installed Ollama models on the target machine and perform renderer swaps;
-- run longer production-boundary soak tests and record memory/disk growth;
-- perform multi-day or multi-week continuity testing;
+- run longer production-boundary soak tests and record process memory, wall time, disk growth, backup size, and recovery behavior;
+- perform multi-day or multi-week continuity testing with the same persistent subject;
 - conduct blind model-swap and character-recognition evaluation;
 - run lesion/ablation studies against frozen baselines;
 - test additional embodiment/environment transfers.
 
-A green production-candidate build is sufficient for controlled research use. It is not by itself evidence of consciousness, sentience, or phenomenal experience, and it is not yet a public-production release claim.
+A green hosted production-candidate build is sufficient for controlled research/local experimentation. It is not by itself a public-production release claim, and it is not evidence of consciousness, sentience, or phenomenal experience.

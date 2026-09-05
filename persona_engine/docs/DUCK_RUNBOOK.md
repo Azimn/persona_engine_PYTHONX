@@ -71,9 +71,15 @@ Trace and full debug status endpoints return 403 unless debug mode is explicitly
 
 ## Persistence tiers
 
-DUCK keeps bounded state in its hot checkpoints and keeps durable historical evidence in append-only traces. In particular, rendered speech is held in a bounded expression hot cache (256 entries by default). When an exact old utterance has left that cache, replay looks it up in the durable DUCK execution trace instead of asking the current renderer to regenerate the wording.
+DUCK keeps bounded state in its hot checkpoints and keeps durable historical evidence in append-only traces. Rendered speech is held in a bounded expression hot cache (256 entries by default). When an exact old utterance has left that cache, replay looks it up in the durable DUCK execution trace instead of asking the current renderer to regenerate the wording.
 
 This distinction is intentional: a character may accumulate history for months or years without forcing every historical utterance into `future_runtime.json`.
+
+## Action feasibility
+
+The current embodiment constrains the action set before DUCK simulates and commits an intention. A text-channel body, for example, cannot commit to a physical `inspect` action merely because an exploration drive proposed it. If no proposed action is executable by the current body, the organism can select `wait`. The executor then performs the same capability check again before execution.
+
+This keeps cognition autonomous without letting it confuse a desired action with an available effector.
 
 ## Backup
 
@@ -107,10 +113,12 @@ Production-boundary lifecycle probe using the actual local host, offline rendere
 python tools/run_duck_acceptance.py --cycles 360
 ```
 
-A short CI-equivalent stress run is:
+The lifecycle probe respects autonomous action selection. It does not require DUCK to answer every input with speech; it requires the selected action to be feasible and successfully executed. Speech delivery is checked when `communicate` is selected.
+
+A focused expression-cache eviction test is:
 
 ```bash
-python tools/run_duck_acceptance.py --cycles 24 --expression-cache-limit 8
+python tools/run_duck_acceptance.py --cycles 24 --expression-cache-limit 8 --require-expression-eviction
 ```
 
 Real local-model probe, not faked in hosted CI:
@@ -127,4 +135,4 @@ Do not manually edit `wayfarer.sqlite3`, `duck/organism.json`, `duck/events.json
 
 The `duck-organism` branch at commit `f36e72f31a8127f7f779a8946e1777d8ad842bd4` remains the pre-future-build rollback line for the experiment.
 
-See `DUCK_PRODUCTION_CANDIDATE_GATE.md` before treating a green build as a finished public release.
+See `DUCK_PRODUCTION_CANDIDATE_GATE.md` for the architecture-freeze criteria and the remaining target-machine/research gates.

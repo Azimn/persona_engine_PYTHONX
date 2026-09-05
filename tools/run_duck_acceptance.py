@@ -48,7 +48,12 @@ def _assert_bounds(host: FutureDuckHost) -> dict[str, int]:
     }
 
 
-def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
+def run_acceptance(
+    cycles: int,
+    *,
+    expression_cache_limit: int = 256,
+    require_expression_eviction: bool = False,
+) -> dict:
     cycles = max(12, int(cycles))
     expression_cache_limit = max(2, int(expression_cache_limit))
 
@@ -100,8 +105,8 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
             metadata = execution.get("metadata", {}) if isinstance(execution, dict) else {}
 
             # A user message is input, not a command that DUCK must answer. The
-            # organism may autonomously select inspect/wait/etc. We only require
-            # delivered language when DUCK itself commits to communicate.
+            # organism may autonomously select any feasible action. We only
+            # require delivered language when DUCK itself commits to communicate.
             if selected_action == "communicate":
                 if not str(result.get("response") or "").strip():
                     raise RuntimeError(f"communicate action produced no delivered response at cycle {index}")
@@ -151,11 +156,6 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
 
         if first_speech_id is None or first_expression_text is None:
             raise RuntimeError("acceptance run produced no communicative expression evidence")
-        if responses <= expression_cache_limit:
-            raise RuntimeError(
-                "acceptance history did not select enough communicate actions to exercise expression eviction: "
-                f"responses={responses}, cache_limit={expression_cache_limit}"
-            )
 
         final_bounds = _assert_bounds(host)
         final_status = host.runtime.status()
@@ -167,9 +167,15 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
         if str(archived.get("text") or "") != first_expression_text:
             raise RuntimeError("historical expression text changed in durable trace")
 
+        eviction_expected = responses > expression_cache_limit
         first_still_hot = first_speech_id in host.runtime.expression_journal.rows
-        if first_still_hot:
-            raise RuntimeError("old expression remained in hot cache after communicative eviction threshold")
+        if require_expression_eviction and not eviction_expected:
+            raise RuntimeError(
+                "eviction gate did not select enough communicate actions: "
+                f"responses={responses}, cache_limit={expression_cache_limit}"
+            )
+        if eviction_expected and first_still_hot:
+            raise RuntimeError("old expression remained in hot cache after eviction threshold")
 
         if host.runtime.tick < initial_tick + cycles:
             raise RuntimeError("cognitive clock did not advance across the acceptance history")
@@ -190,7 +196,9 @@ def run_acceptance(cycles: int, *, expression_cache_limit: int = 256) -> dict:
             "process_restarts": process_restarts,
             "expression_cache_limit": expression_cache_limit,
             "expression_cache_size": len(host.runtime.expression_journal.rows),
-            "expression_eviction_verified": True,
+            "expression_eviction_required": bool(require_expression_eviction),
+            "expression_eviction_expected": eviction_expected,
+            "expression_eviction_verified": bool(eviction_expected and not first_still_hot),
             "first_expression_still_hot": first_still_hot,
             "first_expression_archive_recovered": True,
             "max_hot_state": max_observed,
@@ -205,12 +213,18 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--cycles", type=int, default=360)
     parser.add_argument("--expression-cache-limit", type=int, default=256)
+    parser.add_argument(
+        "--require-expression-eviction",
+        action="store_true",
+        help="fail unless enough communication occurs to force the oldest hot expression out of cache",
+    )
     parser.add_argument("--output", default="")
     args = parser.parse_args(argv)
 
     result = run_acceptance(
         args.cycles,
         expression_cache_limit=args.expression_cache_limit,
+        require_expression_eviction=args.require_expression_eviction,
     )
     text = json.dumps(result, indent=2, sort_keys=True)
     if args.output:
