@@ -10,8 +10,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
 import hashlib
-import json
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from .types import CandidateAction
 
@@ -158,16 +157,47 @@ class WayfarerExpressionPort:
         )
 
 
+ArchiveLookup = Callable[[str], dict[str, Any] | None]
+
+
 class ExpressionJournal:
-    """Recorded realizations make expression replayable without re-calling a model."""
+    """Bounded hot cache of rendered speech with optional durable archive lookup."""
 
-    def __init__(self, rows: dict[str, dict[str, Any]] | None = None):
-        self.rows = {str(key): dict(value) for key, value in (rows or {}).items()}
+    DEFAULT_MAX_ROWS = 256
 
-    def get(self, speech_id: str) -> ExpressionResult | None:
-        raw = self.rows.get(str(speech_id))
-        if not raw:
-            return None
+    def __init__(
+        self,
+        rows: dict[str, dict[str, Any]] | None = None,
+        *,
+        max_rows: int = DEFAULT_MAX_ROWS,
+        order: list[str] | tuple[str, ...] | None = None,
+        archive_lookup: ArchiveLookup | None = None,
+    ):
+        self.max_rows = max(1, int(max_rows))
+        self.archive_lookup = archive_lookup
+        self.rows: dict[str, dict[str, Any]] = {}
+        self.order: list[str] = []
+        source = {str(key): dict(value) for key, value in (rows or {}).items()}
+        if order:
+            ordered = [str(key) for key in order if str(key) in source]
+            seen = set(ordered)
+            ordered.extend(key for key in sorted(source, key=self._legacy_sort_key) if key not in seen)
+        else:
+            ordered = sorted(source, key=self._legacy_sort_key)
+        for key in ordered:
+            self._store_raw(key, source[key])
+
+    @staticmethod
+    def _legacy_sort_key(speech_id: str) -> tuple[int, str]:
+        parts = str(speech_id).split(":", 2)
+        try:
+            tick = int(parts[1]) if len(parts) > 1 else -1
+        except (TypeError, ValueError):
+            tick = -1
+        return tick, str(speech_id)
+
+    @staticmethod
+    def _decode(raw: dict[str, Any]) -> ExpressionResult:
         return ExpressionResult(
             text=str(raw.get("text", "")),
             provider=str(raw.get("provider", "recorded")),
@@ -178,16 +208,57 @@ class ExpressionJournal:
             diagnostics=dict(raw.get("diagnostics", {}) or {}),
         )
 
+    def _store_raw(self, speech_id: str, raw: dict[str, Any]) -> None:
+        key = str(speech_id)
+        if key in self.rows:
+            try:
+                self.order.remove(key)
+            except ValueError:
+                pass
+        self.rows[key] = dict(raw)
+        self.order.append(key)
+        while len(self.order) > self.max_rows:
+            evicted = self.order.pop(0)
+            self.rows.pop(evicted, None)
+
+    def get(self, speech_id: str) -> ExpressionResult | None:
+        key = str(speech_id)
+        raw = self.rows.get(key)
+        if raw is None and self.archive_lookup is not None:
+            archived = self.archive_lookup(key)
+            if archived:
+                self._store_raw(key, archived)
+                raw = self.rows.get(key)
+        if not raw:
+            return None
+        return self._decode(raw)
+
     def put(self, speech_id: str, result: ExpressionResult) -> None:
-        self.rows[str(speech_id)] = result.to_dict()
+        self._store_raw(str(speech_id), result.to_dict())
 
     def to_dict(self) -> dict[str, Any]:
-        return {"rows": {key: dict(self.rows[key]) for key in sorted(self.rows)}}
+        return {
+            "max_rows": self.max_rows,
+            "order": list(self.order),
+            "rows": {key: dict(self.rows[key]) for key in self.order if key in self.rows},
+        }
 
     @classmethod
-    def from_dict(cls, raw: dict[str, Any] | None) -> "ExpressionJournal":
+    def from_dict(
+        cls,
+        raw: dict[str, Any] | None,
+        *,
+        max_rows: int | None = None,
+        archive_lookup: ArchiveLookup | None = None,
+    ) -> "ExpressionJournal":
         raw = dict(raw or {})
-        return cls(raw.get("rows", {}))
+        persisted_limit = int(raw.get("max_rows", cls.DEFAULT_MAX_ROWS) or cls.DEFAULT_MAX_ROWS)
+        return cls(
+            raw.get("rows", {}),
+            max_rows=persisted_limit if max_rows is None else max_rows,
+            order=raw.get("order", []),
+            archive_lookup=archive_lookup,
+        )
 
 
 class ExpressionActionPreparer:
