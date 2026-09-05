@@ -69,6 +69,12 @@ Primary endpoints:
 
 Trace and full debug status endpoints return 403 unless debug mode is explicitly enabled.
 
+## Persistence tiers
+
+DUCK keeps bounded state in its hot checkpoints and keeps durable historical evidence in append-only traces. In particular, rendered speech is held in a bounded expression hot cache (256 entries by default). When an exact old utterance has left that cache, replay looks it up in the durable DUCK execution trace instead of asking the current renderer to regenerate the wording.
+
+This distinction is intentional: a character may accumulate history for months or years without forcing every historical utterance into `future_runtime.json`.
+
 ## Backup
 
 Save and create a portable archive:
@@ -89,10 +95,22 @@ Restoring over a nonempty destination requires the explicit `--overwrite` flag. 
 
 ## Deterministic probes
 
-Standard future integration probe:
+Cognitive/embodiment integration probe:
 
 ```bash
-python tools/run_duck_future_probe.py --cycles 200
+python tools/run_duck_future_probe.py --cycles 500
+```
+
+Production-boundary lifecycle probe using the actual local host, offline renderer, restart, backup/restore, bounded-state checks, and durable expression recovery:
+
+```bash
+python tools/run_duck_acceptance.py --cycles 360
+```
+
+A short CI-equivalent stress run is:
+
+```bash
+python tools/run_duck_acceptance.py --cycles 24 --expression-cache-limit 8
 ```
 
 Real local-model probe, not faked in hosted CI:
@@ -105,6 +123,8 @@ Use model names that actually appear in `ollama list` or `persona-engine-duck re
 
 ## Recovery discipline
 
-Do not manually edit `wayfarer.sqlite3`, `duck/organism.json`, or `duck/future_runtime.json` on a live subject. Restore from a verified backup or use an explicit migration. DUCK rejects a checkpoint whose state digest does not match, a host whose pinned-cartridge checksum changes unexpectedly, a backup whose payload hashes fail, and future-runtime schemas newer than the installed code understands.
+Do not manually edit `wayfarer.sqlite3`, `duck/organism.json`, `duck/events.jsonl`, or `duck/future_runtime.json` on a live subject. Restore from a verified backup or use an explicit migration. DUCK rejects a checkpoint whose state digest does not match, a host whose pinned-cartridge checksum changes unexpectedly, a backup whose payload hashes fail, and future-runtime schemas newer than the installed code understands.
 
 The `duck-organism` branch at commit `f36e72f31a8127f7f779a8946e1777d8ad842bd4` remains the pre-future-build rollback line for the experiment.
+
+See `DUCK_PRODUCTION_CANDIDATE_GATE.md` before treating a green build as a finished public release.

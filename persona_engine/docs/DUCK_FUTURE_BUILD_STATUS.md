@@ -6,60 +6,61 @@ Rollback commit: `f36e72f31a8127f7f779a8946e1777d8ad842bd4`
 
 ## Experiment rule
 
-The future-build branch attempts direct integration toward the finished-product architecture. The rollback branch is not modified during the experiment. A future-build mechanism is not considered complete merely because a file exists. It must be wired to a production boundary or test and must preserve subject authority, canonical write rules, replayability, and failure isolation.
+The future-build branch attempts direct integration toward the finished-product architecture. The rollback branch is not modified during the experiment. A mechanism is not considered complete merely because a file exists. It must be wired to a production boundary or test and must preserve subject authority, canonical write rules, replayability, and failure isolation.
 
 ## Baseline already present before this experiment
 
-The starting branch already includes the DUCK cognitive cycle, homeostatic drives, memory activation through the Wayfarer subject, global workspace competition, world/self simulation, action generation and selection, intention, execution policy, prediction error, learned world-model reliability, procedural learning, metacognition, canonical reducers, persistence/replay, proposal-only cognitive services, Ollama JSON services, model swap tests, and Wayfarer subject integration.
+The starting branch already included the DUCK cognitive cycle, homeostatic drives, memory activation through the Wayfarer subject, global workspace competition, world/self simulation, action generation and selection, intention, execution policy, prediction error, learned world-model reliability, procedural learning, metacognition, canonical reducers, persistence/replay, proposal-only cognitive services, Ollama JSON services, model-swap tests, and Wayfarer subject integration.
 
-The broader repository already provides the mature Wayfarer identity/continuity substrate, relationship and belief systems, ContinuityClock, body state, sensorium, private cognition, proactive-event logic, dream machinery, renderer controls, and long-horizon evidence probes. Future DUCK work should reuse these rather than build competing copies.
+The broader repository supplies the mature Wayfarer identity/continuity substrate, relationship and belief systems, ContinuityClock, body state, sensorium, private cognition, proactive-event logic, dream machinery, renderer controls, and long-horizon evidence probes. Future DUCK work reuses these rather than building competing copies.
 
-## Future-build tranche 1
+## Integrated future-build tranches
 
-Commit `c849a340c1da26c629ea382f09392f19d5cb3135` added the production-facing composition root, explicit UTC plus Beat Time, replaceable embodiment execution, bounded endogenous reflection, capability policy, focused tests, and the finished-product specification.
+### Tranche 1: production-facing organism shell
 
-GitHub Actions DUCK CI run `33979909723` completed successfully on Python 3.11 and 3.12.
+Commit `c849a340c1da26c629ea382f09392f19d5cb3135` added the production-facing composition root, explicit UTC plus Beat Time, replaceable embodiment execution, bounded endogenous reflection, capability policy, focused tests, and the finished-product specification. CI `33979909723` passed on Python 3.11 and 3.12.
 
-## Future-build tranche 2
+### Tranche 2: time, routine learning, restart, and body transfer
 
-Commit `10c33e6a3616b266a81fd55e25a25597db4c06f2` separated cognitive ticks from elapsed subject time, added circular Beat-Time routine learning, persisted future-runtime operational state, made DUCK checkpoint writes atomic, and added live body transfer plus restart tests.
+Commit `10c33e6a3616b266a81fd55e25a25597db4c06f2` separated cognitive ticks from elapsed subject time, added circular Beat-Time routine learning, persisted future-runtime operational state, made DUCK checkpoint writes atomic, and added live body transfer plus restart tests. CI `33980170651` passed on Python 3.11 and 3.12.
 
-GitHub Actions DUCK CI run `33980170651` completed successfully on Python 3.11 and 3.12.
+### Tranche 3: bidirectional embodiment and product probe
 
-## Future-build tranche 3
+Commit `b12cbf29c44b7b1414847e4a06f1d6eecc72aebd` made embodiment cognitively bidirectional, added body-transfer events, optional-service failure isolation, and the deterministic multi-cycle future-product probe. CI `33980524552` passed on Python 3.11 and 3.12.
 
-Commit `b12cbf29c44b7b1414847e4a06f1d6eecc72aebd` made embodiment cognitively bidirectional, added body-transfer events, optional-service failure isolation, and the deterministic multi-cycle future-product probe.
+### Tranche 4: selected-intention language expression
 
-GitHub Actions DUCK CI run `33980524552` completed successfully on Python 3.11 and 3.12, including the future-product integration probe.
+Commit `b867a9e77d928e2627a62465fa1d2eaaa5503f63` completed the selected-intention expression loop. `ExpressionActionPreparer` runs only after DUCK selects and commits a `communicate` action. A renderer may realize that semantic intention but cannot change the selected action ID/type. Renderer realization metadata is excluded from the canonical action ledger. CI `33982247866` passed on Python 3.11 and 3.12, including renderer-swap canonical invariance and exact expression replay.
 
-## Future-build tranche 4
+### Tranche 5: installable host, API, CLI, backup, and recovery
 
-The selected-intention expression loop is now integrated and green at commit `b867a9e77d928e2627a62465fa1d2eaaa5503f63`. GitHub Actions run `33982247866` passed on Python 3.11 and 3.12, including focused gates for delivery, renderer-swap canonical invariance, recorded-expression replay, the full inherited suite, DUCK smoke test, and future-product integration probe.
+`FutureDuckHost` is the production composition root for one persistent individual. It pins the character cartridge, opens Wayfarer and DUCK persistence together, verifies subject identity on restart, owns the reference text body, exposes validated renderer switching, and provides message/observation/save/status operations without becoming a new canonical authority.
 
-`ExpressionActionPreparer` runs only after DUCK has selected and committed a `communicate` action. It may realize that semantic intention through a Wayfarer renderer, deterministic fallback, or another future expression provider, but it is forbidden from changing the selected action ID or action type. Renderer realization metadata is deliberately excluded from the DUCK canonical action ledger and retained in trace/runtime evidence instead.
+The local FastAPI surface and `persona-engine-duck` CLI expose controlled operation. `DuckBackupManager` creates checksum-verified portable archives with a SQLite-consistent Wayfarer backup and rejects traversal, corruption, subject mismatch, unmanifested payloads, and accidental overwrite.
 
-`WayfarerExpressionPort` reuses the existing Wayfarer v2 expression trust boundary and output validator. `ExpressionJournal` records rendered output by stable speech ID so exact replay can reuse the actual utterance without silently asking a model to invent a replacement.
+The hardening sequence through commit `beff946c309aad92a6a025639d9c2d382cc046c4` added versioned runtime-state migration, future-schema refusal, adversarial action-preparer tests, policy-before-preparation checks, deterministic renderer-failure fallback, backup corruption detection, and bounded canonical ledgers. CI `33982847215` passed.
 
-`TextChannelEmbodimentPort` is the first complete reference body. It receives text, exposes communication as an affordance, delivers the realized utterance as an effector action, emits a host-authoritative `SpeechDeliveryReceipt`, and lets the runtime feed the receipt back into the Wayfarer subject's lived history.
+### Tranche 6: bounded expression history with durable replay
 
-## Future-build tranche 5
+Commit `25d0600261e9629eb1d9ad7b3db542366e97e10e` converted `ExpressionJournal` from an unbounded operational dictionary into a bounded hot cache (256 entries by default). Older exact realizations remain durable in the append-only DUCK execution trace and can be recovered without re-calling the renderer. Legacy journal state migrates into the bounded representation. Runtime status exposes cache size/limit and archive availability.
 
-The fifth integration turns the future architecture into an installable local product boundary rather than a library-only research assembly.
+CI `33987772528` passed on Python 3.11 and 3.12. The run included delivery, renderer-swap invariance, replay, host/API/backup tests, adversarial hardening tests, the full inherited suite, the focused DUCK suite, smoke test, and the 500-cycle future integration probe.
 
-`FutureDuckHost` is the production composition root for one persistent individual. It pins a cartridge into the subject directory, opens Wayfarer and DUCK persistence together, verifies subject identity on restart, owns the reference text body, exposes validated renderer switching, and provides message/observation/save/status operations without becoming a new canonical authority.
+## Current release-candidate phase
 
-`duck/api.py` adds a localhost-oriented FastAPI surface for health, messages, observations, stepping, saving, renderer discovery/configuration, and public status. Private trace/debug endpoints are disabled unless debug mode is explicitly enabled.
+The macroarchitecture is now treated as frozen for the production-candidate experiment. The next gate is not another cognitive box. It is the production lifecycle acceptance probe in `tools/run_duck_acceptance.py`, which exercises the actual `FutureDuckHost` through repeated conversation, checkpointing, backup/restore, process restart, bounded hot-state assertions, and historical expression recovery while enforcing a stable subject identity.
 
-`persona-engine-duck` adds terminal `chat`, one-shot `send`, `status`, `renderers`, `serve`, `backup`, and `restore` commands. Server binding is loopback-only unless the operator explicitly supplies `--allow-remote`.
-
-`DuckBackupManager` creates a portable checksum-verified archive containing the pinned cartridge, host metadata, a SQLite-consistent Wayfarer backup, and DUCK runtime/checkpoint state. Restore rejects path traversal, checksum mismatches, unmanifested files, subject mismatches, and accidental overwrite of a nonempty destination.
-
-`tools/run_duck_local_model_probe.py` is an optional real-Ollama end-to-end probe. Hosted CI does not pretend to validate a local model it cannot access. The tool verifies persistent subject and organism identity while swapping one or two installed Ollama models.
-
-The tranche's focused tests cover host restart continuity, local API routing and debug isolation, checksum-verified backup/restore, and overwrite refusal.
+The criteria are formalized in `DUCK_PRODUCTION_CANDIDATE_GATE.md`.
 
 ## Evidence state
 
-Each tranche must return branch CI to green before it is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
+Code-completeness and longitudinal evidence are separate finish lines. After all hosted release-candidate gates are green, the remaining work is predominantly empirical and operational:
 
-After tranche 5 is green, the remaining future-build work is production hardening and evidence rather than missing macroarchitecture: runtime schema migration tests, longer resource/stability probes, adversarial capability/preparer tests, backup corruption drills, real local-model execution on the target machine, and longitudinal/human continuity studies.
+- run actual installed Ollama models on the target machine and perform renderer swaps;
+- run longer production-boundary soak tests and record memory/disk growth;
+- perform multi-day or multi-week continuity testing;
+- conduct blind model-swap and character-recognition evaluation;
+- run lesion/ablation studies against frozen baselines;
+- test additional embodiment/environment transfers.
+
+A green production-candidate build is sufficient for controlled research use. It is not by itself evidence of consciousness, sentience, or phenomenal experience, and it is not yet a public-production release claim.

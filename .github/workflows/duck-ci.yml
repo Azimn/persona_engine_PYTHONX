@@ -53,6 +53,10 @@ jobs:
         if: startsWith(github.ref_name, 'duck-future')
         run: python -m pytest persona_engine/tests/test_duck_future_hardening.py -q
 
+      - name: Gate production lifecycle acceptance
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python tools/run_duck_acceptance.py --cycles 24 --expression-cache-limit 8 --output /tmp/duck-acceptance.json
+
       - name: Run full inherited deterministic suite
         run: python -m pytest persona_engine/tests -q
 
