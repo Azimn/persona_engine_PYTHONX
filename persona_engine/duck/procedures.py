@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from .types import CandidateAction, OrganismState, WorkspaceBroadcast, clamp
 
@@ -21,10 +21,37 @@ class Procedure:
     risk: float = 0.05
     reversibility: float = 0.8
 
+    def to_dict(self) -> dict:
+        raw = asdict(self)
+        raw["trigger_kinds"] = list(self.trigger_kinds)
+        raw["trigger_drives"] = list(self.trigger_drives)
+        return raw
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "Procedure":
+        raw = dict(raw)
+        raw["trigger_kinds"] = tuple(raw.get("trigger_kinds", ()))
+        raw["trigger_drives"] = tuple(raw.get("trigger_drives", ()))
+        return cls(**raw)
+
 
 class ProcedureRegistry:
-    def __init__(self, procedures: list[Procedure] | None = None):
+    def __init__(self, procedures: list[Procedure] | None = None, *, state: dict | None = None):
         self.procedures = {item.procedure_id: item for item in (procedures or [])}
+        if state:
+            self.restore(state)
+
+    def snapshot(self) -> dict:
+        return {"procedures": [self.procedures[key].to_dict() for key in sorted(self.procedures)]}
+
+    def restore(self, state: dict | None) -> None:
+        for raw in (state or {}).get("procedures", []):
+            item = Procedure.from_dict(raw)
+            existing = self.procedures.get(item.procedure_id)
+            if existing is None:
+                self.procedures[item.procedure_id] = item
+            else:
+                existing.confidence = item.confidence
 
     def add(self, procedure: Procedure) -> None:
         self.procedures[procedure.procedure_id] = procedure

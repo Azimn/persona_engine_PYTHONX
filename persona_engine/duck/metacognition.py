@@ -8,10 +8,28 @@ from .types import clamp
 
 
 class CalibrationMonitor:
-    def __init__(self, width: int = 32):
-        self.world_errors = deque(maxlen=max(1, int(width)))
-        self.self_errors = deque(maxlen=max(1, int(width)))
+    def __init__(self, width: int = 32, *, state: dict | None = None):
+        self.width = max(1, int(width))
+        self.world_errors = deque(maxlen=self.width)
+        self.self_errors = deque(maxlen=self.width)
         self.last_simulation_confidence = 0.0
+        if state:
+            self.restore(state)
+
+    def snapshot(self) -> dict:
+        return {
+            "width": self.width,
+            "world_errors": list(self.world_errors),
+            "self_errors": list(self.self_errors),
+            "last_simulation_confidence": self.last_simulation_confidence,
+        }
+
+    def restore(self, state: dict | None) -> None:
+        state = state or {}
+        self.width = max(1, int(state.get("width", self.width)))
+        self.world_errors = deque([max(0.0, float(v)) for v in state.get("world_errors", [])], maxlen=self.width)
+        self.self_errors = deque([max(0.0, float(v)) for v in state.get("self_errors", [])], maxlen=self.width)
+        self.last_simulation_confidence = clamp(state.get("last_simulation_confidence", 0.0))
 
     def observe(self, *, world_error: float, self_error: float, simulation_confidence: float) -> None:
         self.world_errors.append(max(0.0, float(world_error)))

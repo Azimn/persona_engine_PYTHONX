@@ -14,27 +14,28 @@ def effect_error(predicted: dict[str, float], observed: dict[str, float]) -> flo
     keys = sorted(set(predicted) | set(observed))
     if not keys:
         return 0.0
-    total = 0.0
-    for key in keys:
-        total += abs(float(predicted.get(key, 0.0)) - float(observed.get(key, 0.0)))
-    return total / len(keys)
+    return sum(abs(float(predicted.get(key, 0.0)) - float(observed.get(key, 0.0))) for key in keys) / len(keys)
 
 
 class RuleWorldModel:
-    """Small inspectable simulation substrate.
+    """Small inspectable simulation substrate with persistable reliability."""
 
-    Rules may later be replaced or augmented by learned models or an LLM helper.
-    The simulator owns rollouts only; it never commits state.
-    """
-
-    def __init__(self):
+    def __init__(self, state: dict | None = None):
         self.rules: dict[str, Rule] = {}
-        self.reliability: dict[str, float] = {}
+        self.reliability: dict[str, float] = {
+            str(key): clamp(value) for key, value in (state or {}).get("reliability", {}).items()
+        }
         self.outcome_overrides: dict[str, tuple[dict[str, float], dict[str, float]]] = {}
+
+    def snapshot(self) -> dict:
+        return {"reliability": {key: float(value) for key, value in sorted(self.reliability.items())}}
+
+    def restore(self, state: dict | None) -> None:
+        self.reliability = {str(key): clamp(value) for key, value in (state or {}).get("reliability", {}).items()}
 
     def register(self, action_type: str, rule: Rule, *, reliability: float = 0.80) -> None:
         self.rules[str(action_type)] = rule
-        self.reliability[str(action_type)] = clamp(reliability)
+        self.reliability.setdefault(str(action_type), clamp(reliability))
 
     def set_outcome_override(self, action_type: str, world: dict[str, float], self_effects: dict[str, float]) -> None:
         self.outcome_overrides[str(action_type)] = (dict(world), dict(self_effects))
