@@ -34,20 +34,32 @@ GitHub Actions DUCK CI run `33980524552` completed successfully on Python 3.11 a
 
 ## Future-build tranche 4
 
-The fourth integration closes the most important remaining architectural loop: selected cognition can now become language without handing the language model control of cognition.
+The selected-intention expression loop is now integrated and green at commit `b867a9e77d928e2627a62465fa1d2eaaa5503f63`. GitHub Actions run `33982247866` passed on Python 3.11 and 3.12, including focused gates for delivery, renderer-swap canonical invariance, recorded-expression replay, the full inherited suite, DUCK smoke test, and future-product integration probe.
 
-`ExpressionActionPreparer` runs only after DUCK has selected and committed a `communicate` action. It may realize that semantic intention through a Wayfarer renderer, deterministic fallback, or another future expression provider, but it is forbidden from changing the selected action ID or action type. The renderer's output is therefore an execution-stage realization rather than a second planner.
+`ExpressionActionPreparer` runs only after DUCK has selected and committed a `communicate` action. It may realize that semantic intention through a Wayfarer renderer, deterministic fallback, or another future expression provider, but it is forbidden from changing the selected action ID or action type. Renderer realization metadata is deliberately excluded from the DUCK canonical action ledger and retained in trace/runtime evidence instead.
 
-`WayfarerExpressionPort` reuses the existing Wayfarer v2 expression trust boundary and output validator instead of creating a competing prompt architecture. `ExpressionJournal` records rendered output by stable speech ID so replay can reuse the actual utterance instead of silently asking a model to invent a new one.
+`WayfarerExpressionPort` reuses the existing Wayfarer v2 expression trust boundary and output validator. `ExpressionJournal` records rendered output by stable speech ID so exact replay can reuse the actual utterance without silently asking a model to invent a replacement.
 
-`TextChannelEmbodimentPort` is the first complete reference body. It receives text as sensory input, exposes communication as an affordance, delivers the realized utterance as an effector action, emits a host-authoritative `SpeechDeliveryReceipt`, and lets the runtime feed that receipt back into the Wayfarer subject's lived history.
+`TextChannelEmbodimentPort` is the first complete reference body. It receives text, exposes communication as an affordance, delivers the realized utterance as an effector action, emits a host-authoritative `SpeechDeliveryReceipt`, and lets the runtime feed the receipt back into the Wayfarer subject's lived history.
 
-`FutureDuckRuntime.ingest_user_message()` now turns a message into a perceptual event plus an ordinary candidate communication action. A user message does not call a renderer directly. It must survive the same workspace, simulation, selection, policy, expression, embodiment, outcome, and learning path as every other action.
+## Future-build tranche 5
 
-The focused tests verify that language follows selected intention, that delivery creates lived evidence, that changing expression models changes surface wording without changing DUCK canonical state, and that a recorded expression is reused without re-calling the renderer.
+The fifth integration turns the future architecture into an installable local product boundary rather than a library-only research assembly.
+
+`FutureDuckHost` is the production composition root for one persistent individual. It pins a cartridge into the subject directory, opens Wayfarer and DUCK persistence together, verifies subject identity on restart, owns the reference text body, exposes validated renderer switching, and provides message/observation/save/status operations without becoming a new canonical authority.
+
+`duck/api.py` adds a localhost-oriented FastAPI surface for health, messages, observations, stepping, saving, renderer discovery/configuration, and public status. Private trace/debug endpoints are disabled unless debug mode is explicitly enabled.
+
+`persona-engine-duck` adds terminal `chat`, one-shot `send`, `status`, `renderers`, `serve`, `backup`, and `restore` commands. Server binding is loopback-only unless the operator explicitly supplies `--allow-remote`.
+
+`DuckBackupManager` creates a portable checksum-verified archive containing the pinned cartridge, host metadata, a SQLite-consistent Wayfarer backup, and DUCK runtime/checkpoint state. Restore rejects path traversal, checksum mismatches, unmanifested files, subject mismatches, and accidental overwrite of a nonempty destination.
+
+`tools/run_duck_local_model_probe.py` is an optional real-Ollama end-to-end probe. Hosted CI does not pretend to validate a local model it cannot access. The tool verifies persistent subject and organism identity while swapping one or two installed Ollama models.
+
+The tranche's focused tests cover host restart continuity, local API routing and debug isolation, checksum-verified backup/restore, and overwrite refusal.
 
 ## Evidence state
 
 Each tranche must return branch CI to green before it is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
 
-After tranche 4 is green, the remaining engineering work required for a production-candidate future version is concentrated at the host boundary: a stable local API, restart/backup/recovery tooling, a clean production composition builder, real local-model probe commands, migration/version checks, and longer adversarial/stability gates. The cognitive macroarchitecture itself is now represented by executable interfaces rather than architecture-only boxes.
+After tranche 5 is green, the remaining future-build work is production hardening and evidence rather than missing macroarchitecture: runtime schema migration tests, longer resource/stability probes, adversarial capability/preparer tests, backup corruption drills, real local-model execution on the target machine, and longitudinal/human continuity studies.

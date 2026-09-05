@@ -35,6 +35,7 @@ ollama = [
 [project.scripts]
 persona-engine-sim = "persona_engine.simulator:main"
 persona-engine-ui = "persona_engine.cli:run_ui"
+persona-engine-duck = "persona_engine.duck.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["persona_engine*"]
