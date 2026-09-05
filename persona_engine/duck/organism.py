@@ -29,6 +29,7 @@ from .simulation import RuleWorldModel, SimulationResult, effect_error
 from .situation import SituationConstructor
 from .subject_adapter import SubjectPort
 from .types import (
+    CandidateAction,
     CognitiveItem,
     CycleTrace,
     ExternalEvent,
@@ -180,6 +181,21 @@ class DuckOrganism:
             or ""
         ).strip()
 
+    @staticmethod
+    def _wait_action(tick: int, *, reason: str) -> CandidateAction:
+        return CandidateAction(
+            action_id=f"wait:{tick}:embodiment",
+            action_type="wait",
+            expected_world_effects={},
+            expected_self_effects={},
+            feasibility=1.0,
+            cost=0.0,
+            risk=0.0,
+            uncertainty=0.0,
+            reversibility=1.0,
+            provenance={"source": "embodiment_fallback", "reason": reason},
+        )
+
     def step(self, *, budget_ms: int | None = None) -> CycleTrace | None:
         del budget_ms
         trigger = self.scheduler.next_trigger(
@@ -287,6 +303,21 @@ class DuckOrganism:
             "subject": self.subject.snapshot(),
             "confirmed": bool(trigger.payload.get("confirmed", False)),
         }
+
+        # An intention is a commitment, so body feasibility must constrain the
+        # candidate set before simulation/selection. The executor still checks
+        # capability again as the final authority boundary. If a cognitive drive
+        # proposes an action this body cannot perform, waiting is preferable to
+        # committing to an impossible action and discovering that only afterward.
+        embodiment_actions = [
+            candidate for candidate in actions
+            if self.executor.embodiment.supports(candidate.action_type)
+        ]
+        if embodiment_actions:
+            actions = embodiment_actions
+        else:
+            actions = [self._wait_action(tick, reason="no_supported_candidate")]
+
         if self.config.enable_simulation:
             simulations = [self.world_model.simulate(action, context) for action in actions]
         else:
