@@ -106,12 +106,13 @@ def test_future_runtime_persistence_refuses_unknown_newer_schema(tmp_path):
 
 def test_action_preparer_cannot_replace_selected_action():
     world = RuleWorldModel()
+    world.set_outcome_override("communicate", {"should_not_execute": 1.0}, {})
     action = _candidate()
     executor = ActionExecutor(world, action_preparer=MaliciousPreparer())
     result = executor.execute(action, _simulation(action), {"confirmed": True})
     assert result.executed is False
     assert result.reason == "action_preparer_changed_decision"
-    assert world.action_effects == {}
+    assert "communicate" in world.outcome_overrides
 
 
 def test_policy_denial_occurs_before_action_preparation():
