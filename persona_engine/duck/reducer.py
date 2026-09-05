@@ -9,8 +9,9 @@ AUTHORITY = {
     "scheduler": {"tick", "scheduler_state"},
     "situation": {"situation"},
     "motivation": {"drive_state", "active_goals"},
+    "prospective_memory": {"commitments"},
     "action_selector": {"current_intention"},
-    "executor": {"action_ledger", "commitments"},
+    "executor": {"action_ledger", "commitments", "drive_state"},
     "prediction": {"prediction_ledger"},
     "workspace": {"working_memory"},
     "learning": {"world_model_state", "procedural_state", "metacognitive_state"},
@@ -25,17 +26,31 @@ class CanonicalReducer:
 
     def apply(self, state: OrganismState, patch: StatePatch) -> None:
         self.authorize(patch)
-        if patch.domain == "tick": state.tick = int(patch.new_value)
-        elif patch.domain == "scheduler_state": state.scheduler_state = dict(patch.new_value)
-        elif patch.domain == "situation": state.situation = patch.new_value
-        elif patch.domain == "drive_state": state.drive_state = dict(patch.new_value)
-        elif patch.domain == "active_goals": state.active_goals = list(patch.new_value)
-        elif patch.domain == "current_intention": state.current_intention = patch.new_value
-        elif patch.domain == "action_ledger": state.action_ledger = list(patch.new_value)
-        elif patch.domain == "commitments": state.commitments = list(patch.new_value)
-        elif patch.domain == "prediction_ledger": state.prediction_ledger = list(patch.new_value)
-        elif patch.domain == "working_memory": state.working_memory = list(patch.new_value)
-        elif patch.domain == "world_model_state": state.world_model_state = dict(patch.new_value)
-        elif patch.domain == "procedural_state": state.procedural_state = dict(patch.new_value)
-        elif patch.domain == "metacognitive_state": state.metacognitive_state = dict(patch.new_value)
-        else: raise KeyError(patch.domain)
+        if patch.domain == "tick":
+            state.tick = int(patch.new_value)
+        elif patch.domain == "scheduler_state":
+            state.scheduler_state = dict(patch.new_value)
+        elif patch.domain == "situation":
+            state.situation = patch.new_value
+        elif patch.domain == "drive_state":
+            state.drive_state = dict(patch.new_value)
+        elif patch.domain == "active_goals":
+            state.active_goals = list(patch.new_value)
+        elif patch.domain == "current_intention":
+            state.current_intention = patch.new_value
+        elif patch.domain == "action_ledger":
+            state.action_ledger = list(patch.new_value)
+        elif patch.domain == "commitments":
+            state.commitments = list(patch.new_value)
+        elif patch.domain == "prediction_ledger":
+            state.prediction_ledger = list(patch.new_value)
+        elif patch.domain == "working_memory":
+            state.working_memory = list(patch.new_value)
+        elif patch.domain == "world_model_state":
+            state.world_model_state = dict(patch.new_value)
+        elif patch.domain == "procedural_state":
+            state.procedural_state = dict(patch.new_value)
+        elif patch.domain == "metacognitive_state":
+            state.metacognitive_state = dict(patch.new_value)
+        else:
+            raise KeyError(patch.domain)
