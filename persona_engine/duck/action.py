@@ -108,6 +108,12 @@ class ActionSelector:
         cost = action.cost * -0.18
         risk = action.risk * -0.28
         uncertainty = action.uncertainty * -0.16
+        # Waiting is a safe fallback, not a free positive action. Without a
+        # small opportunity-cost term it can dominate useful, low-risk learned
+        # procedures merely because it has perfect feasibility/reversibility.
+        # The penalty is intentionally modest so high-risk actions can still
+        # lose to inaction when that is the better choice.
+        inaction = -0.12 if action.action_type == "wait" else 0.0
         breakdown = {
             "goal": goal,
             "drive": drive,
@@ -119,6 +125,7 @@ class ActionSelector:
             "cost": cost,
             "risk": risk,
             "uncertainty": uncertainty,
+            "inaction": inaction,
         }
         return sum(breakdown.values()), breakdown
 
