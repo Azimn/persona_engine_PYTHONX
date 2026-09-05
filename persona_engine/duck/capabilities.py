@@ -56,3 +56,8 @@ class CapabilityRegistry:
 
     def snapshot(self) -> dict[str, Any]:
         return {"capabilities": [item.to_dict() for item in self.descriptors()]}
+
+    @classmethod
+    def from_snapshot(cls, raw: dict[str, Any] | None) -> "CapabilityRegistry":
+        raw = dict(raw or {})
+        return cls([CapabilityDescriptor(**item) for item in raw.get("capabilities", [])])

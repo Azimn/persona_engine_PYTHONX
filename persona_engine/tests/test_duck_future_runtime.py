@@ -1,9 +1,13 @@
+from pathlib import Path
+
 from persona_engine.duck.capabilities import CapabilityDescriptor, CapabilityRegistry
 from persona_engine.duck.embodiment_port import Affordance, BodySnapshot, EmbodimentOutcome
 from persona_engine.duck.future_runtime import FutureDuckRuntime, FutureRuntimeConfig
 from persona_engine.duck.motivation import DriveSystem
+from persona_engine.duck.persistence import DuckPersistence
+from persona_engine.duck.temporal_patterns import TemporalPatternBank
 from persona_engine.duck.timebase import TemporalAuthority, swatch_beat
-from persona_engine.duck.types import CandidateAction, DriveState
+from persona_engine.duck.types import DriveState
 
 
 class FakeSubject:
@@ -26,9 +30,8 @@ class FakeSubject:
 
 
 class FakeBody:
-    body_id = "pond-body"
-
-    def __init__(self):
+    def __init__(self, body_id="pond-body"):
+        self.body_id = body_id
         self.pending = []
         self.executed = []
 
@@ -68,31 +71,34 @@ def urgent_certainty():
     })
 
 
+def install_urgent_certainty(runtime):
+    runtime.organism.drives = urgent_certainty()
+    runtime.organism.state.drive_state = runtime.organism.drives.drives
+    runtime.organism.action_selector.drives = runtime.organism.drives
+
+
 def test_swatch_internet_time_uses_bmt_and_never_requires_host_clock():
     authority = TemporalAuthority()
-    midnight_utc = 0.0
-    stamp = authority.observe(midnight_utc, logical_tick=7)
+    stamp = authority.observe(0.0, logical_tick=7)
     assert stamp.beat == 41.667
     assert stamp.logical_tick == 7
     assert stamp.utc_iso == "1970-01-01T00:00:00Z"
-    assert swatch_beat(midnight_utc) == 41.667
+    assert swatch_beat(0.0) == 41.667
 
 
-def test_backward_civil_clock_is_diagnostic_not_negative_subject_time():
+def test_backward_civil_clock_is_diagnostic_not_negative_elapsed():
     authority = TemporalAuthority()
     authority.observe(200.0, logical_tick=1)
     stamp = authority.observe(150.0, logical_tick=2)
     assert stamp.clock_regression_seconds == 50.0
-    assert stamp.logical_tick == 2
+    assert stamp.elapsed_since_prior_utc == 0.0
 
 
 def test_future_runtime_routes_execution_through_replaceable_body():
     subject = FakeSubject()
     body = FakeBody()
     runtime = FutureDuckRuntime(subject, embodiment=body)
-    runtime.organism.drives = urgent_certainty()
-    runtime.organism.state.drive_state = runtime.organism.drives.drives
-    runtime.organism.action_selector.drives = runtime.organism.drives
+    install_urgent_certainty(runtime)
     runtime.ingest_observation({"description": "quiet pond", "salience": 0.01}, event_id="e1")
     trace = runtime.step()
     assert trace is not None
@@ -135,6 +141,18 @@ def test_endogenous_reflection_can_open_private_cycle_without_direct_speech():
     assert trace.trigger["kind"] == "internal_reflection"
     assert trace.trigger["payload"]["private"] is True
     assert runtime.organism.current_state().tick == 1
+    assert subject.elapsed == 0.0
+
+
+def test_explicit_civil_time_advances_subject_by_observed_duration_not_cycle_count():
+    subject = FakeSubject()
+    runtime = FutureDuckRuntime(subject)
+    runtime.ingest_observation({"description": "first"}, utc_epoch=1000.0, event_id="e1")
+    runtime.step()
+    assert subject.elapsed == 1.0  # first civil anchor has no prior duration, so configured fallback applies
+    runtime.ingest_observation({"description": "later"}, utc_epoch=1090.0, event_id="e2")
+    runtime.step()
+    assert subject.elapsed == 91.0
 
 
 def test_explicit_civil_time_is_carried_as_memory_ready_event_metadata():
@@ -143,3 +161,45 @@ def test_explicit_civil_time_is_carried_as_memory_ready_event_metadata():
     event = runtime.observe_civil_time(0.0)
     assert event.payload["temporal_stamp"]["beat"] == 41.667
     assert event.payload["temporal_stamp"]["bmt_date"] == "1970-01-01"
+
+
+def test_temporal_patterns_learn_across_beat_day_boundary():
+    bank = TemporalPatternBank()
+    for beat in (995.0, 5.0, 0.0, 998.0):
+        bank.observe("arrival", beat)
+    assessment = bank.assess("arrival", 8.0)
+    assert assessment["learned"] is True
+    assert assessment["distance_beats"] < 20.0
+    late = bank.assess("arrival", 300.0)
+    assert late["unexpected"] is True
+
+
+def test_body_swap_preserves_subject_and_routes_next_action_to_new_body():
+    subject = FakeSubject()
+    first = FakeBody("body-a")
+    second = FakeBody("body-b")
+    runtime = FutureDuckRuntime(subject, embodiment=first)
+    install_urgent_certainty(runtime)
+    runtime.ingest_observation({"description": "before swap"}, event_id="e1")
+    runtime.step()
+    runtime.swap_embodiment(second)
+    runtime.ingest_observation({"description": "after swap"}, event_id="e2")
+    runtime.step()
+    assert runtime.subject_id == "future-duck"
+    assert runtime.status()["body_history"] == ["body-a", "body-b"]
+    assert second.executed
+
+
+def test_future_runtime_operational_state_survives_restart(tmp_path: Path):
+    subject = FakeSubject()
+    persistence = DuckPersistence(tmp_path)
+    runtime = FutureDuckRuntime(subject, persistence=persistence)
+    runtime.ingest_observation({"description": "arrival", "temporal_pattern_key": "user-arrival"}, utc_epoch=1000.0, event_id="e1")
+    runtime.step()
+    runtime.save()
+    state = persistence.load()
+
+    restarted = FutureDuckRuntime(subject, persistence=persistence, state=state)
+    assert restarted.time.last_utc_epoch == 1000.0
+    assert restarted.patterns.routines["user-arrival"].count == 1
+    assert restarted.subject_id == runtime.subject_id

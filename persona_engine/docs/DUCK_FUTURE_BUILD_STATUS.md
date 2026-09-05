@@ -14,18 +14,26 @@ The starting branch already includes the DUCK cognitive cycle, homeostatic drive
 
 The broader repository already provides the mature Wayfarer identity/continuity substrate, relationship and belief systems, ContinuityClock, body state, sensorium, private cognition, proactive-event logic, dream machinery, renderer controls, and long-horizon evidence probes. Future DUCK work should reuse these rather than build competing copies.
 
-## Added by the first future-build integration
+## Future-build tranche 1
 
-- `duck/timebase.py`: explicit UTC observations plus Swatch Internet Time derived as `bmt_date` and `@beat`, while logical tick and subject elapsed time remain separate.
-- `duck/embodiment_port.py`: replaceable body interface plus a world-model adapter that routes committed actions through the body while retaining independent internal simulation.
-- `duck/endogenous.py`: bounded background-cognition trigger policy and proposal-only reflection specialist. Reflection cannot directly speak or write canonical state.
-- `duck/capabilities.py`: declared action/tool capabilities and execution-policy derivation.
-- `duck/future_runtime.py`: production-facing composition root around the existing DuckOrganism and Wayfarer subject.
-- `tests/test_duck_future_runtime.py`: focused tests for Beat Time, clock regressions, body execution, sensor ingestion, capability policy, and endogenous cycles.
-- `docs/DUCK_FUTURE_PRODUCT_SPEC.md`: finished-product target and promotion gates.
+Commit `c849a340c1da26c629ea382f09392f19d5cb3135` added the production-facing composition root, explicit UTC plus Beat Time, replaceable embodiment execution, bounded endogenous reflection, capability policy, focused tests, and the finished-product specification.
+
+GitHub Actions DUCK CI run `33979909723` completed successfully on Python 3.11 and 3.12. The workflow ran the full inherited deterministic suite, the focused DUCK suite, and the DUCK smoke entry point. This establishes regression compatibility for tranche 1, not full production validation.
+
+## Future-build tranche 2
+
+The second integration closes several production gaps exposed by the first pass:
+
+- cognitive cycles no longer have to imply one second of lived time in the future runtime. `TimedSubjectProxy` supplies explicit elapsed duration to Wayfarer's existing subject clock, while internal reflection can consume zero civil duration.
+- Beat Time now accompanies elapsed-between-observation metadata and remains independent of logical ticks.
+- `TemporalPatternBank` learns recurring event timing using circular Beat Time statistics, including patterns around `@000`, and can mark deviations as prediction evidence.
+- future-runtime operational state is persisted atomically alongside DUCK state so temporal anchors, learned timing patterns, endogenous cooldowns, event counters, and body history survive restart.
+- DUCK checkpoints now use atomic replace plus fsync, and trace appends are flushed before return.
+- live `swap_embodiment()` can attach a different body to the same subject while preserving learned world-model state and routing later executions through the new body.
+- tests now cover temporal duration, background-time behavior, learned timing, body transfer, and future-runtime restart.
 
 ## Evidence state
 
-No new mechanism is considered verified until branch CI reports green. The future product specification is a target, not an assertion that all production validation has already occurred.
+Each tranche must return branch CI to green before the next is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
 
-After CI is green, the next direct-integration tranche should prioritize reuse of Wayfarer continuity/body/private-cognition components inside the future composition root, richer temporal expectation learning, crash-safe future-runtime persistence, body-swap tests, long-run resource probes, and real local-model end-to-end evaluation.
+The next high-value integration should connect more of the mature Wayfarer private-cognition, body/sensorium, relationship, dream, and temporal-continuity components through explicit adapters rather than recreating them. It should also add long-run future-runtime probes, service/model failure tests, body-loss recovery, and local-model end-to-end evaluation.

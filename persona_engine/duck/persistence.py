@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 from .types import CycleTrace, OrganismState
@@ -24,7 +25,13 @@ class DuckPersistence:
     def save(self, state: OrganismState) -> str:
         payload = state.to_dict()
         payload["state_sha256"] = self.digest_state(state)
-        self.checkpoint_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        encoded = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+        temporary = self.checkpoint_path.with_suffix(".json.tmp")
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, self.checkpoint_path)
         return payload["state_sha256"]
 
     def load(self) -> OrganismState:
@@ -39,3 +46,5 @@ class DuckPersistence:
     def append_trace(self, trace: CycleTrace) -> None:
         with self.event_log_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(trace.to_dict(), sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
