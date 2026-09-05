@@ -193,7 +193,6 @@ class DuckOrganism:
         tick = self.state.tick
         patches: list[StatePatch] = []
 
-        # CONSTRUCT. Work on a copy, then authorize the current-situation write.
         old_situation = deepcopy(self.state.situation)
         next_situation = deepcopy(self.state.situation)
         situation_changes, event_item = self.situation_constructor.update(
@@ -204,16 +203,12 @@ class DuckOrganism:
             "construct current situation from source evidence", (trigger.event_id,),
         ), patches)
 
-        # ATTRIBUTE. This is a noncanonical subject-relative view; the attached
-        # subject may separately encode the event through its own authority APIs.
         attribution_frame = self.attribution.attribute(trigger, subject_id=self.state.subject_id, tick=tick)
         attribution_item = self.attribution.as_cognitive_item(
             attribution_frame, tick=tick, subject_id=self.state.subject_id
         )
         subject_result = self.subject.observe_event(trigger.payload)
 
-        # APPRAISE/MOTIVATE. Drive and goal changes are proposed on copies and
-        # become organism state only through the motivation authority.
         if self.config.enable_motivation:
             working_drives = DriveSystem(deepcopy(self.state.drive_state))
             working_goals = deepcopy(self.state.active_goals)
@@ -238,8 +233,6 @@ class DuckOrganism:
             drive_changes = {"lesion": {"motivation": 1.0}}
             drive_items = []
 
-        # ACTIVATE. Existing Wayfarer memory remains subject-owned; DUCK merely
-        # receives noncanonical activations for the current attentional economy.
         items: list[CognitiveItem] = [event_item, attribution_item]
         items.extend(drive_items)
         if self.config.enable_memory_activation:
@@ -270,8 +263,6 @@ class DuckOrganism:
         ))
         items.extend(service_items)
 
-        # COMPETE/BROADCAST. One winner changes bounded working memory, making
-        # global availability causally consequential rather than telemetry.
         broadcast = self.workspace.compete(items, tick=tick) if self.config.enable_workspace else None
         if broadcast is not None:
             updated_working = (
@@ -283,7 +274,6 @@ class DuckOrganism:
                 (broadcast.winner.item_id,),
             ), patches)
 
-        # SIMULATE/SELECT/COMMIT.
         actions = self.action_generator.generate(self.state, broadcast)
         actions.extend(self.procedures.candidates(self.state, broadcast))
         by_id = {action.action_id: action for action in actions}
@@ -317,13 +307,10 @@ class DuckOrganism:
             (broadcast.winner.item_id,) if broadcast else (),
         ), patches)
 
-        # ACT. Executor policy and embodiment constraints are independent of the
-        # simulator and language services.
         execution = self.executor.execute(action, simulation, context)
         observed_world = execution.world_effects
         observed_self = execution.self_effects
 
-        # Outcome-driven drive regulation is another explicit canonical patch.
         if self.config.enable_motivation:
             post_drives = DriveSystem(deepcopy(self.state.drive_state))
             applied_drives = post_drives.apply_effects(observed_self)
@@ -338,7 +325,6 @@ class DuckOrganism:
         else:
             applied_drives = {}
 
-        # Prospective obligations complete only on observed execution.
         updated_commitments = deepcopy(self.state.commitments)
         commitment_changed = False
         for item in updated_commitments:
@@ -356,7 +342,6 @@ class DuckOrganism:
                 (intention.intention_id,),
             ), patches)
 
-        # COMPARE/LEARN.
         world_error = effect_error(simulation.predicted_world_effects, observed_world)
         self_error = effect_error(simulation.predicted_self_effects, observed_self)
         prediction = PredictionRecord(
@@ -384,7 +369,7 @@ class DuckOrganism:
         action_entry = {
             "tick": tick,
             "intention": intention.to_dict(),
-            "execution": execution.to_dict(),
+            "execution": execution.canonical_dict(),
             "outcome": {
                 "world": observed_world,
                 "self": observed_self,
@@ -408,8 +393,6 @@ class DuckOrganism:
         for spec in patch_specs:
             self._apply(self._patch(*spec), patches)
 
-        # UPDATE. The subject's own clock remains subject-owned; DUCK advances it
-        # through the public adapter, then serializes its own tick/scheduler state.
         self.subject.advance_time(1.0)
         for spec in [
             ("tick", self.state.tick, self.state.tick + 1,

@@ -38,14 +38,26 @@ class ExecutionResult:
     self_effects: dict[str, float]
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict:
+    def canonical_dict(self) -> dict:
+        """Return only execution semantics allowed into DUCK canonical state.
+
+        Expression text, provider names, delivery receipts, and other host-facing
+        realization details are evidence/trace data. Keeping them out of the
+        canonical organism ledger prevents a renderer swap from becoming a
+        character-state mutation merely because it chose different wording.
+        """
         return {
             "executed": self.executed,
             "reason": self.reason,
             "world_effects": dict(self.world_effects),
             "self_effects": dict(self.self_effects),
-            "metadata": dict(self.metadata),
         }
+
+    def to_dict(self) -> dict:
+        payload = self.canonical_dict()
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
+        return payload
 
 
 class ActionExecutor:
@@ -96,9 +108,7 @@ class ActionExecutor:
 
         world, self_effects = self.world_model.execute(prepared, simulation, context)
         model_metadata = dict(getattr(self.world_model, "last_execution_metadata", {}) or {})
-        metadata = {
-            **preparation_metadata,
-            **model_metadata,
-            "realized_action": prepared.to_dict(),
-        }
+        metadata = {**preparation_metadata, **model_metadata}
+        if prepared != action:
+            metadata["realized_action"] = prepared.to_dict()
         return ExecutionResult(True, "executed", dict(world), dict(self_effects), metadata)
