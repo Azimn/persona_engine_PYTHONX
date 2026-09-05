@@ -55,7 +55,11 @@ class FutureDuckRuntime:
         saved = self.runtime_persistence.load() if self.runtime_persistence and self.runtime_persistence.exists() else {}
         self.time = TemporalAuthority.from_dict(saved.get("time"))
         self.patterns = TemporalPatternBank.from_dict(saved.get("temporal_patterns"))
-        self.expression_journal = ExpressionJournal.from_dict(saved.get("expression_journal"))
+        archive_lookup = getattr(persistence, "find_expression", None) if persistence is not None else None
+        self.expression_journal = ExpressionJournal.from_dict(
+            saved.get("expression_journal"),
+            archive_lookup=archive_lookup if callable(archive_lookup) else None,
+        )
         if expression_port is None:
             agent = getattr(subject, "agent", None)
             expression_port = WayfarerExpressionPort(agent) if agent is not None else DeterministicExpressionPort()
@@ -373,6 +377,8 @@ class FutureDuckRuntime:
             "capabilities": self.capabilities.snapshot(),
             "temporal_patterns": self.patterns.to_dict(),
             "expression_journal_size": len(self.expression_journal.rows),
+            "expression_journal_limit": self.expression_journal.max_rows,
+            "expression_archive_available": self.expression_journal.archive_lookup is not None,
             "delivery_receipt_count": len(self.delivery_receipts),
             "metacognition": self.organism.metacognitive_report(),
         }
