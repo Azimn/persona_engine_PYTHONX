@@ -49,6 +49,10 @@ jobs:
         if: startsWith(github.ref_name, 'duck-future')
         run: python -m pytest persona_engine/tests/test_duck_future_host.py -q
 
+      - name: Gate future persistence and adversarial boundaries
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python -m pytest persona_engine/tests/test_duck_future_hardening.py -q
+
       - name: Run full inherited deterministic suite
         run: python -m pytest persona_engine/tests -q
 
@@ -60,4 +64,4 @@ jobs:
 
       - name: Run DUCK future-build integration probe
         if: startsWith(github.ref_name, 'duck-future')
-        run: python tools/run_duck_future_probe.py --cycles 200 --output /tmp/duck-future-probe.json
+        run: python tools/run_duck_future_probe.py --cycles 500 --output /tmp/duck-future-probe.json
