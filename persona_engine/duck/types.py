@@ -24,19 +24,11 @@ class ExternalEvent:
     timestamp: float
     confidence: float = 1.0
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "ExternalEvent":
-        return cls(
-            event_id=str(raw["event_id"]),
-            kind=str(raw["kind"]),
-            payload=dict(raw.get("payload", {})),
-            source=str(raw.get("source", "unknown")),
-            timestamp=float(raw.get("timestamp", 0.0)),
-            confidence=float(raw.get("confidence", 1.0)),
-        )
+        return cls(str(raw["event_id"]), str(raw["kind"]), dict(raw.get("payload", {})), str(raw.get("source", "unknown")), float(raw.get("timestamp", 0.0)), float(raw.get("confidence", 1.0)))
 
 
 @dataclass(frozen=True)
@@ -59,8 +51,7 @@ class CognitiveItem:
     provenance: dict[str, Any] = field(default_factory=dict)
     canonical: bool = False
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass
@@ -75,15 +66,10 @@ class DriveState:
     frustration_history: list[float] = field(default_factory=list)
 
     @property
-    def deficit(self) -> float:
-        return clamp(self.target - self.level)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
+    def deficit(self) -> float: return clamp(self.target - self.level)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
     @classmethod
-    def from_dict(cls, raw: dict[str, Any]) -> "DriveState":
-        return cls(**raw)
+    def from_dict(cls, raw: dict[str, Any]) -> "DriveState": return cls(**raw)
 
 
 @dataclass
@@ -97,9 +83,7 @@ class Goal:
     deadline_tick: int | None = None
     parent_motive: str | None = None
     expected_satisfaction: dict[str, float] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass
@@ -111,9 +95,7 @@ class ProspectiveCommitment:
     importance: float = 1.0
     status: str = "pending"
     provenance: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass
@@ -123,9 +105,7 @@ class SituationModel:
     entities: dict[str, dict[str, Any]] = field(default_factory=dict)
     unresolved: list[str] = field(default_factory=list)
     last_event_id: str | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -142,9 +122,7 @@ class CandidateAction:
     uncertainty: float = 0.0
     reversibility: float = 1.0
     provenance: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -154,9 +132,7 @@ class SimulationResult:
     predicted_self_effects: dict[str, float]
     confidence: float
     provenance: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -168,9 +144,7 @@ class Intention:
     expected_self_effects: dict[str, float]
     selection_score: float
     selection_reasons: dict[str, float]
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -183,9 +157,7 @@ class PredictionRecord:
     observed_self_effects: dict[str, float]
     world_error: float
     self_error: float
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -199,9 +171,7 @@ class StatePatch:
     evidence_refs: tuple[str, ...]
     tick: int
     authorization_class: str
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -211,9 +181,7 @@ class WorkspaceBroadcast:
     priority: float
     competing_item_ids: tuple[str, ...]
     score_breakdown: dict[str, float]
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
 
 
 @dataclass
@@ -258,8 +226,7 @@ class OrganismState:
         if current:
             action = CandidateAction(**current["action"])
             intention = Intention(
-                intention_id=current["intention_id"],
-                action=action,
+                intention_id=current["intention_id"], action=action,
                 selected_at_tick=int(current["selected_at_tick"]),
                 expected_world_effects=dict(current.get("expected_world_effects", {})),
                 expected_self_effects=dict(current.get("expected_self_effects", {})),
@@ -267,9 +234,7 @@ class OrganismState:
                 selection_reasons=dict(current.get("selection_reasons", {})),
             )
         return cls(
-            schema_version=str(raw["schema_version"]),
-            organism_id=str(raw["organism_id"]),
-            subject_id=str(raw["subject_id"]),
+            schema_version=str(raw["schema_version"]), organism_id=str(raw["organism_id"]), subject_id=str(raw["subject_id"]),
             tick=int(raw.get("tick", 0)),
             drive_state={key: DriveState.from_dict(value) for key, value in raw.get("drive_state", {}).items()},
             situation=SituationModel(**raw.get("situation", {})),
@@ -277,10 +242,8 @@ class OrganismState:
             active_goals=[Goal(**value) for value in raw.get("active_goals", [])],
             commitments=[ProspectiveCommitment(**value) for value in raw.get("commitments", [])],
             current_intention=intention,
-            action_ledger=list(raw.get("action_ledger", [])),
-            prediction_ledger=list(raw.get("prediction_ledger", [])),
-            scheduler_state=dict(raw.get("scheduler_state", {})),
-            config_fingerprint=str(raw.get("config_fingerprint", "")),
+            action_ledger=list(raw.get("action_ledger", [])), prediction_ledger=list(raw.get("prediction_ledger", [])),
+            scheduler_state=dict(raw.get("scheduler_state", {})), config_fingerprint=str(raw.get("config_fingerprint", "")),
         )
 
 
@@ -299,6 +262,6 @@ class CycleTrace:
     prediction: dict[str, Any] | None
     patches: tuple[dict[str, Any], ...]
     service_errors: tuple[str, ...] = ()
+    service_proposals: tuple[dict[str, Any], ...] = ()
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]: return asdict(self)
