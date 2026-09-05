@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any, Protocol
 
 from .simulation import RuleWorldModel
 from .types import CandidateAction, SimulationResult
@@ -25,12 +26,17 @@ class ExecutionPolicy:
     confirmation_required: frozenset[str] = frozenset()
 
 
+class ActionPreparer(Protocol):
+    def prepare(self, action: CandidateAction, context: dict[str, Any]) -> tuple[CandidateAction, dict[str, Any]]: ...
+
+
 @dataclass(frozen=True)
 class ExecutionResult:
     executed: bool
     reason: str
     world_effects: dict[str, float]
     self_effects: dict[str, float]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -38,6 +44,7 @@ class ExecutionResult:
             "reason": self.reason,
             "world_effects": dict(self.world_effects),
             "self_effects": dict(self.self_effects),
+            "metadata": dict(self.metadata),
         }
 
 
@@ -48,10 +55,12 @@ class ActionExecutor:
         *,
         policy: ExecutionPolicy | None = None,
         embodiment: EmbodimentCapabilities | None = None,
+        action_preparer: ActionPreparer | None = None,
     ):
         self.world_model = world_model
         self.policy = policy or ExecutionPolicy()
         self.embodiment = embodiment or EmbodimentCapabilities()
+        self.action_preparer = action_preparer
 
     def execute(self, action: CandidateAction, simulation: SimulationResult, context: dict) -> ExecutionResult:
         if action.action_type in self.policy.denied_actions:
@@ -62,5 +71,34 @@ class ActionExecutor:
             return ExecutionResult(False, "confirmation_required", {"execution_rejected": 1.0}, {})
         if not self.embodiment.supports(action.action_type):
             return ExecutionResult(False, "effector_unavailable", {"execution_rejected": 1.0}, {})
-        world, self_effects = self.world_model.execute(action, simulation, context)
-        return ExecutionResult(True, "executed", dict(world), dict(self_effects))
+
+        prepared = action
+        preparation_metadata: dict[str, Any] = {}
+        if self.action_preparer is not None:
+            try:
+                prepared, preparation_metadata = self.action_preparer.prepare(action, context)
+            except Exception as exc:
+                return ExecutionResult(
+                    False,
+                    "action_preparation_failed",
+                    {"execution_rejected": 1.0},
+                    {},
+                    {"preparation_error": type(exc).__name__},
+                )
+            if prepared.action_id != action.action_id or prepared.action_type != action.action_type:
+                return ExecutionResult(
+                    False,
+                    "action_preparer_changed_decision",
+                    {"execution_rejected": 1.0},
+                    {},
+                    {"original_action": action.to_dict(), "prepared_action": prepared.to_dict()},
+                )
+
+        world, self_effects = self.world_model.execute(prepared, simulation, context)
+        model_metadata = dict(getattr(self.world_model, "last_execution_metadata", {}) or {})
+        metadata = {
+            **preparation_metadata,
+            **model_metadata,
+            "realized_action": prepared.to_dict(),
+        }
+        return ExecutionResult(True, "executed", dict(world), dict(self_effects), metadata)

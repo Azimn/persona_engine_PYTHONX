@@ -18,26 +18,36 @@ The broader repository already provides the mature Wayfarer identity/continuity 
 
 Commit `c849a340c1da26c629ea382f09392f19d5cb3135` added the production-facing composition root, explicit UTC plus Beat Time, replaceable embodiment execution, bounded endogenous reflection, capability policy, focused tests, and the finished-product specification.
 
-GitHub Actions DUCK CI run `33979909723` completed successfully on Python 3.11 and 3.12. The workflow ran the full inherited deterministic suite, the focused DUCK suite, and the DUCK smoke entry point. This establishes regression compatibility for tranche 1, not full production validation.
+GitHub Actions DUCK CI run `33979909723` completed successfully on Python 3.11 and 3.12.
 
 ## Future-build tranche 2
 
 Commit `10c33e6a3616b266a81fd55e25a25597db4c06f2` separated cognitive ticks from elapsed subject time, added circular Beat-Time routine learning, persisted future-runtime operational state, made DUCK checkpoint writes atomic, and added live body transfer plus restart tests.
 
-The tranche adds `TimedSubjectProxy`, so internal cognition can occur without manufacturing elapsed time while explicit civil-time observations advance Wayfarer's existing subject clock by the observed duration. `TemporalPatternBank` can learn recurring timing patterns across the `@000` boundary and convert deviations into explicit temporal evidence.
+GitHub Actions DUCK CI run `33980170651` completed successfully on Python 3.11 and 3.12.
 
 ## Future-build tranche 3
 
-The third integration makes embodiment cognitively bidirectional rather than merely an execution sink. `EmbodimentCognitiveService` projects body state and affordances into the same noncanonical candidate field as drives, memories, prediction errors, and optional model hypotheses. Body affordances can therefore influence ordinary workspace competition and action proposal without bypassing the action selector.
+Commit `b12cbf29c44b7b1414847e4a06f1d6eecc72aebd` made embodiment cognitively bidirectional, added body-transfer events, optional-service failure isolation, and the deterministic multi-cycle future-product probe.
 
-Body transfer now emits a high-self-relevance `body_transfer` event so the organism can cognitively process a changed body rather than the host silently replacing hardware underneath it. Built-in cognitive services are de-duplicated when provider sets are swapped.
+GitHub Actions DUCK CI run `33980524552` completed successfully on Python 3.11 and 3.12, including the future-product integration probe.
 
-The focused suite adds optional-service failure isolation. A broken proposal service must appear in `service_errors` while the cycle, subject identity, and canonical state transition remain valid.
+## Future-build tranche 4
 
-`tools/run_duck_future_probe.py` adds a deterministic multi-cycle production integration probe with explicit Beat time, learned temporal routines, persistence/restart, live body transfer, action execution, subject continuity, and service-error assertions. Future-branch CI now runs that probe in addition to the inherited suite and standard DUCK smoke test.
+The fourth integration closes the most important remaining architectural loop: selected cognition can now become language without handing the language model control of cognition.
+
+`ExpressionActionPreparer` runs only after DUCK has selected and committed a `communicate` action. It may realize that semantic intention through a Wayfarer renderer, deterministic fallback, or another future expression provider, but it is forbidden from changing the selected action ID or action type. The renderer's output is therefore an execution-stage realization rather than a second planner.
+
+`WayfarerExpressionPort` reuses the existing Wayfarer v2 expression trust boundary and output validator instead of creating a competing prompt architecture. `ExpressionJournal` records rendered output by stable speech ID so replay can reuse the actual utterance instead of silently asking a model to invent a new one.
+
+`TextChannelEmbodimentPort` is the first complete reference body. It receives text as sensory input, exposes communication as an affordance, delivers the realized utterance as an effector action, emits a host-authoritative `SpeechDeliveryReceipt`, and lets the runtime feed that receipt back into the Wayfarer subject's lived history.
+
+`FutureDuckRuntime.ingest_user_message()` now turns a message into a perceptual event plus an ordinary candidate communication action. A user message does not call a renderer directly. It must survive the same workspace, simulation, selection, policy, expression, embodiment, outcome, and learning path as every other action.
+
+The focused tests verify that language follows selected intention, that delivery creates lived evidence, that changing expression models changes surface wording without changing DUCK canonical state, and that a recorded expression is reused without re-calling the renderer.
 
 ## Evidence state
 
-Each tranche must return branch CI to green before the next is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
+Each tranche must return branch CI to green before it is treated as integrated. The future product specification remains a target. Code completeness and longitudinal evidence completeness are separate finish lines.
 
-After tranche 3 is green, remaining high-value work is no longer missing macroarchitecture. It is integration depth and validation: connect more mature Wayfarer body/private-cognition/relationship/dream state through adapters, exercise a real local model in the complete future runtime, harden external tool sandboxes, add migration/backup/restore drills, and run long-horizon plus human continuity studies.
+After tranche 4 is green, the remaining engineering work required for a production-candidate future version is concentrated at the host boundary: a stable local API, restart/backup/recovery tooling, a clean production composition builder, real local-model probe commands, migration/version checks, and longer adversarial/stability gates. The cognitive macroarchitecture itself is now represented by executable interfaces rather than architecture-only boxes.

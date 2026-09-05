@@ -52,6 +52,7 @@ class EmbodimentOutcome:
     reason: str
     world_effects: dict[str, float] = field(default_factory=dict)
     self_effects: dict[str, float] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -102,25 +103,22 @@ class EmbodiedWorldModel(RuleWorldModel):
     def __init__(self, port: EmbodimentPort, state: dict | None = None):
         super().__init__(state)
         self.port = port
+        self.last_execution_metadata: dict[str, Any] = {}
 
     def execute(self, action: CandidateAction, simulation: SimulationResult, context: dict) -> tuple[dict[str, float], dict[str, float]]:
         override = self.outcome_overrides.pop(action.action_type, None)
         if override is not None:
+            self.last_execution_metadata = {"source": "outcome_override"}
             return dict(override[0]), dict(override[1])
         outcome = self.port.execute(action, simulation, context)
+        self.last_execution_metadata = dict(outcome.metadata)
         if not outcome.executed:
             return {"execution_rejected": 1.0}, {}
         return dict(outcome.world_effects), dict(outcome.self_effects)
 
 
 class EmbodimentCognitiveService:
-    """Project body state and affordances into cognition without granting authority.
-
-    The body is both an execution boundary and a source of subject-relevant
-    evidence. This specialist returns a noncanonical workspace candidate that
-    describes current body state and converts known affordances into ordinary
-    action candidates. It cannot select or execute them.
-    """
+    """Project body state and affordances into cognition without granting authority."""
 
     service_name = "embodiment_state"
 

@@ -9,6 +9,7 @@ from .capabilities import CapabilityRegistry
 from .embodiment_port import EmbodiedWorldModel, EmbodimentCognitiveService, EmbodimentPort, NullEmbodimentPort
 from .endogenous import EndogenousReflectionService, EndogenousTriggerPolicy
 from .executor import EmbodimentCapabilities
+from .expression import DeterministicExpressionPort, ExpressionActionPreparer, ExpressionJournal, WayfarerExpressionPort
 from .future_persistence import FutureRuntimePersistence
 from .organism import DuckConfig, DuckOrganism
 from .services import ParallelServiceRegistry, ServiceRegistry
@@ -40,6 +41,7 @@ class FutureDuckRuntime:
         embodiment: EmbodimentPort | None = None,
         capabilities: CapabilityRegistry | None = None,
         services: ServiceRegistry | None = None,
+        expression_port=None,
         persistence=None,
         state=None,
         organism_id: str | None = None,
@@ -53,6 +55,12 @@ class FutureDuckRuntime:
         saved = self.runtime_persistence.load() if self.runtime_persistence and self.runtime_persistence.exists() else {}
         self.time = TemporalAuthority.from_dict(saved.get("time"))
         self.patterns = TemporalPatternBank.from_dict(saved.get("temporal_patterns"))
+        self.expression_journal = ExpressionJournal.from_dict(saved.get("expression_journal"))
+        if expression_port is None:
+            agent = getattr(subject, "agent", None)
+            expression_port = WayfarerExpressionPort(agent) if agent is not None else DeterministicExpressionPort()
+        self.expression_port = expression_port
+        self.expression_preparer = ExpressionActionPreparer(self.expression_port, self.expression_journal)
         self.endogenous_policy = EndogenousTriggerPolicy(
             threshold=self.runtime_config.endogenous_threshold,
             cooldown_ticks=self.runtime_config.endogenous_cooldown_ticks,
@@ -60,6 +68,7 @@ class FutureDuckRuntime:
         self.endogenous_policy.last_trigger_tick = int(saved.get("endogenous_last_trigger_tick", -10**9))
         self._event_counter = int(saved.get("event_counter", 0))
         self.body_history = [str(value) for value in saved.get("body_history", [])]
+        self.delivery_receipts = [dict(value) for value in saved.get("delivery_receipts", [])]
         if not self.body_history or self.body_history[-1] != self.embodiment.body_id:
             self.body_history.append(self.embodiment.body_id)
 
@@ -79,6 +88,7 @@ class FutureDuckRuntime:
             persistence=persistence,
             state=state,
         )
+        self.organism.executor.action_preparer = self.expression_preparer
 
     @staticmethod
     def _capabilities_from_body(body):
@@ -113,8 +123,10 @@ class FutureDuckRuntime:
             "event_counter": self._event_counter,
             "time": self.time.to_dict(),
             "temporal_patterns": self.patterns.to_dict(),
+            "expression_journal": self.expression_journal.to_dict(),
             "endogenous_last_trigger_tick": self.endogenous_policy.last_trigger_tick,
             "body_history": list(self.body_history),
+            "delivery_receipts": list(self.delivery_receipts[-256:]),
             "subject_id": self.subject_id,
         }
 
@@ -154,6 +166,47 @@ class FutureDuckRuntime:
         self._save_runtime_state()
         return event
 
+    def ingest_user_message(
+        self,
+        text: str,
+        *,
+        source: str = "user",
+        utc_epoch: float | None = None,
+        event_id: str | None = None,
+    ) -> ExternalEvent:
+        """Convert conversational input into perception plus an ordinary action option."""
+        message = str(text)
+        return self.ingest_observation(
+            {
+                "description": message,
+                "observed_text": message,
+                "salience": 0.92,
+                "self_relevance": 0.72,
+                "temporal_pattern_key": f"interaction:{source}",
+                "action_candidates": [{
+                    "action_id": f"respond:{self.tick}:{event_id or 'message'}",
+                    "action_type": "communicate",
+                    "parameters": {
+                        "dialogue_act": "respond",
+                        "semantic_goal": "respond_to_user_message",
+                        "user_text": message,
+                        "max_chars": 500,
+                    },
+                    "expected_world_effects": {"social_contact": 0.28, "conversation_progress": 0.35},
+                    "expected_self_effects": {"drive:affiliation": 0.16, "drive:certainty": 0.04},
+                    "feasibility": 0.99,
+                    "cost": 0.02,
+                    "risk": 0.05,
+                    "uncertainty": 0.12,
+                    "reversibility": 0.90,
+                }],
+            },
+            source=source,
+            kind="user_message",
+            utc_epoch=utc_epoch,
+            event_id=event_id,
+        )
+
     def observe_civil_time(self, utc_epoch: float, *, source: str = "clock") -> ExternalEvent:
         return self.ingest_observation(
             {"description": "explicit civil-time observation", "salience": 0.02},
@@ -166,19 +219,19 @@ class FutureDuckRuntime:
         events: list[ExternalEvent] = []
         for raw in self.embodiment.observe(tick=self.tick):
             raw = dict(raw)
+            event_utc = raw.pop("utc_epoch", utc_epoch)
             payload = dict(raw.pop("payload", raw))
             events.append(self.ingest_observation(
                 payload,
                 source=str(raw.pop("source", f"body:{self.embodiment.body_id}")),
                 kind=str(raw.pop("kind", "observation")),
-                utc_epoch=utc_epoch,
+                utc_epoch=event_utc,
                 event_id=raw.pop("event_id", None),
                 confidence=float(raw.pop("confidence", 1.0)),
             ))
         return events
 
     def swap_embodiment(self, embodiment: EmbodimentPort, *, announce: bool = True) -> ExternalEvent | None:
-        """Attach a new body without changing the continuing subject."""
         previous = self.embodiment.snapshot()
         self.embodiment = embodiment
         current = embodiment.snapshot()
@@ -189,6 +242,7 @@ class FutureDuckRuntime:
         self.organism.world_model = world_model
         self.organism.executor.world_model = world_model
         self.organism.executor.embodiment = self._capabilities_from_body(current)
+        self.organism.executor.action_preparer = self.expression_preparer
         self._save_runtime_state()
         if not announce:
             return None
@@ -208,6 +262,10 @@ class FutureDuckRuntime:
     def set_services(self, services: ServiceRegistry) -> None:
         self._install_builtin_services(services)
         self.organism.set_services(services)
+
+    def set_expression_port(self, expression_port) -> None:
+        self.expression_port = expression_port
+        self.expression_preparer.port = expression_port
 
     def _inject_endogenous_trigger(self) -> ExternalEvent | None:
         if not self.runtime_config.enable_endogenous_cognition:
@@ -243,10 +301,30 @@ class FutureDuckRuntime:
             elapsed = 0.0
         self.subject_proxy.prepare_elapsed(elapsed)
 
+    def _execution_context(self) -> dict[str, Any]:
+        return {}
+
+    def _reconcile_execution(self, trace: CycleTrace) -> None:
+        outcome = trace.outcome or {}
+        execution = outcome.get("execution", {}) if isinstance(outcome, dict) else {}
+        metadata = execution.get("metadata", {}) if isinstance(execution, dict) else {}
+        receipt = metadata.get("speech_delivery_receipt") if isinstance(metadata, dict) else None
+        if receipt:
+            receipt_id = str(receipt.get("receipt_id", ""))
+            if receipt_id and not any(str(item.get("receipt_id", "")) == receipt_id for item in self.delivery_receipts):
+                self.delivery_receipts.append(dict(receipt))
+                recorder = getattr(self.subject, "record_delivery_receipt", None)
+                if callable(recorder):
+                    recorder(dict(receipt))
+        self._save_runtime_state()
+
     def step(self) -> CycleTrace | None:
         if self.runtime_config.poll_embodiment_before_step:
             self.poll_embodiment()
         self._prepare_subject_elapsed()
+        # Execution-stage expression needs the same selected moment that DUCK
+        # already resolved. DuckOrganism includes these fields in its action
+        # context below via a small compatibility enrichment in organism.py.
         trace = self.organism.step()
         if trace is None:
             if self._inject_endogenous_trigger() is None:
@@ -254,7 +332,7 @@ class FutureDuckRuntime:
             self._prepare_subject_elapsed()
             trace = self.organism.step()
         if trace is not None:
-            self._save_runtime_state()
+            self._reconcile_execution(trace)
         return trace
 
     def run_until_quiet(self, *, max_cycles: int | None = None) -> list[CycleTrace]:
@@ -275,6 +353,15 @@ class FutureDuckRuntime:
     def current_temporal_stamp(self) -> TemporalStamp | None:
         return self.time.last_stamp
 
+    def latest_expression(self) -> dict[str, Any] | None:
+        trace = self.organism.traces[-1] if self.organism.traces else None
+        if trace is None or not trace.outcome:
+            return None
+        execution = trace.outcome.get("execution", {})
+        metadata = execution.get("metadata", {}) if isinstance(execution, dict) else {}
+        expression = metadata.get("expression") if isinstance(metadata, dict) else None
+        return dict(expression) if isinstance(expression, dict) else None
+
     def status(self) -> dict[str, Any]:
         stamp = self.current_temporal_stamp()
         return {
@@ -285,5 +372,7 @@ class FutureDuckRuntime:
             "body_history": list(self.body_history),
             "capabilities": self.capabilities.snapshot(),
             "temporal_patterns": self.patterns.to_dict(),
+            "expression_journal_size": len(self.expression_journal.rows),
+            "delivery_receipt_count": len(self.delivery_receipts),
             "metacognition": self.organism.metacognitive_report(),
         }

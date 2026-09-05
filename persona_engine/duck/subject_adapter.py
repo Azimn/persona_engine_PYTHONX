@@ -10,21 +10,13 @@ from persona_engine.agent import CharacterAgent
 class SubjectPort(Protocol):
     @property
     def subject_id(self) -> str: ...
-
     def snapshot(self) -> dict: ...
-
     def observe_event(self, payload: dict) -> dict | None: ...
-
     def advance_time(self, elapsed_seconds: float) -> dict: ...
 
 
 class WayfarerSubjectAdapter:
-    """Use the existing CharacterAgent as DUCK's continuing subject authority.
-
-    DUCK deliberately does not copy autobiographical memory, relationships,
-    epistemic state, commitments, identity, or renderer control into its own
-    state. Those stay behind this subject port.
-    """
+    """Use the existing CharacterAgent as DUCK's continuing subject authority."""
 
     def __init__(self, agent: CharacterAgent):
         self.agent = agent
@@ -51,3 +43,7 @@ class WayfarerSubjectAdapter:
 
     def advance_time(self, elapsed_seconds: float) -> dict:
         return self.agent.advance_time(float(elapsed_seconds), source="duck", record_event=True)
+
+    def record_delivery_receipt(self, receipt: dict) -> dict:
+        """Write host-authoritative speech delivery into lived subject history."""
+        return self.agent.record_delivery_receipt(receipt, record_event=True)
