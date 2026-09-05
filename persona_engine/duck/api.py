@@ -1,7 +1,5 @@
 """Local FastAPI surface for the production-candidate DUCK host."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from .host import FutureDuckHost

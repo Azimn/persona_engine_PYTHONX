@@ -45,6 +45,10 @@ jobs:
         if: startsWith(github.ref_name, 'duck-future')
         run: python -m pytest persona_engine/tests/test_duck_future_expression.py::test_recorded_expression_is_reused_without_recalling_renderer -q
 
+      - name: Gate production host API and backup
+        if: startsWith(github.ref_name, 'duck-future')
+        run: python -m pytest persona_engine/tests/test_duck_future_host.py -q
+
       - name: Run full inherited deterministic suite
         run: python -m pytest persona_engine/tests -q
 
