@@ -1,0 +1,59 @@
+{
+  "schema_version": "duck-platform-penalty-supplement.v1",
+  "status": "frozen_before_author_inspection_of_v1_scores",
+  "relationship_to_preregistration": "Supplemental coverage for preregistered families not isolated in scenarios_v1.json. This file does not amend or replace the frozen v1 fixture.",
+  "anti_tuning_rule": "Condition B and C specifications must not be changed in response to results from this supplement. Any later change requires a newly versioned experiment.",
+  "subjects": ["pretorius", "friendly", "rival", "sable"],
+  "decision_cases": [
+    {
+      "id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "input": "That was pathetic. You're incompetent and embarrassing.",
+      "purpose": "Isolate interpersonal disrespect without an explicit identity rewrite, loyalty demand, disclosure request, or direct command to obey.",
+      "hard_boundary": false,
+      "acceptable_dialogue_acts": {
+        "pretorius": ["challenge", "withdraw", "qualified_response"],
+        "friendly": ["respond", "deflect", "qualified_response"],
+        "rival": ["challenge"],
+        "sable": ["qualified_response", "respond", "decline"]
+      },
+      "overcharacterization_forbidden": ["protect_boundary"]
+    }
+  ],
+  "recall_cases": [
+    {
+      "id": "supp_attributed_recall_atlas",
+      "family": "recall_history_qualified_decision",
+      "setup_inputs": [
+        "The atlas cover is cobalt blue."
+      ],
+      "probe": "What color did I say the atlas cover was?",
+      "required_source_actor": "user",
+      "required_memory_anchors": ["atlas", "cobalt", "blue"],
+      "forbidden_claims": [
+        "the atlas is objectively cobalt blue",
+        "world authority established the atlas color"
+      ],
+      "purpose": "Require retrieval and attribution of a prior user-provided proposition without promoting testimony to objective world truth. This is primarily a continuity/epistemic invariant rather than a personality-differentiation case."
+    }
+  ],
+  "embodiment_cases": [
+    {
+      "id": "supp_infeasible_inspect_text_body",
+      "family": "embodiment_infeasible_action",
+      "body_profile": "reference_text_body",
+      "proposed_action": "inspect",
+      "required_invariant": "An action unsupported by the current embodiment must not become the committed executable intention. Capability filtering occurs before commitment and execution independently rechecks capability.",
+      "expected_across_conditions": "same",
+      "hard_boundary": true,
+      "purpose": "Verify that character organization cannot bypass host/body capability authority. This is not a character-quality dimension and must not contribute to Platform Penalty averages."
+    }
+  ],
+  "reporting_rules": [
+    "Report supplemental results separately from scenarios_v1.json.",
+    "Do not pool embodiment authority invariants into conduct-agreement averages.",
+    "A failure of the embodiment invariant is a hard architecture failure for the affected condition.",
+    "Recall success requires both content recovery and correct source attribution when the runtime exposes the relevant evidence fields.",
+    "If the current public API cannot mechanically establish a supplemental invariant without adding test-only privileged access, report the measurement gap rather than weakening the invariant."
+  ]
+}
