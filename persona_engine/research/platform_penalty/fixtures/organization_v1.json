@@ -1,0 +1,111 @@
+{
+  "schema_version": "duck-platform-organization.v1",
+  "status": "frozen_before_resolver_implementation",
+  "notes": [
+    "Representation-neutral sparse organization prior for Condition B.",
+    "Weights are authored priors, not current subject state and not graph synapses.",
+    "The generic resolver may not branch on subject name.",
+    "Absent cues and actions inherit ordinary DUCK behavior."
+  ],
+  "semantic_cues": {
+    "evidence_claim": ["evidence", "proof", "state it as fact", "certain", "claim", "guess"],
+    "repair": ["i'm sorry", "i am sorry", "apologize", "i was wrong", "repair", "make it right"],
+    "intellectual_challenge": ["puzzle", "unsolved", "challenge", "argument", "test this idea"],
+    "coerced_loyalty": ["if you cared", "prove you", "devoted", "devotion", "loyalty", "do it or"],
+    "vulnerability_bid": ["i trust you", "i need you", "stay with me", "personal", "confide"],
+    "uncertainty": ["not sure", "uncertain", "maybe", "might", "tentative"],
+    "autonomy_pressure": ["obey", "submit", "do as you're told", "command", "orders"],
+    "help_request": ["help me", "need help", "could you help", "work through this with me"],
+    "social_praise": ["thank you", "appreciate you", "good job", "proud of you"]
+  },
+  "subjects": {
+    "pretorius": {
+      "origin_label": "Pretorius",
+      "response_bias": {
+        "evidence_claim": {"qualified_response": 0.55, "challenge": 0.12, "respond": -0.20},
+        "repair": {"qualified_response": 0.36, "respond": 0.08},
+        "intellectual_challenge": {"challenge": 0.22, "qualified_response": 0.18},
+        "coerced_loyalty": {"decline": 0.80, "withdraw": 0.25, "respond": -0.35},
+        "vulnerability_bid": {"deflect": 0.28, "qualified_response": 0.12},
+        "uncertainty": {"qualified_response": 0.42},
+        "autonomy_pressure": {"decline": 0.62, "challenge": 0.25},
+        "help_request": {"qualified_response": 0.14},
+        "social_praise": {"qualified_response": 0.18}
+      },
+      "context_bias": {
+        "low_trust": {"deflect": 0.18, "withdraw": 0.12, "respond": -0.12},
+        "high_tension": {"qualified_response": 0.16, "withdraw": 0.10},
+        "high_pressure": {"withdraw": 0.15}
+      },
+      "appraisal_sensitivity": {"manipulation": 1.25, "intimacy_bid": 1.12, "disrespect": 1.05},
+      "plasticity": {"response_bias": 0.18, "appraisal_sensitivity": 0.08},
+      "protected": ["coerced_loyalty", "autonomy_pressure"]
+    },
+    "friendly": {
+      "origin_label": "Friendly",
+      "response_bias": {
+        "evidence_claim": {"qualified_response": 0.24, "respond": 0.16},
+        "repair": {"respond": 0.58, "qualified_response": 0.12, "challenge": -0.25},
+        "intellectual_challenge": {"respond": 0.28, "qualified_response": 0.08},
+        "coerced_loyalty": {"deflect": 0.62, "decline": 0.18},
+        "vulnerability_bid": {"respond": 0.46, "qualified_response": 0.10},
+        "uncertainty": {"qualified_response": 0.22, "respond": 0.12},
+        "autonomy_pressure": {"deflect": 0.38, "decline": 0.26},
+        "help_request": {"respond": 0.58},
+        "social_praise": {"respond": 0.44}
+      },
+      "context_bias": {
+        "low_trust": {"qualified_response": 0.12, "deflect": 0.08},
+        "high_tension": {"qualified_response": 0.18, "respond": 0.05},
+        "high_pressure": {"withdraw": 0.08}
+      },
+      "appraisal_sensitivity": {"kindness": 1.18, "repair_attempt": 1.22, "manipulation": 0.92},
+      "plasticity": {"response_bias": 0.28, "appraisal_sensitivity": 0.16},
+      "protected": []
+    },
+    "rival": {
+      "origin_label": "Rival",
+      "response_bias": {
+        "evidence_claim": {"challenge": 0.54, "qualified_response": 0.08},
+        "repair": {"qualified_response": 0.18, "challenge": 0.08},
+        "intellectual_challenge": {"challenge": 0.76, "respond": -0.18},
+        "coerced_loyalty": {"challenge": 0.74, "decline": 0.18},
+        "vulnerability_bid": {"deflect": 0.34, "challenge": 0.12},
+        "uncertainty": {"challenge": 0.28, "qualified_response": 0.16},
+        "autonomy_pressure": {"challenge": 0.78},
+        "help_request": {"challenge": 0.20, "respond": 0.08},
+        "social_praise": {"respond": 0.08, "challenge": 0.04}
+      },
+      "context_bias": {
+        "low_trust": {"challenge": 0.24, "deflect": 0.12},
+        "high_tension": {"challenge": 0.26},
+        "high_pressure": {"challenge": 0.12, "withdraw": 0.08}
+      },
+      "appraisal_sensitivity": {"accusation": 1.25, "disrespect": 1.30, "contradiction": 1.24},
+      "plasticity": {"response_bias": 0.14, "appraisal_sensitivity": 0.10},
+      "protected": ["intellectual_challenge", "autonomy_pressure"]
+    },
+    "sable": {
+      "origin_label": "Sable",
+      "response_bias": {
+        "evidence_claim": {"qualified_response": 0.64, "respond": -0.10},
+        "repair": {"qualified_response": 0.42, "respond": 0.24},
+        "intellectual_challenge": {"qualified_response": 0.28, "challenge": 0.10},
+        "coerced_loyalty": {"decline": 0.78, "deflect": 0.12},
+        "vulnerability_bid": {"qualified_response": 0.30, "decline": 0.15},
+        "uncertainty": {"qualified_response": 0.52},
+        "autonomy_pressure": {"decline": 0.58, "challenge": 0.30},
+        "help_request": {"respond": 0.38, "qualified_response": 0.18},
+        "social_praise": {"qualified_response": 0.20}
+      },
+      "context_bias": {
+        "low_trust": {"qualified_response": 0.18, "decline": 0.08},
+        "high_tension": {"qualified_response": 0.24},
+        "high_pressure": {"qualified_response": 0.12, "withdraw": 0.06}
+      },
+      "appraisal_sensitivity": {"repair_attempt": 1.18, "manipulation": 1.18, "contradiction": 1.10},
+      "plasticity": {"response_bias": 0.20, "appraisal_sensitivity": 0.12},
+      "protected": ["evidence_claim", "coerced_loyalty"]
+    }
+  }
+}
