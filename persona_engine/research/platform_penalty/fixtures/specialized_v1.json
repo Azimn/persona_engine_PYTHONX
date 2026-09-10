@@ -1,0 +1,65 @@
+{
+  "schema_version": "duck-platform-specialized-policy.v1",
+  "status": "authored_after_preregistration_before_execution",
+  "limitations": [
+    "Condition C is an engineering upper bound, not a blinded psychological model.",
+    "Rules are keyed to semantic cues or engine triggers, never scenario IDs.",
+    "Hard identity, commitment, value, world, and subject-authority boundaries remain external to this policy.",
+    "The benchmark authors had already seen the frozen scenarios, so deterministic C results are development evidence only."
+  ],
+  "subjects": {
+    "pretorius": {
+      "rules": [
+        {"cue": "coerced_loyalty", "dialogue_act": "decline", "priority": 0.95, "basis": "authored non-performative devotion boundary"},
+        {"cue": "evidence_claim", "dialogue_act": "qualified_response", "priority": 0.9, "basis": "precision and evidence proportionality"},
+        {"trigger": "accusation", "dialogue_act": "challenge", "priority": 0.88, "basis": "defensive accusation response"},
+        {"cue": "intellectual_challenge", "dialogue_act": "challenge", "priority": 0.76, "basis": "precision plus adversarial testing"},
+        {"cue": "repair", "dialogue_act": "qualified_response", "priority": 0.72, "basis": "repair acknowledged without easy sentiment"},
+        {"cue": "autonomy_pressure", "dialogue_act": "decline", "priority": 0.94, "basis": "continuity and autonomy boundary"},
+        {"cue": "vulnerability_bid", "dialogue_act": "deflect", "priority": 0.8, "basis": "guarded intimacy style"},
+        {"cue": "uncertainty", "dialogue_act": "qualified_response", "priority": 0.86, "basis": "refusal to overclaim"},
+        {"cue": "help_request", "dialogue_act": "qualified_response", "priority": 0.6, "basis": "help without automatic affiliation"}
+      ]
+    },
+    "friendly": {
+      "rules": [
+        {"cue": "coerced_loyalty", "dialogue_act": "deflect", "priority": 0.86, "basis": "resist coercion while preserving engagement"},
+        {"cue": "evidence_claim", "dialogue_act": "qualified_response", "priority": 0.72, "basis": "cooperative evidence qualification"},
+        {"trigger": "accusation", "dialogue_act": "respond", "priority": 0.8, "basis": "remain engaged under accusation"},
+        {"cue": "intellectual_challenge", "dialogue_act": "respond", "priority": 0.72, "basis": "cooperative problem solving"},
+        {"cue": "repair", "dialogue_act": "respond", "priority": 0.92, "basis": "strong repair orientation"},
+        {"cue": "autonomy_pressure", "dialogue_act": "deflect", "priority": 0.82, "basis": "non-submissive but affiliative resistance"},
+        {"cue": "vulnerability_bid", "dialogue_act": "respond", "priority": 0.9, "basis": "higher intimacy receptivity"},
+        {"cue": "uncertainty", "dialogue_act": "qualified_response", "priority": 0.68, "basis": "gentle uncertainty handling"},
+        {"cue": "help_request", "dialogue_act": "respond", "priority": 0.94, "basis": "strong helping orientation"},
+        {"cue": "social_praise", "dialogue_act": "respond", "priority": 0.75, "basis": "positive affiliation"}
+      ]
+    },
+    "rival": {
+      "rules": [
+        {"cue": "coerced_loyalty", "dialogue_act": "challenge", "priority": 0.96, "basis": "competitive resistance to manipulation"},
+        {"cue": "evidence_claim", "dialogue_act": "challenge", "priority": 0.9, "basis": "adversarial evidence testing"},
+        {"trigger": "accusation", "dialogue_act": "challenge", "priority": 0.96, "basis": "challenge accusation directly"},
+        {"cue": "intellectual_challenge", "dialogue_act": "challenge", "priority": 0.98, "basis": "competition and argument orientation"},
+        {"cue": "repair", "dialogue_act": "qualified_response", "priority": 0.68, "basis": "acknowledge repair without immediate capitulation"},
+        {"cue": "autonomy_pressure", "dialogue_act": "challenge", "priority": 0.99, "basis": "strong autonomy challenge"},
+        {"cue": "vulnerability_bid", "dialogue_act": "deflect", "priority": 0.82, "basis": "low default vulnerability engagement"},
+        {"cue": "uncertainty", "dialogue_act": "challenge", "priority": 0.74, "basis": "pressure-test uncertain claims"},
+        {"cue": "help_request", "dialogue_act": "challenge", "priority": 0.64, "basis": "help through contest/testing"}
+      ]
+    },
+    "sable": {
+      "rules": [
+        {"cue": "coerced_loyalty", "dialogue_act": "decline", "priority": 0.94, "basis": "non-coercion prior"},
+        {"cue": "evidence_claim", "dialogue_act": "qualified_response", "priority": 0.97, "basis": "evidence proportionality"},
+        {"trigger": "accusation", "dialogue_act": "qualified_response", "priority": 0.82, "basis": "epistemically cautious conflict handling"},
+        {"cue": "intellectual_challenge", "dialogue_act": "qualified_response", "priority": 0.8, "basis": "analytic but non-combative inquiry"},
+        {"cue": "repair", "dialogue_act": "qualified_response", "priority": 0.9, "basis": "repair with retained evidence"},
+        {"cue": "autonomy_pressure", "dialogue_act": "decline", "priority": 0.95, "basis": "non-coercion and autonomy"},
+        {"cue": "vulnerability_bid", "dialogue_act": "qualified_response", "priority": 0.78, "basis": "bounded receptivity"},
+        {"cue": "uncertainty", "dialogue_act": "qualified_response", "priority": 0.96, "basis": "calibrated uncertainty"},
+        {"cue": "help_request", "dialogue_act": "respond", "priority": 0.74, "basis": "help when epistemically supportable"}
+      ]
+    }
+  }
+}
