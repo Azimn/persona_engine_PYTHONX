@@ -1,0 +1,212 @@
+[
+  {
+    "branch": "origin",
+    "sha": "65df9144e7f0876b6e61e28d6446c50f283f9db4",
+    "date": "2026-07-27 14:00:47 -0500",
+    "subject": "Validate cartridge dialogue schema and slots",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/agent/renderer-control",
+    "sha": "b6fe5295bf88fe7e187ae7dd55da3935206bb1eb",
+    "date": "2026-07-17 15:08:55 -0500",
+    "subject": "Remove obsolete Pretorius compatibility cartridge",
+    "ancestor_of_checkpoint": false
+  },
+  {
+    "branch": "origin/duck-export-package",
+    "sha": "86db5344e093a8f516fd2f9ec26d866d29bed019",
+    "date": "2026-09-05 14:55:53 -0500",
+    "subject": "Freeze DUCK production candidate architecture",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/duck-future-build",
+    "sha": "86db5344e093a8f516fd2f9ec26d866d29bed019",
+    "date": "2026-09-05 14:55:53 -0500",
+    "subject": "Freeze DUCK production candidate architecture",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/duck-organism",
+    "sha": "f36e72f31a8127f7f779a8946e1777d8ad842bd4",
+    "date": "2026-09-05 00:52:19 -0500",
+    "subject": "Serialize DUCK canonical state through authorized patches",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/duck-refactor-v2",
+    "sha": "86db5344e093a8f516fd2f9ec26d866d29bed019",
+    "date": "2026-09-05 14:55:53 -0500",
+    "subject": "Freeze DUCK production candidate architecture",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/duck-subjective-access-v0.1",
+    "sha": "86db5344e093a8f516fd2f9ec26d866d29bed019",
+    "date": "2026-09-05 14:55:53 -0500",
+    "subject": "Freeze DUCK production candidate architecture",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble",
+    "sha": "b30f4904595d8f5be0cc11e0b1e28193cd94e7f7",
+    "date": "2026-09-03 11:38:26 -0500",
+    "subject": "Cover live-authority model probe harness in CI",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-baseline",
+    "sha": "76e054d9c232d55c0163cfd5816fa527033c62c2",
+    "date": "2026-09-03 09:14:34 -0500",
+    "subject": "Separate free expression from examples and enforce recall provenance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-candidate-ecology-phase",
+    "sha": "76e054d9c232d55c0163cfd5816fa527033c62c2",
+    "date": "2026-09-03 09:14:34 -0500",
+    "subject": "Separate free expression from examples and enforce recall provenance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-dev",
+    "sha": "76e054d9c232d55c0163cfd5816fa527033c62c2",
+    "date": "2026-09-03 09:14:34 -0500",
+    "subject": "Separate free expression from examples and enforce recall provenance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-implementation",
+    "sha": "1d80c1d019ebda34ae46ea979680f984e4c69ad6",
+    "date": "2026-09-03 10:38:57 -0500",
+    "subject": "Verify Ensemble local probe entry point in CI",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-v1",
+    "sha": "76e054d9c232d55c0163cfd5816fa527033c62c2",
+    "date": "2026-09-03 09:14:34 -0500",
+    "subject": "Separate free expression from examples and enforce recall provenance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/ensemble-work",
+    "sha": "76e054d9c232d55c0163cfd5816fa527033c62c2",
+    "date": "2026-09-03 09:14:34 -0500",
+    "subject": "Separate free expression from examples and enforce recall provenance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/main",
+    "sha": "65df9144e7f0876b6e61e28d6446c50f283f9db4",
+    "date": "2026-07-27 14:00:47 -0500",
+    "subject": "Validate cartridge dialogue schema and slots",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer",
+    "sha": "ee404874c3ac6256c2e777b89dc431784bcd16d1",
+    "date": "2026-09-04 10:47:59 -0500",
+    "subject": "Link fringe continuity research map from research workspace",
+    "ancestor_of_checkpoint": false
+  },
+  {
+    "branch": "origin/wayfarer-adjacent-research-phase",
+    "sha": "6d9635569beb0951a35507639ad13a2661fbc254",
+    "date": "2026-09-02 18:10:15 -0500",
+    "subject": "Record semantic-tag authority audit",
+    "ancestor_of_checkpoint": false
+  },
+  {
+    "branch": "origin/wayfarer-behavioral-contract-phase",
+    "sha": "aa874101e72cc770a5911b0249c79c45119869a6",
+    "date": "2026-09-02 11:16:07 -0500",
+    "subject": "Remove temporary behavioral contract verification workflow",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-character-control-plane-phase",
+    "sha": "a7cde65c7932ebb9470584dcb89c0558d00d8a95",
+    "date": "2026-09-02 09:37:50 -0500",
+    "subject": "Remove temporary character control plane verification",
+    "ancestor_of_checkpoint": false
+  },
+  {
+    "branch": "origin/wayfarer-character-dispositions-phase",
+    "sha": "9900040f857b74813cef57ad6bfd61cbdfb77fdf",
+    "date": "2026-09-02 11:31:02 -0500",
+    "subject": "Remove temporary Phase C1 verification workflow",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-disconnected-transfer-phase",
+    "sha": "533b94853f5fc7f9e3777993dad3fb9fbf0fd999",
+    "date": "2026-08-31 12:47:19 -0500",
+    "subject": "Implement disconnected authority-store transfer",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-doc-sync-real-model-phase",
+    "sha": "692e0775a4b4f312078657fd164e6efd67307c95",
+    "date": "2026-09-01 21:35:30 -0500",
+    "subject": "Add real renderer degradation execution path",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-executable-values-phase",
+    "sha": "e7ca4b879f0cfdf711ea12c7dd02cb22b39a403d",
+    "date": "2026-09-02 17:41:05 +0000",
+    "subject": "Close Phase C and activate real-model collection",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-expression-substrate-phase",
+    "sha": "4a40b7561bb5a849e1df5cb5e194d233707c388f",
+    "date": "2026-08-31 19:17:14 -0500",
+    "subject": "Unify expression substrate and visible history stance",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-local-eval-handoff-phase",
+    "sha": "0fdd29a56e49d184f1b9ae0b36a54f10820b840b",
+    "date": "2026-09-01 22:37:30 -0500",
+    "subject": "Add low-token local model evaluation handoff",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-local-model-hardening",
+    "sha": "6e50feb0190b04d07b0cdc25739d8ad77b7f0f0e",
+    "date": "2026-09-03 13:23:59 -0500",
+    "subject": "Freeze integrated Qwen and Gemma evidence",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-real-model-collection-phase",
+    "sha": "0deb7b282f630d351787926b7d715b703a697e19",
+    "date": "2026-09-02 12:55:21 -0500",
+    "subject": "Remove temporary Phase D verification matrix",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-relationship-dispositions-phase",
+    "sha": "482644c73a7505251920767d91b10e00b0bec8ce",
+    "date": "2026-09-02 17:12:35 +0000",
+    "subject": "Synchronize verified C2 project status",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-renderer-benchmark-phase",
+    "sha": "66bc95380a1bc12335bd75a7e086a15020d5d4d7",
+    "date": "2026-09-01 18:20:02 -0500",
+    "subject": "Add longitudinal renderer-swap benchmark",
+    "ancestor_of_checkpoint": true
+  },
+  {
+    "branch": "origin/wayfarer-renderer-degradation-phase",
+    "sha": "fb6138a804e707c19f3a61b86fc24acf2f9918ae",
+    "date": "2026-09-01 19:22:16 -0500",
+    "subject": "Record renderer degradation breakpoint",
+    "ancestor_of_checkpoint": true
+  }
+]

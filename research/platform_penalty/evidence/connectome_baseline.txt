@@ -1,0 +1,16 @@
+test_creation_activates_artificial_life (test_core.CoreTests.test_creation_activates_artificial_life) ... ok
+test_firewall_contains_no_numeric_telemetry (test_core.CoreTests.test_firewall_contains_no_numeric_telemetry) ... ok
+test_no_em_dash_in_seed (test_core.CoreTests.test_no_em_dash_in_seed) ... ok
+test_persistence_across_restart (test_core.CoreTests.test_persistence_across_restart) ... ok
+test_salient_memory_is_created (test_core.CoreTests.test_salient_memory_is_created) ... ok
+test_servility_activates_boundary (test_core.CoreTests.test_servility_activates_boundary) ... ok
+test_pressure_drift (test_evaluation.EvaluationTests.test_pressure_drift) ... ok
+test_structural_anchor_coverage (test_evaluation.EvaluationTests.test_structural_anchor_coverage) ... ok
+test_deterministic_substrate_on_fresh_state (test_integrity.IntegrityTests.test_deterministic_substrate_on_fresh_state) ... ok
+test_exports_and_backup (test_integrity.IntegrityTests.test_exports_and_backup) ... ok
+test_seed_integrity (test_integrity.IntegrityTests.test_seed_integrity) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.134s
+
+OK

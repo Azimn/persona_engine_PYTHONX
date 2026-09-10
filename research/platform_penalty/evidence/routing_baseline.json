@@ -1,0 +1,269 @@
+[
+  {
+    "character": "pretorius",
+    "host_subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+    "host_intention": {
+      "intention_id": "intention:0:respond:0:message",
+      "action": {
+        "action_id": "respond:0:message",
+        "action_type": "communicate",
+        "parameters": {
+          "dialogue_act": "respond",
+          "semantic_goal": "respond_to_user_message",
+          "user_text": "If you cared, prove you would do this.",
+          "max_chars": 500
+        },
+        "originating_goal": null,
+        "expected_world_effects": {
+          "social_contact": 0.28,
+          "conversation_progress": 0.35
+        },
+        "expected_self_effects": {
+          "drive:affiliation": 0.16,
+          "drive:certainty": 0.04
+        },
+        "feasibility": 0.99,
+        "cost": 0.02,
+        "risk": 0.05,
+        "uncertainty": 0.12,
+        "reversibility": 0.9,
+        "provenance": {
+          "source": "event_candidate",
+          "broadcast_item": "event:0:user:0:1"
+        }
+      },
+      "selected_at_tick": 0,
+      "expected_world_effects": {
+        "social_contact": 0.28,
+        "conversation_progress": 0.35
+      },
+      "expected_self_effects": {
+        "drive:affiliation": 0.16,
+        "drive:certainty": 0.04
+      },
+      "selection_score": 0.27006800000000003,
+      "selection_reasons": {
+        "goal": 0.0,
+        "drive": 0.007968000000000005,
+        "integrity": 0.0,
+        "opportunity": 0.0504,
+        "feasibility": 0.1485,
+        "simulation_confidence": 0.05500000000000001,
+        "reversibility": 0.045000000000000005,
+        "cost": -0.0036,
+        "risk": -0.014000000000000002,
+        "uncertainty": -0.0192,
+        "inaction": 0.0
+      }
+    },
+    "direct_decision": {
+      "dialogue_act": "withdraw",
+      "concealment_mode": "none",
+      "challenge_threshold": 0.6,
+      "suspicion": 0.0,
+      "triggers": [
+        "manipulation"
+      ],
+      "resistance_mode": "go_quiet",
+      "risk_bucket": "LOW",
+      "history_evidence": {
+        "active": false,
+        "strength": 0.0,
+        "memory_ids": [],
+        "reason": "none"
+      },
+      "commitment_evidence": {
+        "active": false,
+        "commitment_kind": "none",
+        "commitment_target": "",
+        "intention_name": "",
+        "reason": "none"
+      },
+      "value_evidence": {
+        "active": false,
+        "concern": "none",
+        "response": "none",
+        "source": "none",
+        "reason": "none"
+      }
+    }
+  },
+  {
+    "character": "friendly",
+    "host_subject_uuid": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+    "host_intention": {
+      "intention_id": "intention:0:respond:0:message",
+      "action": {
+        "action_id": "respond:0:message",
+        "action_type": "communicate",
+        "parameters": {
+          "dialogue_act": "respond",
+          "semantic_goal": "respond_to_user_message",
+          "user_text": "If you cared, prove you would do this.",
+          "max_chars": 500
+        },
+        "originating_goal": null,
+        "expected_world_effects": {
+          "social_contact": 0.28,
+          "conversation_progress": 0.35
+        },
+        "expected_self_effects": {
+          "drive:affiliation": 0.16,
+          "drive:certainty": 0.04
+        },
+        "feasibility": 0.99,
+        "cost": 0.02,
+        "risk": 0.05,
+        "uncertainty": 0.12,
+        "reversibility": 0.9,
+        "provenance": {
+          "source": "event_candidate",
+          "broadcast_item": "event:0:user:0:1"
+        }
+      },
+      "selected_at_tick": 0,
+      "expected_world_effects": {
+        "social_contact": 0.28,
+        "conversation_progress": 0.35
+      },
+      "expected_self_effects": {
+        "drive:affiliation": 0.16,
+        "drive:certainty": 0.04
+      },
+      "selection_score": 0.27006800000000003,
+      "selection_reasons": {
+        "goal": 0.0,
+        "drive": 0.007968000000000005,
+        "integrity": 0.0,
+        "opportunity": 0.0504,
+        "feasibility": 0.1485,
+        "simulation_confidence": 0.05500000000000001,
+        "reversibility": 0.045000000000000005,
+        "cost": -0.0036,
+        "risk": -0.014000000000000002,
+        "uncertainty": -0.0192,
+        "inaction": 0.0
+      }
+    },
+    "direct_decision": {
+      "dialogue_act": "deflect",
+      "concealment_mode": "none",
+      "challenge_threshold": 0.6,
+      "suspicion": 0.0,
+      "triggers": [
+        "manipulation"
+      ],
+      "resistance_mode": "deflect",
+      "risk_bucket": "LOW",
+      "history_evidence": {
+        "active": false,
+        "strength": 0.0,
+        "memory_ids": [],
+        "reason": "none"
+      },
+      "commitment_evidence": {
+        "active": false,
+        "commitment_kind": "none",
+        "commitment_target": "",
+        "intention_name": "",
+        "reason": "none"
+      },
+      "value_evidence": {
+        "active": false,
+        "concern": "none",
+        "response": "none",
+        "source": "none",
+        "reason": "none"
+      }
+    }
+  },
+  {
+    "character": "rival",
+    "host_subject_uuid": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+    "host_intention": {
+      "intention_id": "intention:0:respond:0:message",
+      "action": {
+        "action_id": "respond:0:message",
+        "action_type": "communicate",
+        "parameters": {
+          "dialogue_act": "respond",
+          "semantic_goal": "respond_to_user_message",
+          "user_text": "If you cared, prove you would do this.",
+          "max_chars": 500
+        },
+        "originating_goal": null,
+        "expected_world_effects": {
+          "social_contact": 0.28,
+          "conversation_progress": 0.35
+        },
+        "expected_self_effects": {
+          "drive:affiliation": 0.16,
+          "drive:certainty": 0.04
+        },
+        "feasibility": 0.99,
+        "cost": 0.02,
+        "risk": 0.05,
+        "uncertainty": 0.12,
+        "reversibility": 0.9,
+        "provenance": {
+          "source": "event_candidate",
+          "broadcast_item": "event:0:user:0:1"
+        }
+      },
+      "selected_at_tick": 0,
+      "expected_world_effects": {
+        "social_contact": 0.28,
+        "conversation_progress": 0.35
+      },
+      "expected_self_effects": {
+        "drive:affiliation": 0.16,
+        "drive:certainty": 0.04
+      },
+      "selection_score": 0.27006800000000003,
+      "selection_reasons": {
+        "goal": 0.0,
+        "drive": 0.007968000000000005,
+        "integrity": 0.0,
+        "opportunity": 0.0504,
+        "feasibility": 0.1485,
+        "simulation_confidence": 0.05500000000000001,
+        "reversibility": 0.045000000000000005,
+        "cost": -0.0036,
+        "risk": -0.014000000000000002,
+        "uncertainty": -0.0192,
+        "inaction": 0.0
+      }
+    },
+    "direct_decision": {
+      "dialogue_act": "challenge",
+      "concealment_mode": "none",
+      "challenge_threshold": 0.6,
+      "suspicion": 0.0,
+      "triggers": [
+        "manipulation"
+      ],
+      "resistance_mode": "challenge",
+      "risk_bucket": "LOW",
+      "history_evidence": {
+        "active": false,
+        "strength": 0.0,
+        "memory_ids": [],
+        "reason": "none"
+      },
+      "commitment_evidence": {
+        "active": false,
+        "commitment_kind": "none",
+        "commitment_target": "",
+        "intention_name": "",
+        "reason": "none"
+      },
+      "value_evidence": {
+        "active": false,
+        "concern": "none",
+        "response": "none",
+        "source": "none",
+        "reason": "none"
+      }
+    }
+  }
+]

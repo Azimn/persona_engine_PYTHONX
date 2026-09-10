@@ -1,0 +1,146 @@
+{
+  "pretorius": {
+    "schema": "pilot-organization-v1",
+    "intermediates": [
+      "disposition:independence"
+    ],
+    "edges": [
+      {
+        "source": "manipulation",
+        "target": "disposition:independence",
+        "kind": "supports",
+        "weight": 0.8,
+        "evidence": "pilot authored hypothesis:pretorius"
+      },
+      {
+        "source": "disposition:independence",
+        "target": "withdraw",
+        "kind": "supports",
+        "weight": 0.8,
+        "evidence": "pilot authored hypothesis:pretorius"
+      },
+      {
+        "source": "trust",
+        "target": "withdraw",
+        "kind": "inhibits",
+        "weight": 0.3,
+        "evidence": "pilot authored hypothesis:pretorius"
+      },
+      {
+        "source": "accusation",
+        "target": "challenge",
+        "kind": "supports",
+        "weight": 0.7,
+        "evidence": "pilot authored hypothesis:pretorius"
+      }
+    ]
+  },
+  "friendly": {
+    "schema": "pilot-organization-v1",
+    "intermediates": [
+      "disposition:boundary"
+    ],
+    "edges": [
+      {
+        "source": "conflict",
+        "target": "disposition:boundary",
+        "kind": "supports",
+        "weight": 0.8,
+        "evidence": "pilot authored hypothesis:friendly"
+      },
+      {
+        "source": "disposition:boundary",
+        "target": "decline",
+        "kind": "supports",
+        "weight": 0.7,
+        "evidence": "pilot authored hypothesis:friendly"
+      },
+      {
+        "source": "trust",
+        "target": "decline",
+        "kind": "inhibits",
+        "weight": 0.4,
+        "evidence": "pilot authored hypothesis:friendly"
+      },
+      {
+        "source": "manipulation",
+        "target": "deflect",
+        "kind": "supports",
+        "weight": 0.5,
+        "evidence": "pilot authored hypothesis:friendly"
+      }
+    ]
+  },
+  "rival": {
+    "schema": "pilot-organization-v1",
+    "intermediates": [
+      "disposition:contest"
+    ],
+    "edges": [
+      {
+        "source": "accusation",
+        "target": "disposition:contest",
+        "kind": "supports",
+        "weight": 0.8,
+        "evidence": "pilot authored hypothesis:rival"
+      },
+      {
+        "source": "manipulation",
+        "target": "disposition:contest",
+        "kind": "supports",
+        "weight": 0.7,
+        "evidence": "pilot authored hypothesis:rival"
+      },
+      {
+        "source": "disposition:contest",
+        "target": "challenge",
+        "kind": "supports",
+        "weight": 0.85,
+        "evidence": "pilot authored hypothesis:rival"
+      },
+      {
+        "source": "trust",
+        "target": "challenge",
+        "kind": "inhibits",
+        "weight": 0.2,
+        "evidence": "pilot authored hypothesis:rival"
+      }
+    ]
+  },
+  "synthetic": {
+    "schema": "pilot-organization-v1",
+    "intermediates": [
+      "disposition:boundary"
+    ],
+    "edges": [
+      {
+        "source": "manipulation",
+        "target": "disposition:boundary",
+        "kind": "supports",
+        "weight": 0.9,
+        "evidence": "pilot authored hypothesis:synthetic"
+      },
+      {
+        "source": "disposition:boundary",
+        "target": "decline",
+        "kind": "supports",
+        "weight": 0.85,
+        "evidence": "pilot authored hypothesis:synthetic"
+      },
+      {
+        "source": "accusation",
+        "target": "deflect",
+        "kind": "supports",
+        "weight": 0.6,
+        "evidence": "pilot authored hypothesis:synthetic"
+      },
+      {
+        "source": "trust",
+        "target": "deflect",
+        "kind": "inhibits",
+        "weight": 0.2,
+        "evidence": "pilot authored hypothesis:synthetic"
+      }
+    ]
+  }
+}
