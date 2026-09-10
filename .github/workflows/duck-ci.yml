@@ -61,6 +61,10 @@ jobs:
         if: startsWith(github.ref_name, 'duck-future')
         run: python tools/run_duck_acceptance.py --cycles 24 --expression-cache-limit 8 --require-expression-eviction --output /tmp/duck-eviction.json
 
+      - name: Gate Platform Penalty experimental interfaces
+        if: startsWith(github.ref_name, 'duck-platform-penalty')
+        run: python -m pytest persona_engine/tests/test_platform_penalty_experiment.py -q
+
       - name: Run full inherited deterministic suite
         run: python -m pytest persona_engine/tests -q
 
@@ -69,6 +73,10 @@ jobs:
 
       - name: Verify DUCK smoke entry point
         run: python tools/run_duck_smoke.py --output /tmp/duck-smoke.json
+
+      - name: Run Platform Penalty A/B/C benchmark
+        if: startsWith(github.ref_name, 'duck-platform-penalty')
+        run: python tools/run_platform_penalty.py --output /tmp/platform-penalty.json --print-summary --fail-on-hard-failure
 
       - name: Run DUCK future-build integration probe
         if: startsWith(github.ref_name, 'duck-future')
