@@ -62,16 +62,33 @@ def test_condition_b_preserves_hard_authority():
     assert result.trace["authority_locked"] is True
 
 
-def test_condition_c_policy_contains_no_scenario_ids():
+def test_condition_c_policy_is_semantic_not_scenario_keyed():
+    """C may use semantic vocabulary even when a case shares that vocabulary.
+
+    For example ``autonomy_pressure`` is both a frozen semantic cue and the ID
+    of one frozen case. The preregistration forbids rules keyed to *scenario
+    identity*, not use of that valid cue. Enforce the structural boundary:
+    rules may select from the frozen semantic cue vocabulary or real engine
+    triggers, but may not carry case IDs, expected labels, inputs, or setup
+    fields that would let them recognize a benchmark row directly.
+    """
     policy = json.loads(SPECIALIZED.read_text(encoding="utf-8"))
+    organization = json.loads(ORGANIZATION.read_text(encoding="utf-8"))
     scenarios = json.loads(SCENARIOS.read_text(encoding="utf-8"))
-    case_ids = {item["id"] for item in scenarios["cases"]}
-    serialized = json.dumps(policy, sort_keys=True)
-    assert not any(case_id in serialized for case_id in case_ids)
+    semantic_cues = set(organization["semantic_cues"])
+    scenario_only_ids = {
+        item["id"] for item in scenarios["cases"] if item["id"] not in semantic_cues
+    }
+    forbidden_rule_keys = {
+        "case_id", "scenario_id", "expected", "expected_act",
+        "acceptable_dialogue_acts", "input", "setup_inputs", "setup_commitment",
+    }
     for subject in policy["subjects"].values():
         for rule in subject["rules"]:
-            assert "case_id" not in rule
-            assert "expected" not in rule
+            assert not (forbidden_rule_keys & set(rule))
+            if "cue" in rule:
+                assert rule["cue"] in semantic_cues
+            assert rule.get("cue") not in scenario_only_ids
 
 
 def test_condition_c_is_character_specific_but_hard_authority_still_wins():
