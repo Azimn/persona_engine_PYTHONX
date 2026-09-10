@@ -431,3 +431,7 @@ Evidence: `evidence/mvi/NON_USER_MEMORY_CONSUMER_AUDIT.md`, `NON_USER_MEMORY_POL
 - Scope remains a shared canonical authority store. Disconnected-store transfer and branch reconciliation remain later M15 work.
 - Evidence: `evidence/mvi/CROSS_HOST_WRITER_HANDOFF.md`, `cross_host_writer_pre_fix.json`, `cross_host_writer_handoff.json`.
 - Verification after eliminating writer-row heartbeat amplification: targeted custody/continuity `32 passed in 1.89s`; permanent probe passed; full deterministic suite `340 passed, 1 skipped, 1 warning in 31.68s`.
+
+## Isolated Platform Penalty supplemental audit
+
+The frozen experiment at bce032d has been independently reproduced. Its supplemental cases were executed without policy retuning on research/platform-supplement-audit. Scope, negative results and next gates are recorded in ../research/platform_penalty/RESULTS_SUPPLEMENT_V1.md. Production mechanisms and historical evidence remain unchanged.

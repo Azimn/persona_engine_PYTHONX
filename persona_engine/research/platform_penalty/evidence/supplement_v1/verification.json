@@ -1,0 +1,9 @@
+{
+  "base_sha": "bce032dbdbd3854901a1d1bc510d5001742a5a58",
+  "verified_run": 34539598827,
+  "conclusion": "success",
+  "url": "https://github.com/Azimn/persona_engine_PYTHONX/actions/runs/34539598827",
+  "donor_archive_sha256": "277cdc1c41177022d8896fa150556aac381d41575bf3276e6d579b7a190225ac",
+  "original_local_work_preserved": "research/platform-penalty-v1 in separate worktree",
+  "actual_model_available": false
+}

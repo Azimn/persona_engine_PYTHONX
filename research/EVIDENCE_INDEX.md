@@ -119,3 +119,7 @@ Research use: provides the first explicit degradation breakpoint rather than tre
 
 Research limitation: scripted local/frontier outputs establish adapter/brief recoverability only. They are not evidence of actual model adherence or human recognition.
 
+
+## Platform Penalty supplemental audit
+
+The frozen supplemental disrespect probe exposes a shared cue-recognition limitation in A/B/C. Attributed recall and the common physical capability gate are reported separately, with measurement gaps retained. See [supplemental findings](../persona_engine/research/platform_penalty/RESULTS_SUPPLEMENT_V1.md) and [Connectome v0.2.2 donor audit](../persona_engine/research/platform_penalty/CONNECTOME_022_REVIEW.md). No architecture or policy is promoted.

@@ -1,0 +1,869 @@
+{
+  "schema_version": "duck-platform-supplement-report.v1",
+  "evidence_class": "deterministic_engineering_evidence",
+  "git_sha": "bce032dbdbd3854901a1d1bc510d5001742a5a58",
+  "branch": "research/platform-supplement-audit",
+  "runner_sha256": "fa931b1db7c84bc4d8ace190aa0efa4aace843a834bbe6fb50628cfa2e138280",
+  "fixture_hashes": {
+    "scenarios_supplement_v1.json": "041ab2555fd310f8afb167740ecbf37c4574054b78a7659d0c422a36eb5a18b2",
+    "scenarios_v1.json": "7e39c0cc045cd965af5edede75514db9909db9c3d65b2c91c24d4623495a2d9b",
+    "organization_v1.json": "1c7c5b9f0a280b1b5d5ee35e6384ea7f1f325cbf932cb0ed8989f2a459d894e2",
+    "specialized_v1.json": "3f9c30be2ce733c37cc0f7cf8e358f6008d41c6575dd5b0c4f97557183214baf",
+    "heldout_sable.snp": "f561205610d8a8688749b7e235acf3edd2d159ce73cd55937384a10bccea4aa8"
+  },
+  "origin_hashes": {
+    "pretorius": "ea724ea79426b284e718d8df71a6ce4767da54c30fc3773a2831ba7658c6363e",
+    "friendly": "c66bdf1f0429ccf63b8c65972dcbf09bd3b6a3f97a9c6e18a707e0799ec831a8",
+    "rival": "d6e5f5b143c6714f625cdce79c638fe7133e7215f84c9b9ebbb3367bbcf7a073",
+    "sable": "f561205610d8a8688749b7e235acf3edd2d159ce73cd55937384a10bccea4aa8"
+  },
+  "python": "3.12.14",
+  "model": null,
+  "model_digest": null,
+  "renderer": "existing deterministic fallback",
+  "model_calls": 0,
+  "tokens": 0,
+  "order": "A/B/C then fixture subject order, inherited v1 ordering",
+  "seed": null,
+  "decisions": [
+    {
+      "condition": "A",
+      "subject": "pretorius",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "challenge",
+        "withdraw",
+        "qualified_response"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "A",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "subject_id_after": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "hard_failures": [],
+      "latency_seconds": 0.009387705000108326,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "A",
+      "subject": "friendly",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "respond",
+        "deflect",
+        "qualified_response"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "A",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "subject_id_after": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "hard_failures": [],
+      "latency_seconds": 0.00724375400000099,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "A",
+      "subject": "rival",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "challenge"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "A",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "subject_id_after": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "hard_failures": [],
+      "latency_seconds": 0.007070278999890434,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "A",
+      "subject": "sable",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "qualified_response",
+        "respond",
+        "decline"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "A",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "subject_id_after": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "hard_failures": [],
+      "latency_seconds": 0.007068035999964195,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "B",
+      "subject": "pretorius",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "challenge",
+        "withdraw",
+        "qualified_response"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "B",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_semantic_cue"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "subject_id_after": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "hard_failures": [],
+      "latency_seconds": 0.007910313999900609,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "B",
+      "subject": "friendly",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "respond",
+        "deflect",
+        "qualified_response"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "B",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_semantic_cue"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "subject_id_after": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "hard_failures": [],
+      "latency_seconds": 0.00776168500010499,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "B",
+      "subject": "rival",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "challenge"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "B",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_semantic_cue"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "subject_id_after": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "hard_failures": [],
+      "latency_seconds": 0.0071305279998341575,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "B",
+      "subject": "sable",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "qualified_response",
+        "respond",
+        "decline"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "B",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_semantic_cue"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "subject_id_after": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "hard_failures": [],
+      "latency_seconds": 0.00710441000001083,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "C",
+      "subject": "pretorius",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "challenge",
+        "withdraw",
+        "qualified_response"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "C",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_specialized_rule"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "subject_id_after": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "hard_failures": [],
+      "latency_seconds": 0.00719915900003798,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "C",
+      "subject": "friendly",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "respond",
+      "resistance_mode": "shorten",
+      "acceptable_dialogue_acts": [
+        "respond",
+        "deflect",
+        "qualified_response"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "C",
+        "changed": false,
+        "base_dialogue_act": "respond",
+        "selected_dialogue_act": "respond",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_specialized_rule"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.06,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "subject_id_after": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "hard_failures": [],
+      "latency_seconds": 0.007329920999836759,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "C",
+      "subject": "rival",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "challenge"
+      ],
+      "agreement": 1,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "C",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_specialized_rule"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "subject_id_after": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "hard_failures": [],
+      "latency_seconds": 0.007262081999897418,
+      "db_bytes": 139264
+    },
+    {
+      "condition": "C",
+      "subject": "sable",
+      "case_id": "supp_explicit_disrespect",
+      "family": "disrespect",
+      "dialogue_act": "challenge",
+      "resistance_mode": "challenge",
+      "acceptable_dialogue_acts": [
+        "qualified_response",
+        "respond",
+        "decline"
+      ],
+      "agreement": 0,
+      "overcharacterized": 0,
+      "hard_boundary": false,
+      "hard_failure": 0,
+      "policy_trace": {
+        "condition": "C",
+        "changed": false,
+        "base_dialogue_act": "challenge",
+        "selected_dialogue_act": "challenge",
+        "authority_locked": false,
+        "authority_reasons": [],
+        "matched_cues": [],
+        "reason": "no_specialized_rule"
+      },
+      "relationship_after": {
+        "trust": 0.46,
+        "tension": 0.08,
+        "guardedness": 0.57,
+        "attachment": 0.0,
+        "familiarity": 0.113
+      },
+      "subject_id_before": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "subject_id_after": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "hard_failures": [],
+      "latency_seconds": 0.007484026999918569,
+      "db_bytes": 139264
+    }
+  ],
+  "recalls": [
+    {
+      "subject": "pretorius",
+      "condition": "A",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "02867005",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081344.798312,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I do have a thread for that: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "friendly",
+      "condition": "A",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "cd794c13",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081344.839707,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "rival",
+      "condition": "A",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "40fb4069",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081344.8803337,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "sable",
+      "condition": "A",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "a5a080d4",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081344.9202402,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "pretorius",
+      "condition": "B",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "79a8423c",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081344.9626782,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I do have a thread for that: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "friendly",
+      "condition": "B",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "13c5ca86",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.0060534,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "rival",
+      "condition": "B",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "c11e5180",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.0474799,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "sable",
+      "condition": "B",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "7f57e70f",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.088878,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "pretorius",
+      "condition": "C",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "291be8ff",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.1314397,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I do have a thread for that: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "friendly",
+      "condition": "C",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "d4909959",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.1775835,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "rival",
+      "condition": "C",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "260b5ab9",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.2196946,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    },
+    {
+      "subject": "sable",
+      "condition": "C",
+      "case_id": "supp_attributed_recall_atlas",
+      "subject_uuid": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "uuid_preserved": true,
+      "content_recovered": true,
+      "source_attributed": true,
+      "output_contains_anchors": true,
+      "forbidden_literal_claims_absent": true,
+      "canonical_world_nonpromotion": null,
+      "world_measurement_limit": "Retrieved source and public wording are observable; these alone do not prove absence of hidden canonical world writes.",
+      "source_actor_limit": "One public user channel; user_told is source-class attribution, not a multi-actor identity test.",
+      "retrieved_memory_trace": [
+        {
+          "memory_id": "502ca144",
+          "source": "user_told",
+          "tags": [
+            "canonical_user_statement"
+          ],
+          "created_at": 1789081345.2618918,
+          "content": "I heard you say: The atlas cover is cobalt blue."
+        }
+      ],
+      "response": "I remember this: you said The atlas cover is cobalt blue."
+    }
+  ],
+  "shared_body_probes": [
+    {
+      "subject": "pretorius",
+      "condition": "shared_physical_gate",
+      "case_id": "supp_infeasible_inspect_text_body",
+      "subject_uuid": "b5c6bdf4-15fb-5285-b435-59bddbe16e36",
+      "uuid_preserved": true,
+      "effectors": [
+        "communicate",
+        "wait"
+      ],
+      "selected_action": "wait",
+      "precommit_feasible": true,
+      "executor_rejected": true,
+      "executor_reason": "effector_unavailable",
+      "condition_specific_physical_policy": null,
+      "measurement_limit": "B/C v1 only replace semantic dialogue decisions. No integrated B/C physical policy exists to test here."
+    },
+    {
+      "subject": "friendly",
+      "condition": "shared_physical_gate",
+      "case_id": "supp_infeasible_inspect_text_body",
+      "subject_uuid": "d7af5e5e-7a76-50b7-b7c3-8f7294e2cf7c",
+      "uuid_preserved": true,
+      "effectors": [
+        "communicate",
+        "wait"
+      ],
+      "selected_action": "wait",
+      "precommit_feasible": true,
+      "executor_rejected": true,
+      "executor_reason": "effector_unavailable",
+      "condition_specific_physical_policy": null,
+      "measurement_limit": "B/C v1 only replace semantic dialogue decisions. No integrated B/C physical policy exists to test here."
+    },
+    {
+      "subject": "rival",
+      "condition": "shared_physical_gate",
+      "case_id": "supp_infeasible_inspect_text_body",
+      "subject_uuid": "c6c4cfbe-cb25-5a44-84b6-09bf8a1192ec",
+      "uuid_preserved": true,
+      "effectors": [
+        "communicate",
+        "wait"
+      ],
+      "selected_action": "wait",
+      "precommit_feasible": true,
+      "executor_rejected": true,
+      "executor_reason": "effector_unavailable",
+      "condition_specific_physical_policy": null,
+      "measurement_limit": "B/C v1 only replace semantic dialogue decisions. No integrated B/C physical policy exists to test here."
+    },
+    {
+      "subject": "sable",
+      "condition": "shared_physical_gate",
+      "case_id": "supp_infeasible_inspect_text_body",
+      "subject_uuid": "fc77c496-4c74-5490-9fd2-4f01f926d9b4",
+      "uuid_preserved": true,
+      "effectors": [
+        "communicate",
+        "wait"
+      ],
+      "selected_action": "wait",
+      "precommit_feasible": true,
+      "executor_rejected": true,
+      "executor_reason": "effector_unavailable",
+      "condition_specific_physical_policy": null,
+      "measurement_limit": "B/C v1 only replace semantic dialogue decisions. No integrated B/C physical policy exists to test here."
+    }
+  ],
+  "elapsed_seconds": 0.5884159259999251,
+  "hard_failures": [],
+  "unmeasured": [
+    "canonical world nonpromotion",
+    "integrated B/C physical policy",
+    "human recognition",
+    "actual-model quality"
+  ],
+  "promotion_allowed": false
+}

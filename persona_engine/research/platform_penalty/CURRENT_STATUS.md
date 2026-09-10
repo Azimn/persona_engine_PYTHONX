@@ -6,7 +6,13 @@ Branch: `duck-platform-penalty-experiment`
 
 Frozen production reference: `86db5344e093a8f516fd2f9ec26d866d29bed019`
 
-## Current state
+## Supplemental checkpoint
+
+The frozen supplement has now been executed without retuning A/B/C. All three conditions pass two of four disrespect judgments on one scenario. Attributed content is recovered in all twelve recall probes. Four common DUCK body probes reject unavailable inspection before commitment and at execution. These are separate measurements, with canonical world nonpromotion and integrated B/C physical behavior explicitly unmeasured. See [RESULTS_SUPPLEMENT_V1.md](RESULTS_SUPPLEMENT_V1.md) and [CONNECTOME_022_REVIEW.md](CONNECTOME_022_REVIEW.md).
+
+Remote head `bce032d` was verified green in CI run `34539598827`. New work is isolated on `duck-platform-penalty-supplement-audit`; production and original experiment conditions remain unchanged. The next task is a separately preregistered interpretation/integration experiment, followed by same-origin developmental and actual-model evaluation. The supplement has been consumed and must not be described as untouched holdout evidence again.
+
+## Original v1 state
 
 The first deterministic A/B/C Platform Penalty benchmark has completed successfully and is frozen in `RESULTS_V1.md`.
 
@@ -49,7 +55,7 @@ Do not rewrite these to fit later results:
 
 ## Next gate
 
-The next work should execute the frozen supplemental probes without retuning B or C, then add broader longitudinal and actual-model evidence.
+The original next-gate sequence below is retained for context. Supplemental execution and the B/C disagreement diagnosis are complete; broader longitudinal and actual-model evidence remains outstanding.
 
 Specifically:
 

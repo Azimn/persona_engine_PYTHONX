@@ -81,3 +81,14 @@ jobs:
       - name: Run DUCK future-build integration probe
         if: startsWith(github.ref_name, 'duck-future')
         run: python tools/run_duck_future_probe.py --cycles 500 --output /tmp/duck-future-probe.json
+
+      - name: Run frozen Platform Penalty supplement
+        if: startsWith(github.ref_name, 'duck-platform-penalty-supplement')
+        run: python -m persona_engine.research.platform_penalty.supplement --output /tmp/platform-supplement.json
+
+      - name: Preserve supplemental evidence
+        if: always() && startsWith(github.ref_name, 'duck-platform-penalty-supplement')
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-supplement-${{ matrix.python-version }}
+          path: /tmp/platform-supplement.json
